@@ -167,44 +167,58 @@ class _HomeShellState extends State<HomeShell> {
                 hub: Theme.of(context).colorScheme.surface,
               ),
             ),
-            PageView(
-              key: _pagesKey,
-              controller: _pages,
-              // Landscape: the tabs are a column, so the sections follow
-              // vertically, by a flick on the dial or the rail (see
-              // FlipDetector), not on the rows, which scroll.
-              scrollDirection: landscape ? Axis.vertical : Axis.horizontal,
-              physics: landscape || locked
-                  ? const NeverScrollableScrollPhysics()
-                  : null,
-              onPageChanged: (i) {
-                if (!_sliding) navigation.open(AppSection.values[i]);
+            // Tells the app when the sections stop sliding (see
+            // AppNavigation.sliding); the pages' own scrolls are deeper.
+            NotificationListener<ScrollNotification>(
+              onNotification: (n) {
+                if (n.depth == 0) {
+                  if (n is ScrollStartNotification) {
+                    navigation.sliding.value = true;
+                  } else if (n is ScrollEndNotification) {
+                    navigation.sliding.value = false;
+                  }
+                }
+                return false;
               },
-              children: [
-                for (var i = 0; i < _screens.length; i++)
-                  SectionFloat(
-                    pages: _pages,
-                    index: i,
-                    scrolls: _scrolls,
-                    child: _KeepAlive(
-                      // The page view slides its pages; they stay in place
-                      // and float (see [SectionFloat.page]).
-                      child: SectionFloat.page(
-                        pages: _pages,
-                        index: i,
-                        axis: landscape ? Axis.vertical : Axis.horizontal,
-                        direction: Directionality.of(context),
-                        // The sections out of sight keep their state but
-                        // not their animations: a metronome playing behind
-                        // the tuner runs no frames for a ring nobody sees.
-                        child: TickerMode(
-                          enabled: i == section.index,
-                          child: _screens[i],
+              child: PageView(
+                key: _pagesKey,
+                controller: _pages,
+                // Landscape: the tabs are a column, so the sections follow
+                // vertically, by a flick on the dial or the rail (see
+                // FlipDetector), not on the rows, which scroll.
+                scrollDirection: landscape ? Axis.vertical : Axis.horizontal,
+                physics: landscape || locked
+                    ? const NeverScrollableScrollPhysics()
+                    : null,
+                onPageChanged: (i) {
+                  if (!_sliding) navigation.open(AppSection.values[i]);
+                },
+                children: [
+                  for (var i = 0; i < _screens.length; i++)
+                    SectionFloat(
+                      pages: _pages,
+                      index: i,
+                      scrolls: _scrolls,
+                      child: _KeepAlive(
+                        // The page view slides its pages; they stay in place
+                        // and float (see [SectionFloat.page]).
+                        child: SectionFloat.page(
+                          pages: _pages,
+                          index: i,
+                          axis: landscape ? Axis.vertical : Axis.horizontal,
+                          direction: Directionality.of(context),
+                          // The sections out of sight keep their state but
+                          // not their animations: a metronome playing behind
+                          // the tuner runs no frames for a ring nobody sees.
+                          child: TickerMode(
+                            enabled: i == section.index,
+                            child: _screens[i],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
             PositionedDirectional(
               top: 0,

@@ -205,6 +205,11 @@ class SoLoudPianoOutput implements PianoOutput {
   Timer? _forget;
   static const _keepFor = Duration(seconds: 30);
 
+  /// In a browser the recordings stay while the page is open: reading them
+  /// again holds the screen up for seconds (there is no isolate there), and
+  /// did so at every return to the harmony after a pause.
+  static const _keepWhilePageOpen = kIsWeb;
+
   /// How long recordings got ready by [prepare] wait for a touch.
   static const _keepPreparedFor = Duration(minutes: 2);
 
@@ -295,7 +300,7 @@ class SoLoudPianoOutput implements PianoOutput {
       tailFor: was == null ? null : (position) => _tail(was, position),
     );
     _forget?.cancel();
-    _forget = Timer(_keepFor, _library.clear);
+    _forget = _keepWhilePageOpen ? null : Timer(_keepFor, _library.clear);
   }
 
   @override
@@ -305,7 +310,9 @@ class SoLoudPianoOutput implements PianoOutput {
     // Not played after all: they go, as after a stop, a while later.
     if (_playing != null) return;
     _forget?.cancel();
-    _forget = Timer(_keepPreparedFor, _library.clear);
+    _forget = _keepWhilePageOpen
+        ? null
+        : Timer(_keepPreparedFor, _library.clear);
   }
 }
 

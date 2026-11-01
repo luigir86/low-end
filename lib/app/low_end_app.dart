@@ -133,6 +133,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     _tuner.highestHz = _settings.tuning.highestHz;
     _settings.addListener(_onSettingsChanged);
     _navigation.addListener(_onNavigationChanged);
+    _navigation.sliding.addListener(_preparePiano);
     _drone.addListener(_onPlayingChanged);
     _metronome.addListener(_onPlayingChanged);
     // Coming to the tuner starts it only when nothing plays.
@@ -180,9 +181,17 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
   /// itself: the click must not come back unasked, out of time with the band.
   void _onNavigationChanged() {
     _navigation.tunerVisible ? _tuner.resume() : _tuner.stop();
-    // Coming to the harmony: the piano's notes are read before the touch.
-    if (_navigation.section == AppSection.drone) _drone.preparePiano();
+    _preparePiano();
     _keepScreenOn();
+  }
+
+  /// Coming to the harmony, the piano's notes are read before the touch;
+  /// once the sections have stopped sliding, since in a browser reading
+  /// them holds the screen up for a few seconds.
+  void _preparePiano() {
+    if (_navigation.section == AppSection.drone && !_navigation.sliding.value) {
+      _drone.preparePiano();
+    }
   }
 
   /// Whenever the tuner starts listening, whatever sounds is paused, or the
@@ -386,6 +395,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     // The settings may come from main() and outlive this state.
     _settings.removeListener(_onSettingsChanged);
     _navigation.removeListener(_onNavigationChanged);
+    _navigation.sliding.removeListener(_preparePiano);
     _drone.removeListener(_onPlayingChanged);
     _metronome.removeListener(_onPlayingChanged);
     _metronome.removeListener(_rememberMetronome);

@@ -25,11 +25,17 @@ void main(List<String> args) {
     hash = _fnv(hash, utf8.encode(path));
     hash = _fnv(hash, file.readAsBytesSync());
   }
+  // The builds the worker picks from count in the version too: the app's
+  // own code is among them (main.dart.wasm, main.dart.js), and a new
+  // version of it must replace the one kept on the phone.
   for (final path in _engines.values.expand((paths) => paths)) {
-    if (!File('${root.path}/$path').existsSync()) {
+    final file = File('${root.path}/$path');
+    if (!file.existsSync()) {
       stderr.writeln('$path is missing: the worker could not keep it.');
       exit(1);
     }
+    hash = _fnv(hash, utf8.encode(path));
+    hash = _fnv(hash, file.readAsBytesSync());
   }
   final version = hash.toRadixString(16).padLeft(8, '0');
   File('${root.path}/sw.js')

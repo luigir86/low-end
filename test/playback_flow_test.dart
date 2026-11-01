@@ -194,6 +194,28 @@ void main() {
     expect(app.scope.drone.isPlaying, isFalse);
   });
 
+  testWidgets('the piano waits for the sections to stop sliding', (
+    tester,
+  ) async {
+    final piano = SilentPianoOutput();
+    final app = await _open(tester, piano: piano);
+    // The finger past the middle, still down: the harmony is the section,
+    // but reading the piano would hold the slide up in a browser.
+    final width = tester.getSize(find.byType(PageView)).width;
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byType(PageView)),
+    );
+    for (var i = 0; i < 7; i++) {
+      await gesture.moveBy(Offset(-width * 0.1, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(app.scope.navigation.section, AppSection.drone);
+    expect(piano.prepared, isNull);
+    await gesture.up();
+    await app.settle();
+    expect(piano.prepared, hasLength(1));
+  });
+
   group('the tuner pauses what plays', () {
     testWidgets('with nothing playing, it listens and says nothing', (
       tester,
