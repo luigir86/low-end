@@ -20,13 +20,7 @@ Future<void> main() async {
   if (kIsWeb) {
     // In a web page Flutter shows the screen to VoiceOver and TalkBack only
     // when asked; the app must be usable with them from the start.
-    // For a trial on a phone, ?lettori=no in the address leaves it to
-    // Flutter's own "Enable accessibility" button: is sliding between the
-    // sections smoother without it? (Keeping the screen readers' view up to
-    // date is about half the page's work while the sections slide.)
-    if (Uri.base.queryParameters['lettori'] != 'no') {
-      SemanticsBinding.instance.ensureSemantics();
-    }
+    SemanticsBinding.instance.ensureSemantics();
     // Music: the iPhone's silent switch must not mute the clicks.
     setWebAudioSession(listening: false);
   }

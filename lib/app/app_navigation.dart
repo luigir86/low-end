@@ -25,6 +25,16 @@ class AppNavigation extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// True while the sections slide under the finger or to a tab. Work that
+  /// would hold the screen up (getting the piano ready) waits for the end.
+  final sliding = ValueNotifier<bool>(false);
+
+  @override
+  void dispose() {
+    sliding.dispose();
+    super.dispose();
+  }
+
   void setCovered(bool covered) {
     if (covered == _covered) return;
     _covered = covered;
