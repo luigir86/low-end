@@ -97,7 +97,15 @@ class SectionFloat extends InheritedWidget {
               offset: axis == Axis.horizontal
                   ? Offset(sign * away * extent, 0)
                   : Offset(0, away * extent),
-              child: child,
+              // The whole section fades at once, its ring and its rows
+              // together: one layer to blend at each frame of a slide
+              // instead of one for the ring and one for each row, which a
+              // phone's browser was slow to draw. Drawn once and only moved
+              // and faded while it slides (RepaintBoundary).
+              child: Opacity(
+                opacity: opacity(away),
+                child: RepaintBoundary(child: child),
+              ),
             ),
           ),
         );
@@ -105,20 +113,12 @@ class SectionFloat extends InheritedWidget {
     );
   }
 
-  /// The ring and the hub of a section: they stay on the disc and fade.
-  static Widget ring(BuildContext context, Widget child) {
-    final float = of(context);
-    if (float == null) return child;
-    return AnimatedBuilder(
-      animation: float.pages,
-      child: child,
-      builder: (context, child) =>
-          Opacity(opacity: opacity(float.away), child: child),
-    );
-  }
+  /// The ring and the hub of a section: they stay on the disc and fade
+  /// with their section (see [page]).
+  static Widget ring(BuildContext context, Widget child) => child;
 
-  /// A row of controls: it fades and drifts a little the way the finger
-  /// goes, over the still disc.
+  /// A row of controls: it fades with its section (see [page]) and drifts a
+  /// little the way the finger goes, over the still disc.
   static Widget row(BuildContext context, Widget child, {required Axis axis}) {
     final float = of(context);
     if (float == null) return child;
@@ -131,14 +131,9 @@ class SectionFloat extends InheritedWidget {
             ? pages.position.viewportDimension
             : 0.0;
         final drift = -float.away * extent * _drift;
-        return Opacity(
-          opacity: opacity(float.away),
-          child: Transform.translate(
-            offset: axis == Axis.horizontal
-                ? Offset(drift, 0)
-                : Offset(0, drift),
-            child: child,
-          ),
+        return Transform.translate(
+          offset: axis == Axis.horizontal ? Offset(drift, 0) : Offset(0, drift),
+          child: child,
         );
       },
     );
