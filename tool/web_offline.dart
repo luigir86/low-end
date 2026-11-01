@@ -1,6 +1,6 @@
 // Writes sw.js into a web build: the service worker that keeps the web app's
 // files on the phone, so that it opens fast and works with no network.
-//   flutter build web --release --no-web-resources-cdn --base-href /low-end/
+//   flutter build web --wasm --release --no-web-resources-cdn --base-href /low-end/
 //   dart run tool/web_offline.dart build/web
 // The deploy workflow (.github/workflows/web.yml) runs both.
 import 'dart:convert';
@@ -38,14 +38,16 @@ void main(List<String> args) {
 }
 
 /// Whether the phone keeps [path] as soon as the app is installed. Of the
-/// drawing engine's builds (37 MB together) only the browser's own is kept,
-/// chosen by the worker itself (see _engines). The audio engine's
+/// drawing engine's builds (37 MB together) and of the app's two builds
+/// (WebAssembly and JavaScript) only the browser's own are kept, chosen by
+/// the worker itself (see _engines). The audio engine's
 /// single-threaded build is used only before the worker takes over, when
 /// the page is not isolated; if a browser ever keeps using it, the worker
 /// keeps it the first time it is asked for. The sources and build scripts
 /// that flutter_soloud ships next to its WebAssembly are never asked for.
 bool _kept(String path) =>
     !path.startsWith('canvaskit/') &&
+    !path.startsWith('main.dart.') &&
     !const {
       '.last_build_id',
       'flutter_service_worker.js',
@@ -55,14 +57,25 @@ bool _kept(String path) =>
     }.contains(path) &&
     !const ['.sh', '.bat', '.dart', '.deps', '.map'].any(path.endsWith);
 
-/// The drawing engine's builds the worker picks from, as Flutter does:
-/// Chrome's own, or the full one (Safari, also on the iPhone, and Firefox).
+/// The builds the worker picks from, as Flutter's loader does. Chrome, Edge
+/// and Samsung Internet take the app compiled to WebAssembly and Skwasm, the
+/// drawing engine that draws on its own thread: smoother, since the page's
+/// thread is left to the app. Safari (every browser on the iPhone) and
+/// Firefox take the app in JavaScript and the full CanvasKit, as before.
+/// A Chrome too old for WebAssembly's garbage collector (before 119) falls
+/// back to the JavaScript build, which the worker then keeps when asked.
 const _engines = {
   'chromium': [
-    'canvaskit/chromium/canvaskit.js',
-    'canvaskit/chromium/canvaskit.wasm',
+    'main.dart.mjs',
+    'main.dart.wasm',
+    'canvaskit/skwasm.js',
+    'canvaskit/skwasm.wasm',
   ],
-  'full': ['canvaskit/canvaskit.js', 'canvaskit/canvaskit.wasm'],
+  'full': [
+    'main.dart.js',
+    'canvaskit/canvaskit.js',
+    'canvaskit/canvaskit.wasm',
+  ],
 };
 
 // FNV-1a, 32 bits: enough to tell one build from the next.
@@ -83,8 +96,9 @@ String _worker(String version, List<String> files) =>
 const CACHE = 'low-end-$version';
 const FILES = ${const JsonEncoder.withIndent('  ').convert(files)};
 
-// The drawing engine this browser takes, as Flutter chooses it: Chrome's
-// own build, or the full one (Safari, also on the iPhone, and Firefox).
+// The app and drawing engine this browser takes, as Flutter chooses them:
+// WebAssembly and Skwasm in Chrome, Edge and Samsung Internet, JavaScript
+// and the full CanvasKit in Safari (also on the iPhone) and Firefox.
 const ENGINE = /Chrome\\//.test(self.navigator.userAgent)
   ? ${jsonEncode(_engines['chromium'])}
   : ${jsonEncode(_engines['full'])};
