@@ -33,7 +33,8 @@ The files are then kept on the phone: from the second opening it starts fast and
 Nothing is a second app: `web/` holds the page, its icons (made by `tool/make_icons_test.dart`) and the start-up script, and a few classes have a web version.
 
 - **Sound.** flutter_soloud ships the same engine compiled to WebAssembly. It has two builds: one mixes on its own thread (an AudioWorklet) and needs the page to be *cross-origin isolated*, the other mixes on the page's thread, where a slow frame can make it crackle. GitHub Pages cannot send the two headers isolation needs (COOP and COEP), so our service worker adds them. On the very first opening the worker only starts once the page is up: the page then reloads itself once, under the worker, unless a sound or the microphone has already started (`web/flutter_bootstrap.js`). So the steady build is used from the start, and the other only if the player touches play in that first moment.
-- **Starting fast.** `web/flutter_bootstrap.js` loads the audio engine only after the first frame, so the dial appears without waiting for it; a sound asked for before then loads it at once (`lib/audio/web_audio_engine.dart`). The service worker keeps only the drawing engine this browser uses (Flutter ships three, 37 MB together) and none of the audio engine's spare build.
+- **Starting fast.** `web/flutter_bootstrap.js` loads the audio engine only after the first frame, so the dial appears without waiting for it; a sound asked for before then loads it at once (`lib/audio/web_audio_engine.dart`). The service worker keeps only the drawing engine and app build this browser uses (Flutter ships several engines, 37 MB together) and none of the audio engine's spare build.
+- **Drawing.** The app is built twice (`--wasm`), and Flutter's loader picks for each browser. Chrome, Edge and Samsung Internet run the app compiled to WebAssembly with Skwasm, which draws on its own thread when the page is isolated: the page's thread only builds the frames, so changing section and the turning strobe stay smoother. Safari (every browser on the iPhone) and Firefox run the JavaScript build with CanvasKit, which draws on the page's thread, as before. The service worker keeps only the pair this browser takes. Measured in Chromium with the processor slowed four times: changing section went from about 3 to about 20 frames shown per second.
 - **Heavy work.** The piano's loops and the held tone are made in an isolate on the phone; a page has none, so `offThread` (`lib/audio/off_thread.dart`) makes them on the page's thread there.
 - **Microphone.** The `record` package listens through the browser (getUserMedia) and gives the tuner the same 16 kHz samples, with automatic gain, echo cancelling and noise suppression switched off.
 - **Where the sound goes.** `SpeakerAudioRoute` stands in for `AndroidAudioRoute`; `MediaNotificationAudio` does nothing on the web.
@@ -48,7 +49,7 @@ Nothing is a second app: `web/` holds the page, its icons (made by `tool/make_ic
 To build it by hand:
 
 ```
-flutter build web --release --no-web-resources-cdn --base-href /low-end/
+flutter build web --wasm --release --no-web-resources-cdn --base-href /low-end/
 dart run tool/web_offline.dart build/web
 ```
 

@@ -29,7 +29,9 @@ jobs:
           cache: true
       - run: flutter pub get
       # Everything from the site itself, nothing from Google's servers.
-      - run: flutter build web --release --no-web-resources-cdn --base-href /low-end/
+      # --wasm: Chrome and Edge get the app in WebAssembly, drawn on its own
+      # thread (smoother); Safari and Firefox the JavaScript build as before.
+      - run: flutter build web --wasm --release --no-web-resources-cdn --base-href /low-end/
       # The service worker that keeps the app on the phone (docs/web.md).
       - run: dart run tool/web_offline.dart build/web
       # Debugging symbols of the drawing engine: never asked for.

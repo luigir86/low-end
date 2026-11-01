@@ -30,4 +30,4 @@ jobs:
       # phone. Debug: a release build needs the upload key (see store/README.md).
       - run: flutter build apk --debug
       # The same for the web app (docs/web.md).
-      - run: flutter build web --release --no-web-resources-cdn
+      - run: flutter build web --wasm --release --no-web-resources-cdn
