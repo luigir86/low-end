@@ -679,13 +679,13 @@ void main() {
       drone.setProgression(Progression.twoFiveOne);
       drone.setStyle(DroneStyle.beat);
       await drone.tapNote(0);
-      // II–V–I in C: Dm7, G7, Cmaj7 for two bars.
+      // II–V–I in C: Dm7, G7, Cmaj7, then A7 back to the top.
       // Close together: the hand stays in one place from chord to chord.
       expect(piano.chords, [
         [50, 60, 65, 69],
         [55, 62, 65, 71],
         [48, 64, 67, 71],
-        [48, 64, 67, 71],
+        [57, 61, 64, 67],
       ]);
     });
 

@@ -3,13 +3,16 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/click_sound.dart';
 import 'package:low_end/audio/piano_output.dart';
 import 'package:low_end/audio/piano_sound.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/audio/walking_bass.dart';
+import 'package:low_end/features/metronome/metronome_controller.dart';
 import 'package:low_end/features/metronome/time_signature.dart';
 import 'package:low_end/features/tuner/drone/drone_controller.dart';
+import 'package:low_end/features/tuner/drone/example_song.dart';
 import 'package:low_end/features/tuner/drone/harmony.dart';
 
 double _hz(int midi) => 440 * math.pow(2, (midi - 69) / 12).toDouble();
@@ -284,6 +287,69 @@ void main() {
       await drone.tapNote(0);
       expect(piano.style, PianoStyle.walking);
       drone.dispose();
+    });
+
+    group('example songs', () {
+      ExampleSong song(String title) =>
+          exampleSongs.singleWhere((s) => s.title == title);
+      late DroneController drone;
+      late MetronomeController metronome;
+      setUp(() {
+        drone = DroneController(SilentToneOutput(), piano: SilentPianoOutput());
+        metronome = MetronomeController(SilentClickOutput());
+      });
+      tearDown(() {
+        drone.dispose();
+        metronome.dispose();
+      });
+      void apply(String title) =>
+          applySong(song(title), drone: drone, metronome: metronome);
+
+      test('the jazz standards are walked, the bossa and the rest not', () {
+        expect(
+          [
+            for (final s in exampleSongs)
+              if (s.walking) s.title,
+          ],
+          ['Mr. P.C.', 'Tune Up', 'Autumn Leaves'],
+        );
+      });
+
+      test('a jazz standard starts on the walking bass, and the next '
+          'other song gives the style back', () {
+        drone.setStyle(DroneStyle.arpeggio);
+        apply('Tune Up');
+        expect(drone.style, DroneStyle.walking);
+        apply('Autumn Leaves');
+        expect(drone.style, DroneStyle.walking);
+        apply('Blue Bossa');
+        expect(drone.style, DroneStyle.arpeggio);
+        // Given back once: the next song keeps what there is.
+        apply('Stand by Me');
+        expect(drone.style, DroneStyle.arpeggio);
+      });
+
+      test('a style chosen meanwhile is kept', () {
+        apply('Mr. P.C.');
+        expect(drone.style, DroneStyle.walking);
+        drone.setStyle(DroneStyle.held);
+        apply('Stand by Me');
+        expect(drone.style, DroneStyle.held);
+        // The walking bass chosen by the player stays after any song.
+        drone.setStyle(DroneStyle.walking);
+        apply('Tune Up');
+        apply('Stand by Me');
+        expect(drone.style, DroneStyle.walking);
+      });
+
+      test('the double bass can be got ready before a song', () async {
+        final piano = SilentPianoOutput();
+        final d = DroneController(SilentToneOutput(), piano: piano);
+        d.prepareBass();
+        await Future<void>.delayed(Duration.zero);
+        expect(piano.preparedBass, isTrue);
+        d.dispose();
+      });
     });
   });
 }

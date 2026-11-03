@@ -87,11 +87,12 @@ class _KeySheet extends StatelessWidget {
     final colors = theme.colorScheme;
     final disc = LowEndColors.of(context).disc;
     final showsKey = drone.showsKey;
-    // Each degree once, in the order of the progression.
-    final seen = <String>{};
+    // Each chord once, in the order of the progression: VI twice in the
+    // circle of fifths, as Am7 and as the A7 that turns it around.
+    final seen = <(String, ChordQuality)>{};
     final steps = [
       for (final s in drone.progression.steps)
-        if (seen.add(s.numeral)) s,
+        if (seen.add((s.numeral, s.quality))) s,
     ];
     Widget heading(String text) => Semantics(
       header: true,
@@ -133,7 +134,13 @@ class _KeySheet extends StatelessWidget {
           heading(l10n.keySheetTitle(keyName(l10n, drone, names))),
           for (final s in steps)
             ListTile(
-              key: ValueKey('degree-${s.numeral}'),
+              // The second chord on a numeral (A7 after Am7) adds its kind.
+              key: ValueKey(
+                steps.indexWhere((o) => o.numeral == s.numeral) ==
+                        steps.indexOf(s)
+                    ? 'degree-${s.numeral}'
+                    : 'degree-${s.numeral}-${s.quality.name}',
+              ),
               selected: s.numeral == numeral,
               leading: SizedBox(
                 width: 40,
@@ -177,6 +184,8 @@ class _KeySheet extends StatelessWidget {
 /// The list of example songs; choosing one applies it and closes the list.
 Future<void> showSongsSheet(BuildContext context) {
   final scope = AudioScope.of(context);
+  // A jazz standard may be chosen: its double bass is read meanwhile.
+  scope.drone.prepareBass();
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -227,6 +236,13 @@ Future<void> showSongsSheet(BuildContext context) {
                     '${_songKey(l10n, song, names)} · '
                     '${BeatUnit.quarter.symbol} = ${song.bpm}',
                   ),
+                  // A jazz standard starts on the walking bass.
+                  trailing: song.walking
+                      ? Icon(
+                          Icons.directions_walk,
+                          semanticLabel: l10n.styleWalking,
+                        )
+                      : null,
                   onTap: () {
                     applySong(
                       song,
