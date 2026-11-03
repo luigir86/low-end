@@ -385,8 +385,9 @@ class AppActions {
           'bar, each 4, 8 or 12 bars long, from the easiest: pop and rock '
           '(I-VI-IV-V, I-V-VI-IV or the Andalusian cadence, '
           'minor), blues (12-bar blues, minor blues) and jazz (II-V-I as '
-          'Dm7 G7 Cmaj7 Cmaj7, minor II-V-I, I-VI-II-V, circle of fifths in '
-          '8 bars as in Autumn Leaves). I-VI-IV-V, the "giro di Do", is the one '
+          'Dm7 G7 Cmaj7 A7, minor II-V-I as Dm7b5 G7 Cm7 Ab7, I-VI-II-V, '
+          'circle of fifths in 8 bars as in Autumn Leaves; the II-V-I and the '
+          'circle end on a VI7 that turns the loop around). I-VI-IV-V, the "giro di Do", is the one '
           'chosen first.',
     },
     'style': {

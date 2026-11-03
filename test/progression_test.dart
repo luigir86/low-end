@@ -43,49 +43,46 @@ void main() {
   });
 
   // testWidgets for its fake clock: the bar timers run without waiting.
-  testWidgets(
-    'II–V–I in C plays Dm7, G7, Cmaj7 for two bars, one chord a bar',
-    (tester) async {
-      drone.setVoicing(DroneVoicing.progression);
-      drone.setProgression(Progression.twoFiveOne);
-      await drone.tapNote(0); // C
-      await tester.pump();
-      expect(drone.currentChord?.root, 2);
-      expect(
-        output.frequencies,
-        _sounds([_hz(2), _hz(2) * 6 / 5, _hz(2) * 3 / 2, _hz(2) * 9 / 5]),
-      );
-      expect(drone.chordTones, {5, 9, 0}); // F, A and C
-      // The numerals stay on their notes while it plays.
-      expect(drone.degreeLabels, {2: 'II', 7: 'V', 0: 'I'});
-      // Every chord is made ready at the start.
-      expect(output.prepared, hasLength(4));
+  testWidgets('II–V–I in C plays Dm7, G7, Cmaj7 and A7, one chord a bar', (
+    tester,
+  ) async {
+    drone.setVoicing(DroneVoicing.progression);
+    drone.setProgression(Progression.twoFiveOne);
+    await drone.tapNote(0); // C
+    await tester.pump();
+    expect(drone.currentChord?.root, 2);
+    expect(
+      output.frequencies,
+      _sounds([_hz(2), _hz(2) * 6 / 5, _hz(2) * 3 / 2, _hz(2) * 9 / 5]),
+    );
+    expect(drone.chordTones, {5, 9, 0}); // F, A and C
+    // The numerals stay on their notes while it plays.
+    expect(drone.degreeLabels, {2: 'II', 7: 'V', 0: 'I', 9: 'VI'});
+    // Every chord is made ready at the start.
+    expect(output.prepared, hasLength(4));
 
-      await tester.pump(const Duration(seconds: 2));
-      expect(drone.step, 1);
-      expect(output.frequencies.first, closeTo(_hz(7), 1e-9)); // G
-      // The dominant has its seventh.
-      final g = _hz(7);
-      expect(
-        output.frequencies,
-        _sounds([g, g * 5 / 4, g * 3 / 2, g * 16 / 9]),
-      );
+    await tester.pump(const Duration(seconds: 2));
+    expect(drone.step, 1);
+    expect(output.frequencies.first, closeTo(_hz(7), 1e-9)); // G
+    // The dominant has its seventh.
+    final g = _hz(7);
+    expect(output.frequencies, _sounds([g, g * 5 / 4, g * 3 / 2, g * 16 / 9]));
 
-      await tester.pump(const Duration(seconds: 2));
-      expect(drone.step, 2);
-      expect(output.frequencies.first, closeTo(_hz(0), 1e-9)); // C
+    await tester.pump(const Duration(seconds: 2));
+    expect(drone.step, 2);
+    expect(output.frequencies.first, closeTo(_hz(0), 1e-9)); // C
 
-      // The I is held for a second bar: four bars, as a phrase is.
-      await tester.pump(const Duration(seconds: 2));
-      expect(drone.step, 3);
-      expect(output.frequencies.first, closeTo(_hz(0), 1e-9));
+    // Then A7, which turns it around to Dm7: four bars, as a phrase is.
+    await tester.pump(const Duration(seconds: 2));
+    expect(drone.step, 3);
+    expect(output.frequencies.first, closeTo(_hz(9), 1e-9));
+    expect(drone.chordTones, {1, 4, 7}); // C♯, E and G
 
-      // And round again.
-      await tester.pump(const Duration(seconds: 2));
-      expect(drone.step, 0);
-      await drone.stop();
-    },
-  );
+    // And round again.
+    await tester.pump(const Duration(seconds: 2));
+    expect(drone.step, 0);
+    await drone.stop();
+  });
 
   testWidgets('changes chord on the metronome\'s "one"', (tester) async {
     clock.barPhase = 0.75; // A quarter of the bar still to go.
@@ -211,13 +208,13 @@ void main() {
         'D♯',
         'G♯',
         'C♯',
-        'C♯',
+        'A',
       ]);
       expect(names(drone, 6, Progression.minorTwoFiveOne), [
         'G♯',
         'C♯',
         'F♯',
-        'F♯',
+        'D',
       ]);
     });
 
@@ -231,7 +228,7 @@ void main() {
     });
 
     test('the flat keys keep their flats', () {
-      expect(names(drone, 10, Progression.twoFiveOne), ['C', 'F', 'B♭', 'B♭']);
+      expect(names(drone, 10, Progression.twoFiveOne), ['C', 'F', 'B♭', 'G']);
       expect(names(drone, 3, Progression.oneFiveSixFour), [
         'E♭',
         'B♭',
@@ -251,7 +248,7 @@ void main() {
         'G♭',
       ]);
       drone.toggleSpelling(6);
-      expect(names(drone, 6, Progression.twoFiveOne), ['A♭', 'D♭', 'G♭', 'G♭']);
+      expect(names(drone, 6, Progression.twoFiveOne), ['A♭', 'D♭', 'G♭', 'E♭']);
       // In solfège too.
       expect(spell(6, drone.keyLetter, NoteNames.solfege), 'Sol♭');
       // Only C♯/D♭ and F♯/G♭ change: E♭ stays E♭.
@@ -267,7 +264,29 @@ void main() {
     final steps = Progression.minorTwoFiveOne.steps;
     expect(steps.first.quality, ChordQuality.halfDiminished);
     expect(ChordQuality.halfDiminished.semitones, [3, 6, 10]);
-    expect(steps.last.quality, ChordQuality.minor7);
+    expect(steps[2].quality, ChordQuality.minor7);
+  });
+
+  test('the jazz loops turn around on a VI7 instead of resting on the I', () {
+    // In C: A7 leads back to Dm7; in C minor A♭7, still in the key.
+    final major = Progression.twoFiveOne.steps.last;
+    expect((major.offset, major.quality), (9, ChordQuality.dominant));
+    final minor = Progression.minorTwoFiveOne.steps.last;
+    expect((minor.offset, minor.quality), (8, ChordQuality.dominant));
+    expect(minor.numeral, '♭VI');
+    final circle = Progression.circleOfFifths.steps;
+    expect(
+      (circle.last.offset, circle.last.quality),
+      (9, ChordQuality.dominant),
+    );
+    // Each of them ends on the dominant of its first chord.
+    for (final p in [Progression.twoFiveOne, Progression.circleOfFifths]) {
+      expect(
+        (p.steps.first.offset + 7) % 12,
+        p.steps.last.offset,
+        reason: p.name,
+      );
+    }
   });
 
   test('every progression lasts 4, 8 or 12 bars, as phrases do', () {
@@ -295,6 +314,9 @@ void main() {
     );
     expect(p.steps[4].quality, ChordQuality.halfDiminished);
     expect(p.steps[5].quality, ChordQuality.dominant);
+    // Em7 for a bar, then E7 back to Am7.
+    expect(p.steps[6].quality, ChordQuality.minor7);
+    expect(p.steps[7].quality, ChordQuality.dominant);
     expect(drone.keyIsMinor, isFalse);
   });
 
