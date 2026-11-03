@@ -211,10 +211,15 @@
   "aboutLegalese": "Free and open-source software, released under the MIT License.",
   "aboutDescription": "Metronome, harmony and tuner for musicians. Made by an amateur double bass player with the friends from the orchestra in mind, and useful to everyone. Low End works offline: the microphone is used only while the tuner is listening, and no sound or data leaves your phone.",
   "aboutPiano": "Piano sounds: Salamander Grand Piano by Alexander Holm (public domain).",
+  "aboutBass": "Double bass sounds: Meatbass by Karoryfer Lecolds, played by Drogomir Smolken (CC0, public domain).",
   "styleLabel": "Style",
   "styleHeld": "Chord every bar",
   "styleBeat": "Chord on every beat",
   "styleArpeggio": "Arpeggio",
+  "styleWalking": "Walking bass",
+  "@styleWalking": {
+    "description": "A jazz bass line, one note a beat, on a plucked double bass, with the piano comping above."
+  },
   "styleTempo": "Follows the metronome: {tempo}, {signature}",
   "@styleTempo": {
     "description": "The tempo is written like ♩ = 120.",

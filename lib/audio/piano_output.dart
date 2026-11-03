@@ -13,6 +13,7 @@ import 'loop_transport.dart';
 import 'off_thread.dart';
 import 'piano_sound.dart';
 import 'soloud_engine.dart';
+import 'walking_bass.dart';
 
 /// Plays the chords of the drone on the piano, one bar after another, in
 /// time with the metronome.
@@ -46,8 +47,9 @@ abstract class PianoOutput {
   Future<void> stop();
 
   /// Gets the audio engine and the recordings [chords] need ready while
-  /// nothing plays, so that playing them starts sooner.
-  Future<void> prepare(List<PianoChord> chords);
+  /// nothing plays, so that playing them starts sooner; the double bass
+  /// too if [bass] (the walking bass).
+  Future<void> prepare(List<PianoChord> chords, {bool bass = false});
 }
 
 /// Decodes a mono FLAC file of [frames] samples to its samples, from -1
@@ -64,14 +66,19 @@ class PianoLibrary {
   final AssetBundle _bundle;
   final _notes = <int, Future<Map<int, PianoTake>>>{};
   final _releases = <int, Future<PianoTake>>{};
+  Future<BassSamples>? _bass;
 
   /// Recorded notes kept beyond those the chords asked for need: about
   /// 3.5 MB each.
   static const _kept = 8;
 
   /// What [chords] need: the recordings of their notes in every touch, and
-  /// the dampers of their keys.
-  Future<PianoSamples> forChords(List<PianoChord> chords) async {
+  /// the dampers of their keys; and the double bass, all of it, if [bass].
+  Future<PianoSamples> forChords(
+    List<PianoChord> chords, {
+    bool bass = false,
+  }) async {
+    final walking = bass ? _doubleBass() : null;
     final roots = PianoSamples.rootsFor(chords);
     final keys = {
       for (final c in chords)
@@ -96,6 +103,7 @@ class PianoLibrary {
       releases: {for (final (i, k) in keys.indexed) k: releases[i]},
       cents: PianoSamples.tuning,
       gains: PianoSamples.levels,
+      bass: await walking,
     );
   }
 
@@ -103,7 +111,26 @@ class PianoLibrary {
   void clear() {
     _notes.clear();
     _releases.clear();
+    _bass = null;
   }
+
+  /// The double bass, every take: some 90 short files, read once.
+  Future<BassSamples> _doubleBass() => _bass ??=
+      () async {
+        final files = BassSamples.all.toList();
+        final takes = await Future.wait([
+          for (final (root, layer, take) in files)
+            _channel(BassSamples.assetOf(root, layer, take)),
+        ]);
+        final notes = <int, Map<int, List<Int16List>>>{};
+        for (final (i, (root, layer, _)) in files.indexed) {
+          (notes.putIfAbsent(root, () => {})[layer] ??= []).add(takes[i]);
+        }
+        return BassSamples(notes);
+      }().catchError((Object error) {
+        _bass = null;
+        throw error;
+      });
 
   /// The value of [key] in [cache], made by [make] the first time; tried
   /// again next time if it failed.
@@ -229,7 +256,10 @@ class SoLoudPianoOutput implements PianoOutput {
   }) async {
     _forget?.cancel();
     await ensureSoLoud();
-    final samples = await _library.forChords(chords);
+    final samples = await _library.forChords(
+      chords,
+      bass: style == PianoStyle.walking,
+    );
     _player.setVolume(volume);
     // Mixing the notes takes a moment: away from the screen's thread.
     final rendered = await _render(samples, chords, style, bpm, signature, a4);
@@ -304,9 +334,9 @@ class SoLoudPianoOutput implements PianoOutput {
   }
 
   @override
-  Future<void> prepare(List<PianoChord> chords) async {
+  Future<void> prepare(List<PianoChord> chords, {bool bass = false}) async {
     await ensureSoLoud();
-    await _library.forChords(chords);
+    await _library.forChords(chords, bass: bass);
     // Not played after all: they go, as after a stop, a while later.
     if (_playing != null) return;
     _forget?.cancel();
@@ -360,6 +390,12 @@ class SilentPianoOutput implements PianoOutput {
   /// What [prepare] was last asked for.
   List<PianoChord>? prepared;
 
+  /// Whether it was asked to get the double bass ready too.
+  bool preparedBass = false;
+
   @override
-  Future<void> prepare(List<PianoChord> chords) async => prepared = chords;
+  Future<void> prepare(List<PianoChord> chords, {bool bass = false}) async {
+    prepared = chords;
+    preparedBass = bass;
+  }
 }

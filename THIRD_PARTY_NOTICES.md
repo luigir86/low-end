@@ -42,6 +42,7 @@ The Android build also contains AndroidX, Kotlin (`kotlin-stdlib`, `kotlinx-coro
 ## Sounds and images
 
 - **Piano notes**: *Salamander Grand Piano V3* by Alexander Holm, released into the **public domain** on 4 March 2022. Details in [tool/piano_samples.md](tool/piano_samples.md).
+- **Double bass notes** (the walking bass): *Meatbass* by Karoryfer Lecolds, a 1958 Otto Rubner double bass played by Drogomir Smolken, released under **CC0 1.0** (public domain dedication). Details in [tool/bass_samples.md](tool/bass_samples.md).
 - **App icon and logo** (`design/lion-logo.jpg`, the lion on the double-bass scroll, and the icons, logo and store graphics made from it): generated with an AI image tool by the author of Low End, then cut and coloured for the app by `tool/make_icons_test.dart`. Released with the app under the MIT License.
 - **Material Icons** (Flutter's built-in icon font): Apache-2.0.
 - **Fonts**, both under the **SIL Open Font License 1.1**, bundled in `assets/fonts/` with their licences (`OFL-Edwin.txt`, `OFL-NotoMusic.txt`) and used unmodified: *Edwin* by MuseScore (all the text, with the ♭ and ♯ signs; regular and bold) and *Noto Music* by the Noto Project Authors (only the ♩ sign, which Edwin lacks). The earlier Barlow fonts were removed because Edwin already covers every other character the app writes.

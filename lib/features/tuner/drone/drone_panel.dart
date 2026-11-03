@@ -793,16 +793,18 @@ class _ChordMenu extends StatelessWidget {
 
 IconData _styleIcon(DroneStyle style) => switch (style) {
   // A long line for the chord held a bar, dots for the beats, a climb for
-  // the arpeggio.
+  // the arpeggio, a walker for the walking bass.
   DroneStyle.held => Icons.horizontal_rule,
   DroneStyle.beat => Icons.more_horiz,
   DroneStyle.arpeggio => Icons.trending_up,
+  DroneStyle.walking => Icons.directions_walk,
 };
 
 String _styleName(AppLocalizations l10n, DroneStyle style) => switch (style) {
   DroneStyle.held => l10n.styleHeld,
   DroneStyle.beat => l10n.styleBeat,
   DroneStyle.arpeggio => l10n.styleArpeggio,
+  DroneStyle.walking => l10n.styleWalking,
 };
 
 /// The notes of [chord], root first, spelled by thirds from the letter of the
