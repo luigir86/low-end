@@ -203,7 +203,7 @@ void main() {
     await tester.pumpAndSettle();
     final scope = AudioScope.of(tester.element(find.byType(HomeShell)));
     scope.drone.setVoicing(DroneVoicing.chord);
-    await tester.tap(find.byTooltip('Sound options'));
+    await tester.tap(find.byKey(const Key('styleButton')));
     await tester.pumpAndSettle();
     expect(find.text('Octave of the root'), findsNothing);
     expect(find.textContaining('faint on the phone'), findsNothing);

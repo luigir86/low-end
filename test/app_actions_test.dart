@@ -113,6 +113,31 @@ void main() {
     expect(actions.drone.continuous, isFalse);
   });
 
+  test('the held tone is also the fifth style, as in the menu', () async {
+    var result = await actions.call('drone_set', {'style': 'arpeggio'});
+    result = await actions.call('drone_set', {'style': 'tone'});
+    expect(result['ok'], isTrue);
+    var drone = (result['state']! as Map)['drone'] as Map;
+    expect(drone['style'], 'tone');
+    expect(drone['held_tone'], isTrue);
+    // A piano style brings the piano back.
+    result = await actions.call('drone_set', {'style': 'walking'});
+    drone = (result['state']! as Map)['drone'] as Map;
+    expect(drone['style'], 'walking');
+    expect(actions.drone.continuous, isFalse);
+    // held_tone false goes back to the style last chosen.
+    await actions.call('drone_set', {'held_tone': true});
+    await actions.call('drone_set', {'held_tone': false});
+    expect(actions.drone.style, DroneStyle.walking);
+    // The two must agree.
+    result = await actions.call('drone_set', {
+      'style': 'beat',
+      'held_tone': true,
+    });
+    expect(result['ok'], isFalse);
+    expect(actions.drone.style, DroneStyle.walking);
+  });
+
   test('changes and reports the settings', () async {
     await actions.call('set_reference_pitch', {'hz': 415});
     expect(settings.a4, 415);

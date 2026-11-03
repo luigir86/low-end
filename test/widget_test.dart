@@ -20,6 +20,7 @@ import 'package:low_end/audio/piano_output.dart';
 import 'package:low_end/features/tuner/drone/drone_controller.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/widgets/dial.dart';
+import 'package:low_end/widgets/style_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// The Harmony and Metronome tabs: their names are not written anywhere
@@ -785,38 +786,87 @@ void main() {
     },
   );
 
-  testWidgets('the sound options set the style and the held tone', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(1080, 2400);
-    tester.view.devicePixelRatio = 2.625;
-    addTearDown(tester.view.reset);
-    final piano = SilentPianoOutput();
-    await tester.pumpWidget(
-      LowEndApp(
-        toneOutput: SilentToneOutput(),
-        pianoOutput: piano,
-        micInput: FakeMicInput(),
-      ),
-    );
-    await tester.pumpAndSettle();
-    final scope = AudioScope.of(tester.element(find.byType(HomeShell)));
-    await tester.tap(_harmonyTab);
-    await tester.pumpAndSettle();
-    scope.drone.setVoicing(DroneVoicing.chord);
-    await tester.pumpAndSettle();
+  testWidgets(
+    'the style menu sets the style, the held tone and opens the legend',
+    (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.625;
+      addTearDown(tester.view.reset);
+      final piano = SilentPianoOutput();
+      await tester.pumpWidget(
+        LowEndApp(
+          toneOutput: SilentToneOutput(),
+          pianoOutput: piano,
+          micInput: FakeMicInput(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final scope = AudioScope.of(tester.element(find.byType(HomeShell)));
+      await tester.tap(_harmonyTab);
+      await tester.pumpAndSettle();
+      scope.drone.setVoicing(DroneVoicing.chord);
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('Sound options'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Arpeggio'));
-    await tester.pumpAndSettle();
-    expect(scope.drone.style, DroneStyle.arpeggio);
-    // A held tone has no style: the piano's choices go.
-    await tester.tap(find.text('Held tone'));
-    await tester.pumpAndSettle();
-    expect(scope.drone.continuous, isTrue);
-    expect(find.text('Arpeggio'), findsNothing);
-  });
+      // The button shows the style playing, and says it.
+      expect(find.byTooltip('Style: Chord on every beat'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('styleButton')));
+      await tester.pumpAndSettle();
+      // The piano's four styles under the metronome's tempo, then the tone.
+      expect(
+        find.textContaining('Follows the metronome: ♩ = '),
+        findsOneWidget,
+      );
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is StyleIcon && w.glyph == StyleGlyph.footprints,
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Arpeggio'));
+      await tester.pumpAndSettle();
+      expect(scope.drone.style, DroneStyle.arpeggio);
+      expect(find.byTooltip('Style: Arpeggio'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('styleButton')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Walking bass'));
+      await tester.pumpAndSettle();
+      expect(scope.drone.style, DroneStyle.walking);
+      // The footprints are now on the button.
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('styleButton')),
+          matching: find.byWidgetPredicate(
+            (w) => w is StyleIcon && w.glyph == StyleGlyph.footprints,
+          ),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const Key('styleButton')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Held tone'));
+      await tester.pumpAndSettle();
+      expect(scope.drone.continuous, isTrue);
+      expect(find.byTooltip('Style: Held tone'), findsOneWidget);
+
+      // A piano style again: the piano is back.
+      await tester.tap(find.byKey(const Key('styleButton')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Chord every bar'));
+      await tester.pumpAndSettle();
+      expect(scope.drone.continuous, isFalse);
+      expect(scope.drone.style, DroneStyle.held);
+
+      // The legend is the last line.
+      await tester.tap(find.byKey(const Key('styleButton')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Legend and degrees'));
+      await tester.pumpAndSettle();
+      expect(find.text('Legend'), findsOneWidget);
+      expect(scope.drone.style, DroneStyle.held);
+    },
+  );
 
   testWidgets('touching the tempo opens the keyboard to type it', (
     tester,

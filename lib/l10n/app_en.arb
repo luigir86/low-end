@@ -212,7 +212,13 @@
   "aboutDescription": "Metronome, harmony and tuner for musicians. Made by an amateur double bass player with the friends from the orchestra in mind, and useful to everyone. Low End works offline: the microphone is used only while the tuner is listening, and no sound or data leaves your phone.",
   "aboutPiano": "Piano sounds: Salamander Grand Piano by Alexander Holm (public domain).",
   "aboutBass": "Double bass sounds: Meatbass by Karoryfer Lecolds, played by Drogomir Smolken (CC0, public domain).",
-  "styleLabel": "Style",
+  "styleButton": "Style: {style}",
+  "@styleButton": {
+    "description": "The button of the Harmony row that shows the style playing and opens the menu of the styles.",
+    "placeholders": {
+      "style": {"type": "String"}
+    }
+  },
   "styleHeld": "Chord every bar",
   "styleBeat": "Chord on every beat",
   "styleArpeggio": "Arpeggio",
@@ -241,7 +247,6 @@
   "keepScreenOnTitle": "Keep the screen on",
   "keepScreenOnSubtitle": "While it plays or the tuner listens",
   "setTempo": "Type the tempo",
-  "optionsLabel": "Sound options",
   "continuousToneTitle": "Held tone",
   "continuousToneSubtitle": "A steady tone instead of the piano struck again and again.",
   "octaveNumberingLabel": "Octave numbers",

@@ -161,13 +161,16 @@ TextStyle? rowButtonStyle(BuildContext context, {Color? color}) =>
 class RowIconButton extends StatelessWidget {
   const RowIconButton({
     super.key,
-    required this.icon,
+    this.icon,
+    this.picture,
     required this.tooltip,
     required this.onPressed,
     this.leads = false,
-  });
+  }) : assert((icon == null) != (picture == null));
 
-  final IconData icon;
+  /// A Material icon, or else a [picture] of the size of one.
+  final IconData? icon;
+  final Widget? picture;
   final String tooltip;
   final VoidCallback onPressed;
   final bool leads;
@@ -178,10 +181,14 @@ class RowIconButton extends StatelessWidget {
         ? const EdgeInsetsDirectional.only(end: rowGap)
         : const EdgeInsetsDirectional.only(start: rowGap),
     child: RowButton(
-      label: Icon(
-        icon,
-        size: 24,
-        color: Theme.of(context).colorScheme.onSurface,
+      // The size and ink of an icon of the row, not the smaller one a
+      // button gives its icons.
+      label: IconTheme.merge(
+        data: IconThemeData(
+          size: 24,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+        child: picture ?? Icon(icon),
       ),
       tooltip: tooltip,
       onPressed: onPressed,

@@ -14,8 +14,8 @@ import '../../../audio/pitch.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../widgets/choice_menu.dart';
 import '../../../widgets/dial.dart';
+import '../../../widgets/style_icons.dart';
 import '../../../widgets/page_dots.dart';
-import '../../metronome/metronome_controller.dart';
 import 'drone_controller.dart';
 import 'drone_key_sheets.dart';
 import 'harmony.dart';
@@ -797,31 +797,111 @@ class _ChordMenu extends StatelessWidget {
                   ),
           ),
         ),
-        RowIconButton(
-          icon: Icons.tune,
-          tooltip: l10n.optionsLabel,
-          onPressed: () => _showOptions(context, drone),
-        ),
+        _StyleButton(drone: drone),
       ],
     );
   }
 }
 
-IconData _styleIcon(DroneStyle style) => switch (style) {
-  // A long line for the chord held a bar, dots for the beats, a climb for
-  // the arpeggio, a walker for the walking bass.
-  DroneStyle.held => Icons.horizontal_rule,
-  DroneStyle.beat => Icons.more_horiz,
-  DroneStyle.arpeggio => Icons.trending_up,
-  DroneStyle.walking => Icons.directions_walk,
+/// The lines of the style menu: the four ways the piano plays, at the
+/// metronome's tempo, then the held tone and, apart, the legend.
+enum _StyleLine {
+  held(DroneStyle.held),
+  beat(DroneStyle.beat),
+  arpeggio(DroneStyle.arpeggio),
+  walking(DroneStyle.walking),
+  tone(null),
+  legend(null);
+
+  const _StyleLine(this.piano);
+
+  /// The style of the piano, null for the held tone and the legend.
+  final DroneStyle? piano;
+
+  /// The line of what Harmony plays now.
+  static _StyleLine of(DroneController drone) =>
+      drone.usesPiano ? values.firstWhere((l) => l.piano == drone.style) : tone;
+}
+
+/// The picture of a line: a long line for the chord held a bar, strokes for
+/// the beats, a climb for the arpeggio, footprints for the walking bass, a
+/// wave for the held tone.
+Widget _styleIcon(_StyleLine line) => switch (line) {
+  _StyleLine.held => const Icon(Icons.horizontal_rule),
+  _StyleLine.beat => const StyleIcon(StyleGlyph.beats),
+  _StyleLine.arpeggio => const Icon(Icons.trending_up),
+  _StyleLine.walking => const StyleIcon(StyleGlyph.footprints),
+  _StyleLine.tone => const Icon(Icons.waves),
+  _StyleLine.legend => const Icon(Icons.info_outline),
 };
 
-String _styleName(AppLocalizations l10n, DroneStyle style) => switch (style) {
-  DroneStyle.held => l10n.styleHeld,
-  DroneStyle.beat => l10n.styleBeat,
-  DroneStyle.arpeggio => l10n.styleArpeggio,
-  DroneStyle.walking => l10n.styleWalking,
+String _styleName(AppLocalizations l10n, _StyleLine line) => switch (line) {
+  _StyleLine.held => l10n.styleHeld,
+  _StyleLine.beat => l10n.styleBeat,
+  _StyleLine.arpeggio => l10n.styleArpeggio,
+  _StyleLine.walking => l10n.styleWalking,
+  _StyleLine.tone => l10n.continuousToneTitle,
+  _StyleLine.legend => l10n.legendButton,
 };
+
+/// The button at the end of the chord row: the picture of the style
+/// playing, so that it is in sight, and under it the menu of the styles.
+/// The screen reader hears its name ("Style: Walking bass").
+class _StyleButton extends StatelessWidget {
+  const _StyleButton({required this.drone});
+
+  final DroneController drone;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final metronome = AudioScope.of(context).metronome;
+    final current = _StyleLine.of(drone);
+    return Builder(
+      builder: (button) => RowIconButton(
+        key: const Key('styleButton'),
+        picture: _styleIcon(current),
+        tooltip: l10n.styleButton(_styleName(l10n, current)),
+        onPressed: () async {
+          // The piano keeps the metronome's time, wherever it is set: said
+          // over its four styles.
+          final tempo = l10n.styleTempo(
+            '${metronome.signature.beatUnit.symbol} = ${metronome.bpm}',
+            metronome.signature.label,
+          );
+          final line = await showChoiceMenu<_StyleLine>(
+            anchor: button,
+            selected: current,
+            choices: [
+              for (final l in _StyleLine.values)
+                if (l.piano == null || drone.hasPiano)
+                  Choice(
+                    value: l,
+                    title: _styleName(l10n, l),
+                    subtitle: l == _StyleLine.tone
+                        ? l10n.continuousToneSubtitle
+                        : null,
+                    leading: _styleIcon(l),
+                    section: l.piano != null ? tempo : null,
+                    // The held tone after the piano, the legend after all.
+                    divided:
+                        l == _StyleLine.legend ||
+                        (l == _StyleLine.tone && drone.hasPiano),
+                  ),
+            ],
+          );
+          if (line == null) return;
+          if (line == _StyleLine.legend) {
+            if (context.mounted) unawaited(showKeySheet(context));
+            return;
+          }
+          if (line.piano case final piano?) drone.setStyle(piano);
+          drone.setContinuous(line == _StyleLine.tone);
+        },
+      ),
+    );
+  }
+}
 
 /// The notes of [chord], root first, spelled by thirds from the letter of the
 /// root: C E G, D♭ F A♭.
@@ -834,102 +914,3 @@ List<String> _chordNotes(DroneChord chord, int rootLetter, NoteNames names) => [
       names,
     ),
 ];
-
-/// The sound options: the piano or a held tone, and how the piano plays the
-/// chord or the progression (held, on every beat or as an arpeggio, at the
-/// metronome's tempo).
-Future<void> _showOptions(BuildContext context, DroneController drone) {
-  final scope = AudioScope.of(context);
-  return showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    showDragHandle: true,
-    builder: (sheet) => SafeArea(
-      child: SingleChildScrollView(
-        child: ListenableBuilder(
-          listenable: Listenable.merge([drone, scope.metronome]),
-          // Here `context` is still the harmony tab's, which outlives the
-          // sheet: the entries below open other sheets from it.
-          builder: (inner, _) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _Options(drone: drone, metronome: scope.metronome),
-              LegendTile(panel: context),
-            ],
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-class _Options extends StatelessWidget {
-  const _Options({required this.drone, required this.metronome});
-
-  final DroneController drone;
-  final MetronomeController metronome;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    Widget heading(String text) => Semantics(
-      header: true,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-        child: Text(
-          text,
-          style: theme.textTheme.titleSmall?.copyWith(
-            color: theme.colorScheme.primary,
-          ),
-        ),
-      ),
-    );
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Piano struck again and again, or a tone that holds on.
-        if (drone.hasPiano)
-          SwitchListTile(
-            key: const Key('continuousTone'),
-            value: drone.continuous,
-            onChanged: drone.setContinuous,
-            title: Text(l10n.continuousToneTitle),
-            subtitle: Text(l10n.continuousToneSubtitle),
-          ),
-        if (drone.usesPiano) ...[
-          heading(l10n.styleLabel),
-          RadioGroup<DroneStyle>(
-            groupValue: drone.style,
-            onChanged: (s) => drone.setStyle(s!),
-            child: Column(
-              children: [
-                for (final style in DroneStyle.values)
-                  RadioListTile<DroneStyle>(
-                    value: style,
-                    secondary: Icon(_styleIcon(style)),
-                    title: Text(_styleName(l10n, style)),
-                  ),
-              ],
-            ),
-          ),
-          // The piano keeps the metronome's time, wherever it is set.
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: Text(
-              l10n.styleTempo(
-                '${metronome.signature.beatUnit.symbol} = ${metronome.bpm}',
-                metronome.signature.label,
-              ),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-        ] else
-          const SizedBox(height: 16),
-      ],
-    );
-  }
-}

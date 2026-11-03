@@ -269,35 +269,6 @@ String _songKey(AppLocalizations l10n, ExampleSong song, NoteNames names) {
       : l10n.droneChordMajor(tonic);
 }
 
-/// The entry added at the end of the sound options: the legend. [panel] is
-/// the context of the harmony tab, which outlives the options sheet that it
-/// closes.
-class LegendTile extends StatelessWidget {
-  const LegendTile({super.key, required this.panel});
-
-  final BuildContext panel;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Divider(height: 1),
-        ListTile(
-          leading: const Icon(Icons.info_outline),
-          title: Text(l10n.legendButton),
-          onTap: () {
-            Navigator.of(context).pop();
-            if (panel.mounted) showKeySheet(panel);
-          },
-        ),
-        const SizedBox(height: 8),
-      ],
-    );
-  }
-}
-
 /// The heading of a section of the example songs, as in the progression
 /// menu: small muted words, announced as a heading.
 class _SongSection extends StatelessWidget {
