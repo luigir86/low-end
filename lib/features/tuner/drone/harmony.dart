@@ -136,20 +136,22 @@ enum Progression {
     ProgressionStep(7, ChordQuality.dominant, 'V'),
   ], minor: true),
 
-  /// Major II–V–I, the I held for two bars: in C, Dm7 G7 Cmaj7 Cmaj7.
+  /// Major II–V–I, closed by the VI7 that turns it around to the II: in C,
+  /// Dm7 G7 Cmaj7 A7, and A7 leads back to Dm7.
   twoFiveOne([
     ProgressionStep(2, ChordQuality.minor7, 'II'),
     ProgressionStep(7, ChordQuality.dominant, 'V'),
     ProgressionStep(0, ChordQuality.major7, 'I'),
-    ProgressionStep(0, ChordQuality.major7, 'I'),
+    ProgressionStep(9, ChordQuality.dominant, 'VI'),
   ]),
 
-  /// Minor II–V–I, the I held for two bars: in C, Dm7♭5 G7 Cm7 Cm7.
+  /// Minor II–V–I, closed by the ♭VI7 that turns it around to the II: in
+  /// C, Dm7♭5 G7 Cm7 A♭7, darker than A7 and still in the key.
   minorTwoFiveOne([
     ProgressionStep(2, ChordQuality.halfDiminished, 'II'),
     ProgressionStep(7, ChordQuality.dominant, 'V'),
     ProgressionStep(0, ChordQuality.minor7, 'I'),
-    ProgressionStep(0, ChordQuality.minor7, 'I'),
+    ProgressionStep(8, ChordQuality.dominant, '♭VI'),
   ], minor: true),
 
   /// I–VI–II–V, the jazz turnaround: in C, Cmaj7 A7 Dm7 G7.
@@ -161,7 +163,7 @@ enum Progression {
   ]),
 
   /// Down the circle of fifths, eight bars, as in Autumn Leaves: in C,
-  /// Dm7 G7 Cmaj7 Fmaj7 Bm7♭5 E7 Am7 Am7.
+  /// Dm7 G7 Cmaj7 Fmaj7 Bm7♭5 E7 Am7 A7, and A7 turns it around to Dm7.
   circleOfFifths([
     ProgressionStep(2, ChordQuality.minor7, 'II'),
     ProgressionStep(7, ChordQuality.dominant, 'V'),
@@ -170,7 +172,7 @@ enum Progression {
     ProgressionStep(11, ChordQuality.halfDiminished, 'VII'),
     ProgressionStep(4, ChordQuality.dominant, 'III'),
     ProgressionStep(9, ChordQuality.minor7, 'VI'),
-    ProgressionStep(9, ChordQuality.minor7, 'VI'),
+    ProgressionStep(9, ChordQuality.dominant, 'VI'),
   ]);
 
   const Progression(this.steps, {this.minor = false});

@@ -89,6 +89,53 @@ void main() {
     expect(find.text('Legend'), findsOneWidget);
   });
 
+  testWidgets('the circle of fifths lists both chords on VI: Am7 and A7', (
+    tester,
+  ) async {
+    final scope = await _launch(tester, portrait: true);
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text('Harmony'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    scope.drone
+      ..setPitchClass(0)
+      ..setProgression(Progression.circleOfFifths)
+      ..setVoicing(DroneVoicing.progression);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('VI'));
+    await tester.pumpAndSettle();
+    expect(find.text('Am7'), findsOneWidget);
+    expect(find.text('A7'), findsOneWidget);
+  });
+
+  testWidgets(
+    'a note out of the key is written on the circle as the chord sounding writes it',
+    (tester) async {
+      final scope = await _launch(tester, portrait: true);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.text('Harmony'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      scope.drone
+        ..setVoicing(DroneVoicing.chord)
+        ..setChord(ChordQuality.dominant);
+      await scope.drone.tapNote(11); // B7: B D♯ F♯ A
+      await tester.pump();
+      expect(find.text('D♯'), findsOneWidget);
+      expect(find.text('E♭'), findsNothing);
+      await scope.drone.stop();
+      await tester.pump();
+      // Stopped, it is written as before.
+      expect(find.text('E♭'), findsOneWidget);
+    },
+  );
+
   testWidgets('an example song sets key, progression and tempo', (
     tester,
   ) async {

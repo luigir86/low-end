@@ -114,12 +114,28 @@ class _FifthsDial extends StatelessWidget {
     // they stand on, and not moving: you read II, then go to V.
     final degrees = drone.degreeLabels;
     // A note in the key is written as the key writes it (C♭ in G♭ major);
-    // the others as chosen, and a hold on C♯ or F♯ writes them the other way.
+    // one out of the key but in the chord sounding, as the chord writes it
+    // in the hub (D♯ in B7, G♭ in A♭7); the others as chosen, and a hold on
+    // C♯ or F♯ writes them the other way.
+    final sounding = drone.isPlaying ? drone.currentChord : null;
+    final chordSpelling = sounding == null
+        ? const <int, String>{}
+        : {
+            for (final (i, name) in _chordNotes(
+              sounding,
+              drone.rootLetter,
+              names,
+            ).indexed)
+              (sounding.root +
+                          (i == 0 ? 0 : sounding.quality.semitones[i - 1])) %
+                      12:
+                  name,
+          };
     String nameOf(int pc, {bool flat = false}) {
       final letter = drone.keyLetterOf(pc);
       return letter != null
           ? spell(pc, letter, names)
-          : Note(pc, drone.octave).name(names, flat: flat);
+          : chordSpelling[pc] ?? Note(pc, drone.octave).name(names, flat: flat);
     }
 
     bool canRespell(int pc) =>
