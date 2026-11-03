@@ -70,6 +70,21 @@ class _FixedBar implements BarClock {
 /// A chord as the drone plays it.
 typedef DroneChord = ({int root, ChordQuality quality});
 
+/// What the player chose in the harmony, kept between launches as the
+/// metronome's tempo is: the note, what is played on it and how, and the
+/// black keys written with a flat. Whether it plays and where a progression
+/// is are not part of it: the app never starts a sound by itself.
+typedef DroneSetup = ({
+  int pitchClass,
+  DroneVoicing voicing,
+  DroneVoicing chordVoicing,
+  ChordQuality chord,
+  Progression progression,
+  DroneStyle style,
+  bool continuous,
+  Set<int> flats,
+});
+
 /// State and playback of the drone: the piano playing a note, a chord or a
 /// progression, in time with the metronome, to practise on.
 ///
@@ -80,6 +95,7 @@ class DroneController extends ChangeNotifier {
     BarClock? clock,
     this._piano,
     Duration Function()? outputLatency,
+    this.prefetchBass = false,
   }) : _clock = clock ?? const _FixedBar(),
        _outputLatency = outputLatency ?? _noLatency {
     _clock.addListener(_onClockChanged);
@@ -89,6 +105,13 @@ class DroneController extends ChangeNotifier {
 
   final ToneOutput _output;
   final PianoOutput? _piano;
+
+  /// Whether getting the piano ready (see [preparePiano]) also gets the
+  /// double bass ready, whatever the style, once the piano is: then the
+  /// walking bass, chosen later, starts at once. On the phone, where the
+  /// recordings are read away from the screen; not in a browser, where
+  /// reading them holds the screen up.
+  final bool prefetchBass;
   final BarClock _clock;
 
   /// How long after the engine plays a sound it is heard (see
@@ -171,6 +194,39 @@ class DroneController extends ChangeNotifier {
   Progression get progression => _progression;
 
   DroneStyle get style => _style;
+
+  /// What the player chose, to keep for the next launch.
+  DroneSetup get setup => (
+    pitchClass: _note.pitchClass,
+    voicing: _voicing,
+    chordVoicing: _chordVoicing,
+    chord: _chord,
+    progression: _progression,
+    style: _style,
+    continuous: _continuous,
+    flats: Set.unmodifiable(_flats),
+  );
+
+  /// Comes back to [setup], as kept at the last launch; only while nothing
+  /// plays, as the app opens.
+  void restore(DroneSetup setup) {
+    if (_playing) return;
+    _note = Note(setup.pitchClass % 12, rootOctave);
+    _voicing = setup.voicing;
+    _chordVoicing = setup.chordVoicing == DroneVoicing.progression
+        ? DroneVoicing.chord
+        : setup.chordVoicing;
+    _chord = setup.chord;
+    _progression = setup.progression;
+    _style = setup.style;
+    _continuous = setup.continuous;
+    _flats
+      ..clear()
+      ..addAll(setup.flats.where(respellable.contains));
+    _step = 0;
+    _fromTheTop = true;
+    _notify();
+  }
 
   /// True when the piano plays: always, except in tests and when the player
   /// chose a continuous tone (see the class).
@@ -466,11 +522,17 @@ class DroneController extends ChangeNotifier {
   void preparePiano() {
     final piano = _piano;
     if (piano == null || !usesPiano || _playing) return;
+    final chords = _pianoChords;
+    final walking =
+        _style == DroneStyle.walking && _voicing != DroneVoicing.root;
     piano
-        .prepare(
-          _pianoChords,
-          bass: _style == DroneStyle.walking && _voicing != DroneVoicing.root,
-        )
+        .prepare(chords, bass: walking)
+        // The piano first, for the touch that may come now; the double
+        // bass after it, for a walking bass chosen later.
+        .then((_) {
+          if (walking || !prefetchBass || _playing || _disposed) return null;
+          return piano.prepare(chords, bass: true);
+        })
         .catchError((Object error) {
           debugPrint('Drone could not prepare the piano: $error');
         });

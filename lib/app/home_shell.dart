@@ -29,7 +29,10 @@ class _HomeShellState extends State<HomeShell> {
 
   /// Swiping moves between the sections; a tap on a tab or an action link
   /// moves the page to match.
-  final _pages = PageController();
+  /// Made at the first build, on the section the app opens on.
+  late final _pages = PageController(
+    initialPage: AudioScope.of(context).navigation.section.index,
+  );
 
   /// The scroll of each section's page, for the disc under them.
   final _scrolls = SectionScrolls();

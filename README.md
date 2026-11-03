@@ -10,7 +10,7 @@ Low End is a free, open-source practice app for musicians: a **metronome**, a pi
 
 ## What it does
 
-The three tabs are **Metronome**, **Harmony** and **Tuner**, and the app opens on the metronome. The tabs only take you to a section, and so does swiping left and right (in landscape, up and down). Each section starts and stops its own sound from the middle of its dial.
+The three tabs are **Metronome**, **Harmony** and **Tuner**, and the app opens on the section it was left on (the metronome the first time). The tabs only take you to a section, and so does swiping left and right (in landscape, up and down). Each section starts and stops its own sound from the middle of its dial.
 
 ### Metronome
 

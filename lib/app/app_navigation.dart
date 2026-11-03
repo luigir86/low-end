@@ -6,8 +6,11 @@ enum AppSection { metronome, drone, tuner }
 /// Which section is on screen. Kept outside the widgets so that taps and
 /// actions from an assistant (see `lib/actions/`) move the app the same way.
 class AppNavigation extends ChangeNotifier {
-  // The app opens on the metronome, the section used most.
-  AppSection _section = AppSection.metronome;
+  /// Opens on [section]: the one the app was left on (see
+  /// AppSettings.section), the metronome the first time.
+  AppNavigation({this._section = AppSection.metronome});
+
+  AppSection _section;
   bool _covered = false;
 
   AppSection get section => _section;

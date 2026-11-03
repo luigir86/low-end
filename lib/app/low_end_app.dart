@@ -80,6 +80,9 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
         widget.pianoOutput ??
         (widget.toneOutput == null ? SoLoudPianoOutput() : null),
     outputLatency: () => _route.outputLatency,
+    // On the phone the double bass is read away from the screen: it is got
+    // ready with the piano, for a walking bass chosen later.
+    prefetchBass: !kIsWeb,
   );
   late final _metronome = MetronomeController(
     widget.clickOutput ?? SoLoudClickOutput(),
@@ -98,7 +101,8 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
       widget.backgroundAudio ?? MediaNotificationAudio();
   late final ScreenAwake _screenAwake =
       widget.screenAwake ?? WakelockScreenAwake();
-  final _navigation = AppNavigation();
+  // The app opens on the section it was left on.
+  late final _navigation = AppNavigation(section: _settings.section);
 
   /// Shows the notice that the sound paused for the tuner.
   final _messenger = GlobalKey<ScaffoldMessengerState>();
@@ -127,9 +131,16 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     _metronome.setSubdivision(_settings.metronomeSubdivision);
     _metronome.setBackbeat(_settings.metronomeBackbeat);
     _metronome.addListener(_rememberMetronome);
-    // The drone opens on the piano: the chord on every beat (set before it
-    // plays, so nothing starts yet).
-    if (_drone.hasPiano) _drone.setVoicing(DroneVoicing.chord);
+    // The harmony comes back as it was left; the first time it opens on the
+    // piano, the chord on every beat (set before it plays, so nothing starts
+    // yet).
+    final harmony = _settings.drone;
+    if (harmony != null) {
+      _drone.restore(harmony);
+    } else if (_drone.hasPiano) {
+      _drone.setVoicing(DroneVoicing.chord);
+    }
+    _drone.addListener(_rememberDrone);
     _tuner.highestHz = _settings.tuning.highestHz;
     _settings.addListener(_onSettingsChanged);
     _navigation.addListener(_onNavigationChanged);
@@ -142,10 +153,12 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     _commands = _background.commands.listen(_onMediaCommand);
     // Headphones pulled out: the sound stops before it reaches the speaker.
     _unplugged = _route.unplugged.listen((_) => _pauseFor(_Pause.unplugged));
-    // If the app opens on the tuner (a link), start listening once the first
-    // frame is up, so the microphone never delays it.
+    // If the app opens on the tuner (where it was left, or a link), start
+    // listening once the first frame is up, so the microphone never delays
+    // it; opening on the harmony, its piano is got ready then too.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_navigation.tunerVisible) _tuner.resume();
+      _preparePiano();
     });
     // Registered before MaterialApp's own observer, so action links are
     // handled here instead of being treated as pages to open.
@@ -160,6 +173,8 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     subdivision: _metronome.subdivision,
     backbeat: _metronome.backbeat,
   );
+
+  void _rememberDrone() => _settings.rememberDrone(_drone.setup);
 
   void _onSettingsChanged() {
     _keepScreenOn();
@@ -181,6 +196,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
   /// itself: the click must not come back unasked, out of time with the band.
   void _onNavigationChanged() {
     _navigation.tunerVisible ? _tuner.resume() : _tuner.stop();
+    _settings.rememberSection(_navigation.section);
     _preparePiano();
     _keepScreenOn();
   }
@@ -397,6 +413,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     _navigation.removeListener(_onNavigationChanged);
     _navigation.sliding.removeListener(_preparePiano);
     _drone.removeListener(_onPlayingChanged);
+    _drone.removeListener(_rememberDrone);
     _metronome.removeListener(_onPlayingChanged);
     _metronome.removeListener(_rememberMetronome);
     _tuner.removeListener(_onTunerChanged);

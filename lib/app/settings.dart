@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -5,7 +6,10 @@ import '../audio/pitch.dart';
 import '../features/metronome/metronome_controller.dart';
 import '../features/metronome/subdivision.dart';
 import '../features/metronome/time_signature.dart';
+import '../features/tuner/drone/drone_controller.dart';
+import '../features/tuner/drone/harmony.dart';
 import '../features/tuner/tuner_tuning.dart';
+import 'app_navigation.dart';
 
 /// How note names are chosen: from the app language, or fixed.
 enum NoteNaming { auto, solfege, letters }
@@ -79,6 +83,41 @@ class AppSettings extends ChangeNotifier {
             MetronomeController.maxBpmFor(_signature),
           )
         : MetronomeController.startBpm;
+    _section =
+        AppSection.values.asNameMap()[_read<String>(prefs, _sectionKey)] ??
+        AppSection.metronome;
+    _drone = _readDrone(prefs);
+  }
+
+  /// The harmony as it was left, or null if nothing was kept (the first
+  /// launch) or it cannot be read: each part falls back to its default.
+  static DroneSetup? _readDrone(SharedPreferences prefs) {
+    final note = _read<int>(prefs, _droneNoteKey);
+    if (note == null || note < 0 || note > 11) return null;
+    T pick<T extends Enum>(List<T> values, String key, T fallback) =>
+        values.asNameMap()[_read<String>(prefs, key)] ?? fallback;
+    final flats = _read<List<Object?>>(prefs, _droneFlatsKey) ?? const [];
+    return (
+      pitchClass: note,
+      voicing: pick(DroneVoicing.values, _droneVoicingKey, DroneVoicing.chord),
+      chordVoicing: pick(
+        DroneVoicing.values,
+        _droneChordVoicingKey,
+        DroneVoicing.chord,
+      ),
+      chord: pick(ChordQuality.values, _droneChordKey, ChordQuality.major),
+      progression: pick(
+        Progression.values,
+        _droneProgressionKey,
+        Progression.values.first,
+      ),
+      style: pick(DroneStyle.values, _droneStyleKey, DroneStyle.beat),
+      continuous: _read<bool>(prefs, _droneContinuousKey) ?? false,
+      flats: {
+        for (final f in flats)
+          if (f is String && int.tryParse(f) != null) int.parse(f),
+      },
+    );
   }
 
   /// Reads the saved settings.
@@ -107,6 +146,15 @@ class AppSettings extends ChangeNotifier {
   static const _subdivisionKey = 'metronome_subdivision';
   static const _backbeatKey = 'metronome_backbeat';
   static const _transpositionKey = 'tuner_transposition';
+  static const _sectionKey = 'section';
+  static const _droneNoteKey = 'harmony_note';
+  static const _droneVoicingKey = 'harmony_voicing';
+  static const _droneChordVoicingKey = 'harmony_chord_voicing';
+  static const _droneChordKey = 'harmony_chord';
+  static const _droneProgressionKey = 'harmony_progression';
+  static const _droneStyleKey = 'harmony_style';
+  static const _droneContinuousKey = 'harmony_continuous';
+  static const _droneFlatsKey = 'harmony_flats';
 
   final SharedPreferences? _prefs;
   String? _languageCode;
@@ -340,6 +388,61 @@ class AppSettings extends ChangeNotifier {
     if (signature != _signature) {
       _signature = signature;
       _save(_prefs?.setString(_signatureKey, signature.label));
+    }
+  }
+
+  var _section = AppSection.metronome;
+
+  /// The section on screen when the app was left: it opens there again, so
+  /// that whoever plays along with the harmony need not pass the metronome.
+  AppSection get section => _section;
+
+  /// Keeps [section] for the next launch; nothing listens to it.
+  void rememberSection(AppSection section) {
+    if (section == _section) return;
+    _section = section;
+    _save(_prefs?.setString(_sectionKey, section.name));
+  }
+
+  DroneSetup? _drone;
+
+  /// The harmony as it was left, or null the first time.
+  DroneSetup? get drone => _drone;
+
+  /// Keeps the harmony's choices for the next launch, as the metronome's
+  /// are; nothing listens to them.
+  void rememberDrone(DroneSetup setup) {
+    final was = _drone;
+    _drone = setup;
+    final prefs = _prefs;
+    if (prefs == null) return;
+    if (was?.pitchClass != setup.pitchClass) {
+      _save(prefs.setInt(_droneNoteKey, setup.pitchClass));
+    }
+    if (was?.voicing != setup.voicing) {
+      _save(prefs.setString(_droneVoicingKey, setup.voicing.name));
+    }
+    if (was?.chordVoicing != setup.chordVoicing) {
+      _save(prefs.setString(_droneChordVoicingKey, setup.chordVoicing.name));
+    }
+    if (was?.chord != setup.chord) {
+      _save(prefs.setString(_droneChordKey, setup.chord.name));
+    }
+    if (was?.progression != setup.progression) {
+      _save(prefs.setString(_droneProgressionKey, setup.progression.name));
+    }
+    if (was?.style != setup.style) {
+      _save(prefs.setString(_droneStyleKey, setup.style.name));
+    }
+    if (was?.continuous != setup.continuous) {
+      _save(prefs.setBool(_droneContinuousKey, setup.continuous));
+    }
+    if (!setEquals(was?.flats, setup.flats)) {
+      _save(
+        prefs.setStringList(_droneFlatsKey, [
+          for (final f in setup.flats) '$f',
+        ]),
+      );
     }
   }
 }
