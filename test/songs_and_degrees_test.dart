@@ -116,6 +116,8 @@ void main() {
       tester.getTopLeft(find.text('Stand by Me')).dy,
       lessThan(tester.getTopLeft(find.text('Blues')).dy),
     );
+    // The jazz standards, walked, say so.
+    expect(find.byIcon(Icons.directions_walk), findsNWidgets(3));
     // Lower down the sheet: scrolled to first.
     await tester.ensureVisible(find.text('Blue Bossa'));
     await tester.pumpAndSettle();

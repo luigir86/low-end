@@ -202,8 +202,9 @@ class ExampleSong {
     this.artist,
     this.pitchClass,
     this.progression,
-    this.bpm,
-  );
+    this.bpm, {
+    this.walking = false,
+  });
 
   final String title;
 
@@ -217,6 +218,10 @@ class ExampleSong {
 
   /// Beats per minute, in 4/4.
   final int bpm;
+
+  /// A jazz standard, swung over a walking bass as it is played: the song
+  /// starts in that style. A bossa nova is not walked, nor a shuffle blues.
+  final bool walking;
 }
 
 /// The songs offered, in the order of the progression menu; none needs a
@@ -238,8 +243,22 @@ const exampleSongs = [
     Progression.blues,
     100,
   ),
-  ExampleSong('Mr. P.C.', 'John Coltrane', 0, Progression.minorBlues, 160),
-  ExampleSong('Tune Up', 'Miles Davis', 2, Progression.twoFiveOne, 160),
+  ExampleSong(
+    'Mr. P.C.',
+    'John Coltrane',
+    0,
+    Progression.minorBlues,
+    160,
+    walking: true,
+  ),
+  ExampleSong(
+    'Tune Up',
+    'Miles Davis',
+    2,
+    Progression.twoFiveOne,
+    160,
+    walking: true,
+  ),
   ExampleSong(
     'Blue Bossa',
     'Kenny Dorham',
@@ -253,5 +272,6 @@ const exampleSongs = [
     7,
     Progression.circleOfFifths,
     120,
+    walking: true,
   ),
 ];
