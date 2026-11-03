@@ -59,8 +59,12 @@ typedef FlacDecoder = Future<Float32List> Function(Uint8List flac, int frames);
 /// The piano recordings, read and decoded when a chord first needs them,
 /// and kept while they may be needed again.
 class PianoLibrary {
-  PianoLibrary(this._decode, {AssetBundle? bundle})
+  PianoLibrary(this._decode, {AssetBundle? bundle, this.oneAtATime = kIsWeb})
     : _bundle = bundle ?? rootBundle;
+
+  /// Whether the double bass is read one file at a time, leaving the screen
+  /// a frame between them: in a browser (see [_doubleBass]).
+  final bool oneAtATime;
 
   final FlacDecoder _decode;
   final AssetBundle _bundle;
@@ -115,13 +119,30 @@ class PianoLibrary {
   }
 
   /// The double bass, every take: some 90 short files, read once.
+  ///
+  /// In a browser, where they are decoded on the screen's thread, one at a
+  /// time with a frame between them, so that the screen never freezes.
   Future<BassSamples> _doubleBass() => _bass ??=
       () async {
         final files = BassSamples.all.toList();
-        final takes = await Future.wait([
-          for (final (root, layer, take) in files)
-            _channel(BassSamples.assetOf(root, layer, take)),
-        ]);
+        final watch = Stopwatch()..start();
+        final List<Int16List> takes;
+        if (oneAtATime) {
+          takes = [];
+          for (final (root, layer, take) in files) {
+            takes.add(await _channel(BassSamples.assetOf(root, layer, take)));
+            await Future<void>.delayed(Duration.zero);
+          }
+        } else {
+          takes = await Future.wait([
+            for (final (root, layer, take) in files)
+              _channel(BassSamples.assetOf(root, layer, take)),
+          ]);
+        }
+        // How long it takes on a real phone, to look at in the logs.
+        if (kDebugMode) {
+          debugPrint('Double bass read in ${watch.elapsedMilliseconds} ms');
+        }
         final notes = <int, Map<int, List<Int16List>>>{};
         for (final (i, (root, layer, _)) in files.indexed) {
           (notes.putIfAbsent(root, () => {})[layer] ??= []).add(takes[i]);
