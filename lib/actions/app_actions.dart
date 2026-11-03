@@ -391,12 +391,14 @@ class AppActions {
     },
     'style': {
       'type': 'string',
-      'enum': ['held', 'beat', 'arpeggio'],
+      'enum': ['held', 'beat', 'arpeggio', 'walking'],
       'description':
           'How the piano plays the note, chord or progression: struck once a bar '
-          '(held), on every beat, or as an '
-          'arpeggio, one note a beat (the piano follows the tempo and time '
-          'signature of the metronome).',
+          '(held), on every beat, as an '
+          'arpeggio, one note a beat, or as a walking bass: a jazz line on a '
+          'plucked double bass, one note a beat, with the piano comping '
+          'lightly above (the sound follows the tempo and time signature of '
+          'the metronome).',
     },
     'held_tone': {
       'type': 'boolean',

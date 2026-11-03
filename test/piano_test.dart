@@ -179,10 +179,11 @@ void main() {
       final beat = ClickSound.sampleRate;
       // Root, third, fifth, third. Each note rings on into the next, so
       // the pitch just after a strike is somewhere between the new note
-      // and the one before.
+      // and the one before. The notes come a little off the beat, as a
+      // hand plays them: listened to 30 ms after it.
       const expected = [60, 64, 67, 64];
       for (var b = 0; b < 4; b++) {
-        final pitch = _pitch(loop, b * beat + 100, 800);
+        final pitch = _pitch(loop, b * beat + 1440, 800);
         final now = _hz(expected[b]);
         final before = _hz(expected[(b + 3) % 4]);
         final low = math.min(now, before) * 0.85;
@@ -239,7 +240,7 @@ void main() {
       expect(loop.length, beat * 4);
       const expected = [60, 64, 67, 64];
       for (var b = 0; b < 4; b++) {
-        final pitch = _pitch(loop, b * beat + 100, 800);
+        final pitch = _pitch(loop, b * beat + 1440, 800);
         final now = _hz(expected[b]);
         final before = _hz(expected[(b + 3) % 4]);
         final low = math.min(now, before) * 0.85;
@@ -473,36 +474,34 @@ void main() {
       expect(_energy(sound.right, 0, 4000), 0);
     });
 
-    test('the "one" of an arpeggio is struck with the firm touch', () {
-      // The firm take an octave up, so it can be told from the normal one.
+    test('an arpeggio goes up with the normal touch, down with the soft', () {
+      // The soft take an octave up, so it can be told from the normal one.
       final s = PianoSamples({
         60: {
           PianoSamples.normal: PianoTake.mono(_sine(_hz(60), rate * 5)),
-          PianoSamples.firm: PianoTake.mono(_sine(_hz(72), rate * 5)),
+          PianoSamples.soft: PianoTake.mono(_sine(_hz(72), rate * 5)),
         },
       });
+      // Root, third, fifth, third: the last one on the way down.
       final loop = play(
         s,
         const [
-          [60],
+          [60, 64, 67],
         ],
         style: PianoStyle.arpeggio,
         bpm: 60,
       );
       const window = rate ~/ 4;
-      // On the "one", the firm touch over the note of the beat before,
-      // still ringing.
+      // The soft take of the third, pitched up from the recording of C4.
+      final softThird = _hz(76);
+      final down = _power(loop, softThird, rate * 3 + 1440, window);
+      expect(down, greaterThan(1e5));
+      // On the way up (the third on beat 2), the normal touch only.
       expect(
-        _power(loop, _hz(72), 0, window),
-        greaterThan(_power(loop, _hz(60), 0, window) * 2),
+        _power(loop, softThird, rate + 1440, window),
+        lessThan(down * 1e-3),
       );
-      // On the last beat, once the "one" has died away, the normal one.
-      const last = rate * 13 ~/ 4;
-      expect(
-        _power(loop, _hz(72), last, window),
-        lessThan(_power(loop, _hz(72), 0, window) * 1e-4),
-      );
-      expect(_power(loop, _hz(60), last, window), greaterThan(1e5));
+      expect(_power(loop, _hz(64), rate + 1440, window), greaterThan(1e5));
     });
 
     test('a chord rolls a little from the root up, as a hand plays it', () {
@@ -531,10 +530,13 @@ void main() {
         cMajor,
         [62, 65, 69],
       ]);
-      expect(_energy(change, bar + 100, 1000), greaterThan(1e-4));
+      // Let go just after the next chord comes in (60 ms), as when the
+      // pedal is changed.
+      const overlap = rate * 60 ~/ 1000;
+      expect(_energy(change, bar + overlap + 100, 1000), greaterThan(1e-4));
       expect(_energy(change, 100, 1000), 0);
       final same = play(s, const [cMajor, cMajor]);
-      expect(_energy(same, bar + 100, 1000), 0);
+      expect(_energy(same, bar + overlap + 100, 1000), 0);
     });
 
     test('letting go carries on from the very sample the loop left', () {

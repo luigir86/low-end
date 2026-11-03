@@ -34,6 +34,7 @@ void showLowEndAbout(BuildContext context) {
       Text(l10n.aboutDescription),
       const SizedBox(height: 8),
       Text(l10n.aboutPiano),
+      Text(l10n.aboutBass),
       const SizedBox(height: 8),
       // A link, not a text to copy from.
       Align(

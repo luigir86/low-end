@@ -14,13 +14,15 @@ import 'harmony.dart';
 enum DroneVoicing { root, chord, progression }
 
 /// How the drone plays on the piano, in time with the metronome's tempo and
-/// time signature: the chord struck once a bar, on every beat, or one note
-/// of it on every beat (an arpeggio).
+/// time signature: the chord struck once a bar, on every beat, one note of
+/// it on every beat (an arpeggio), or a double bass walking under it with
+/// the piano comping above.
 enum DroneStyle {
   /// Struck on the "one" and left to ring.
   held(PianoStyle.bar),
   beat(PianoStyle.beat),
-  arpeggio(PianoStyle.arpeggio);
+  arpeggio(PianoStyle.arpeggio),
+  walking(PianoStyle.walking);
 
   const DroneStyle(this.piano);
 
@@ -439,9 +441,14 @@ class DroneController extends ChangeNotifier {
   void preparePiano() {
     final piano = _piano;
     if (piano == null || !usesPiano || _playing) return;
-    piano.prepare(_pianoChords).catchError((Object error) {
-      debugPrint('Drone could not prepare the piano: $error');
-    });
+    piano
+        .prepare(
+          _pianoChords,
+          bass: _style == DroneStyle.walking && _voicing != DroneVoicing.root,
+        )
+        .catchError((Object error) {
+          debugPrint('Drone could not prepare the piano: $error');
+        });
   }
 
   /// Moves to the next chord at the next bar line.

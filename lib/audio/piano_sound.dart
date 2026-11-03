@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../features/metronome/time_signature.dart';
 import 'click_sound.dart';
 import 'freeverb.dart';
+import 'walking_bass.dart';
 
 /// How the piano plays a chord or a progression, one bar after another.
 enum PianoStyle {
@@ -23,6 +24,10 @@ enum PianoStyle {
 
   /// One note of the chord on every beat, going up and down it.
   arpeggio,
+
+  /// A plucked double bass walking under the chords, a note a beat, and the
+  /// piano comping lightly above it (see [WalkingBass]).
+  walking,
 }
 
 /// A bar's worth of notes, as MIDI numbers (60 is middle C), root first.
@@ -69,6 +74,7 @@ class PianoSamples {
     this.releases = const {},
     this.cents = const {},
     this.gains = const {},
+    this.bass,
   });
 
   /// The normal touch only, mono, for tests: [notes] by MIDI number.
@@ -89,6 +95,9 @@ class PianoSamples {
   /// The gain that brings each recorded note to a common level (see
   /// [levels]).
   final Map<int, double> gains;
+
+  /// The double bass of the walking bass, when loaded.
+  final BassSamples? bass;
 
   static const sampleRate = 48000;
 
@@ -170,7 +179,15 @@ class PianoSamples {
 /// One stroke of a key, as the loop is written: where, how firm, how long
 /// it is held, and whether the dampers are heard when it is let go.
 class _Stroke {
-  _Stroke(this.midi, this.gain, this.at, this.hold, this.layer, this.damp);
+  _Stroke(
+    this.midi,
+    this.gain,
+    this.at,
+    this.hold,
+    this.layer,
+    this.damp, {
+    this.take = 0,
+  });
 
   final int midi;
   final double gain;
@@ -179,6 +196,11 @@ class _Stroke {
   final int layer;
   final bool damp;
 
+  /// Which take of the double bass plays it (from 1), or 0 for the piano.
+  final int take;
+
+  bool get bass => take > 0;
+
   _Stroke copy({int? at, int? hold, bool? damp}) => _Stroke(
     midi,
     gain,
@@ -186,6 +208,7 @@ class _Stroke {
     hold ?? this.hold,
     layer,
     damp ?? this.damp,
+    take: take,
   );
 }
 
@@ -211,10 +234,8 @@ abstract final class PianoSound {
   /// piano.
   static const _lowestDouble = 36;
 
-  /// How long a note rings before it is let go, in beats, and how long it
-  /// takes to die away after that, a little longer in the bass, as the
-  /// dampers take longer to stop the heavier strings.
-  static const _arpeggioHold = 2.0;
+  /// How long a note takes to die away once let go, a little longer in the
+  /// bass, as the dampers take longer to stop the heavier strings.
   static const _release = Duration(milliseconds: 300);
   static const _bassRelease = Duration(milliseconds: 420);
 
@@ -234,13 +255,66 @@ abstract final class PianoSound {
   /// strike.
   static const _renewGain = 0.6;
 
-  /// The notes of a chord above the root come this much after it, low to
-  /// high, as a hand plays them, give or take [_spreadJitter]; the root
-  /// stays on the beat.
-  static const _spread = 0.004, _spreadJitter = 0.0015;
+  /// The notes of a chord above the root come one after another, low to
+  /// high, as a hand plays them: each this much after the one below, more
+  /// or less from one strike to the next (between the two), give or take
+  /// [_spreadJitter]; the root stays on the beat.
+  static const _spreadLow = 0.003, _spreadHigh = 0.008;
+  static const _spreadJitter = 0.001;
+
+  /// The level of the top note of a chord and of the ones between it and
+  /// the root, against the root: the top one sings, the inner ones lie
+  /// back, as under a pianist's hand.
+  static const _topLevel = 0.95, _innerLevel = 0.74;
+
+  /// How far the root an octave down comes before the chord, in seconds:
+  /// the left hand a hair ahead.
+  static const _bassLead = 0.005;
+
+  /// A chord held for the bar is let go this long after the next one comes
+  /// in, in seconds: the two touch for a moment, as when the pedal is
+  /// changed just after the new chord.
+  static const _pedalOverlap = 0.06;
+
+  /// How much the chord held for the bar changes in level from one bar to
+  /// the next, up to, in dB; and the level of every other bar against the
+  /// first, so that the bars go strong and weak, as a phrase does.
+  static const _barJitter = 1.0, _weakBar = 0.92;
+
+  /// How far, in seconds, a chord held for the bar or a note of an
+  /// arpeggio may fall from the beat, up to (a little less, mostly).
+  static const _timeJitter = 0.006;
+
+  /// In an arpeggio, the top note comes this much late, in seconds, as if
+  /// leaned on, and the "one" a little less.
+  static const _topLate = 0.012, _oneLate = 0.004;
+
+  /// The longest an arpeggio's note is held, in seconds: it rings on to the
+  /// end of the bar, as with half the pedal down, but not past the
+  /// recordings.
+  static const _arpeggioLongest = 6.0;
+
+  /// How long past the end of the bar an arpeggio's notes are let go, in
+  /// seconds: just into the next chord.
+  static const _arpeggioOverlap = 0.04;
+
+  /// The walking bass comes this much ahead of the beat, in seconds, give
+  /// or take [_bassJitter]; its swung eighths [_swingLate] after where they
+  /// would fall.
+  static const _walkingLead = 0.004, _bassJitter = 0.0015;
+  static const _swingLate = 0.008;
+
+  /// A note of the walking bass rings this long into the next one, in
+  /// seconds, and dies away over [_bassFade] once let go: the string stopped
+  /// by the next pluck.
+  static const _bassLegato = 0.03, _bassFade = 0.045;
+
+  /// The level of the double bass, and of each note of the piano comping
+  /// over it, against a piano note struck alone: the bass leads.
+  static const _bassLevel = 2.0, _compLevel = 0.45;
 
   /// And differ in level by up to this much, in dB.
-  static const _levelJitter = 0.6;
+  static const _levelJitter = 0.5;
 
   /// The level of each note of a chord of [notes] struck together: full up
   /// to [_fullChord] notes, then lower, so that a fuller chord is not louder
@@ -304,6 +378,11 @@ abstract final class PianoSound {
     // The hand's small unevenness, the same at every turn of the loop.
     final random = math.Random(11);
 
+    /// Between -1 and 1, mostly near 0: the sum of two even draws.
+    double wobble() => random.nextDouble() + random.nextDouble() - 1;
+
+    int seconds(double s) => (s * ClickSound.sampleRate).round();
+
     /// The chord, with its root again an octave down for the weight, struck
     /// at [at] at [gain] and held for [hold] samples; let go with the
     /// dampers heard if [damp].
@@ -318,14 +397,17 @@ abstract final class PianoSound {
       final doubled = chord[0] - 12 >= _lowestDouble;
       final level = gain * chordGain(chord.length + (doubled ? 1 : 0));
       final upper = [...chord.skip(1)]..sort();
+      final spread =
+          _spreadLow + random.nextDouble() * (_spreadHigh - _spreadLow);
       for (var i = 0; i < chord.length; i++) {
-        var g = level * (i == 0 ? 1 : 0.82);
+        var g = level;
         var offset = 0;
         if (i > 0) {
           final order = upper.indexOf(chord[i]) + 1;
-          final spread =
-              _spread * order + (random.nextDouble() * 2 - 1) * _spreadJitter;
-          offset = (spread * ClickSound.sampleRate).round();
+          g *= order == upper.length ? _topLevel : _innerLevel;
+          offset = seconds(
+            spread * order + (random.nextDouble() * 2 - 1) * _spreadJitter,
+          );
           final db = (random.nextDouble() * 2 - 1) * _levelJitter;
           g *= math.pow(10, db / 20);
         }
@@ -334,13 +416,25 @@ abstract final class PianoSound {
         );
       }
       if (doubled) {
-        strokes.add(_Stroke(chord[0] - 12, level * 0.6, at, hold, layer, damp));
+        final lead = seconds(_bassLead);
+        strokes.add(
+          _Stroke(
+            chord[0] - 12,
+            level * 0.6,
+            at - lead,
+            hold + lead,
+            layer,
+            damp,
+          ),
+        );
       }
     }
 
     /// The chord struck on [pulse] and held until [until] (a pulse, or the
     /// end of the bar), struck again softly in between when that is longer
-    /// than the recordings ring.
+    /// than the recordings ring. The first strike comes [early] samples
+    /// before the pulse (after, if negative); the last one is let go
+    /// [overlap] samples after [until].
     void holdChord(
       PianoChord chord,
       double gain,
@@ -349,20 +443,68 @@ abstract final class PianoSound {
       int until, {
       required bool damp,
       required int layer,
+      int early = 0,
+      int overlap = 0,
     }) {
       final strikes = chordStrikes(pulse, until, beat);
       for (var i = 0; i < strikes.length; i++) {
         final end = i + 1 < strikes.length ? strikes[i + 1] : until;
         final last = i + 1 == strikes.length;
+        final shift = i == 0 ? early : 0;
         strikeChord(
           chord,
           i == 0 ? gain : gain * _renewGain,
-          start + strikes[i] * beat,
-          (end - strikes[i]) * beat,
+          start + strikes[i] * beat - shift,
+          (end - strikes[i]) * beat + shift + (last ? overlap : 0),
           i == 0 ? layer : PianoSamples.soft,
           damp: damp && last,
         );
       }
+    }
+
+    if (style == PianoStyle.walking) {
+      // The double bass, a hair ahead of the beat as it pushes the time,
+      // each note ringing into the next unless it is meant short; the swung
+      // eighths of its fills sit a touch late.
+      final lead = seconds(_walkingLead);
+      for (final n in WalkingBass.line(chords, signature)) {
+        final at = (n.at * beat).round() - lead;
+        final late = n.at % 1 > 0 ? seconds(_swingLate) : 0;
+        final legato = n.length >= 1 && n.length == n.length.roundToDouble();
+        strokes.add(
+          _Stroke(
+            n.midi,
+            n.gain * _bassLevel,
+            at + late + seconds(wobble() * _bassJitter),
+            (n.length * beat).round() + (legato ? seconds(_bassLegato) : 0),
+            n.layer,
+            false,
+            take: n.take,
+          ),
+        );
+      }
+      // The piano above it, light, its chords rolled a little.
+      for (final c in WalkingBass.comping(chords, signature)) {
+        final start = (c.at * beat).round() + seconds(wobble() * 0.003);
+        for (final (k, m) in c.notes.indexed) {
+          final top = k == c.notes.length - 1;
+          final g = _compLevel * c.gain * (top ? 1.08 : 0.9);
+          final offset = seconds(
+            0.003 * k + (random.nextDouble() * 2 - 1) * _spreadJitter,
+          );
+          strokes.add(
+            _Stroke(
+              m,
+              g,
+              start + offset,
+              (c.length * beat).round() - offset,
+              c.gain >= 0.95 ? PianoSamples.normal : PianoSamples.soft,
+              false,
+            ),
+          );
+        }
+      }
+      return strokes;
     }
 
     // Where the arpeggio of the bar before stopped (see [_arpeggioRunsOn]).
@@ -390,15 +532,23 @@ abstract final class PianoSound {
             }
           }
         case PianoStyle.bar:
-          // A chord held for the bar: the normal touch, which rings long.
+          // A chord held for the bar: the normal touch, which rings long,
+          // the soft one in the weak bars of the phrase; a little off the
+          // beat, a little louder or softer from bar to bar, let go just
+          // after the next one comes in.
+          final gain =
+              (bar.isOdd ? _weakBar : 1.0) *
+              math.pow(10, wobble() * _barJitter / 20);
           holdChord(
             chord,
-            1,
+            gain,
             start,
             0,
             signature.beats,
             damp: changes,
-            layer: PianoSamples.normal,
+            layer: gain > 0.9 ? PianoSamples.normal : PianoSamples.soft,
+            early: seconds(wobble() * _timeJitter),
+            overlap: seconds(_pedalOverlap),
           );
         case PianoStyle.beat:
           for (var pulse = 0; pulse < signature.beats; pulse++) {
@@ -419,6 +569,8 @@ abstract final class PianoSound {
               layer: _layerFor(gain),
             );
           }
+        case PianoStyle.walking:
+          break; // above
         case PianoStyle.arpeggio:
           // The notes go up and down the chord one after another; in a bar
           // too short to hold them all, on from where the bar before left
@@ -428,20 +580,38 @@ abstract final class PianoSound {
               _arpeggioRunsOn(signature, chord.length) &&
               listEquals(chords[bar - 1], chord);
           var count = runsOn ? arpeggioCount : 0;
+          final tones = [
+            for (var pulse = 0; pulse < signature.beats; pulse++)
+              _arpeggioTone(signature, count++, chord.length),
+          ];
+          final top = tones.reduce(math.max);
+          final end = start + barLength + seconds(_arpeggioOverlap);
           for (var pulse = 0; pulse < signature.beats; pulse++) {
-            final accent = signature.accent(pulse);
-            final tone = _arpeggioTone(signature, count++, chord.length);
-            final gain = accent == 0 ? 1.0 : (accent == 1 ? 0.88 : 0.76);
-            final hold = (_arpeggioHold * beat).round();
-            // A single note is quieter than a chord: lift it. The touch
-            // follows the accent.
-            final layer = accent == 0 ? PianoSamples.firm : PianoSamples.normal;
+            final tone = tones[pulse];
+            // The shape of the hand: louder going up, the top note sung,
+            // softer and with the soft touch coming down; the one firm but
+            // not hit.
+            final rising = pulse == 0 || tone > tones[pulse - 1];
+            final (gain, layer) = pulse == 0
+                ? (0.95, PianoSamples.normal)
+                : tone == top
+                ? (1.0, PianoSamples.normal)
+                : rising
+                ? (0.84, PianoSamples.normal)
+                : (0.7, PianoSamples.soft);
+            final db = (random.nextDouble() * 2 - 1) * _levelJitter * 1.6;
+            final late =
+                (tone == top && pulse > 0 ? _topLate : 0) +
+                (pulse == 0 ? _oneLate : 0) +
+                wobble() * _timeJitter;
+            final at = start + pulse * beat + seconds(late);
+            // A single note is quieter than a chord: lift it.
             strokes.add(
               _Stroke(
                 chord[tone],
-                gain * 1.6,
-                start + pulse * beat,
-                hold,
+                gain * 1.6 * math.pow(10, db / 20),
+                at,
+                math.min(end - at, seconds(_arpeggioLongest)),
                 layer,
                 changes && pulse == signature.beats - 1,
               ),
@@ -469,6 +639,11 @@ abstract final class PianoSound {
     PianoStyle style,
     TimeSignature signature,
   ) {
+    // A single chord walked over four bars, so that the line goes
+    // somewhere before it comes round.
+    if (style == PianoStyle.walking && chords.length == 1) {
+      return List.filled(4, chords.single);
+    }
     if (style != PianoStyle.arpeggio ||
         chords.length != 1 ||
         !_arpeggioRunsOn(signature, chords.single.length)) {
@@ -490,6 +665,10 @@ abstract final class PianoSound {
     required int origin,
     required bool wrap,
   }) {
+    if (stroke.bass) {
+      _playBass(samples.bass, stroke, out, a4, origin: origin, wrap: wrap);
+      return;
+    }
     final rate = ClickSound.sampleRate;
     final length = out.left.length;
     final root = samples.nearest(stroke.midi);
@@ -587,6 +766,57 @@ abstract final class PianoSound {
         out.left[at] += dampers.left[i] * g;
         out.right[at] += dampers.right[i] * g;
       }
+    }
+  }
+
+  /// Adds a note of the double bass to [out], as [_play] does a piano
+  /// note: in the middle, the same in both channels. Nothing without the
+  /// recordings.
+  static void _playBass(
+    BassSamples? samples,
+    _Stroke stroke,
+    Stereo out,
+    double a4, {
+    required int origin,
+    required bool wrap,
+  }) {
+    final root = BassSamples.rootFor(stroke.midi);
+    final takes = samples?.notes[root]?[stroke.layer];
+    if (takes == null || takes.isEmpty) return;
+    final index = math.min(stroke.take, takes.length) - 1;
+    final take = takes[index];
+    final cents = BassSamples.tuning[root]?[stroke.layer]?[index] ?? 0;
+    final step =
+        math.pow(2, (stroke.midi - root) / 12) *
+        math.pow(2, -cents / 1200) *
+        a4 /
+        440 *
+        BassSamples.sampleRate /
+        ClickSound.sampleRate;
+    final release = (_bassFade * ClickSound.sampleRate).round();
+    final length = out.left.length;
+    final sounding = math.min(
+      (take.length / step).floor() - 2,
+      stroke.hold + release,
+    );
+    var first = 0, last = sounding;
+    if (!wrap) {
+      first = math.max(0, origin - stroke.at);
+      last = math.min(sounding, origin + length - stroke.at);
+    }
+    final gain = stroke.gain * _headroom / 32768;
+    for (var i = first; i < last; i++) {
+      final position = i * step;
+      final k = position.floor();
+      final f = position - k;
+      final v = take[k] + (take[k + 1] - take[k]) * f;
+      final fade = i < stroke.hold
+          ? 1.0
+          : 0.5 * (1 + math.cos(math.pi * (i - stroke.hold) / release));
+      final at = wrap ? (stroke.at + i) % length : stroke.at + i - origin;
+      final s = v * gain * fade;
+      out.left[at] += s;
+      out.right[at] += s;
     }
   }
 

@@ -310,6 +310,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Piano sounds: Salamander Grand Piano by Alexander Holm (public domain).';
 
   @override
+  String get aboutBass =>
+      'Double bass sounds: Meatbass by Karoryfer Lecolds, played by Drogomir Smolken (CC0, public domain).';
+
+  @override
   String get styleLabel => 'Style';
 
   @override
@@ -320,6 +324,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get styleArpeggio => 'Arpeggio';
+
+  @override
+  String get styleWalking => 'Walking bass';
 
   @override
   String styleTempo(String tempo, String signature) {

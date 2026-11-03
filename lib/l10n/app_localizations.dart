@@ -626,6 +626,12 @@ abstract class AppLocalizations {
   /// **'Piano sounds: Salamander Grand Piano by Alexander Holm (public domain).'**
   String get aboutPiano;
 
+  /// No description provided for @aboutBass.
+  ///
+  /// In en, this message translates to:
+  /// **'Double bass sounds: Meatbass by Karoryfer Lecolds, played by Drogomir Smolken (CC0, public domain).'**
+  String get aboutBass;
+
   /// No description provided for @styleLabel.
   ///
   /// In en, this message translates to:
@@ -649,6 +655,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Arpeggio'**
   String get styleArpeggio;
+
+  /// A jazz bass line, one note a beat, on a plucked double bass, with the piano comping above.
+  ///
+  /// In en, this message translates to:
+  /// **'Walking bass'**
+  String get styleWalking;
 
   /// The tempo is written like ♩ = 120.
   ///

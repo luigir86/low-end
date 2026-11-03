@@ -43,7 +43,7 @@ Values:
 - `voicing`: `root` (the note alone), `chord`, `progression`. On screen there are two choices, Chord and Progression; the note alone is the first entry of the chord menu.
 - `chord` (with voicing `chord`): `major`, `minor`, `dominant` (7), `major7`, `minor7`, `halfDiminished` (m7b5), `diminished`, `sus4`.
 - `progression` (with voicing `progression`), in the order of the menu, from the easiest: pop and rock `oneSixFourFive` (the "giro di Do", the default), `oneFiveSixFour`, `andalusian` (minor key); blues `blues`, `minorBlues` (minor key); jazz `twoFiveOne` (the I held for two bars), `minorTwoFiveOne` (minor key), `oneSixTwoFive`, `circleOfFifths` (8 bars, as in Autumn Leaves). One chord per bar, at the metronome tempo; every progression lasts 4, 8 or 12 bars.
-- `style`: `held` (struck once a bar), `beat` (on every beat), `arpeggio` (one note a beat). A `root` voicing is always sustained.
+- `style`: `held` (struck once a bar), `beat` (on every beat), `arpeggio` (one note a beat), `walking` (a walking bass: a jazz line on a plucked double bass, one note a beat, in the manner of Paul Chambers, with the piano comping lightly above; a single chord is walked over four bars). A `root` voicing is always sustained.
 - `held_tone`: `true` for a steady tone instead of the piano struck again and again (the style then does not apply), `false` for the piano.
 - `flat`: `true` writes the note, if it is C# or F#, as Db or Gb (on the dial and in the chord names); the sound is the same.
 - `song`: an example song (`Stand by Me`, `With or Without You`, `Hit the Road Jack`, `Sweet Home Chicago`, `Mr. P.C.`, `Tune Up`, `Blue Bossa`, `Autumn Leaves`): sets its key, progression and tempo, and the metronome to 4/4, as touching it on screen does.
