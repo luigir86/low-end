@@ -314,7 +314,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Double bass sounds: Meatbass by Karoryfer Lecolds, played by Drogomir Smolken (CC0, public domain).';
 
   @override
-  String get styleLabel => 'Style';
+  String styleButton(String style) {
+    return 'Style: $style';
+  }
 
   @override
   String get styleHeld => 'Chord every bar';
@@ -362,9 +364,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setTempo => 'Type the tempo';
-
-  @override
-  String get optionsLabel => 'Sound options';
 
   @override
   String get continuousToneTitle => 'Held tone';

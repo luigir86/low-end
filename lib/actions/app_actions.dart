@@ -391,20 +391,22 @@ class AppActions {
     },
     'style': {
       'type': 'string',
-      'enum': ['held', 'beat', 'arpeggio', 'walking'],
+      'enum': ['held', 'beat', 'arpeggio', 'walking', 'tone'],
       'description':
-          'How the piano plays the note, chord or progression: struck once a bar '
-          '(held), on every beat, as an '
-          'arpeggio, one note a beat, or as a walking bass: a jazz line on a '
-          'plucked double bass, one note a beat, with the piano comping '
-          'lightly above (the sound follows the tempo and time signature of '
-          'the metronome).',
+          'The style, as in the style menu of Harmony. How the piano plays '
+          'the note, chord or progression: struck once a bar (held), on '
+          'every beat, as an arpeggio, one note a beat, or as a walking '
+          'bass: a jazz line on a plucked double bass, one note a beat, with '
+          'the piano comping lightly above (the piano follows the tempo and '
+          'time signature of the metronome); or tone, a steady tone instead '
+          'of the piano, as held_tone true.',
     },
     'held_tone': {
       'type': 'boolean',
       'description':
           'true for a steady tone instead of the piano struck again and '
-          'again (the style then does not apply); false for the piano.',
+          'again, as style tone; false for the piano, in the style last '
+          'chosen. Given with a style, the two must agree.',
     },
     'flat': {
       'type': 'boolean',
@@ -622,10 +624,19 @@ class AppActions {
     final chord = args['chord'] == null
         ? null
         : _enum(ChordQuality.values, args['chord']);
-    final style = args['style'] == null
+    // The held tone is the fifth style of the menu.
+    final styleArg = args['style'];
+    final tone = styleArg == 'tone';
+    final style = styleArg == null || tone
         ? null
-        : _enum(DroneStyle.values, args['style']);
-    final heldTone = _bool(args, 'held_tone');
+        : _enum(DroneStyle.values, styleArg);
+    final heldToneArg = _bool(args, 'held_tone');
+    if (heldToneArg != null && styleArg != null && heldToneArg != tone) {
+      throw ActionError(
+        '"held_tone" $heldToneArg does not go with "style" "$styleArg".',
+      );
+    }
+    final heldTone = heldToneArg ?? (styleArg == null ? null : tone);
     final flat = _bool(args, 'flat');
     final song = switch (args['song']) {
       null => null,
@@ -713,7 +724,7 @@ class AppActions {
         'voicing': drone.voicing.name,
         'chord': drone.chord.name,
         'progression': drone.progression.name,
-        'style': drone.style.name,
+        'style': drone.continuous ? 'tone' : drone.style.name,
         'held_tone': drone.continuous,
         'flat': drone.spelledFlat(drone.note.pitchClass),
         'progression_step': drone.voicing == DroneVoicing.progression

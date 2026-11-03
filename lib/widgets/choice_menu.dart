@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 /// in the muted ink ("Like Autumn Leaves", the strings of an instrument); a
 /// [leading] picture before them, as the note figures of the metronome. A
 /// [section] different from the line before opens a new section of the
-/// menu under that heading ("Jazz").
+/// menu under that heading ("Jazz"); a [divided] line has a rule above it,
+/// without a heading.
 class Choice<T> {
   const Choice({
     required this.value,
@@ -14,6 +15,7 @@ class Choice<T> {
     this.subtitle,
     this.leading,
     this.section,
+    this.divided = false,
   });
 
   final T value;
@@ -21,6 +23,7 @@ class Choice<T> {
   final String? subtitle;
   final Widget? leading;
   final String? section;
+  final bool divided;
 }
 
 /// The one menu of the app, for every short list of choices: the
@@ -67,7 +70,8 @@ Future<T?> showChoiceMenu<T>({
             (i == 0 || choices[i - 1].section != c.section)) ...[
           if (i > 0) const PopupMenuDivider(),
           _SectionHeading<T>(c.section!),
-        ],
+        ] else if (c.divided && i > 0)
+          const PopupMenuDivider(),
         PopupMenuItem<T>(
           value: c.value,
           child: _ChoiceLine(choice: c, selected: c.value == selected),

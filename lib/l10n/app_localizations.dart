@@ -632,11 +632,11 @@ abstract class AppLocalizations {
   /// **'Double bass sounds: Meatbass by Karoryfer Lecolds, played by Drogomir Smolken (CC0, public domain).'**
   String get aboutBass;
 
-  /// No description provided for @styleLabel.
+  /// The button of the Harmony row that shows the style playing and opens the menu of the styles.
   ///
   /// In en, this message translates to:
-  /// **'Style'**
-  String get styleLabel;
+  /// **'Style: {style}'**
+  String styleButton(String style);
 
   /// No description provided for @styleHeld.
   ///
@@ -727,12 +727,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Type the tempo'**
   String get setTempo;
-
-  /// No description provided for @optionsLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Sound options'**
-  String get optionsLabel;
 
   /// No description provided for @continuousToneTitle.
   ///

@@ -317,7 +317,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Suoni del contrabbasso: Meatbass di Karoryfer Lecolds, suonato da Drogomir Smolken (CC0, pubblico dominio).';
 
   @override
-  String get styleLabel => 'Stile';
+  String styleButton(String style) {
+    return 'Stile: $style';
+  }
 
   @override
   String get styleHeld => 'Accordo a ogni battuta';
@@ -365,9 +367,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get setTempo => 'Scrivi il tempo';
-
-  @override
-  String get optionsLabel => 'Opzioni del suono';
 
   @override
   String get continuousToneTitle => 'Tono continuo';
