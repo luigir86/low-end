@@ -62,7 +62,7 @@ class PianoLibrary {
   PianoLibrary(this._decode, {AssetBundle? bundle, this.oneAtATime = kIsWeb})
     : _bundle = bundle ?? rootBundle;
 
-  /// Whether the double bass is read one file at a time, leaving the screen
+  /// Whether the double bass is read ten files at a time, leaving the screen
   /// a frame between them: in a browser (see [_doubleBass]).
   final bool oneAtATime;
 
@@ -129,8 +129,14 @@ class PianoLibrary {
         final List<Int16List> takes;
         if (oneAtATime) {
           takes = [];
-          for (final (root, layer, take) in files) {
-            takes.add(await _channel(BassSamples.assetOf(root, layer, take)));
+          const batch = 10;
+          for (var i = 0; i < files.length; i += batch) {
+            takes.addAll(
+              await Future.wait([
+                for (final (root, layer, take) in files.skip(i).take(batch))
+                  _channel(BassSamples.assetOf(root, layer, take)),
+              ]),
+            );
             await Future<void>.delayed(Duration.zero);
           }
         } else {

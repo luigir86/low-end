@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/gestures.dart' show GestureBinding;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show SystemNavigator;
 
@@ -36,6 +37,7 @@ class LowEndApp extends StatefulWidget {
     this.pianoOutput,
     this.screenAwake,
     this.audioRoute,
+    this.audioWaitsForTouch = kIsWeb,
   });
 
   /// Audio output for the drone; defaults to the device's speakers.
@@ -65,6 +67,11 @@ class LowEndApp extends StatefulWidget {
   /// Android's audio manager by default, nothing with test outputs.
   final AudioRoute? audioRoute;
 
+  /// Whether the sound may only be got ready once the player has touched
+  /// the screen: in a browser, which keeps an audio engine started before
+  /// that silent, until some later touch it happens to take for one.
+  final bool audioWaitsForTouch;
+
   @override
   State<LowEndApp> createState() => _LowEndAppState();
 }
@@ -80,9 +87,9 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
         widget.pianoOutput ??
         (widget.toneOutput == null ? SoLoudPianoOutput() : null),
     outputLatency: () => _route.outputLatency,
-    // On the phone the double bass is read away from the screen: it is got
-    // ready with the piano, for a walking bass chosen later.
-    prefetchBass: !kIsWeb,
+    // The double bass is got ready right after the piano, for a walking
+    // bass chosen later: reading it takes seconds on a phone's browser.
+    prefetchBass: true,
   );
   late final _metronome = MetronomeController(
     widget.clickOutput ?? SoLoudClickOutput(),
@@ -155,10 +162,16 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     _unplugged = _route.unplugged.listen((_) => _pauseFor(_Pause.unplugged));
     // If the app opens on the tuner (where it was left, or a link), start
     // listening once the first frame is up, so the microphone never delays
-    // it; opening on the harmony, its piano is got ready then too.
+    // it; opening on the harmony, its piano is got ready then too, in a
+    // browser at the first touch.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_navigation.tunerVisible) _tuner.resume();
-      _preparePiano();
+      if (widget.audioWaitsForTouch) {
+        GestureBinding.instance.pointerRouter.addGlobalRoute(_firstTouch);
+        _waitingForTouch = true;
+      } else {
+        _preparePiano();
+      }
     });
     // Registered before MaterialApp's own observer, so action links are
     // handled here instead of being treated as pages to open.
@@ -173,6 +186,20 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     subdivision: _metronome.subdivision,
     backbeat: _metronome.backbeat,
   );
+
+  /// The first touch of the screen, in a browser: the sound may be got
+  /// ready from now on.
+  void _firstTouch(PointerEvent event) {
+    if (event is! PointerUpEvent) return;
+    GestureBinding.instance.pointerRouter.removeGlobalRoute(_firstTouch);
+    _waitingForTouch = false;
+    _touched = true;
+    _preparePiano();
+  }
+
+  /// Whether the player has touched the screen (see [_firstTouch]).
+  late var _touched = !widget.audioWaitsForTouch;
+  var _waitingForTouch = false;
 
   void _rememberDrone() => _settings.rememberDrone(_drone.setup);
 
@@ -205,6 +232,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
   /// once the sections have stopped sliding, since in a browser reading
   /// them holds the screen up for a few seconds.
   void _preparePiano() {
+    if (!_touched) return;
     if (_navigation.section == AppSection.drone && !_navigation.sliding.value) {
       _drone.preparePiano();
     }
@@ -408,6 +436,9 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    if (_waitingForTouch) {
+      GestureBinding.instance.pointerRouter.removeGlobalRoute(_firstTouch);
+    }
     // The settings may come from main() and outlive this state.
     _settings.removeListener(_onSettingsChanged);
     _navigation.removeListener(_onNavigationChanged);

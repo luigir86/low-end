@@ -108,9 +108,7 @@ class DroneController extends ChangeNotifier {
 
   /// Whether getting the piano ready (see [preparePiano]) also gets the
   /// double bass ready, whatever the style, once the piano is: then the
-  /// walking bass, chosen later, starts at once. On the phone, where the
-  /// recordings are read away from the screen; not in a browser, where
-  /// reading them holds the screen up.
+  /// walking bass, chosen later, starts at once.
   final bool prefetchBass;
   final BarClock _clock;
 

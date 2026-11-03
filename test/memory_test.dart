@@ -42,6 +42,7 @@ Future<AudioScope> _open(
   WidgetTester tester,
   AppSettings settings, {
   SilentPianoOutput? piano,
+  bool waitForTouch = false,
 }) async {
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 2.625;
@@ -52,6 +53,7 @@ Future<AudioScope> _open(
       pianoOutput: piano ?? SilentPianoOutput(),
       micInput: FakeMicInput(),
       settings: settings,
+      audioWaitsForTouch: waitForTouch,
     ),
   );
   await tester.pumpAndSettle();
@@ -128,6 +130,27 @@ void main() {
       expect(piano.chords, isNull);
     });
 
+    testWidgets('in a browser the piano waits for the first touch', (
+      tester,
+    ) async {
+      final first = await AppSettings.load();
+      first.rememberSection(AppSection.drone);
+      await tester.pump();
+
+      final piano = SilentPianoOutput();
+      await _open(
+        tester,
+        await AppSettings.load(),
+        piano: piano,
+        waitForTouch: true,
+      );
+      // A sound engine started before any touch stays silent there.
+      expect(piano.prepared, isNull);
+      await tester.tapAt(const Offset(20, 300));
+      await tester.pump();
+      expect(piano.prepared, isNotNull);
+    });
+
     testWidgets('what the player changes is kept', (tester) async {
       final settings = await AppSettings.load();
       final scope = await _open(tester, settings);
@@ -150,7 +173,7 @@ void main() {
   });
 
   group('getting the piano ready', () {
-    test('brings the double bass after it, on the phone', () async {
+    test('brings the double bass after it', () async {
       final piano = SilentPianoOutput();
       final drone = DroneController(
         SilentToneOutput(),
@@ -164,14 +187,17 @@ void main() {
       drone.dispose();
     });
 
-    test('leaves it in a browser until the walking bass is chosen', () async {
-      final piano = SilentPianoOutput();
-      final drone = DroneController(SilentToneOutput(), piano: piano);
-      drone.setVoicing(DroneVoicing.chord);
-      drone.preparePiano();
-      await Future<void>.delayed(Duration.zero);
-      expect(piano.preparedBass, isFalse);
-      drone.dispose();
-    });
+    test(
+      'leaves it, unless asked to, until the walking bass is chosen',
+      () async {
+        final piano = SilentPianoOutput();
+        final drone = DroneController(SilentToneOutput(), piano: piano);
+        drone.setVoicing(DroneVoicing.chord);
+        drone.preparePiano();
+        await Future<void>.delayed(Duration.zero);
+        expect(piano.preparedBass, isFalse);
+        drone.dispose();
+      },
+    );
   });
 }
