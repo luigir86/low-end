@@ -177,6 +177,8 @@ class _KeySheet extends StatelessWidget {
 /// The list of example songs; choosing one applies it and closes the list.
 Future<void> showSongsSheet(BuildContext context) {
   final scope = AudioScope.of(context);
+  // A jazz standard may be chosen: its double bass is read meanwhile.
+  scope.drone.prepareBass();
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -227,6 +229,13 @@ Future<void> showSongsSheet(BuildContext context) {
                     '${_songKey(l10n, song, names)} · '
                     '${BeatUnit.quarter.symbol} = ${song.bpm}',
                   ),
+                  // A jazz standard starts on the walking bass.
+                  trailing: song.walking
+                      ? Icon(
+                          Icons.directions_walk,
+                          semanticLabel: l10n.styleWalking,
+                        )
+                      : null,
                   onTap: () {
                     applySong(
                       song,
