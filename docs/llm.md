@@ -17,7 +17,7 @@ Three sections: **Metronome**, **Harmony** (Armonia) and **Tuner**. Harmony keep
   - `tuner_stop` pauses the tuner like the Pause button: it stays paused, also when coming back to the section, until `tuner_start` or a touch on the dial.
   - `metronome_start` and `drone_play` leave the tuner, so its microphone turns off.
 - **Locking the gestures** ("Blocca i gesti" in the settings) only disables swiping between sections. Actions, including `open_section`, still work.
-- Loudness follows the phone's media volume; there is no volume or balance action. The sound is a piano in equal temperament.
+- Loudness follows the phone's media volume; there is no volume or balance action. The piano (walking bass included) is in equal temperament; the held tone (style `tone`) is in pure intervals, so that it does not beat and can be tuned against.
 - The app is always dark (bronze theme); there is no theme setting.
 
 ## Actions

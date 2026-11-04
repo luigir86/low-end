@@ -60,7 +60,7 @@ To the **Power Flower Orchestra of Fossano**, who inspired this app and put it t
 Nothing here is promised.
 
 - Metronome: more time signatures, a tempo trainer.
-- Harmony: more progressions and chords, just intonation.
+- Harmony: more progressions and chords.
 - More languages (Spanish, German, French, Portuguese, Japanese).
 - A PDF library for sheet music, set lists and annotations, and later PDF to MusicXML and MIDI playback.
 
