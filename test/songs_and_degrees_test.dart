@@ -165,16 +165,16 @@ void main() {
       lessThan(tester.getTopLeft(find.text('Blues')).dy),
     );
     // Each song shows the style it sets with the style menu's picture: the
-    // footprints for the three jazz standards, walked.
+    // footprints for the four jazz standards, walked.
     expect(
       find.byWidgetPredicate(
         (w) => w is StyleIcon && w.glyph == StyleGlyph.footprints,
       ),
-      findsNWidgets(3),
+      findsNWidgets(4),
     );
     expect(
       find.textContaining('Walking bass', findRichText: true),
-      findsNWidgets(3),
+      findsNWidgets(4),
     );
     expect(find.textContaining('Arpeggio', findRichText: true), findsOneWidget);
     expect(find.byIcon(Icons.directions_walk), findsNothing);
@@ -206,15 +206,12 @@ void main() {
       expect(s.pitchClass, inInclusiveRange(0, 11));
       expect(s.bpm, inInclusiveRange(60, 200));
     }
-    // Keyed to natural notes: no spelling to choose.
+    // Never in D♭ or G♭: no spelling to choose.
     expect(
-      exampleSongs.map((s) => s.pitchClass).toSet().intersection({
-        1,
-        3,
-        6,
-        8,
-        10,
-      }),
+      exampleSongs
+          .map((s) => s.pitchClass)
+          .toSet()
+          .intersection(DroneController.respellable),
       isEmpty,
     );
   });

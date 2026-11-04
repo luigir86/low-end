@@ -66,6 +66,7 @@ void main() {
     expect(find.text('Like Sweet Home Chicago'), findsOneWidget);
     expect(find.text('Like Mr. P.C.'), findsOneWidget);
     expect(find.text('Like Tune Up'), findsOneWidget);
+    expect(find.text('The Anatole, like I Got Rhythm'), findsOneWidget);
     expect(find.text('Like Autumn Leaves'), findsOneWidget);
     // From the easiest to the richest.
     expect(
@@ -90,6 +91,7 @@ void main() {
     await tester.tap(find.byKey(const Key('progressionMenu')));
     await tester.pumpAndSettle();
     expect(find.text('Giro di Do, come Stand by Me'), findsOneWidget);
+    expect(find.text('Anatole, come I Got Rhythm'), findsOneWidget);
     expect(find.text('Pop e rock'), findsOneWidget);
     expect(find.text('Blues in 12 battute'), findsOneWidget);
     expect(tester.takeException(), isNull);

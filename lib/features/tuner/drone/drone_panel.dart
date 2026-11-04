@@ -661,12 +661,14 @@ String progressionSectionName(AppLocalizations l10n, ProgressionSection s) =>
       ProgressionSection.jazz => l10n.progressionSectionJazz,
     };
 
-/// The line under the name in the menu: "Like With or Without You"; for I–VI–IV–V
-/// and I–♭VII–♭VI–V also their common names, the "giro di Do" of Italian
-/// musicians and the Andalusian cadence.
+/// The line under the name in the menu: "Like With or Without You"; for I–VI–IV–V,
+/// I–♭VII–♭VI–V and I–VI–II–V also their common names, the "giro di Do" of
+/// Italian musicians, the Andalusian cadence and the Anatole of jazz
+/// musicians.
 String progressionNote(AppLocalizations l10n, Progression p) => switch (p) {
   Progression.oneSixFourFive => l10n.progressionGiroLike(progressionSong(p)),
   Progression.andalusian => l10n.progressionAndalusianLike(progressionSong(p)),
+  Progression.oneSixTwoFive => l10n.progressionAnatoleLike(progressionSong(p)),
   _ => l10n.progressionLike(progressionSong(p)),
 };
 

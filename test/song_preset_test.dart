@@ -15,7 +15,7 @@ void main() {
       for (final song in exampleSongs) {
         final back = ExampleSong.fromJson(song.toJson());
         expect(back.toJson(), song.toJson(), reason: song.title);
-        expect(back.signature, same(TimeSignature.fourFour));
+        expect(back.signature, same(song.signature), reason: song.title);
       }
     });
 

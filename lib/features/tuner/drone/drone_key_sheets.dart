@@ -5,6 +5,7 @@ import '../../../audio/audio_scope.dart';
 import '../../../audio/pitch.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../widgets/section_icons.dart';
+import '../../metronome/time_signature.dart';
 import 'drone_controller.dart';
 import 'drone_panel.dart';
 import 'example_song.dart';
@@ -267,6 +268,9 @@ class _SongPreset extends StatelessWidget {
     final theme = Theme.of(context);
     final style = theme.textTheme.bodyMedium;
     final size = (style?.fontSize ?? 14) * 1.3;
+    // The time signature, only when it is not the usual 4/4: "2/4 · ♩ = 160".
+    final s = song.signature;
+    final meter = s == TimeSignature.fourFour ? '' : '${s.label} · ';
     WidgetSpan picture(Widget icon) => WidgetSpan(
       alignment: PlaceholderAlignment.middle,
       child: Padding(
@@ -290,7 +294,7 @@ class _SongPreset extends StatelessWidget {
                 '${_songKey(l10n, song, names)}\n',
           ),
           picture(const SectionIcon(SectionGlyph.metronome)),
-          TextSpan(text: '${song.signature.beatUnit.symbol} = ${song.bpm}'),
+          TextSpan(text: '$meter${s.beatUnit.symbol} = ${song.bpm}'),
           const WidgetSpan(child: SizedBox(width: 16)),
           picture(styleIconOf(song.style)),
           TextSpan(text: styleNameOf(l10n, song.style)),
