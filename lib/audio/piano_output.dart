@@ -8,12 +8,14 @@ import 'package:flutter_soloud/flutter_soloud.dart';
 
 import '../features/metronome/time_signature.dart';
 import 'bar_loop_player.dart';
+import 'browser_flac.dart';
 import 'click_sound.dart';
 import 'loop_transport.dart';
 import 'off_thread.dart';
 import 'piano_sound.dart';
 import 'soloud_engine.dart';
 import 'walking_bass.dart';
+import 'web_audio_engine.dart';
 
 /// Plays the chords of the drone on the piano, one bar after another, in
 /// time with the metronome.
@@ -120,8 +122,8 @@ class PianoLibrary {
 
   /// The double bass, every take: some 90 short files, read once.
   ///
-  /// In a browser, where they are decoded on the screen's thread, one at a
-  /// time with a frame between them, so that the screen never freezes.
+  /// In a browser ten at a time, with a frame between them, so that the
+  /// screen keeps moving.
   Future<BassSamples> _doubleBass() => _bass ??=
       () async {
         final files = BassSamples.all.toList();
@@ -201,6 +203,8 @@ class PianoLibrary {
       data.offsetInBytes,
       data.lengthInBytes,
     );
+    // In a browser, its own decoder: the engine's takes seconds there.
+    if (await decodeFlacInBrowser(flac) case final samples?) return samples;
     final samples = await _decode(flac, flacFrames(flac));
     // Straight into the 16-bit list: a channel is up to half a million
     // samples, converted on the screen's thread.
@@ -267,8 +271,11 @@ class SoLoudPianoOutput implements PianoOutput {
   /// How long recordings got ready by [prepare] wait for a touch.
   static const _keepPreparedFor = Duration(minutes: 2);
 
-  static Future<Float32List> _decodeFlac(Uint8List flac, int frames) =>
-      SoLoud.instance.readSamplesFromMem(flac, frames);
+  static Future<Float32List> _decodeFlac(Uint8List flac, int frames) async {
+    // The engine's code, not the engine itself: no sound starts.
+    await webAudioEngineLoaded();
+    return SoLoud.instance.readSamplesFromMem(flac, frames);
+  }
 
   @override
   Future<LoopStart> play({
@@ -362,7 +369,10 @@ class SoLoudPianoOutput implements PianoOutput {
 
   @override
   Future<void> prepare(List<PianoChord> chords, {bool bass = false}) async {
-    await ensureSoLoud();
+    // In a browser the engine is not started before a touch of the screen:
+    // the browser would keep it silent until some later touch. The
+    // recordings are read there without it (see decodeFlacInBrowser).
+    if (!kIsWeb) await ensureSoLoud();
     await _library.forChords(chords, bass: bass);
     // Not played after all: they go, as after a stop, a while later.
     if (_playing != null) return;
