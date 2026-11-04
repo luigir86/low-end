@@ -50,6 +50,7 @@
   "chordMajor": "Maggiore",
   "chordMinor": "Minore",
   "chordDominant": "Settima di dominante (7)",
+  "chordDominantFlat9": "Settima di dominante con ♭9 (7♭9)",
   "chordMajor7": "Settima maggiore (maj7)",
   "chordMinor7": "Settima minore (m7)",
   "chordHalfDiminished": "Semidiminuito (m7♭5)",

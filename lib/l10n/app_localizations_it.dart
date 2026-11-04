@@ -182,6 +182,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get chordDominant => 'Settima di dominante (7)';
 
   @override
+  String get chordDominantFlat9 => 'Settima di dominante con ♭9 (7♭9)';
+
+  @override
   String get chordMajor7 => 'Settima maggiore (maj7)';
 
   @override

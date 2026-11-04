@@ -152,13 +152,23 @@ abstract final class WalkingBass {
   }
 
   /// The scale a bassist walks through on a chord with these [tones] (from
-  /// the root, in semitones), and its third (the fourth of a sus4), fifth,
-  /// sixth and seventh, from the root.
-  static ({List<int> scale, int third, int fifth, int sixth, int seventh})
+  /// the root, in semitones), and its second, third (the fourth of a sus4),
+  /// fifth, sixth and seventh, from the root. A 7♭9 is the V of a minor key,
+  /// so it walks that key's harmonic minor from its fifth: in C minor, G7♭9
+  /// goes through A♭ and E♭, not the A and E of G7 in C major.
+  static ({
+    List<int> scale,
+    int second,
+    int third,
+    int fifth,
+    int sixth,
+    int seventh,
+  })
   scaleOf(Set<int> tones) {
+    final second = tones.contains(1) ? 1 : 2;
     final third = tones.contains(3) ? 3 : (tones.contains(5) ? 5 : 4);
     final fifth = tones.contains(6) ? 6 : 7;
-    final sixth = fifth == 6 ? 8 : 9;
+    final sixth = fifth == 6 || second == 1 ? 8 : 9;
     final seventh = tones.contains(10)
         ? 10
         : tones.contains(11)
@@ -167,7 +177,8 @@ abstract final class WalkingBass {
         ? 9
         : (third == 3 ? 10 : 11);
     return (
-      scale: ({0, 2, third, 5, fifth, sixth, seventh}.toList()..sort()),
+      scale: ({0, second, third, 5, fifth, sixth, seventh}.toList()..sort()),
+      second: second,
       third: third,
       fifth: fifth,
       sixth: sixth,
@@ -218,8 +229,10 @@ abstract final class WalkingBass {
       final root = chord.first % 12;
       final target = next.first % 12;
       final tones = _tones(chord);
-      final (:scale, :third, :fifth, :sixth, :seventh) = scaleOf(tones);
-      const step = 2;
+      final (:scale, :second, :third, :fifth, :sixth, :seventh) = scaleOf(
+        tones,
+      );
+      final step = second;
       // What the beats between the "one" and the last beat do, from the
       // root: up or down the chord or the scale, in semitones.
       final patterns = <String, List<int>>{
@@ -229,7 +242,7 @@ abstract final class WalkingBass {
         'arpeggio down': [fifth - 12, third - 12, 0 - 12],
         'fifth, third': [fifth, third, step],
         'seventh down': [seventh - 12, fifth - 12, third - 12],
-        if (third == 4) 'blues': [step, 3, 4],
+        if (third == 4 && second == 2) 'blues': [step, 3, 4],
         'half steps down': [-1, -2, -3],
       };
       final k = beats.length;

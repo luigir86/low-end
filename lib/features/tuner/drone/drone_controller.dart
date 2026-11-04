@@ -293,9 +293,17 @@ class DroneController extends ChangeNotifier {
     DroneVoicing.chord => (root: _note.pitchClass, quality: _chord),
     DroneVoicing.progression => (
       root: (_note.pitchClass + _progression.steps[step].offset) % 12,
-      quality: _progression.steps[step].quality,
+      quality: _heldTone(_progression.steps[step].quality),
     ),
   };
+
+  /// The chord a progression plays as the held tone: the 7♭9 without its
+  /// ♭9, which held on is a half step that beats against the root and gets
+  /// in the way of tuning. The piano plays it whole.
+  ChordQuality _heldTone(ChordQuality quality) =>
+      !usesPiano && quality == ChordQuality.dominantFlat9
+      ? ChordQuality.dominant
+      : quality;
 
   /// The letter (0 = C … 6 = B) the key is written with: C♯ or D♭, F♯ or
   /// G♭ as chosen (see [toggleSpelling]), the usual one for the others.
