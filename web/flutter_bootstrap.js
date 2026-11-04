@@ -5,20 +5,31 @@
 // and put it to sleep (see lowEndWakeAudio below), and the app can ask the
 // browser how late what it plays is heard (outputLatency,
 // web_audio_engine_web.dart). The app raises lowEndCatchAudioContext just
-// before the engine starts; the microphone's context, made at another time,
-// is not taken for it.
+// before the engine starts, and calls lowEndAudioEngineStarted once it has;
+// the microphone's context, made at another time, is not taken for it.
+// Starting, the engine opens and closes contexts of its own, and suspends
+// them (the single-threaded build does on a first opening): only the one
+// still open once it has started is its own. Taking the first one made, a
+// suspended one was taken for the browser cutting the sound, and the
+// harmony paused as soon as it started.
+let audioContextsMade = [];
 if (window.AudioContext) {
   window.AudioContext = class extends window.AudioContext {
     constructor(...args) {
       super(...args);
-      if (window.lowEndCatchAudioContext) {
-        window.lowEndCatchAudioContext = false;
-        window.lowEndAudioContext = this;
-        watchAudio(this);
-      }
+      if (window.lowEndCatchAudioContext) audioContextsMade.push(this);
     }
   };
 }
+window.lowEndAudioEngineStarted = function () {
+  window.lowEndCatchAudioContext = false;
+  const open = audioContextsMade.filter(function (c) { return c.state !== 'closed'; });
+  audioContextsMade = [];
+  const context = open[open.length - 1];
+  if (!context || context === window.lowEndAudioContext) return;
+  window.lowEndAudioContext = context;
+  watchAudio(context);
+};
 
 // The audio engine's memory, shared with its own thread, is asked for with
 // room to grow to 2 GB. Safari on the iPhone has refused shared memories
@@ -72,20 +83,44 @@ window.lowEndDecodeFlac = function (bytes) {
 
 // The audio engine (flutter_soloud, in WebAssembly) is loaded once the app
 // is on screen, not before: it is not needed for the first frame, and
-// loading it earlier slowed the first screen down. The app waits for this
-// promise before it starts the engine (web_audio_engine_web.dart).
-window.lowEndAudioEngine = new Promise(function (resolve) {
-  let started = false;
-  window.lowEndLoadAudioEngine = function () {
-    if (started) return;
-    started = true;
-    const script = document.createElement('script');
+// loading it earlier slowed the first screen down. The app waits for the
+// promise this gives, which ends once the engine is ready to start
+// (web_audio_engine_web.dart), however long that takes: on a slow network
+// the very first opening downloads it then (some 2 MB), and the engine's
+// own wait of 15 seconds would give up and leave the app silent. If the
+// download fails, the promise fails, and the next sound asked for loads it
+// again.
+let audioEngine = null;
+window.lowEndLoadAudioEngine = function () {
+  if (audioEngine) return audioEngine;
+  const script = document.createElement('script');
+  audioEngine = new Promise(function (resolve, reject) {
+    // A fresh promise from the engine's loader, not one left by an
+    // attempt that failed.
+    self.flutter_soloud_ready = undefined;
     script.src = 'assets/packages/flutter_soloud/web/init_soloud.js';
-    script.onload = resolve;
-    script.onerror = resolve;
+    // The loader sets its promise as it runs; looked for a few times in
+    // case it runs a moment after it has loaded.
+    script.onload = function () {
+      let tries = 0;
+      (function ready() {
+        const promise = self.flutter_soloud_ready;
+        if (promise) return promise.then(resolve, reject);
+        if (++tries > 40) return reject(new Error('The audio engine did not load.'));
+        setTimeout(ready, 50);
+      })();
+    };
+    script.onerror = function () {
+      reject(new Error('The audio engine could not be downloaded.'));
+    };
     document.head.appendChild(script);
-  };
-});
+  }).catch(function (error) {
+    audioEngine = null;
+    script.remove();
+    throw error;
+  });
+  return audioEngine;
+};
 
 // Everything comes from this site, nothing from Google's servers: the
 // drawing engine (CanvasKit) included, and Flutter's own service worker,
@@ -106,7 +141,7 @@ _flutter.loader.load({
         // first sound, if one comes before.
         const firstOpening = 'serviceWorker' in navigator &&
           !navigator.serviceWorker.controller;
-        if (!firstOpening) window.lowEndLoadAudioEngine();
+        if (!firstOpening) window.lowEndLoadAudioEngine().catch(function () {});
         keepOffline();
       });
     });

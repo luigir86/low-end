@@ -229,6 +229,17 @@ class AppLocalizationsIt extends AppLocalizations {
       'Non è stato possibile avviare l\'audio su questo dispositivo.';
 
   @override
+  String get audioDownloadFailed =>
+      'Download dei suoni non riuscito: controlla la connessione e tocca di nuovo.';
+
+  @override
+  String get soundsPreparing => 'Preparo i suoni…';
+
+  @override
+  String get soundsDownloadingSlowly =>
+      'Sto scaricando i suoni: la connessione è lenta. Attendi.';
+
+  @override
   String get startListening => 'Ascolta';
 
   @override

@@ -180,6 +180,12 @@
     }
   },
   "audioUnavailable": "Sound could not start on this device.",
+  "audioDownloadFailed": "The sounds could not be downloaded. Check the connection and touch again.",
+  "@audioDownloadFailed": {"description": "Web app: the sound failed to start, almost always because a download failed."},
+  "soundsPreparing": "Getting the sounds ready…",
+  "@soundsPreparing": {"description": "Harmony hub, between the touch and the first chord heard."},
+  "soundsDownloadingSlowly": "Downloading the sounds: the connection is slow. Please wait.",
+  "@soundsDownloadingSlowly": {"description": "Web app: the first chord has been on its way for more than 5 seconds."},
   "startListening": "Listen",
   "stopListening": "Pause",
   "tunerWillPause": "Listening pauses what is playing",

@@ -1,9 +1,6 @@
 import 'dart:async';
 import 'dart:js_interop';
 
-@JS('lowEndAudioEngine')
-external JSPromise<JSAny?>? get _loaded;
-
 @JS('lowEndLoadAudioEngine')
 external JSFunction? get _load;
 
@@ -12,6 +9,9 @@ external set _inUse(bool value);
 
 @JS('lowEndCatchAudioContext')
 external set _catchContext(bool value);
+
+@JS('lowEndAudioEngineStarted')
+external JSFunction? get _started;
 
 @JS('crossOriginIsolated')
 external bool? get _crossOriginIsolated;
@@ -35,17 +35,23 @@ extension type _AudioContext(JSObject _) implements JSObject {
 }
 
 /// Waits until the page has loaded the audio engine, starting it now if
-/// the page has not yet (a sound asked for right after the first frame).
-/// Pages without the loader (none today) are not waited for.
+/// the page has not yet (a sound asked for right after the first frame),
+/// however long its download takes. Throws if it failed: the next call
+/// downloads it again. Pages without the loader (none today) are not waited
+/// for.
 Future<void> webAudioEngineLoaded() async {
   markWebAudioInUse();
-  final loaded = _loaded;
-  if (loaded == null) return;
-  _load?.callAsFunction();
+  final load = _load;
+  if (load == null) return;
+  final loaded = load.callAsFunction() as JSPromise<JSAny?>;
   await loaded.toDart;
   // The engine starts next: the page keeps its AudioContext.
   _catchContext = true;
 }
+
+/// Tells the page that the engine has started: of the AudioContexts made
+/// meanwhile, the one still open is the engine's (web/flutter_bootstrap.js).
+void markWebAudioEngineStarted() => _started?.callAsFunction();
 
 /// How late the browser says the engine's sound is heard after it leaves
 /// the engine (its baseLatency and outputLatency), or null before the

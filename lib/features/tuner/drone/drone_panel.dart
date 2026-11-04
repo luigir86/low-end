@@ -63,8 +63,9 @@ class DronePanel extends StatelessWidget {
               if (drone.audioFailed)
                 Semantics(
                   liveRegion: true,
+                  // In a browser it is almost always a download that failed.
                   child: Text(
-                    l10n.audioUnavailable,
+                    kIsWeb ? l10n.audioDownloadFailed : l10n.audioUnavailable,
                     textAlign: TextAlign.center,
                     style: TextStyle(color: theme.colorScheme.error),
                   ),
@@ -541,6 +542,37 @@ class _DialCenterState extends State<_DialCenter> {
             style: theme.textTheme.titleMedium,
           ),
         ],
+      );
+    }
+    // Touched, and not yet heard: the recordings (in a browser the audio
+    // engine too) are still being read or downloaded. Something turns, and
+    // says what is happening, so that the wait does not look like a fault.
+    if (drone.showsWait) {
+      return Semantics(
+        liveRegion: true,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox.square(
+              dimension: 32,
+              child: CircularProgressIndicator(strokeWidth: 3),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              chord != null ? chordSymbol(l10n, chord, rootName) : rootName,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              kIsWeb && drone.startsSlowly
+                  ? l10n.soundsDownloadingSlowly
+                  : l10n.soundsPreparing,
+              textAlign: TextAlign.center,
+              style: muted,
+            ),
+          ],
+        ),
       );
     }
     final inProgression = drone.voicing == DroneVoicing.progression;
