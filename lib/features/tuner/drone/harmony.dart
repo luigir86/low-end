@@ -3,6 +3,8 @@
 /// checking intonation.
 library;
 
+import '../../metronome/subdivision.dart';
+import '../../metronome/time_signature.dart';
 import 'drone_controller.dart';
 
 /// The kind of a chord: its notes above the root as pure ratios, as
@@ -197,10 +199,14 @@ enum Progression {
 /// The sections of the progression menu, by genre, in this order.
 enum ProgressionSection { popRock, blues, jazz }
 
-/// A well-known song to practise on, a preset of Harmony and the metronome:
-/// its key (as a pitch class), progression, a comfortable tempo and the way
-/// the piano plays it, set in one tap. The names are the songs' own and
-/// are not translated.
+/// A song to practise on, and the whole preset it sets in one tap: its key
+/// (as a pitch class) and progression in Harmony with the way the piano
+/// plays it, and the metronome's time signature and tempo, with its
+/// subdivision and its click on 2 and 4 when the song asks for them. The
+/// example songs are written here; a song can also be read from and written
+/// to JSON ([fromJson], [toJson]), so that one made elsewhere (by an
+/// assistant, or one day by the player) is the same object. The names are
+/// the songs' own and are not translated.
 class ExampleSong {
   const ExampleSong(
     this.title,
@@ -208,26 +214,87 @@ class ExampleSong {
     this.pitchClass,
     this.progression,
     this.bpm,
-    this.style,
-  );
+    this.style, {
+    this.signature = TimeSignature.fourFour,
+    this.subdivision,
+    this.backbeat,
+  });
+
+  /// Reads a song written by [toJson]; throws a [FormatException] naming
+  /// the field that is missing or wrong.
+  factory ExampleSong.fromJson(Map<String, Object?> json) {
+    T field<T>(String name) => switch (json[name]) {
+      final T value => value,
+      _ => throw FormatException('"$name" is missing or wrong in a song.'),
+    };
+    T named<T>(String name, Iterable<T> values, String Function(T) id) {
+      final text = field<String>(name);
+      return values.where((v) => id(v) == text).firstOrNull ??
+          (throw FormatException('"$name" cannot be "$text" in a song.'));
+    }
+
+    final pitchClass = field<int>('key');
+    final bpm = field<int>('bpm');
+    if (pitchClass < 0 || pitchClass > 11) {
+      throw const FormatException('"key" must be from 0 (C) to 11 (B).');
+    }
+    if (bpm <= 0) throw const FormatException('"bpm" must be positive.');
+    return ExampleSong(
+      field<String>('title'),
+      json['artist'] == null ? '' : field<String>('artist'),
+      pitchClass,
+      named('progression', Progression.values, (p) => p.name),
+      bpm,
+      named('style', DroneStyle.values, (s) => s.name),
+      signature: json['signature'] == null
+          ? TimeSignature.fourFour
+          : named('signature', TimeSignature.all, (s) => s.label),
+      subdivision: json['subdivision'] == null
+          ? null
+          : named<Subdivision>('subdivision', Subdivision.values, (s) => s.id),
+      backbeat: json['backbeat'] == null ? null : field<bool>('backbeat'),
+    );
+  }
 
   final String title;
 
   /// Who wrote it or made it known: the artist of the famous recording, or
-  /// for a jazz standard its composer ("Miles Davis").
+  /// for a jazz standard its composer ("Miles Davis"); may be empty.
   final String artist;
 
   /// The key, in semitones above C.
   final int pitchClass;
   final Progression progression;
 
-  /// Beats per minute, in 4/4.
+  /// The tempo, counted in the beats of [signature].
   final int bpm;
 
   /// How the piano plays it, as the song is played: a jazz standard over
   /// a walking bass, the bossa nova arpeggiated, the slow anthem held a
   /// bar, the rest struck on every beat (a shuffle blues is not walked).
   final DroneStyle style;
+
+  final TimeSignature signature;
+
+  /// What fills each beat of the metronome; null leaves the player's.
+  final Subdivision? subdivision;
+
+  /// Whether the click falls on 2 and 4 only; null leaves the player's.
+  final bool? backbeat;
+
+  /// The song as JSON, with the names the actions use; the fields left to
+  /// the player are left out.
+  Map<String, Object> toJson() => {
+    'title': title,
+    if (artist.isNotEmpty) 'artist': artist,
+    'key': pitchClass,
+    'progression': progression.name,
+    'bpm': bpm,
+    'style': style.name,
+    'signature': signature.label,
+    if (subdivision case final s?) 'subdivision': s.id,
+    'backbeat': ?backbeat,
+  };
 }
 
 /// The songs offered, in the order of the progression menu; none needs a
