@@ -15,12 +15,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/low_end_app.dart';
-import 'package:low_end/app/settings.dart';
 import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/piano_output.dart';
 import 'package:low_end/audio/tone_output.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 Future<ByteData> _file(String path) async =>
     ByteData.sublistView(await File(path).readAsBytes());
@@ -57,19 +55,12 @@ void main() {
       addTearDown(tester.view.reset);
       addTearDown(tester.platformDispatcher.clearAllTestValues);
       final mic = FakeMicInput();
-      // A first launch, as a new player sees it, past the gesture guide.
-      SharedPreferences.setMockInitialValues({
-        'seen_guide': true,
-        'seen_swipe_hint': true,
-      });
-      final settings = await AppSettings.load();
       await tester.pumpWidget(
         LowEndApp(
           toneOutput: SilentToneOutput(),
           clickOutput: SilentClickOutput(),
           pianoOutput: SilentPianoOutput(),
           micInput: mic,
-          settings: settings,
         ),
       );
       Future<void> settle() async {
