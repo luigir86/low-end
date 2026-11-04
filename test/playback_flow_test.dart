@@ -75,6 +75,9 @@ Future<_App> _open(
   AppSettings? settings,
   PianoOutput? piano,
   SilentClickOutput? click,
+  // These tests start from the metronome; the first launch opens on
+  // Harmony (see memory_test.dart).
+  AppSection opensOn = AppSection.metronome,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 2.625;
@@ -91,7 +94,7 @@ Future<_App> _open(
       micInput: mic,
       backgroundAudio: audio,
       screenAwake: FakeScreenAwake(),
-      settings: settings,
+      settings: (settings ?? AppSettings())..rememberSection(opensOn),
     ),
   );
   await tester.pumpAndSettle();

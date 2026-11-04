@@ -48,13 +48,22 @@ Finder _railTab(String name) => find.descendant(
   matching: find.text(name),
 );
 
+/// Settings that open the app on the metronome, as these tests start there
+/// (the first launch opens on Harmony: see memory_test.dart).
+AppSettings _onMetronome() =>
+    AppSettings()..rememberSection(AppSection.metronome);
+
 void main() {
   testWidgets('shows the three main sections and switches between them', (
     tester,
   ) async {
     _portrait(tester);
     await tester.pumpWidget(
-      LowEndApp(toneOutput: SilentToneOutput(), micInput: FakeMicInput()),
+      LowEndApp(
+        toneOutput: SilentToneOutput(),
+        micInput: FakeMicInput(),
+        settings: _onMetronome(),
+      ),
     );
     await tester.pumpAndSettle();
 
@@ -75,7 +84,11 @@ void main() {
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
-      LowEndApp(toneOutput: SilentToneOutput(), micInput: FakeMicInput()),
+      LowEndApp(
+        toneOutput: SilentToneOutput(),
+        micInput: FakeMicInput(),
+        settings: _onMetronome(),
+      ),
     );
     await tester.pumpAndSettle();
 
@@ -102,7 +115,11 @@ void main() {
   testWidgets('swiping moves between the sections', (tester) async {
     _portrait(tester);
     await tester.pumpWidget(
-      LowEndApp(toneOutput: SilentToneOutput(), micInput: FakeMicInput()),
+      LowEndApp(
+        toneOutput: SilentToneOutput(),
+        micInput: FakeMicInput(),
+        settings: _onMetronome(),
+      ),
     );
     await tester.pumpAndSettle();
     final scope = AudioScope.of(tester.element(find.byType(HomeShell)));
@@ -126,7 +143,11 @@ void main() {
       tester.view.devicePixelRatio = 2.625;
       addTearDown(tester.view.reset);
       await tester.pumpWidget(
-        LowEndApp(toneOutput: SilentToneOutput(), micInput: FakeMicInput()),
+        LowEndApp(
+          toneOutput: SilentToneOutput(),
+          micInput: FakeMicInput(),
+          settings: _onMetronome(),
+        ),
       );
       await tester.pumpAndSettle();
       return AudioScope.of(tester.element(find.byType(HomeShell)));
@@ -225,6 +246,7 @@ void main() {
         clickOutput: click,
         micInput: mic,
         screenAwake: awake,
+        settings: _onMetronome(),
       ),
     );
     await tester.pumpAndSettle();
@@ -302,6 +324,7 @@ void main() {
         toneOutput: SilentToneOutput(),
         clickOutput: click,
         micInput: FakeMicInput(),
+        settings: _onMetronome(),
       ),
     );
     await tester.pumpAndSettle();
@@ -331,6 +354,7 @@ void main() {
         clickOutput: click,
         micInput: FakeMicInput(),
         audioRoute: route,
+        settings: _onMetronome(),
       ),
     );
     await tester.pumpAndSettle();
@@ -367,6 +391,7 @@ void main() {
         micInput: FakeMicInput(),
         audioRoute: route,
         backgroundAudio: audio,
+        settings: _onMetronome(),
       ),
     );
     await tester.pumpAndSettle();
@@ -397,6 +422,7 @@ void main() {
         clickOutput: SilentClickOutput(),
         micInput: FakeMicInput(),
         audioRoute: route,
+        settings: _onMetronome(),
       ),
     );
     await tester.pumpAndSettle();
@@ -417,6 +443,7 @@ void main() {
         clickOutput: click,
         micInput: FakeMicInput(),
         audioRoute: route,
+        settings: _onMetronome(),
       ),
     );
     await tester.pumpAndSettle();
@@ -469,6 +496,7 @@ void main() {
       LowEndApp(
         toneOutput: SilentToneOutput(),
         micInput: FakeMicInput(allowed: false),
+        settings: _onMetronome(),
       ),
     );
     await tester.pumpAndSettle();
@@ -491,6 +519,7 @@ void main() {
           toneOutput: SilentToneOutput(),
           clickOutput: click,
           micInput: FakeMicInput(),
+          settings: _onMetronome(),
         ),
       );
       await tester.pumpAndSettle();
@@ -528,7 +557,11 @@ void main() {
     addTearDown(tester.view.reset);
     final tone = SilentToneOutput();
     await tester.pumpWidget(
-      LowEndApp(toneOutput: tone, micInput: FakeMicInput()),
+      LowEndApp(
+        toneOutput: tone,
+        micInput: FakeMicInput(),
+        settings: _onMetronome(),
+      ),
     );
     await tester.pumpAndSettle();
     await tester.tap(_harmonyTab);
@@ -555,7 +588,11 @@ void main() {
     addTearDown(tester.view.reset);
     final output = SilentToneOutput();
     await tester.pumpWidget(
-      LowEndApp(toneOutput: output, micInput: FakeMicInput()),
+      LowEndApp(
+        toneOutput: output,
+        micInput: FakeMicInput(),
+        settings: _onMetronome(),
+      ),
     );
     await tester.pumpAndSettle();
 
@@ -602,7 +639,11 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      LowEndApp(toneOutput: SilentToneOutput(), micInput: FakeMicInput()),
+      LowEndApp(
+        toneOutput: SilentToneOutput(),
+        micInput: FakeMicInput(),
+        settings: _onMetronome(),
+      ),
     );
     await tester.pumpAndSettle();
 
@@ -632,6 +673,7 @@ void main() {
         clickOutput: SilentClickOutput(),
         micInput: FakeMicInput(),
         backgroundAudio: audio,
+        settings: _onMetronome(),
       ),
     );
     await tester.pumpAndSettle();
@@ -670,6 +712,7 @@ void main() {
         clickOutput: SilentClickOutput(),
         micInput: FakeMicInput(),
         backgroundAudio: audio,
+        settings: _onMetronome(),
       ),
     );
     await tester.pumpAndSettle();
@@ -709,7 +752,7 @@ void main() {
   testWidgets('the theme can be forced, and the screen kept on or not', (
     tester,
   ) async {
-    final settings = AppSettings();
+    final settings = _onMetronome();
     final awake = FakeScreenAwake();
     final click = SilentClickOutput();
     await tester.pumpWidget(
@@ -746,7 +789,7 @@ void main() {
   testWidgets('the settings page has no theme, and changes the screen option', (
     tester,
   ) async {
-    final settings = AppSettings();
+    final settings = _onMetronome();
     await tester.pumpWidget(
       LowEndApp(
         toneOutput: SilentToneOutput(),
@@ -808,7 +851,11 @@ void main() {
       tester.view.devicePixelRatio = 2.625;
       addTearDown(tester.view.reset);
       await tester.pumpWidget(
-        LowEndApp(toneOutput: SilentToneOutput(), micInput: FakeMicInput()),
+        LowEndApp(
+          toneOutput: SilentToneOutput(),
+          micInput: FakeMicInput(),
+          settings: _onMetronome(),
+        ),
       );
       await tester.pumpAndSettle();
       expect(find.text('Metronome'), findsOneWidget);
@@ -840,6 +887,7 @@ void main() {
           toneOutput: SilentToneOutput(),
           pianoOutput: piano,
           micInput: FakeMicInput(),
+          settings: _onMetronome(),
         ),
       );
       await tester.pumpAndSettle();
@@ -917,7 +965,11 @@ void main() {
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
-      LowEndApp(toneOutput: SilentToneOutput(), micInput: FakeMicInput()),
+      LowEndApp(
+        toneOutput: SilentToneOutput(),
+        micInput: FakeMicInput(),
+        settings: _onMetronome(),
+      ),
     );
     await tester.pumpAndSettle();
     final scope = AudioScope.of(tester.element(find.byType(HomeShell)));

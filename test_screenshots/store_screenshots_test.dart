@@ -17,6 +17,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/low_end_app.dart';
 import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/mic_input.dart';
+import 'package:low_end/audio/piano_output.dart';
 import 'package:low_end/audio/tone_output.dart';
 
 Future<ByteData> _file(String path) async =>
@@ -58,6 +59,7 @@ void main() {
         LowEndApp(
           toneOutput: SilentToneOutput(),
           clickOutput: SilentClickOutput(),
+          pianoOutput: SilentPianoOutput(),
           micInput: mic,
         ),
       );
@@ -74,7 +76,32 @@ void main() {
 
       await settle();
 
-      // The tuner (first, so that nothing else is paused), a little flat on an E.
+      // 1. Harmony, where the app first opens: the progression it opens on
+      // (I–VI–IV–V in A, Stand by Me), playing.
+      final dialCentre = tester.getCenter(
+        find.text(
+          t(
+            'Touch a note to play it. Touch it again to stop.',
+            'Tocca una nota per farla suonare. Toccala di nuovo per fermarla.',
+          ),
+        ),
+      );
+      await tester.tapAt(dialCentre);
+      await settle();
+      await tester.pump(const Duration(milliseconds: 600));
+      await shot('1_harmony');
+
+      // 2. The progressions, the menu open on the harmony's dial.
+      await tester.tap(find.byKey(const Key('progressionMenu')));
+      await settle();
+      await shot('2_progressions');
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await settle();
+      // Stopped, so that the tuner pauses nothing.
+      await tester.tapAt(dialCentre);
+      await settle();
+
+      // 4. The tuner, a little flat on an E.
       await tester.tap(find.text(t('Tuner', 'Accordatore')).last);
       await settle();
       for (var i = 0; i < 20; i++) {
@@ -90,12 +117,11 @@ void main() {
         await tester.pump(const Duration(milliseconds: 50));
       }
       await tester.pump(const Duration(milliseconds: 300));
-      await shot('3_tuner');
+      await shot('4_tuner');
 
+      // 3. The metronome, running, with swung eighths.
       await tester.tap(find.text(t('Metronome', 'Metronomo')).last);
       await settle();
-
-      // 1. The metronome, running, with swung eighths.
       await tester.tap(find.byKey(const Key('subdivisionMenu')));
       await settle();
       await tester.tap(find.text(t('Swung eighth notes', 'Crome swing')));
@@ -103,27 +129,7 @@ void main() {
       await tester.tap(find.text(t('Tap to start', 'Tocca per avviare')));
       await settle();
       await tester.pump(const Duration(milliseconds: 600));
-      await shot('1_metronome');
-
-      // 2. The harmony: D minor, the metronome still going.
-      await tester.tap(find.text(t('Harmony', 'Armonia')).last);
-      await settle();
-      await tester.tap(find.text(t('D', 'Re')).first);
-      await settle();
-      await tester.tap(find.byKey(const Key('chordMenu')));
-      await settle();
-      await tester.tap(find.text(t('Minor', 'Minore')).last);
-      await settle();
-      await shot('2_harmony');
-
-      // 4. The progressions, the menu open on the harmony's dial.
-      await tester.tap(find.byKey(const Key('voicingMenu')));
-      await settle();
-      await tester.tap(find.text(t('Progression', 'Progressione')).last);
-      await settle();
-      await tester.tap(find.byKey(const Key('progressionMenu')));
-      await settle();
-      await shot('4_progressions');
+      await shot('3_metronome');
     });
   }
 }

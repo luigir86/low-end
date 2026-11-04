@@ -91,7 +91,8 @@ Future<AudioScope> _pumpApp(
     LowEndApp(
       toneOutput: output ?? SilentToneOutput(),
       micInput: mic ?? FakeMicInput(),
-      settings: settings,
+      settings: (settings ?? AppSettings())
+        ..rememberSection(AppSection.metronome),
     ),
   );
   await _settle(tester);

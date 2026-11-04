@@ -1,23 +1,17 @@
 # Low End
 
-Low End is a free, open-source practice app for musicians: a **metronome**, a piano **harmony** section and a **tuner**, in one light Android app, also usable on iPhone as a [web app](docs/web.md). It was made by an amateur double bass player with the friends from the orchestra in mind, and it is useful to everyone who plays. It is built with [Flutter](https://flutter.dev), works fully offline and is available in English and Italian.
+Low End is a free, open-source practice app for musicians, built around **Harmony**: a real grand piano that plays chords and progressions in any key for you to play over, from pop and blues to jazz standards with a walking double bass, always in time with its **metronome**. A chromatic **tuner** completes it. It is one light Android app, also usable on iPhone as a [web app](docs/web.md). It was made by an amateur double bass player with the friends from the orchestra in mind, and it is useful to everyone who plays: scales, improvisation, your part of a song, or ear training, with a band that never gets tired. It is built with [Flutter](https://flutter.dev), works fully offline and is available in English and Italian.
 
 <p>
-  <img src="store/graphics/phone/en-US/1_metronome.png" alt="Metronome" width="30%">
-  <img src="store/graphics/phone/en-US/2_harmony.png" alt="Harmony" width="30%">
-  <img src="store/graphics/phone/en-US/3_tuner.png" alt="Tuner" width="30%">
+  <img src="store/graphics/phone/en-US/1_harmony.png" alt="Harmony playing a progression" width="24%">
+  <img src="store/graphics/phone/en-US/2_progressions.png" alt="The progressions menu" width="24%">
+  <img src="store/graphics/phone/en-US/3_metronome.png" alt="Metronome" width="24%">
+  <img src="store/graphics/phone/en-US/4_tuner.png" alt="Tuner" width="24%">
 </p>
 
 ## What it does
 
-The three tabs are **Metronome**, **Harmony** and **Tuner**, and the app opens on the section it was left on (the metronome the first time). The tabs only take you to a section, and so does swiping left and right (in landscape, up and down). Each section starts and stops its own sound from the middle of its dial.
-
-### Metronome
-
-- Tempo from 30 to 250 BPM (up to 400 in 7/8, where it counts eighths): touch the pencil to type it, touch − or + to move by one or hold them to run, or tap TAP. The tempo has its Italian name under it (Andante, Allegro…).
-- Time signatures 1/1 (one click a bar), 2/4, 3/4, 4/4, 5/4, 6/8, 7/8, 9/8 and 12/8, with the beats grouped the way you count them.
-- A ring that lights up beat by beat (the downbeat marked) and a short, dry woodblock-like click (higher on the downbeat). The second row under the dial (the first is left empty) has two fields: the time signature, and a menu of what fills each beat (quarter notes, eighths, triplets, sixteenths, and swung eighths and sixteenths, played long-short as MuseScore plays "Swing"). The time signature list also has a click on 2 and 4 only. The audio engine loops a whole bar, so the time stays steady.
-- Tempo, time signature, subdivision and the click on 2 and 4 are kept for the next launch.
+The three tabs are **Metronome**, **Harmony** and **Tuner**, and the app opens on the section it was left on (Harmony the first time, on a progression ready to play: I–VI–IV–V in A, the chords of Stand by Me). The tabs only take you to a section, and so does swiping left and right (in landscape, up and down). Each section starts and stops its own sound from the middle of its dial.
 
 ### Harmony
 
@@ -25,6 +19,13 @@ The three tabs are **Metronome**, **Harmony** and **Tuner**, and the app opens o
 - A **Chord** of eight kinds (major, minor, dominant 7, maj7, m7, half-diminished m7♭5, diminished, sus4), or the note alone (the first entry of the same menu), or a **Progression** of one chord per bar, each four, eight or twelve bars long as musical phrases are, in the key of the note touched. The menu lists them from the easiest, in three sections: pop and rock (I–VI–IV–V, the "giro di Do", I–V–VI–IV and the Andalusian cadence), blues (twelve-bar and minor) and jazz (II–V–I major and minor, the I held for two bars, I–VI–II–V, the Anatole, and the eight-bar circle of fifths), in sevenths for the blues and jazz. Each is named with a well-known song (Stand by Me, With or Without You, Hit the Road Jack, Sweet Home Chicago, Mr. P.C., Tune Up, Blue Bossa, I Got Rhythm, Autumn Leaves). The example songs, a button beside the progression menu, set key, progression, tempo and piano style in one tap; the jazz standards play on the walking bass, and I Got Rhythm in 2/4, one chord a bar. The Roman numerals of a progression sit on the keys they stand on; touch one to read what it means.
 - Held for the bar, struck on every beat, arpeggiated, or as a walking bass (a jazz line on a plucked double bass, one note a beat, with the piano comping lightly above); the sound options (the button at the end of the row) also offer a held tone instead of the piano. The root is always in octave 3 (A3 = 220 Hz, C3 131 Hz), low enough to sit with a bass, high enough for any instrument and for the phone's own speaker; the rest of the chord sits close together above it, as a pianist's hand plays it. While Harmony sounds, the notes not heard fade on the dial.
 - If the metronome is already playing, the harmony comes in on the metronome's next bar line, with a countdown in the middle of the dial; the same goes for the metronome when the harmony is already playing.
+
+### Metronome
+
+- Tempo from 30 to 250 BPM (up to 400 in 7/8, where it counts eighths): touch the pencil to type it, touch − or + to move by one or hold them to run, or tap TAP. The tempo has its Italian name under it (Andante, Allegro…).
+- Time signatures 1/1 (one click a bar), 2/4, 3/4, 4/4, 5/4, 6/8, 7/8, 9/8 and 12/8, with the beats grouped the way you count them.
+- A ring that lights up beat by beat (the downbeat marked) and a short, dry woodblock-like click (higher on the downbeat). The second row under the dial (the first is left empty) has two fields: the time signature, and a menu of what fills each beat (quarter notes, eighths, triplets, sixteenths, and swung eighths and sixteenths, played long-short as MuseScore plays "Swing"). The time signature list also has a click on 2 and 4 only. The audio engine loops a whole bar, so the time stays steady.
+- Tempo, time signature, subdivision and the click on 2 and 4 are kept for the next launch.
 
 ### Tuner
 
