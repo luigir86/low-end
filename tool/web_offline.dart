@@ -13,7 +13,9 @@ void main(List<String> args) {
     exit(1);
   }
   final files = <String>[];
+  final sounds = <String>[];
   var hash = _fnvOffset;
+  var soundsHash = _fnvOffset;
   final all = root.listSync(recursive: true).whereType<File>().toList()
     ..sort((a, b) => a.path.compareTo(b.path));
   for (final file in all) {
@@ -21,6 +23,12 @@ void main(List<String> args) {
         .substring(root.path.length + 1)
         .replaceAll(Platform.pathSeparator, '/');
     if (!_kept(path)) continue;
+    if (_isSound(path)) {
+      sounds.add(path);
+      soundsHash = _fnv(soundsHash, utf8.encode(path));
+      soundsHash = _fnv(soundsHash, file.readAsBytesSync());
+      continue;
+    }
     files.add(path);
     hash = _fnv(hash, utf8.encode(path));
     hash = _fnv(hash, file.readAsBytesSync());
@@ -37,10 +45,15 @@ void main(List<String> args) {
     hash = _fnv(hash, utf8.encode(path));
     hash = _fnv(hash, file.readAsBytesSync());
   }
-  final version = hash.toRadixString(16).padLeft(8, '0');
-  File('${root.path}/sw.js')
-      .writeAsStringSync(_worker(version, ['./', ...files]));
-  stdout.writeln('sw.js: version $version, ${files.length} files kept.');
+  String hex(int h) => h.toRadixString(16).padLeft(8, '0');
+  final version = hex(hash);
+  File('${root.path}/sw.js').writeAsStringSync(
+    _worker(version, ['./', ...files], hex(soundsHash), sounds),
+  );
+  stdout.writeln(
+    'sw.js: version $version, ${files.length} files kept, '
+    '${sounds.length} recordings after them.',
+  );
 }
 
 /// Whether the phone keeps [path] as soon as the app is installed. Of the
@@ -62,6 +75,15 @@ bool _kept(String path) =>
       'assets/packages/flutter_soloud/web/libflutter_soloud_plugin.wasm',
     }.contains(path) &&
     !const ['.sh', '.bat', '.dart', '.deps', '.map'].any(path.endsWith);
+
+/// Whether [path] is one of the recordings (piano and double bass, 13 MB
+/// of the 17): kept after the app has taken over, not before, so that the
+/// first opening reloads itself into its steady sound within seconds
+/// instead of after all of them have come (22 s in 4G, 93 s in a slow 4G).
+/// They are kept apart, so that a new version of the app keeps them.
+bool _isSound(String path) =>
+    path.startsWith('assets/assets/piano/') ||
+    path.startsWith('assets/assets/bass/');
 
 /// The builds the worker picks from, as Flutter's loader does. Chrome, Edge
 /// and Samsung Internet take the app compiled to WebAssembly and Skwasm, the
@@ -94,13 +116,22 @@ int _fnv(int hash, List<int> bytes) {
   return hash;
 }
 
-String _worker(String version, List<String> files) =>
+String _worker(
+  String version,
+  List<String> files,
+  String soundsVersion,
+  List<String> sounds,
+) =>
     '''
 // Made by tool/web_offline.dart: do not edit.
-// Keeps Low End's files on the phone. A new version is kept whole before it
-// takes over, and the old one is then thrown away.
+// Keeps Low End's files on the phone. A new version of the app is kept
+// whole before it takes over, and the old one is then thrown away. The
+// recordings are kept afterwards, a few at a time, and stay from one
+// version to the next while they do not change.
 const CACHE = 'low-end-$version';
+const SOUNDS = 'low-end-sounds-$soundsVersion';
 const FILES = ${const JsonEncoder.withIndent('  ').convert(files)};
+const SOUND_FILES = ${const JsonEncoder.withIndent('  ').convert(sounds)};
 
 // The app and drawing engine this browser takes, as Flutter chooses them:
 // WebAssembly and Skwasm in Chrome, Edge and Samsung Internet, JavaScript
@@ -121,10 +152,40 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
       .then((keys) => Promise.all(keys
-        .filter((key) => key.startsWith('low-end-') && key !== CACHE)
+        .filter((key) => key.startsWith('low-end-') &&
+          key !== CACHE && key !== SOUNDS)
         .map((key) => caches.delete(key))))
       .then(() => self.clients.claim()),
   );
+});
+
+// The page asks for the recordings once it is up (web/flutter_bootstrap.js):
+// those still missing come two at a time, leaving the network to the app.
+// If the page closes first, the rest come at the next opening.
+let keeping = null;
+function keepSounds() {
+  keeping ??= caches.open(SOUNDS).then(async (cache) => {
+    const missing = [];
+    for (const file of SOUND_FILES) {
+      if (!(await cache.match(file))) missing.push(file);
+    }
+    const next = async () => {
+      for (let file; (file = missing.shift());) {
+        try {
+          const response = await fetch(file);
+          if (response.ok) await cache.put(file, response);
+        } catch (_) {
+          // No network: the next opening tries again.
+        }
+      }
+    };
+    await Promise.all([next(), next()]);
+  }).finally(() => { keeping = null; });
+  return keeping;
+}
+
+self.addEventListener('message', (event) => {
+  if (event.data === 'keep-sounds') event.waitUntil(keepSounds());
 });
 
 // Every file is given the two headers that GitHub Pages cannot send
@@ -145,12 +206,14 @@ function isolated(response) {
 }
 
 // What is kept comes from the phone; anything else from the site, and is
-// kept for next time.
+// kept for next time (a recording with the recordings).
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   if (request.method !== 'GET') return;
-  if (new URL(request.url).origin !== self.location.origin) return;
-  event.respondWith(caches.open(CACHE).then(async (cache) => {
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+  const sound = /\\/assets\\/assets\\/(piano|bass)\\//.test(url.pathname);
+  event.respondWith(caches.open(sound ? SOUNDS : CACHE).then(async (cache) => {
     const kept = await cache.match(request, { ignoreSearch: true });
     if (kept) return isolated(kept);
     const response = await fetch(request);

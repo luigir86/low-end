@@ -145,6 +145,12 @@ class DroneController extends ChangeNotifier {
   int _step = 0;
   Timer? _barTimer;
 
+  /// Whether the app has asked for the piano to be ready (see
+  /// [preparePiano]): a change made while nothing plays then gets the new
+  /// loop ready too, once the player has stopped changing things.
+  var _readyWanted = false;
+  Timer? _readyAgain;
+
   // The piano keeps its own count of bars (see [_scheduleBar]): where in
   // its loop the clock started, and how long it waited for the metronome's
   // next bar line before the first chord.
@@ -494,7 +500,10 @@ class DroneController extends ChangeNotifier {
     if (onTheBeat) _onTheBeat = true;
     if (!carryOn && !onTheBeat) _fromTheTop = true;
     _notify();
-    if (!_playing) return;
+    if (!_playing) {
+      _prepareAgain();
+      return;
+    }
     _prepareProgression();
     if (restart) _scheduleBar();
     _sync();
@@ -518,15 +527,27 @@ class DroneController extends ChangeNotifier {
   /// Gets the piano ready, while nothing plays, for what a touch would play
   /// now: the first chord then starts sooner.
   void preparePiano() {
+    _readyWanted = true;
+    _readyAgain?.cancel();
     final piano = _piano;
     if (piano == null || !usesPiano || _playing) return;
     final chords = _pianoChords;
     final walking =
         _style == DroneStyle.walking && _voicing != DroneVoicing.root;
-    piano
-        .prepare(chords, bass: walking)
-        // The piano first, for the touch that may come now; the double
-        // bass after it, for a walking bass chosen later.
+    final signature = _clock.signature;
+    // The piano first, and its loop mixed, for the touch that may come now
+    // (which then waits for this loop rather than mixing its own); the
+    // double bass after it, for a walking bass chosen later.
+    Future.wait([
+          piano.prepare(chords, bass: walking),
+          piano.prerender(
+            chords: chords,
+            style: _pianoStyle,
+            bpm: _clock.bpm * signature.pulsesPerBeat,
+            signature: signature,
+            a4: _a4,
+          ),
+        ])
         .then((_) {
           if (walking || !prefetchBass || _playing || _disposed) return null;
           return piano.prepare(chords, bass: true);
@@ -535,6 +556,20 @@ class DroneController extends ChangeNotifier {
           debugPrint('Drone could not prepare the piano: $error');
         });
   }
+
+  /// After a change made while nothing plays, gets the piano ready again
+  /// for the new settings, if it was asked to be ready (see [preparePiano]);
+  /// once the changes stop, so that trying chords does not mix every one.
+  void _prepareAgain() {
+    if (!_readyWanted || _disposed) return;
+    _readyAgain?.cancel();
+    _readyAgain = Timer(const Duration(milliseconds: 400), preparePiano);
+  }
+
+  /// How the piano plays the loop: a note on its own is kept sounding,
+  /// whatever the style.
+  PianoStyle get _pianoStyle =>
+      _voicing == DroneVoicing.root ? PianoStyle.drone : _style.piano;
 
   /// Gets the double bass of the walking bass ready (a few megabytes, read
   /// the first time only), as the list of songs opens: a walked song then
@@ -706,8 +741,7 @@ class DroneController extends ChangeNotifier {
     final signature = _lastSignature = _clock.signature;
     final started = await _piano!.play(
       chords: chords,
-      // A note on its own is kept sounding, whatever the style.
-      style: _voicing == DroneVoicing.root ? PianoStyle.drone : _style.piano,
+      style: _pianoStyle,
       // The piano counts pulses, like the clicks: three a beat in 6/8.
       bpm: bpm * signature.pulsesPerBeat,
       signature: signature,
@@ -765,6 +799,7 @@ class DroneController extends ChangeNotifier {
     _disposed = true;
     _playing = false;
     _barTimer?.cancel();
+    _readyAgain?.cancel();
     _clock.removeListener(_onClockChanged);
     _sync();
     super.dispose();

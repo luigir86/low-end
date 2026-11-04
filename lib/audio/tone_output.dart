@@ -54,9 +54,11 @@ class SoLoudToneOutput implements ToneOutput {
   /// asked for.
   Future<AudioSource> _source(List<double> frequencies, List<double> gains) =>
       _sources.putIfAbsent(_key(frequencies, gains), () async {
-        await ensureSoLoud();
+        // The engine starts and warms up while the tone is built.
+        final engine = ensureSoLoud()..ignore();
         // Building the tone takes a moment: away from the screen's thread.
         final wav = await _build(frequencies, gains);
+        await engine;
         return _soloud.loadMem('drone.wav', wav);
       });
 

@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/audio/click_sound.dart';
+import 'package:low_end/audio/in_steps.dart';
 import 'package:low_end/audio/loop_transport.dart';
 import 'package:low_end/audio/piano_output.dart';
 import 'package:low_end/audio/piano_sound.dart';
@@ -399,6 +400,51 @@ void main() {
         PianoSound.chordGain(5) * 5,
         greaterThan(PianoSound.chordGain(4) * 4),
       );
+    });
+
+    test('mixed a slice at a time, the loop is the same', () async {
+      for (final style in [PianoStyle.beat, PianoStyle.walking]) {
+        final whole = PianoSound.loopWav(
+          samples: samples,
+          chords: [cMajor, cMajor],
+          style: style,
+          bpm: 100,
+          signature: TimeSignature.fourFour,
+        );
+        final out = StepResult<({Uint8List wav, double scale})>();
+        await runInSlices(
+          PianoSound.loopWavSteps(
+            samples: samples,
+            chords: [cMajor, cMajor],
+            style: style,
+            bpm: 100,
+            signature: TimeSignature.fourFour,
+            out: out,
+          ),
+          SlicedWork(),
+          slice: Duration.zero,
+        );
+        expect(out.value.wav, whole.wav);
+        expect(out.value.scale, whole.scale);
+      }
+    });
+
+    test('a loop mixed ahead can be called off', () async {
+      final work = SlicedWork();
+      final done = runInSlices(
+        PianoSound.loopWavSteps(
+          samples: samples,
+          chords: [cMajor],
+          style: PianoStyle.beat,
+          bpm: 120,
+          signature: TimeSignature.fourFour,
+          out: StepResult(),
+        ),
+        work,
+        slice: Duration.zero,
+      );
+      work.cancel();
+      await expectLater(done, throwsA(isA<StepsCancelled>()));
     });
 
     test('the WAV is a valid 16-bit stereo file', () {

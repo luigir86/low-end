@@ -10,6 +10,7 @@ import 'package:low_end/app/settings.dart';
 import 'package:low_end/audio/audio_scope.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/piano_output.dart';
+import 'package:low_end/audio/piano_sound.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/features/tuner/drone/drone_controller.dart';
 import 'package:low_end/features/tuner/drone/harmony.dart';
@@ -176,5 +177,33 @@ void main() {
         drone.dispose();
       },
     );
+
+    test('mixes the loop a touch would play, before the touch', () async {
+      final piano = SilentPianoOutput();
+      final drone = DroneController(SilentToneOutput(), piano: piano);
+      drone.setVoicing(DroneVoicing.chord);
+      drone.setStyle(DroneStyle.walking);
+      drone.preparePiano();
+      await Future<void>.delayed(Duration.zero);
+      expect(piano.prerendered, piano.prepared);
+      expect(piano.prerenderedStyle, PianoStyle.walking);
+      drone.dispose();
+    });
+
+    test('mixes it again once the player stops changing it', () async {
+      final piano = SilentPianoOutput();
+      final drone = DroneController(SilentToneOutput(), piano: piano);
+      drone.setVoicing(DroneVoicing.chord);
+      drone.preparePiano();
+      await Future<void>.delayed(Duration.zero);
+      final first = piano.prerendered;
+      drone.setPitchClass(2);
+      drone.setPitchClass(4);
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      expect(piano.prerendered, first);
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      expect(piano.prerendered!.first.first % 12, 4);
+      drone.dispose();
+    });
   });
 }

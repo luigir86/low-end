@@ -56,9 +56,21 @@ abstract final class DroneSound {
         final phase = random.nextDouble() * 2 * math.pi;
         final step = 2 * math.pi * h * cycles / length;
         final breathStep = 2 * math.pi * breaths / length;
+        // The two sines turned on a step at a time (a rotation), instead of
+        // a sine per sample: the same wave, many times faster in a browser,
+        // where each sine is a call out to JavaScript.
+        final c = math.cos(step), s = math.sin(step);
+        final bc = math.cos(breathStep), bs = math.sin(breathStep);
+        var x = math.cos(phase), y = math.sin(phase);
+        var bx = math.cos(breathPhase), by = math.sin(breathPhase);
         for (var i = 0; i < length; i++) {
-          final breath = 1 + 0.25 * math.sin(breathStep * i + breathPhase);
-          samples[i] += amp * breath * math.sin(step * i + phase);
+          samples[i] += amp * (1 + 0.25 * by) * y;
+          final nx = x * c - y * s;
+          y = y * c + x * s;
+          x = nx;
+          final nbx = bx * bc - by * bs;
+          by = by * bc + bx * bs;
+          bx = nbx;
         }
       }
     }
