@@ -1,0 +1,155 @@
+# Requisiti di Low End
+
+Ricostruiti dal codice di `main` al 4 novembre 2026 (PR #97 compresa, PR #98 ancora aperta) e dalle decisioni prese nei thread. Ogni requisito ha un codice stabile: quando cambia, si aggiorna la riga e non si riusa il codice per altro.
+
+Stato: **✓** realizzato e coperto da test automatici · **◐** realizzato, verificato solo a mano o in parte · **○** da verificare sul telefono o non realizzato · **?** da chiarire.
+
+## 1. Scopo e destinatari
+
+Low End è un'app gratuita e open source per **tutti i musicisti** (nata da un contrabbassista per gli amici dell'orchestra, ma la scheda dello store non parla di basso): un'**Armonia** che suona accordi e giri al pianoforte per suonarci sopra, un **Metronomo** che va a tempo con l'Armonia, un **Accordatore** cromatico. Android prima di tutto; per l'iPhone una web app (PWA) dallo stesso codice. Niente server, niente account, niente rete.
+
+Fuori dallo scopo, per decisione presa: libreria PDF e conversione in MusicXML/MIDI (rimandate), timbri diversi dal pianoforte, account o cloud, gamification, registrazione, donazioni (né nell'app né su GitHub), tema chiaro, bilanciamento dei volumi tra le sezioni.
+
+## 2. Requisiti funzionali
+
+### 2.1 Struttura generale (RF-GEN)
+
+| Codice | Requisito | Stato | Test |
+| --- | --- | --- | --- |
+| RF-GEN-01 | Tre sezioni, nell'ordine Metronomo, Armonia, Accordatore. Le schede e lo scorrimento laterale (in orizzontale: verticale, su quadrante o barra) **solo navigano**: non avviano né fermano suoni. | ✓ | `playback_flow_test`, `widget_test` |
+| RF-GEN-02 | Ogni sezione avvia e ferma il proprio suono dal centro del proprio quadrante. | ✓ | `playback_flow_test` |
+| RF-GEN-03 | L'app si riapre sulla sezione in cui era stata lasciata; alla prima installazione sull'Armonia. | ✓ | `memory_test` |
+| RF-GEN-04 | Mentre una sezione suona, la sua scheda mostra un punto che pulsa. | ✓ | `regression_test` |
+| RF-GEN-05 | "Blocca i gesti" disattiva soltanto lo scorrimento tra le sezioni; azioni e schede funzionano ancora. | ✓ | `gestures_and_tempo_test` |
+| RF-GEN-06 | Guida dei gesti al primo avvio, suggerimento dello scorrimento una volta sola. | ✓ | `widget_test` |
+| RF-GEN-07 | Il volume è quello multimediale del telefono; nessun controllo di volume o di bilanciamento nell'app. | ✓ | (vincolo) |
+
+### 2.2 Armonia (RF-ARM)
+
+| Codice | Requisito | Stato | Test |
+| --- | --- | --- | --- |
+| RF-ARM-01 | Dodici tasti di nota attorno al quadrante, per quinte o per semitoni (impostazione). Tocco: suona; tocco su un'altra: cambia; ritocco o centro: ferma. | ✓ | `drone_controller_test` |
+| RF-ARM-02 | Do♯ e Fa♯ si possono scrivere Re♭ e Sol♭ (pressione lunga); il suono non cambia. | ✓ | `songs_and_degrees_test`, `accessibility_test` |
+| RF-ARM-03 | La fondamentale suona sempre nell'ottava 3 (La3 = 220 Hz); niente scelta dell'ottava. Le altre note dell'accordo stanno strette sopra, come le suona una mano. | ✓ | `piano_test` |
+| RF-ARM-04 | Modo **Accordo**: la nota da sola o uno di nove accordi (maggiore, minore, 7, 7♭9, maj7, m7, m7♭5, diminuito, sus4). Il menu ricorda l'ultima scelta tra nota sola e accordo. | ✓ | `drone_controller_test`, `minor_dominant_test` |
+| RF-ARM-05 | Modo **Giro**: un accordo per battuta, giri di 4, 8 o 12 battute nella tonalità della nota toccata; nove giri in tre sezioni (pop/rock, blues, jazz), dal più facile. | ✓ | `progression_test` |
+| RF-ARM-06 | Durante un giro il quadrante mostra la tonalità, i gradi in numeri romani e l'accordo che suona; le note fuori dall'accordo si attenuano. L'accordo mostrato cambia quando lo si **sente**, non quando lo si calcola. | ✓ | `songs_and_degrees_test`, `progression_test` |
+| RF-ARM-07 | Stili al pianoforte: tenuto (una volta a battuta), su ogni battito, arpeggio, walking bass (contrabbasso pizzicato, una nota a battito, piano che accompagna sopra). Quinto stile: suono tenuto continuo al posto del pianoforte. | ✓ | `walking_bass_test`, `piano_test` |
+| RF-ARM-08 | **Brani**: nove brani di esempio, ognuno un preset completo (tonalità, giro, stile, tempo, metro, eventuali suddivisione e click sul 2 e 4). Un brano si legge e si scrive anche in JSON. | ✓ | `song_preset_test` |
+| RF-ARM-09 | Cambiare brano mentre l'Armonia suona ferma subito il vecchio, prepara **un solo** nuovo loop e lo avvia mostrando l'attesa. | ○ | PR #98 aperta |
+| RF-ARM-10 | Cambiare nota o accordo negli stili a battito o arpeggio non fa inciampare il battito: il nuovo accordo entra sul battito successivo. Tenuto o in un giro, riparte dall'inizio della battuta. | ✓ | `piano_test` |
+| RF-ARM-11 | Fermare o cambiare accordo lascia andare le note come un pianista (coda), invece di tagliarle. | ◐ | solo ascolto |
+| RF-ARM-12 | Al primo avvio l'Armonia è sul giro I–VI–IV–V in La, stile a battito; dopo ricorda tutto ciò che il musicista ha scelto (non se suonava). | ✓ | `memory_test` |
+| RF-ARM-13 | Se il primo suono tarda (registrazioni o motore ancora in arrivo) il centro del quadrante mostra l'attesa dopo 0,4 s, e dopo 5 s dice che la connessione è lenta; il giro resta sul primo accordo finché non lo si sente. | ✓ | `drone_wait_test` |
+| RF-ARM-14 | L'Armonia segue tempo e metro del metronomo; senza metronomo usa il tempo e il metro impostati. | ✓ | `progression_test` |
+
+### 2.3 Metronomo (RF-MET)
+
+| Codice | Requisito | Stato | Test |
+| --- | --- | --- | --- |
+| RF-MET-01 | Tempo da 30 a 250 BPM (fino a 400 in 7/8, dove conta le crome); predefinito 80 in 4/4. | ✓ | `metronome_controller_test` |
+| RF-MET-02 | Il tempo si cambia con − e + (pressione lunga che accelera e si ferma sui numeri tondi), con TAP, o scrivendolo (matita). Toccare il numero avvia e ferma. Sotto il numero il nome italiano del tempo. | ✓ | `gestures_and_tempo_test` |
+| RF-MET-03 | Nove metri (1/1, 2/4, 3/4, 4/4, 5/4, 6/8, 7/8, 9/8, 12/8) con i battiti raggruppati come si contano. | ✓ | `metronome_controller_test` |
+| RF-MET-04 | Suddivisioni: semiminime, crome, crome swing, terzine, semicrome, semicrome swing (swing al 60%); solo nei metri in quarti. Click sul 2 e 4: solo in 2/4 e 4/4. | ✓ | `metronome_subdivision_test` |
+| RF-MET-05 | Anello che si accende battito per battito, il primo marcato; la luce arriva **insieme** al suono (compensando il ritardo dell'uscita: altoparlante, cuffia, Bluetooth, browser). | ◐ | costanti di ritardo mai misurate sul telefono |
+| RF-MET-06 | Il tempo non deriva mai: si suona in loop una battuta intera generata in memoria. | ✓ | `metronome_controller_test` |
+| RF-MET-07 | Tempo, metro, suddivisione e click sul 2 e 4 si ricordano al riavvio. | ✓ | `row_test` |
+
+### 2.4 Insieme Armonia e Metronomo (RF-SYNC)
+
+| Codice | Requisito | Stato | Test |
+| --- | --- | --- | --- |
+| RF-SYNC-01 | Armonia e Metronomo possono suonare insieme, a tempo. Quello avviato per secondo entra sulla stanghetta successiva dell'altro, con un conto alla rovescia al centro del quadrante. | ✓ | `drone_wait_test`, `metronome_controller_test` |
+| RF-SYNC-02 | Fermare durante l'attesa annulla l'avvio. | ✓ | `playback_flow_test` |
+| RF-SYNC-03 | Un cambio di tempo mentre suonano entrambi non sposta l'uno rispetto all'altro: il pianoforte torna sul battito del click. | ◐ | `loop_transport_test` (solo la matematica) |
+| RF-SYNC-04 | Nessuno dei due avvia l'altro. | ✓ | `playback_flow_test` |
+
+### 2.5 Accordatore (RF-ACC)
+
+| Codice | Requisito | Stato | Test |
+| --- | --- | --- | --- |
+| RF-ACC-01 | Cromatico: si suona una nota e compare, senza scegliere la corda. Strobo circolare con la nota al centro, barra dei cent sotto. | ✓ | `tuner_test` |
+| RF-ACC-02 | Rilevamento YIN da 28 a 2800 Hz; con il basso scelto fino a 700 Hz (scarta voci e fruscio). | ✓ | `pitch_detector_test`, `bass_support_test`, `review/pitch_review_test` |
+| RF-ACC-03 | Campo Strumento: cromatico, chitarra, basso, ukulele, violino, viola, violoncello, con il numero di corda. Predefinito **chitarra** (scelta voluta), poi l'ultimo scelto. | ✓ | `review/settings_review_test` |
+| RF-ACC-04 | Strumenti traspositori (Si♭, Mi♭, Fa) in impostazioni: l'accordatore cromatico mostra la nota scritta. | ✓ | `tuner_transposition_test` |
+| RF-ACC-05 | Verdetto: verde intonato, giallo vicino, rosso lontano; zona intonata ±2, ±5 (predefinito) o ±10 cent. Colore solo sull'etichetta del verdetto, mai unico segnale. | ✓ | `accessibility_test` |
+| RF-ACC-06 | La A di riferimento (415–445 Hz, a passi di 1; scorciatoie 415, 432, 440, 442) è condivisa con l'Armonia. | ✓ | `regression_test` |
+| RF-ACC-07 | Il microfono ascolta solo con l'accordatore sullo schermo; si spegne cambiando sezione, aprendo le impostazioni o mandando l'app in background. Niente riparte da solo. | ✓ | `regression_test`, `startup_test` |
+| RF-ACC-08 | Entrare nell'accordatore non ferma niente: ascolta da solo solo se nulla suona. Toccare il quadrante (o `tuner_start`) mette in pausa Metronomo e Armonia, con un avviso e il pulsante "Riprendi". | ✓ | `playback_flow_test` |
+| RF-ACC-09 | Il microfono non prende il focus audio: la musica di un'altra app continua. | ◐ | provato sul telefono una volta |
+| RF-ACC-10 | Con un auricolare Bluetooth l'audio non deve restare in qualità telefonata (HFP) dopo l'accordatore. | ? | valutazione del 4/11 in attesa |
+
+### 2.6 Impostazioni (RF-IMP)
+
+| Codice | Requisito | Stato | Test |
+| --- | --- | --- | --- |
+| RF-IMP-01 | Ingranaggio in alto a destra, con dentro "Informazioni" (versione, licenze). | ✓ | `widget_test`, `review/layout_review_test` |
+| RF-IMP-02 | Lingua (sistema, inglese, italiano); nomi delle note (segue la lingua, Do Re Mi, C D E); numerazione delle ottave (scientifica La4 = 440, italiana La3 = 440) indipendente dai nomi. | ✓ | `language_test`, `names_test` |
+| RF-IMP-03 | A di riferimento, cerchio (quinte o semitoni), schermo acceso mentre suona o ascolta (sì per default), blocco dei gesti, zona intonata, traspositore. | ✓ | `review/settings_review_test` |
+| RF-IMP-04 | Tutto si salva solo sul telefono (backup Android spento); impostazioni illeggibili non bloccano mai l'avvio: si riparte dai valori predefiniti, un valore alla volta. | ✓ | `memory_test`, `row_test` |
+| RF-IMP-05 | Nessuna scelta di tema: l'app è sempre scura. | ✓ | `theme_test` |
+
+### 2.7 Suono in background e interruzioni (RF-BG)
+
+| Codice | Requisito | Stato | Test |
+| --- | --- | --- | --- |
+| RF-BG-01 | Su Android, con lo schermo spento o l'app in background, Metronomo e Armonia continuano, con una notifica multimediale che dice cosa suona (play/pausa/stop). La notifica c'è solo mentre suona o dopo la sua pausa. | ◐ | provato sul telefono (PR #63) |
+| RF-BG-02 | Staccare le cuffie mette in pausa come un lettore musicale (notifica in pausa, avviso con "Riprendi"). | ◐ | provato sul telefono |
+| RF-BG-03 | Nella web app su iPhone, se il browser taglia l'audio (chiamata, schermo bloccato) l'app si mette in pausa invece di sembrare che suoni. | ○ | mai provato su iPhone |
+
+### 2.8 Azioni per assistenti, "LLM first" (RF-LLM)
+
+| Codice | Requisito | Stato | Test |
+| --- | --- | --- | --- |
+| RF-LLM-01 | Tutto ciò che il musicista può fare sullo schermo è anche un'azione con nome, argomenti JSON e risposta JSON con lo stato completo (`lib/actions/app_actions.dart`). | ✓ | `app_actions_test`, `review/actions_review_test` |
+| RF-LLM-02 | Il catalogo `docs/llm-actions.json` è generato dal codice e un test lo tiene allineato. | ✓ | `app_actions_test` |
+| RF-LLM-03 | Gli argomenti si controllano tutti prima di cambiare qualcosa: un argomento sbagliato non cambia nulla e l'errore si può leggere e correggere. | ✓ | `review/actions_review_test` |
+| RF-LLM-04 | Link `lowend://action/...` su Android e `#/action/...` nel web. Un link non può cambiare le impostazioni salvate. | ✓ | `app_actions_test` |
+| RF-LLM-05 | Le azioni seguono le stesse regole delle dita (un'azione di avvio apre la sua sezione, `tuner_start` mette in pausa gli altri…). | ✓ | `app_actions_test` |
+| RF-LLM-06 | Prossimo passo proposto: Android App Functions. | ○ | non iniziato |
+
+### 2.9 Web app per iPhone (RF-WEB)
+
+| Codice | Requisito | Stato | Test |
+| --- | --- | --- | --- |
+| RF-WEB-01 | Stesso codice dell'app Android, pubblicato su GitHub Pages a ogni push su `main`; installabile con "Aggiungi a Home". | ✓ | workflow `web.yml` |
+| RF-WEB-02 | Funziona offline dopo la prima apertura (service worker); i suoni in una cache a parte. | ◐ | banco di prova in cloud |
+| RF-WEB-03 | Il primo suono parte anche su una rete lenta (nessun timeout del motore) e un download fallito si riprova al tocco seguente. | ✓ | `web_parts_test` |
+| RF-WEB-04 | Il tasto silenzioso dell'iPhone non zittisce il click (sessione audio "playback"). | ○ | mai provato su iPhone |
+| RF-WEB-05 | Le funzioni che solo Android ha (notifica, cuffie staccate, percorso audio) hanno un sostituto o mancano in modo dichiarato in `docs/web.md`. | ✓ | `web_parts_test` |
+
+## 3. Requisiti non funzionali
+
+| Codice | Requisito | Misura o criterio | Stato |
+| --- | --- | --- | --- |
+| RNF-AVV-01 | **Avvio velocissimo** su Android: niente di pesante prima del primo frame; motore audio al primo suono, microfono dopo il primo frame. | `startup_test`; `timeToFirstFrameMicros` da misurare con `--trace-startup` | ✓ test, ○ misura sul telefono mai registrata |
+| RNF-AVV-02 | Avvio della web app: primo frame con meno di 3 MB scaricati; avvio dalla cache sotto 2 s. | banco `perf-web` (27/10: 1,8 s in cache) | ◐ |
+| RNF-LAT-01 | **Dal tocco al suono**, Android: metronomo e accordo subito (obiettivo da fissare, proposta < 300 ms a motore acceso); giro walking < 1 s. | nessuna misura sul telefono | ? |
+| RNF-LAT-02 | Dal tocco al suono, web su un telefono come il S20 FE: walking ≤ 1 s dopo qualche secondo di pagina aperta. | banco `perf-web`: 0,7 s (PR #87) | ◐ |
+| RNF-LAT-03 | La luce del battito con il suono, entro 30 ms (obiettivo da confermare). | costanti +20 ms altoparlante, +160 ms BT mai misurate | ○ |
+| RNF-FLU-01 | **Fluidità**: lo schermo non si blocca più di 100 ms per un'azione del musicista (cambio sezione, accordo, brano, tempo), né su Android né nel web. | blocco di ~3,8 s cambiando brano nel web (PR #98) | ○ |
+| RNF-MEM-01 | Memoria contenuta su telefoni economici (obiettivo da fissare, proposta < 150 MB di picco suonando un walking di 12 battute). | mai misurata | ? |
+| RNF-DIM-01 | App leggera: pochi pacchetti, codec inutili esclusi; dimensione dell'APK per architettura da tenere sotto controllo (oggi 13 MB di campioni). | `pubspec.yaml` | ◐ |
+| RNF-UX-01 | **UI/UX** prima di tutto, in stile Material 3 e Android standard (durate e curve M3, pulsanti standard, menu uniformi); identità del marchio: bronzo su ebano, sempre scuro, quadrante, strobo, font Edwin. | `style_test`, `theme_test`, `choice_menu_test`, `row_heights_test` | ✓ |
+| RNF-UX-02 | Ogni testo visibile in inglese (riferimento) e italiano; niente testi o colori scritti nel codice. | `.arb`, `style_test` | ✓ |
+| RNF-UX-03 | Layout senza overflow da 320×568 al tablet, in orizzontale, testo fino a 2×, in italiano e inglese. | `review/layout_review_test`, `dial_alignment_test` | ✓ |
+| RNF-ACC-01 | **WCAG 2.1 AA** (volontario, Legge Stanca): etichette per lettori di schermo, bersagli di tocco, contrasto ≥ 3:1 sui controlli e 4,5:1 sul testo, colore mai unico segnale, animazioni ridotte rispettate. | `accessibility_test` | ✓ |
+| RNF-PRIV-01 | **Nessuna rete**: niente codice di rete in `lib/`, nessun permesso `INTERNET` in release, nessun dato raccolto. | `docs/offline.md`, `PRIVACY.md` | ✓ |
+| RNF-OSS-01 | **Open source MIT**; ogni componente e campione con licenza compatibile e citata (Salamander pubblico dominio, Meatbass CC0, Edwin e Noto Music OFL). | `THIRD_PARTY_NOTICES.md`, audit del 24/10 | ✓ |
+| RNF-LLM-01 | **LLM first**: nessuna funzione solo da dita (vedi RF-LLM-01); la documentazione per assistenti aggiornata con il codice. | `app_actions_test` | ✓ |
+| RNF-TEST-01 | Tutto si prova senza telefono: ogni cosa esterna dietro un'interfaccia con un gemello muto o finto. | ~430 test, CI su ogni PR | ✓ |
+| RNF-TEST-02 | Il codice che parla davvero con il motore audio (loop, code, sincronia) è verificato con prove ripetibili. | nessun test automatico su `BarLoopPlayer` e `SoLoud*Output` | ○ |
+| RNF-AUD-01 | Qualità del suono "una coccola": pianoforte stereo 48 kHz, nessun clipping (limiter sul mix), niente click a inizio o fine. | ascolto (thread "Qualità del motore audio") | ◐ |
+| RNF-REL-01 | Rilascio: versione nel `pubspec.yaml` alzata a ogni caricamento; targetSdk richiesto da Play; firma con la chiave di upload fuori dal repository. | `docs/release-checklist.md` | ◐ |
+
+## 4. Vincoli già decisi (non riproporre)
+
+Sempre tema scuro, un solo accento bronzo; niente tema chiaro né colori per sezione. Niente donazioni. Niente scelta dell'ottava, preset per basso, forme d'accordo. Strumento predefinito dell'accordatore: chitarra. Nome "Low End", pacchetto `com.luigir86.low_end` (permanente). Scheda dello store rivolta a tutti i musicisti. Niente app iOS nativa: per l'iPhone solo la web app. Il click resta quello di oggi (niente woodblock modale).
+
+## 5. Questioni aperte da decidere
+
+1. **Intonazione.** Il suono tenuto usa intervalli puri (`harmony.dart`, test "plays chords in pure intervals"), il pianoforte è temperato; `llm.md` dice "piano in equal temperament", il README mette la "just intonation" tra le idee future. Va scritto quale delle due è il requisito per il suono tenuto, e se il musicista deve poter scegliere.
+2. **Obiettivi numerici** per RNF-LAT-01, RNF-LAT-03 e RNF-MEM-01: senza un numero non si può dire se un cambiamento migliora o peggiora.
+3. **Cambio di tempo con l'Armonia che suona nel web** (tenere premuto + con un walking): oggi ogni passo del tempo rifà tutto il loop sul thread dello schermo. Va deciso se il requisito RNF-FLU-01 vale anche qui (probabilmente sì) e quindi se il cambio di tempo deve aspettare che il dito si fermi.
+4. **Bluetooth HFP dopo l'accordatore** (RF-ACC-10): valutazione in attesa.
+5. **Pagina di prova del microfono** `web/prova-microfono.html` (PR #88, "temporanea"): da togliere o da dichiarare.

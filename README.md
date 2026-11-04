@@ -124,6 +124,7 @@ Texts live in `lib/l10n/app_en.arb` (English, the reference) and `lib/l10n/app_i
 | --- | --- |
 | [docs/user-guide.md](docs/user-guide.md) (English), [docs/manuale-utente.md](docs/manuale-utente.md) (Italiano) | Players: what every control does |
 | [docs/architecture.md](docs/architecture.md) | Developers: how the app is built |
+| [docs/specs/](docs/specs/README.md) (in Italian) | Everyone who changes the app: the requirements, the architecture as it is, its evaluation and the improvement plan |
 | [docs/style.md](docs/style.md), [docs/tema-bronzo.md](docs/tema-bronzo.md) (the second in Italian) | Developers and designers: sizes, shapes and the bronze-on-ebony colours |
 | [docs/offline.md](docs/offline.md) | Proof that the app needs no internet, and how to check it |
 | [docs/llm.md](docs/llm.md) | Assistants and automation: the `lowend://` actions |
