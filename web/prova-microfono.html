@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<!--
+  A throwaway check for the Bluetooth headset problem (thread "Liberare il
+  microfono Bluetooth dopo il tuner"): which microphone the browser offers,
+  whether listening with the phone's own microphone keeps the headset in
+  music quality, and whether the quality comes back once listening stops.
+  Not part of the app; remove it once the tuner fix is in.
+-->
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prova microfono</title>
+<style>
+  :root { color-scheme: dark; --bg: #121110; --fg: #ece6dc; --muted: #a59d90; --accent: #c8955a; --line: #3a342c; }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--fg); font: 16px/1.45 system-ui, sans-serif; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  p { color: var(--muted); margin: 6px 0 14px; }
+  button { display: block; width: 100%; margin: 8px 0; padding: 14px; font-size: 17px; border-radius: 12px;
+           border: 1px solid var(--line); background: #1e1b18; color: var(--fg); text-align: left; }
+  button.main { border-color: var(--accent); }
+  button:disabled { opacity: .45; }
+  #meter { height: 10px; border-radius: 5px; background: var(--line); overflow: hidden; margin: 10px 0; }
+  #level { height: 100%; width: 0; background: var(--accent); }
+  #log { white-space: pre-wrap; font: 13px/1.4 ui-monospace, monospace; color: var(--muted);
+         border-top: 1px solid var(--line); margin-top: 14px; padding-top: 10px; }
+</style>
+</head>
+<body>
+<h1>Prova microfono</h1>
+<p>Con le cuffie Bluetooth collegate. 1) Tocca «Musica» e ascolta la qualità. 2) Tocca «Trova i microfoni».
+3) Prova ogni microfono: ascolta per 8 secondi e poi si spegne da solo. Durante e dopo, ascolta se la musica peggiora,
+se torna bella e se esce dalle cuffie o dall'altoparlante del telefono.</p>
+
+<button class="main" id="music">▶ Musica</button>
+<button class="main" id="find">Trova i microfoni</button>
+<div id="mics"></div>
+<button id="recreate">Ricrea il motore audio (prova se la qualità torna)</button>
+<div id="meter"><div id="level"></div></div>
+<div id="log"></div>
+
+<script>
+const log = (text) => {
+  const t = new Date().toLocaleTimeString();
+  document.getElementById('log').textContent = `${t}  ${text}\n` + document.getElementById('log').textContent;
+};
+
+// The music: a chord with bright overtones and soft hi-hats, where the
+// "phone call" mode is easy to hear (dull, no highs).
+let ctx = null, music = null;
+function startMusic() {
+  ctx ??= new AudioContext();
+  ctx.resume();
+  const out = ctx.createGain(); out.gain.value = 0.15; out.connect(ctx.destination);
+  const nodes = [];
+  for (const f of [110, 220, 277.18, 329.63, 440, 554.37, 659.25]) {
+    const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f;
+    const g = ctx.createGain(); g.gain.value = 0.08; o.connect(g).connect(out); o.start(); nodes.push(o);
+  }
+  const len = ctx.sampleRate * 0.05, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 3;
+  const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 7000; hp.connect(out);
+  const hat = setInterval(() => { const s = ctx.createBufferSource(); s.buffer = buf; s.connect(hp); s.start(); }, 250);
+  music = { out, nodes, hat };
+  log(`musica accesa (motore audio ${ctx.sampleRate} Hz, stato ${ctx.state})`);
+}
+function stopMusic() {
+  if (!music) return;
+  clearInterval(music.hat); music.nodes.forEach((o) => o.stop()); music.out.disconnect(); music = null;
+  log('musica spenta');
+}
+document.getElementById('music').onclick = (e) => {
+  if (music) { stopMusic(); e.target.textContent = '▶ Musica'; }
+  else { startMusic(); e.target.textContent = '■ Ferma la musica'; }
+};
+document.getElementById('recreate').onclick = async () => {
+  const playing = !!music; stopMusic();
+  if (ctx) { await ctx.close(); ctx = null; }
+  log('motore audio chiuso');
+  if (playing) startMusic();
+};
+
+// The same settings as the tuner (lib/audio/mic_input.dart).
+const constraints = (deviceId) => ({ audio: {
+  autoGainControl: false, echoCancellation: false, noiseSuppression: false, channelCount: 1,
+  ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
+} });
+
+let busy = false;
+async function listen(deviceId, name) {
+  if (busy) return; busy = true;
+  log(`ascolto con: ${name}…`);
+  let stream, mic, raf;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia(constraints(deviceId));
+    const track = stream.getAudioTracks()[0];
+    const s = track.getSettings();
+    log(`aperto «${track.label}» ${s.sampleRate ?? '?'} Hz, eco ${s.echoCancellation}`);
+    mic = new AudioContext();
+    const an = mic.createAnalyser(); mic.createMediaStreamSource(stream).connect(an);
+    const data = new Float32Array(an.fftSize);
+    const draw = () => {
+      an.getFloatTimeDomainData(data);
+      const peak = data.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+      document.getElementById('level').style.width = `${Math.min(100, peak * 300)}%`;
+      raf = requestAnimationFrame(draw);
+    };
+    draw();
+    await new Promise((r) => setTimeout(r, 8000));
+  } catch (err) {
+    log(`errore: ${err.name} ${err.message}`);
+  } finally {
+    cancelAnimationFrame(raf);
+    document.getElementById('level').style.width = '0';
+    stream?.getTracks().forEach((t) => t.stop());
+    await mic?.close();
+    log(`microfono SPENTO (${name}). Ascolta: la musica torna bella?`);
+    busy = false;
+  }
+}
+
+document.getElementById('find').onclick = async () => {
+  try {
+    // Names are shown only after a first yes to the microphone.
+    const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+    s.getTracks().forEach((t) => t.stop());
+  } catch (err) { log(`permesso negato: ${err.name}`); return; }
+  const devices = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'audioinput');
+  const box = document.getElementById('mics'); box.textContent = '';
+  const add = (id, name) => {
+    const b = document.createElement('button');
+    b.textContent = `🎤 Ascolta 8 s: ${name}`;
+    b.onclick = () => listen(id, name);
+    box.append(b);
+  };
+  add(null, 'quello scelto dal browser');
+  devices.forEach((d, i) => add(d.deviceId, d.label || `microfono ${i + 1}`));
+  log(`microfoni trovati: ${devices.map((d) => `«${d.label}» (${d.deviceId.slice(0, 8)})`).join(', ')}`);
+};
+</script>
+</body>
+</html>
