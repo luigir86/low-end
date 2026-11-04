@@ -429,13 +429,13 @@ class AppActions {
         'Autumn Leaves',
       ],
       'description':
-          'An example song: sets its key, its progression and its tempo '
-          '(the metronome goes to 4/4 at that tempo), as touching it in the '
-          'list of example songs does. The jazz standards Mr. P.C., Tune Up '
-          'and Autumn Leaves also switch to the walking bass style; the '
-          'next other song gives back the style there was before, unless '
-          'a style was chosen since. A note, progression or style given '
-          'too is applied after it.',
+          'An example song, a preset: sets its key, its progression, its '
+          'tempo (the metronome goes to 4/4 at that tempo) and its style on '
+          'the piano (the held tone gives way to it), as touching it in the '
+          'list of example songs does: walking for Mr. P.C., Tune Up and '
+          'Autumn Leaves, arpeggio for Blue Bossa, held for With or Without '
+          'You, beat for the others. A note, progression, style or held '
+          'tone given too is applied after it.',
     },
   };
 

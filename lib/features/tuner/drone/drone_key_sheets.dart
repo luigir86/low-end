@@ -4,6 +4,7 @@ import '../../../app/theme.dart';
 import '../../../audio/audio_scope.dart';
 import '../../../audio/pitch.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../widgets/section_icons.dart';
 import '../../metronome/time_signature.dart';
 import 'drone_controller.dart';
 import 'drone_panel.dart';
@@ -228,21 +229,11 @@ Future<void> showSongsSheet(BuildContext context) {
                 ListTile(
                   key: ValueKey('song-${song.title}'),
                   title: Text(song.title),
-                  // Who made it known, then what it sets.
+                  // Who made it known, the harmony, then the preset: the
+                  // metronome's tempo and the piano's style, with the
+                  // pictures of the metronome's tab and of the style menu.
                   isThreeLine: true,
-                  subtitle: Text(
-                    '${song.artist}\n'
-                    '${progressionShort(l10n, song.progression)} · '
-                    '${_songKey(l10n, song, names)} · '
-                    '${BeatUnit.quarter.symbol} = ${song.bpm}',
-                  ),
-                  // A jazz standard starts on the walking bass.
-                  trailing: song.walking
-                      ? Icon(
-                          Icons.directions_walk,
-                          semanticLabel: l10n.styleWalking,
-                        )
-                      : null,
+                  subtitle: _SongPreset(song: song, names: names),
                   onTap: () {
                     applySong(
                       song,
@@ -260,6 +251,55 @@ Future<void> showSongsSheet(BuildContext context) {
       );
     },
   );
+}
+
+/// What a song sets, under its title: who made it known, its progression
+/// and key, then its tempo beside the metronome and its style beside the
+/// picture the style menu shows for it.
+class _SongPreset extends StatelessWidget {
+  const _SongPreset({required this.song, required this.names});
+
+  final ExampleSong song;
+  final NoteNames names;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final style = theme.textTheme.bodyMedium;
+    final size = (style?.fontSize ?? 14) * 1.3;
+    WidgetSpan picture(Widget icon) => WidgetSpan(
+      alignment: PlaceholderAlignment.middle,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.only(end: 6),
+        child: IconTheme.merge(
+          data: IconThemeData(
+            size: size,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          child: icon,
+        ),
+      ),
+    );
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text:
+                '${song.artist}\n'
+                '${progressionShort(l10n, song.progression)} · '
+                '${_songKey(l10n, song, names)}\n',
+          ),
+          picture(const SectionIcon(SectionGlyph.metronome)),
+          TextSpan(text: '${BeatUnit.quarter.symbol} = ${song.bpm}'),
+          const WidgetSpan(child: SizedBox(width: 16)),
+          picture(styleIconOf(song.style)),
+          TextSpan(text: styleNameOf(l10n, song.style)),
+        ],
+      ),
+      maxLines: 3,
+    );
+  }
 }
 
 String _songKey(AppLocalizations l10n, ExampleSong song, NoteNames names) {

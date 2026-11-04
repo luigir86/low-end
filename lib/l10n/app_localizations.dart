@@ -1049,7 +1049,7 @@ abstract class AppLocalizations {
   /// No description provided for @songsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Sets the key, the progression and the tempo in one tap'**
+  /// **'Sets the key, the progression, the tempo and the style in one tap'**
   String get songsSubtitle;
 
   /// No description provided for @tunerHeld.

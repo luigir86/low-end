@@ -10,6 +10,7 @@ import 'package:low_end/features/tuner/drone/drone_controller.dart';
 import 'package:low_end/features/tuner/drone/harmony.dart';
 import 'package:low_end/features/tuner/drone/drone_panel.dart'
     show progressionSong;
+import 'package:low_end/widgets/style_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<AudioScope> _launch(
@@ -163,8 +164,20 @@ void main() {
       tester.getTopLeft(find.text('Stand by Me')).dy,
       lessThan(tester.getTopLeft(find.text('Blues')).dy),
     );
-    // The jazz standards, walked, say so.
-    expect(find.byIcon(Icons.directions_walk), findsNWidgets(3));
+    // Each song shows the style it sets with the style menu's picture: the
+    // footprints for the three jazz standards, walked.
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is StyleIcon && w.glyph == StyleGlyph.footprints,
+      ),
+      findsNWidgets(3),
+    );
+    expect(
+      find.textContaining('Walking bass', findRichText: true),
+      findsNWidgets(3),
+    );
+    expect(find.textContaining('Arpeggio', findRichText: true), findsOneWidget);
+    expect(find.byIcon(Icons.directions_walk), findsNothing);
     // Lower down the sheet: scrolled to first.
     await tester.ensureVisible(find.text('Blue Bossa'));
     await tester.pumpAndSettle();

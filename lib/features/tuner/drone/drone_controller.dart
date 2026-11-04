@@ -452,33 +452,8 @@ class DroneController extends ChangeNotifier {
   }
 
   void setStyle(DroneStyle style) {
-    // Chosen by the player: no song's style to give back any more.
-    _styleBeforeSong = null;
-    _setStyle(style);
-  }
-
-  void _setStyle(DroneStyle style) {
     if (style == _style) return;
     _update(() => _style = style, restart: true);
-  }
-
-  /// The style the player had before a song switched it to the walking
-  /// bass, given back by the next song that is not walked; null when no
-  /// song changed it, or the player chose a style since.
-  DroneStyle? _styleBeforeSong;
-
-  /// The style of an example song: the walking bass if it is [walking] (a
-  /// jazz standard), otherwise the style the player had before a walked
-  /// song changed it, if one did.
-  void setSongStyle({required bool walking}) {
-    if (walking) {
-      if (_style == DroneStyle.walking) return;
-      _styleBeforeSong ??= _style;
-      _setStyle(DroneStyle.walking);
-    } else if (_styleBeforeSong case final before?) {
-      _styleBeforeSong = null;
-      _setStyle(before);
-    }
   }
 
   void setReferencePitch(double a4) {

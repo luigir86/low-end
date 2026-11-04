@@ -305,40 +305,43 @@ void main() {
       void apply(String title) =>
           applySong(song(title), drone: drone, metronome: metronome);
 
-      test('the jazz standards are walked, the bossa and the rest not', () {
+      test('each song sets its style: the jazz standards walked, the bossa '
+          'arpeggiated, the slow anthem held, the rest on every beat', () {
         expect(
-          [
-            for (final s in exampleSongs)
-              if (s.walking) s.title,
-          ],
-          ['Mr. P.C.', 'Tune Up', 'Autumn Leaves'],
+          {for (final s in exampleSongs) s.title: s.style},
+          {
+            'Stand by Me': DroneStyle.beat,
+            'With or Without You': DroneStyle.held,
+            'Hit the Road Jack': DroneStyle.beat,
+            'Sweet Home Chicago': DroneStyle.beat,
+            'Mr. P.C.': DroneStyle.walking,
+            'Tune Up': DroneStyle.walking,
+            'Blue Bossa': DroneStyle.arpeggio,
+            'Autumn Leaves': DroneStyle.walking,
+          },
         );
       });
 
-      test('a jazz standard starts on the walking bass, and the next '
-          'other song gives the style back', () {
+      test('a song is a preset: its style and tempo, whatever was set', () {
         drone.setStyle(DroneStyle.arpeggio);
+        metronome.setBpm(60);
         apply('Tune Up');
         expect(drone.style, DroneStyle.walking);
-        apply('Autumn Leaves');
-        expect(drone.style, DroneStyle.walking);
-        apply('Blue Bossa');
-        expect(drone.style, DroneStyle.arpeggio);
-        // Given back once: the next song keeps what there is.
+        expect(metronome.bpm, 160);
         apply('Stand by Me');
+        expect(drone.style, DroneStyle.beat);
+        expect(metronome.bpm, 118);
+        // A style chosen afterwards is the player's, until the next song.
+        drone.setStyle(DroneStyle.held);
+        apply('Blue Bossa');
         expect(drone.style, DroneStyle.arpeggio);
       });
 
-      test('a style chosen meanwhile is kept', () {
-        apply('Mr. P.C.');
-        expect(drone.style, DroneStyle.walking);
-        drone.setStyle(DroneStyle.held);
-        apply('Stand by Me');
-        expect(drone.style, DroneStyle.held);
-        // The walking bass chosen by the player stays after any song.
-        drone.setStyle(DroneStyle.walking);
-        apply('Tune Up');
-        apply('Stand by Me');
+      test('a song brings the piano back from the held tone', () {
+        drone.setContinuous(true);
+        apply('Autumn Leaves');
+        expect(drone.continuous, isFalse);
+        expect(drone.usesPiano, isTrue);
         expect(drone.style, DroneStyle.walking);
       });
 

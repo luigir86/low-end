@@ -914,3 +914,12 @@ List<String> _chordNotes(DroneChord chord, int rootLetter, NoteNames names) => [
       names,
     ),
 ];
+
+/// The picture of a piano style, the same as in the style menu: what the
+/// example songs show beside the style they set.
+Widget styleIconOf(DroneStyle style) =>
+    _styleIcon(_StyleLine.values.firstWhere((l) => l.piano == style));
+
+/// The name of a piano style, as in the style menu.
+String styleNameOf(AppLocalizations l10n, DroneStyle style) =>
+    _styleName(l10n, _StyleLine.values.firstWhere((l) => l.piano == style));
