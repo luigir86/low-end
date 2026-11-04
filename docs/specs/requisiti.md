@@ -144,6 +144,20 @@ Fuori dallo scopo, per decisione presa: libreria PDF e conversione in MusicXML/M
 | RNF-AUD-01 | Qualità del suono "una coccola": pianoforte stereo 48 kHz, nessun clipping (limiter sul mix), niente click a inizio o fine. | ascolto (thread "Qualità del motore audio") | ◐ |
 | RNF-REL-01 | Rilascio: versione nel `pubspec.yaml` alzata a ogni caricamento; targetSdk richiesto da Play; firma con la chiave di upload fuori dal repository. | `docs/release-checklist.md` | ◐ |
 
+### Misure di partenza (4 novembre 2026, Galaxy S20 FE, `main` d372e31, build release, copia `.perf` accanto all'app del Play)
+
+| Misura | `main` di oggi | Play 1.3.0 (29 ottobre) | Requisito |
+| --- | --- | --- | --- |
+| Avvio a freddo (`am start -W`, TotalTime, mediana di 5) | **1040 ms** (978–1977) | 314 ms (273–414) | RNF-AVV-01: **peggiorato di 3 volte** |
+| Memoria a riposo subito dopo l'avvio (PSS totale / nativa) | **413–431 MB / 156–172 MB** | 155 MB / 30 MB | RNF-MEM-01: oltre la proposta di 150 MB |
+| Memoria con Stand by Me dopo 15 s | 349 MB / 173 MB | – | |
+| Memoria con Autumn Leaves (walking) dopo 15 s | 379 MB / 197 MB | – | |
+| Dal comando (link d'azione) al suono (avvio dello stream AAudio) | 270–660 ms, mediana ~520 ms | – | RNF-LAT-01: sotto 1 s, vicino all'obiettivo di 0,5 s |
+| Thread dello schermo fermo, cambio brano | 40–120 ms (Autumn Leaves fino a 120, Tune Up 110, Stand by Me 100) | – | RNF-FLU-01: appena sopra i 100 ms |
+| Thread dello schermo fermo, cambio stile / tempo | 60 ms / 30 ms | – | RNF-FLU-01: rispettato |
+
+Note: `dumpsys gfxinfo` non vede i frame di Flutter, quindi il blocco è misurato campionando ogni 10 ms il thread dello schermo; il tocco vero sullo schermo (non il link) va misurato filmando a 240 fps. Ipotesi da verificare per l'avvio e la memoria: aprendo sull'Armonia (dalla PR #96) l'app prepara subito pianoforte e contrabbasso (`preparePiano` dopo il primo frame, `prefetchBass: true`), cioè motore audio e decodifica di tutti i campioni all'avvio; conta anche l'APK unico da 70 MB contro quello diviso da 30 MB del Play. Trovato anche: il primo link d'azione dopo un avvio da `adb` apre altre istanze della schermata principale (tre nella pila), da controllare. Numeri grezzi e comandi: `C:\Users\ribal\Projects\LowEnd-misure\2026-11-04.md` sul PC di Luigi.
+
 ## 4. Vincoli già decisi (non riproporre)
 
 Sempre tema scuro, un solo accento bronzo; niente tema chiaro né colori per sezione. Niente donazioni. Niente scelta dell'ottava, preset per basso, forme d'accordo. Strumento predefinito dell'accordatore: chitarra. Nome "Low End", pacchetto `com.luigir86.low_end` (permanente). Scheda dello store rivolta a tutti i musicisti. Niente app iOS nativa: per l'iPhone solo la web app. Il click resta quello di oggi (niente woodblock modale).
