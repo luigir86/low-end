@@ -135,13 +135,17 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     _metronome.setBackbeat(_settings.metronomeBackbeat);
     _metronome.addListener(_rememberMetronome);
     // The harmony comes back as it was left; the first time it opens on the
-    // piano, the chord on every beat (set before it plays, so nothing starts
-    // yet).
+    // piano playing a progression, the mode most played and the most
+    // inviting: the giro di Do in A (A F#m D E7, as in Stand by Me), a chord
+    // on every beat, with the chord menu on the chord (set before it plays,
+    // so nothing starts yet).
     final harmony = _settings.drone;
     if (harmony != null) {
       _drone.restore(harmony);
     } else if (_drone.hasPiano) {
-      _drone.setVoicing(DroneVoicing.chord);
+      _drone
+        ..setVoicing(DroneVoicing.chord)
+        ..setVoicing(DroneVoicing.progression);
     }
     _drone.addListener(_rememberDrone);
     _tuner.highestHz = _settings.tuning.highestHz;
