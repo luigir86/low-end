@@ -85,5 +85,14 @@ final _engine = EngineStarter(() async {
 /// Starts the SoLoud audio engine once for the whole app, so the drone and
 /// the metronome never start it twice at the same time. Tried again on the
 /// next call if it failed. The first call comes back once the engine has
-/// warmed up (see [engineWarmUp]); later ones at once.
-Future<void> ensureSoLoud() => _engine.ensure();
+/// warmed up (see [engineWarmUp]); later ones at once, unless in a web page
+/// the browser holds the engine's sound: it is then woken, and warms up
+/// again (see webAudioAwake).
+Future<void> ensureSoLoud() async {
+  await _engine.ensure();
+  await webAudioAwake(engineWarmUp);
+}
+
+/// Starts the engine without asking for its sound: in a web page before any
+/// touch, where the browser holds it silent until one (see LowEndApp).
+Future<void> prepareSoLoud() => _engine.ensure();

@@ -107,7 +107,7 @@ Send the `arm64-v8a` file: it fits almost every phone from the last ten years. T
 
 ### Web app (iPhone)
 
-The same code also runs in a browser: `.github/workflows/web.yml` publishes it on every push to `main` at https://luigir86.github.io/low-end/. On an iPhone, open it in Safari and choose *Share › Add to Home Screen*. What it can and cannot do there, and how to build it by hand, is in [docs/web.md](docs/web.md).
+The same code also runs in a browser: `.github/workflows/web.yml` publishes it on every push to `main` at https://luigir86.github.io/low-end/. On an iPhone, open it in Safari, choose *Share › Add to Home Screen* at once, and from then on open it from its icon (it keeps its files apart from Safari's). What it can and cannot do there, and how to build it by hand, is in [docs/web.md](docs/web.md).
 
 ### Google Play
 

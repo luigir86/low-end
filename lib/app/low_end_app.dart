@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/gestures.dart' show GestureBinding;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show SystemNavigator;
 
@@ -99,6 +98,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
           ? (kIsWeb ? SpeakerAudioRoute() : AndroidAudioRoute())
           : FakeAudioRoute());
   StreamSubscription<void>? _unplugged;
+  StreamSubscription<void>? _interrupted;
   late final _tuner = TunerController(widget.micInput ?? RecordMicInput());
   late final BackgroundAudio _background =
       widget.backgroundAudio ?? MediaNotificationAudio();
@@ -156,6 +156,11 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     _commands = _background.commands.listen(_onMediaCommand);
     // Headphones pulled out: the sound stops before it reaches the speaker.
     _unplugged = _route.unplugged.listen((_) => _pauseFor(_Pause.unplugged));
+    // The iPhone's browser cut the sound (a call, the locked screen): the
+    // app must not look as if it played on, unheard.
+    _interrupted = _route.interrupted.listen(
+      (_) => _pauseFor(_Pause.interrupted),
+    );
     // If the app opens on the tuner (where it was left, or a link), start
     // listening once the first frame is up, so the microphone never delays
     // it; opening on the harmony, its piano is got ready then too (in a
@@ -164,10 +169,10 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_navigation.tunerVisible) _tuner.resume();
       _preparePiano();
+      if (_startsEngineAhead) {
+        _engineAhead = Timer(_engineAheadAfter, _startEngineWhenStill);
+      }
     });
-    if (_startsEngineAtFirstTouch) {
-      GestureBinding.instance.pointerRouter.addGlobalRoute(_firstTouch);
-    }
     // Registered before MaterialApp's own observer, so action links are
     // handled here instead of being treated as pages to open.
     WidgetsBinding.instance.addObserver(this);
@@ -209,23 +214,22 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     _keepScreenOn();
   }
 
-  /// In a browser the audio engine can start only at a touch. It starts at
-  /// the first one, whatever it is for (a swipe, a menu), so that the first
-  /// sound need not wait for it: with the real sound only, and not on the
-  /// very first opening, which soon reloads itself (see
-  /// web/flutter_bootstrap.js).
-  bool get _startsEngineAtFirstTouch =>
+  /// In a browser the audio engine may sound only after a touch, but it can
+  /// start before one, held silent: it does, a moment after the first
+  /// frame, so that the first touch only wakes it (web/flutter_bootstrap.js)
+  /// and the first sound need not wait for the engine to start (in Safari
+  /// that was more than half a second). With the real sound only, and not
+  /// on the very first opening, which soon reloads itself.
+  bool get _startsEngineAhead =>
       kIsWeb &&
       widget.toneOutput == null &&
       widget.clickOutput == null &&
       webPageIsolated();
 
-  void _firstTouch(PointerEvent event) {
-    // A browser counts a touch once the finger lifts.
-    if (event is! PointerUpEvent) return;
-    GestureBinding.instance.pointerRouter.removeGlobalRoute(_firstTouch);
-    _startEngineWhenStill();
-  }
+  Timer? _engineAhead;
+
+  /// Long enough for the first frame's own work to be done.
+  static const _engineAheadAfter = Duration(milliseconds: 300);
 
   /// Starts the engine once the sections stop sliding: starting it takes
   /// the page's thread a moment, which would show in the slide.
@@ -241,7 +245,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
       _navigation.sliding.addListener(still);
       return;
     }
-    ensureSoLoud().catchError((Object error) {
+    prepareSoLoud().catchError((Object error) {
       debugPrint('The audio engine could not start: $error');
     });
   }
@@ -285,6 +289,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
           content: Text(switch (why) {
             _Pause.tuner => l10n.pausedForTuner,
             _Pause.unplugged => l10n.pausedUnplugged,
+            _Pause.interrupted => l10n.pausedInterrupted,
           }),
           persist: false,
           action: SnackBarAction(
@@ -322,6 +327,8 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
   void _onPlayingChanged() {
     _keepScreenOn();
     final playing = _drone.isPlaying || _metronome.isPlaying;
+    // In a web page the engine sleeps a while after the last sound.
+    setWebAudioIdle(!playing);
     final l10n = _notificationTexts();
     // Not while the notification's own pause is stopping things: stopping
     // the drone first, with the metronome still sounding, would otherwise
@@ -457,9 +464,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     _settings.removeListener(_onSettingsChanged);
     _navigation.removeListener(_onNavigationChanged);
     _navigation.sliding.removeListener(_preparePiano);
-    if (_startsEngineAtFirstTouch) {
-      GestureBinding.instance.pointerRouter.removeGlobalRoute(_firstTouch);
-    }
+    _engineAhead?.cancel();
     _drone.removeListener(_onPlayingChanged);
     _drone.removeListener(_rememberDrone);
     _metronome.removeListener(_onPlayingChanged);
@@ -467,6 +472,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     _tuner.removeListener(_onTunerChanged);
     _commands?.cancel();
     _unplugged?.cancel();
+    _interrupted?.cancel();
     if (widget.audioRoute == null) _route.dispose();
     _background.show(MediaState.off, title: '');
     _screenAwake.keepOn(false);
@@ -514,4 +520,4 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
 }
 
 /// Why the sound was stopped by the app rather than by the player.
-enum _Pause { tuner, unplugged }
+enum _Pause { tuner, unplugged, interrupted }

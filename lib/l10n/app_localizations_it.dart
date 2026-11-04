@@ -354,6 +354,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get pausedUnplugged => 'In pausa: cuffie scollegate';
 
   @override
+  String get pausedInterrupted => 'In pausa: il suono è stato interrotto';
+
+  @override
   String get resume => 'Riprendi';
 
   @override

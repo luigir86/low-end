@@ -19,6 +19,11 @@ abstract class AudioRoute {
   /// away) and Android is about to send the sound to the speaker.
   Stream<void> get unplugged;
 
+  /// Fires when the browser stops the app's sound by itself, as Safari on
+  /// the iPhone does for a call, Siri, an alarm or the locked screen. Never
+  /// in the Android app, which pauses through its notification.
+  Stream<void> get interrupted;
+
   void dispose();
 }
 
@@ -60,6 +65,9 @@ class AndroidAudioRoute implements AudioRoute {
   Stream<void> get unplugged => _unplugged.stream;
 
   @override
+  Stream<void> get interrupted => const Stream.empty();
+
+  @override
   void dispose() {
     _channel.setMethodCallHandler(null);
     _unplugged.close();
@@ -70,6 +78,12 @@ class AndroidAudioRoute implements AudioRoute {
 /// delay the browser gives (else the speaker's), and the headphones never
 /// seen coming out.
 class SpeakerAudioRoute implements AudioRoute {
+  SpeakerAudioRoute() {
+    onWebAudioCut(() => _interrupted.add(null));
+  }
+
+  final _interrupted = StreamController<void>.broadcast();
+
   /// The engine's buffer, then the browser's own delay, which on a phone
   /// can be several times the app's (and takes in Bluetooth too).
   @override
@@ -83,13 +97,18 @@ class SpeakerAudioRoute implements AudioRoute {
   Stream<void> get unplugged => const Stream.empty();
 
   @override
-  void dispose() {}
+  Stream<void> get interrupted => _interrupted.stream;
+
+  @override
+  void dispose() => _interrupted.close();
 }
 
-/// [AudioRoute] for tests: no delay, and headphones unplugged on demand.
+/// [AudioRoute] for tests: no delay, and headphones unplugged or the sound
+/// interrupted on demand.
 @visibleForTesting
 class FakeAudioRoute implements AudioRoute {
   final _unplugged = StreamController<void>.broadcast();
+  final _interrupted = StreamController<void>.broadcast();
 
   @override
   Duration outputLatency = Duration.zero;
@@ -97,9 +116,18 @@ class FakeAudioRoute implements AudioRoute {
   /// Acts as if the headphones had just been pulled out.
   void unplug() => _unplugged.add(null);
 
+  /// Acts as if the browser had just cut the sound (a call on the iPhone).
+  void interrupt() => _interrupted.add(null);
+
   @override
   Stream<void> get unplugged => _unplugged.stream;
 
   @override
-  void dispose() => _unplugged.close();
+  Stream<void> get interrupted => _interrupted.stream;
+
+  @override
+  void dispose() {
+    _unplugged.close();
+    _interrupted.close();
+  }
 }

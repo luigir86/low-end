@@ -474,9 +474,9 @@ class SoLoudPianoOutput implements PianoOutput {
 
   @override
   Future<void> prepare(List<PianoChord> chords, {bool bass = false}) async {
-    // In a browser the engine is not started before a touch of the screen:
-    // the browser would keep it silent until some later touch. The
-    // recordings are read there without it (see decodeFlacInBrowser).
+    // In a browser the engine is started by LowEndApp, held silent until a
+    // touch; the recordings are read there without it (see
+    // decodeFlacInBrowser).
     if (!kIsWeb) await ensureSoLoud();
     await _library.forChords(chords, bass: bass);
     // Not played after all: they go, as after a stop, a while later.

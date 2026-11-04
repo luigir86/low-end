@@ -1,14 +1,12 @@
 {{flutter_js}}
 {{flutter_build_config}}
 
-// The audio engine (flutter_soloud, in WebAssembly) is loaded once the app
-// is on screen, not before: it is not needed until the first sound, and
-// loading it earlier slowed the first screen down. The app waits for this
-// promise before its first sound (web_audio_engine_web.dart).
-// The audio engine's own AudioContext, kept so the app can ask the browser
-// how late what it plays is heard (outputLatency, web_audio_engine_web.dart).
-// The app raises lowEndCatchAudioContext just before the engine starts; the
-// microphone's context, made at another time, is not taken for it.
+// The audio engine's own AudioContext, kept so that the page can wake it
+// and put it to sleep (see lowEndWakeAudio below), and the app can ask the
+// browser how late what it plays is heard (outputLatency,
+// web_audio_engine_web.dart). The app raises lowEndCatchAudioContext just
+// before the engine starts; the microphone's context, made at another time,
+// is not taken for it.
 if (window.AudioContext) {
   window.AudioContext = class extends window.AudioContext {
     constructor(...args) {
@@ -16,10 +14,40 @@ if (window.AudioContext) {
       if (window.lowEndCatchAudioContext) {
         window.lowEndCatchAudioContext = false;
         window.lowEndAudioContext = this;
+        watchAudio(this);
       }
     }
   };
 }
+
+// The audio engine's memory, shared with its own thread, is asked for with
+// room to grow to 2 GB. Safari on the iPhone has refused shared memories
+// that large ("out of memory": https://bugs.webkit.org/show_bug.cgi?id=255103),
+// which would leave the app silent from its second opening on. It is then
+// asked for again with less room: the engine never needs that much.
+(function () {
+  const Memory = WebAssembly.Memory;
+  function SmallerIfRefused(descriptor) {
+    try {
+      return new Memory(descriptor);
+    } catch (error) {
+      if (!descriptor || !descriptor.shared) throw error;
+      for (const maximum of [16384, 8192, 4096]) {
+        if (maximum >= descriptor.maximum || maximum < descriptor.initial) {
+          continue;
+        }
+        try {
+          const memory = new Memory(Object.assign({}, descriptor, { maximum }));
+          console.warn('Shared memory refused: kept to ' + maximum / 16 + ' MB.');
+          return memory;
+        } catch (_) {}
+      }
+      throw error;
+    }
+  }
+  SmallerIfRefused.prototype = Memory.prototype;
+  WebAssembly.Memory = SmallerIfRefused;
+})();
 
 // Decodes a FLAC recording (a Uint8Array) to the 16-bit samples of its
 // first channel, with the browser's own decoder: off the page's thread and
@@ -42,6 +70,10 @@ window.lowEndDecodeFlac = function (bytes) {
   });
 };
 
+// The audio engine (flutter_soloud, in WebAssembly) is loaded once the app
+// is on screen, not before: it is not needed for the first frame, and
+// loading it earlier slowed the first screen down. The app waits for this
+// promise before it starts the engine (web_audio_engine_web.dart).
 window.lowEndAudioEngine = new Promise(function (resolve) {
   let started = false;
   window.lowEndLoadAudioEngine = function () {
@@ -94,6 +126,7 @@ function keepOffline() {
     .then(function (response) {
       if (!response.ok) return;
       navigator.serviceWorker.register('sw.js');
+      keepFiles();
       return navigator.serviceWorker.ready.then(function (registration) {
         setTimeout(function () {
           registration.active?.postMessage('keep-sounds');
@@ -103,14 +136,76 @@ function keepOffline() {
     .catch(function () {});
 }
 
-// A browser may hold the audio engine silent ("suspended") if it started
-// at a moment it did not count as a touch; any later touch wakes it.
+// An app on the Home Screen asks the browser to keep its files even when
+// the phone runs short of space, so that it still opens with no network.
+// A page in a tab does not ask: some browsers would put a question to the
+// player for it.
+function keepFiles() {
+  const standalone = navigator.standalone === true ||
+    window.matchMedia('(display-mode: standalone)').matches;
+  if (!standalone || !navigator.storage || !navigator.storage.persist) return;
+  navigator.storage.persisted()
+    .then(function (kept) { if (!kept) return navigator.storage.persist(); })
+    .catch(function () {});
+}
+
+// A page may make sound only in answer to a touch. The engine is got ready
+// before one, held silent by the browser ("suspended"), and Safari on the
+// iPhone also cuts its sound for a call, Siri, an alarm or the locked
+// screen ("interrupted"). Any touch wakes it from either, as it happens:
+// then the browser counts it as asked for. The app asks too before each
+// sound (lowEndWakeAudio), and waits until the engine is awake.
+function wakeAudio() {
+  const context = window.lowEndAudioContext;
+  if (!context || context.state === 'running' || context.state === 'closed') {
+    return Promise.resolve(context ? context.state : 'none');
+  }
+  return context.resume().then(
+    function () { return context.state; },
+    function () { return context.state; });
+}
+window.lowEndWakeAudio = wakeAudio;
 ['pointerup', 'touchend', 'keydown'].forEach(function (type) {
-  document.addEventListener(type, function () {
-    const context = window.lowEndAudioContext;
-    if (context && context.state === 'suspended') context.resume();
-  }, true);
+  document.addEventListener(type, wakeAudio, true);
 });
+
+// With nothing to play the engine still mixes silence, all the time: some
+// seconds after the last sound it is put to sleep, and the next touch wakes
+// it. The app says whether something plays (lowEndAudioIdle, see
+// web_audio_engine_web.dart).
+let audioIdle = true, audioAsleep = false, audioSleep = 0;
+function sleepAudioLater() {
+  clearTimeout(audioSleep);
+  audioSleep = setTimeout(function () {
+    const context = window.lowEndAudioContext;
+    if (!audioIdle || !context || context.state !== 'running') return;
+    audioAsleep = true;
+    context.suspend().catch(function () {});
+  }, 20000);
+}
+window.lowEndAudioIdle = function (idle) {
+  audioIdle = idle;
+  clearTimeout(audioSleep);
+  if (idle) sleepAudioLater();
+};
+
+// The app hears when the browser stops the engine's sound by itself (an
+// interruption, not our sleep), so as not to look as if it played on
+// unheard (lowEndAudioCut, set by web_audio_engine_web.dart).
+function watchAudio(context) {
+  context.addEventListener('statechange', function () {
+    if (context.state === 'running') {
+      // Woken with nothing to play (a touch, or the end of a call), it
+      // goes back to sleep in a while.
+      audioAsleep = false;
+      if (audioIdle) sleepAudioLater();
+      return;
+    }
+    if (context.state === 'closed' || audioAsleep) return;
+    if (window.lowEndAudioCut) window.lowEndAudioCut();
+  });
+  if (audioIdle) sleepAudioLater();
+}
 
 if ('serviceWorker' in navigator) {
   // The first opening runs without the service worker, so without the

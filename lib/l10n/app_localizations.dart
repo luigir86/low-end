@@ -698,6 +698,12 @@ abstract class AppLocalizations {
   /// **'Paused: headphones unplugged'**
   String get pausedUnplugged;
 
+  /// Notice shown in the web app when the browser cut the sound (a call, Siri, an alarm, the locked screen on an iPhone); it has a Resume button.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused: the sound was interrupted'**
+  String get pausedInterrupted;
+
   /// No description provided for @resume.
   ///
   /// In en, this message translates to:
