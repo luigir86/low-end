@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/gestures.dart' show GestureBinding;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show SystemNavigator;
 
@@ -11,7 +12,9 @@ import '../audio/click_output.dart';
 import '../audio/mic_input.dart';
 import '../audio/piano_output.dart';
 import '../audio/pitch.dart';
+import '../audio/soloud_engine.dart';
 import '../audio/tone_output.dart';
+import '../audio/web_audio_engine.dart';
 import '../features/metronome/metronome_controller.dart';
 import '../features/tuner/drone/drone_controller.dart';
 import '../features/tuner/drone/drone_panel.dart'
@@ -162,6 +165,9 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
       if (_navigation.tunerVisible) _tuner.resume();
       _preparePiano();
     });
+    if (_startsEngineAtFirstTouch) {
+      GestureBinding.instance.pointerRouter.addGlobalRoute(_firstTouch);
+    }
     // Registered before MaterialApp's own observer, so action links are
     // handled here instead of being treated as pages to open.
     WidgetsBinding.instance.addObserver(this);
@@ -201,6 +207,43 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     _settings.rememberSection(_navigation.section);
     _preparePiano();
     _keepScreenOn();
+  }
+
+  /// In a browser the audio engine can start only at a touch. It starts at
+  /// the first one, whatever it is for (a swipe, a menu), so that the first
+  /// sound need not wait for it: with the real sound only, and not on the
+  /// very first opening, which soon reloads itself (see
+  /// web/flutter_bootstrap.js).
+  bool get _startsEngineAtFirstTouch =>
+      kIsWeb &&
+      widget.toneOutput == null &&
+      widget.clickOutput == null &&
+      webPageIsolated();
+
+  void _firstTouch(PointerEvent event) {
+    // A browser counts a touch once the finger lifts.
+    if (event is! PointerUpEvent) return;
+    GestureBinding.instance.pointerRouter.removeGlobalRoute(_firstTouch);
+    _startEngineWhenStill();
+  }
+
+  /// Starts the engine once the sections stop sliding: starting it takes
+  /// the page's thread a moment, which would show in the slide.
+  void _startEngineWhenStill() {
+    if (!mounted) return;
+    if (_navigation.sliding.value) {
+      void still() {
+        if (_navigation.sliding.value) return;
+        _navigation.sliding.removeListener(still);
+        _startEngineWhenStill();
+      }
+
+      _navigation.sliding.addListener(still);
+      return;
+    }
+    ensureSoLoud().catchError((Object error) {
+      debugPrint('The audio engine could not start: $error');
+    });
   }
 
   /// Coming to the harmony, the piano's notes are read before the touch;
@@ -414,6 +457,9 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     _settings.removeListener(_onSettingsChanged);
     _navigation.removeListener(_onNavigationChanged);
     _navigation.sliding.removeListener(_preparePiano);
+    if (_startsEngineAtFirstTouch) {
+      GestureBinding.instance.pointerRouter.removeGlobalRoute(_firstTouch);
+    }
     _drone.removeListener(_onPlayingChanged);
     _drone.removeListener(_rememberDrone);
     _metronome.removeListener(_onPlayingChanged);

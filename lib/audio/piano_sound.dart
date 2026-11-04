@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../features/metronome/time_signature.dart';
 import 'click_sound.dart';
 import 'freeverb.dart';
+import 'in_steps.dart';
 import 'walking_bass.dart';
 
 /// How the piano plays a chord or a progression, one bar after another.
@@ -654,6 +655,24 @@ abstract final class PianoSound {
     return List.filled(bars, chords.single);
   }
 
+  /// The recording [s] between its samples [k1] and [k2], [f] of the way,
+  /// through the curve that also passes [k0] and [k3].
+  static double _cubic(Int16List s, int k0, int k1, int k2, int k3, double f) {
+    final y0 = s[k0].toDouble(), y1 = s[k1].toDouble();
+    final y2 = s[k2].toDouble(), y3 = s[k3].toDouble();
+    return y1 +
+        0.5 *
+            f *
+            (y2 -
+                y0 +
+                f *
+                    (2 * y0 -
+                        5 * y1 +
+                        4 * y2 -
+                        y3 +
+                        f * (3 * (y1 - y2) + y3 - y0)));
+  }
+
   /// Adds [stroke] to [out] (its two channels), whose first sample is the
   /// loop's sample [origin]; around the loop if [wrap], otherwise only what
   /// falls inside [out]. [a4] tunes the piano like the rest of the app.
@@ -717,23 +736,11 @@ abstract final class PianoSound {
       final position = i * step;
       final k = position.floor();
       final f = position - k;
-      final k0 = math.max(0, k - 1), k2 = math.min(n - 1, k + 1);
-      final k3 = math.min(n - 1, k + 2), k1 = math.min(n - 1, k);
-      double cubic(Int16List s) {
-        final y0 = s[k0].toDouble(), y1 = s[k1].toDouble();
-        final y2 = s[k2].toDouble(), y3 = s[k3].toDouble();
-        return y1 +
-            0.5 *
-                f *
-                (y2 -
-                    y0 +
-                    f *
-                        (2 * y0 -
-                            5 * y1 +
-                            4 * y2 -
-                            y3 +
-                            f * (3 * (y1 - y2) + y3 - y0)));
-      }
+      // Plain comparisons and no closure: in a browser math.min and a
+      // closure made per sample cost more than the sum itself.
+      final k0 = k < 1 ? 0 : k - 1, k1 = k < n - 1 ? k : n - 1;
+      final k2 = k + 1 < n - 1 ? k + 1 : n - 1;
+      final k3 = k + 2 < n - 1 ? k + 2 : n - 1;
 
       // Let go: a smooth fall over the release once the hold is over.
       final fade = i < stroke.hold
@@ -741,8 +748,8 @@ abstract final class PianoSound {
           : 0.5 * (1 + math.cos(math.pi * (i - stroke.hold) / release));
       final g = gain * fade;
       final at = wrap ? (stroke.at + i) % length : stroke.at + i - origin;
-      out.left[at] += cubic(l) * g;
-      out.right[at] += cubic(r) * g;
+      out.left[at] += _cubic(l, k0, k1, k2, k3, f) * g;
+      out.right[at] += _cubic(r, k0, k1, k2, k3, f) * g;
     }
     // The dampers, where the note is let go.
     final dampers = samples.releases[stroke.midi];
@@ -831,10 +838,35 @@ abstract final class PianoSound {
     required TimeSignature signature,
     double a4 = 440,
   }) {
+    final out = StepResult<({Stereo sound, double scale})>();
+    runSteps(
+      renderSteps(
+        samples: samples,
+        chords: chords,
+        style: style,
+        bpm: bpm,
+        signature: signature,
+        a4: a4,
+        out: out,
+      ),
+    );
+    return out.value;
+  }
+
+  /// [render] cut into small steps, a note at a time (see runInSlices).
+  static Iterable<void> renderSteps({
+    required PianoSamples samples,
+    required List<PianoChord> chords,
+    required PianoStyle style,
+    required int bpm,
+    required TimeSignature signature,
+    required StepResult<({Stereo sound, double scale})> out,
+    double a4 = 440,
+  }) sync* {
     final bars = barsOf(chords, style, signature);
     final beat = (ClickSound.sampleRate * 60 / bpm).round();
     final length = beat * signature.beats * bars.length;
-    final out = (left: Float64List(length), right: Float64List(length));
+    final sound = (left: Float64List(length), right: Float64List(length));
     final strokes = _strokes(
       chords: bars,
       style: style,
@@ -844,22 +876,26 @@ abstract final class PianoSound {
     for (final s in strokes) {
       // The loop wraps round, so the end of a ringing note carries over
       // into the start of the next turn.
-      _play(samples, s, out, a4, origin: 0, wrap: true);
+      _play(samples, s, sound, a4, origin: 0, wrap: true);
+      yield null;
     }
     // Chords and ringing notes pile up: where they would go past the top,
     // turn the whole loop down, evenly, rather than bend the peaks.
     var peak = 0.0;
     for (var i = 0; i < length; i++) {
-      peak = math.max(peak, math.max(out.left[i].abs(), out.right[i].abs()));
+      peak = math.max(
+        peak,
+        math.max(sound.left[i].abs(), sound.right[i].abs()),
+      );
     }
     final scale = peak > _ceiling ? _ceiling / peak : 1.0;
     if (scale < 1) {
       for (var i = 0; i < length; i++) {
-        out.left[i] *= scale;
-        out.right[i] *= scale;
+        sound.left[i] *= scale;
+        sound.right[i] *= scale;
       }
     }
-    return (sound: out, scale: scale);
+    out.value = (sound: sound, scale: scale);
   }
 
   /// The loop as one channel, the two averaged: what tests listen to.
@@ -896,16 +932,48 @@ abstract final class PianoSound {
     required TimeSignature signature,
     double a4 = 440,
   }) {
-    final r = render(
+    final out = StepResult<({Uint8List wav, double scale})>();
+    runSteps(
+      loopWavSteps(
+        samples: samples,
+        chords: chords,
+        style: style,
+        bpm: bpm,
+        signature: signature,
+        a4: a4,
+        out: out,
+      ),
+    );
+    return out.value;
+  }
+
+  /// [loopWav] cut into small steps (see runInSlices): in a browser the
+  /// loop is mixed ahead of the touch a slice at a time, the screen drawn
+  /// in between.
+  static Iterable<void> loopWavSteps({
+    required PianoSamples samples,
+    required List<PianoChord> chords,
+    required PianoStyle style,
+    required int bpm,
+    required TimeSignature signature,
+    required StepResult<({Uint8List wav, double scale})> out,
+    double a4 = 440,
+  }) sync* {
+    final r = StepResult<({Stereo sound, double scale})>();
+    yield* renderSteps(
       samples: samples,
       chords: chords,
       style: style,
       bpm: bpm,
       signature: signature,
       a4: a4,
+      out: r,
     );
-    final sound = Freeverb.room().loop(r.sound);
-    return (wav: ClickSound.stereoWav(sound.left, sound.right), scale: r.scale);
+    final sound = StepResult<Stereo>();
+    yield* Freeverb.room().loopSteps(r.value.sound, sound);
+    final wav = StepResult<Uint8List>();
+    yield* ClickSound.stereoWavSteps(sound.value.left, sound.value.right, wav);
+    out.value = (wav: wav.value, scale: r.value.scale);
   }
 
   /// How long the piano sounds on after it is let go: the release, the

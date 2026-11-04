@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import '../features/metronome/subdivision.dart';
 import '../features/metronome/time_signature.dart';
+import 'in_steps.dart';
 
 /// The metronome click, made in code: a short, dry woodblock-like tick, the
 /// kind DAWs use, pitched in the middle so it cuts through without tiring
@@ -154,6 +155,17 @@ abstract final class ClickSound {
   /// with a touch of triangular dither, so the quiet ends of the notes and
   /// the room fade into noise rather than into steps.
   static Uint8List stereoWav(Float64List left, Float64List right) {
+    final out = StepResult<Uint8List>();
+    runSteps(stereoWavSteps(left, right, out));
+    return out.value;
+  }
+
+  /// [stereoWav] cut into small steps (see runInSlices).
+  static Iterable<void> stereoWavSteps(
+    Float64List left,
+    Float64List right,
+    StepResult<Uint8List> out,
+  ) sync* {
     final frames = left.length;
     final data = frames * 4;
     final bytes = ByteData(44 + data);
@@ -180,16 +192,47 @@ abstract final class ClickSound {
         ? bytes.buffer.asInt16List(44, frames * 2)
         : null;
     final random = math.Random(5);
-    for (var i = 0; i < frames * 2; i++) {
+    for (var from = 0; from < frames * 2; from += 32768) {
+      _toPcm(
+        left,
+        right,
+        bytes,
+        pcm,
+        random,
+        from,
+        math.min(frames * 2, from + 32768),
+      );
+      yield null;
+    }
+    out.value = bytes.buffer.asUint8List();
+  }
+
+  /// Samples [from] to [to] (not included) of [stereoWav], the channels
+  /// taken in turn.
+  static void _toPcm(
+    Float64List left,
+    Float64List right,
+    ByteData bytes,
+    Int16List? pcm,
+    math.Random random,
+    int from,
+    int to,
+  ) {
+    for (var i = from; i < to; i++) {
       final v = (i.isEven ? left : right)[i >> 1];
       final dither = random.nextDouble() - random.nextDouble();
-      final s = (v * 32767 + dither).round().clamp(-32768, 32767);
+      // Not clamp(), which in a browser costs more than the rest.
+      var s = (v * 32767 + dither).round();
+      if (s > 32767) {
+        s = 32767;
+      } else if (s < -32768) {
+        s = -32768;
+      }
       if (pcm != null) {
         pcm[i] = s;
       } else {
         bytes.setInt16(44 + i * 2, s, Endian.little);
       }
     }
-    return bytes.buffer.asUint8List();
   }
 }

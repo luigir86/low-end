@@ -6,3 +6,6 @@ void markWebAudioInUse() {}
 
 /// See web_audio_engine.dart: only a browser can say.
 Duration? webOutputLatency() => null;
+
+/// See web_audio_engine.dart: not a web page.
+bool webPageIsolated() => false;

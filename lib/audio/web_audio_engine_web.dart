@@ -12,6 +12,9 @@ external set _inUse(bool value);
 @JS('lowEndCatchAudioContext')
 external set _catchContext(bool value);
 
+@JS('crossOriginIsolated')
+external bool? get _crossOriginIsolated;
+
 @JS('lowEndAudioContext')
 external _AudioContext? get _context;
 
@@ -48,3 +51,8 @@ Duration? webOutputLatency() {
 /// Tells the page that a sound or the microphone has started, so that it is
 /// not reloaded under the player's hands (see web/flutter_bootstrap.js).
 void markWebAudioInUse() => _inUse = true;
+
+/// Whether the page is cross-origin isolated: opened under the service
+/// worker (not the very first opening), with the audio engine on its own
+/// thread (see web/flutter_bootstrap.js).
+bool webPageIsolated() => _crossOriginIsolated ?? false;

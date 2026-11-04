@@ -84,15 +84,33 @@ _flutter.loader.load({
 // Keeps the app's files on the phone, so that it opens fast and works with
 // no network. Only in the published app: sw.js is not there in debug.
 // Started after the first frame, so that on the first opening its download
-// does not slow the app's own.
+// does not slow the app's own. The worker keeps the app first (3 MB, most
+// already in the browser's cache) and takes over at once; the recordings
+// (13 MB) come after, a few at a time, asked for a few seconds after each
+// opening until all are kept (see tool/web_offline.dart).
 function keepOffline() {
   if (!('serviceWorker' in navigator)) return;
   fetch('sw.js', { method: 'HEAD' })
     .then(function (response) {
-      if (response.ok) navigator.serviceWorker.register('sw.js');
+      if (!response.ok) return;
+      navigator.serviceWorker.register('sw.js');
+      return navigator.serviceWorker.ready.then(function (registration) {
+        setTimeout(function () {
+          registration.active?.postMessage('keep-sounds');
+        }, 3000);
+      });
     })
     .catch(function () {});
 }
+
+// A browser may hold the audio engine silent ("suspended") if it started
+// at a moment it did not count as a touch; any later touch wakes it.
+['pointerup', 'touchend', 'keydown'].forEach(function (type) {
+  document.addEventListener(type, function () {
+    const context = window.lowEndAudioContext;
+    if (context && context.state === 'suspended') context.resume();
+  }, true);
+});
 
 if ('serviceWorker' in navigator) {
   // The first opening runs without the service worker, so without the

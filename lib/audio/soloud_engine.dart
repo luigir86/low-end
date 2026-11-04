@@ -6,8 +6,10 @@ import 'web_audio_engine.dart';
 /// How long the engine plays silence after it starts, before the first
 /// sound: the phone's audio output is still ramping up (routing to the
 /// speaker, fading in), and a click that begins at that moment comes out as
-/// a double "tra-ta" instead of one tick.
-const engineWarmUp = Duration(milliseconds: 300);
+/// a double "tra-ta" instead of one tick. In a browser the page's audio
+/// output is already running when the engine starts, so a shorter wait
+/// does: every first sound comes 0.2 s sooner there.
+const engineWarmUp = Duration(milliseconds: kIsWeb ? 100 : 300);
 
 /// The engine's sample rate: the one phones play at natively, so that
 /// nothing is resampled on the way out, and the one the piano was recorded
