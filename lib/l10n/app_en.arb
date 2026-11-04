@@ -242,6 +242,10 @@
   "@pausedUnplugged": {
     "description": "Notice shown when the sound stops because the headphones were unplugged; it has a Resume button."
   },
+  "pausedInterrupted": "Paused: the sound was interrupted",
+  "@pausedInterrupted": {
+    "description": "Notice shown in the web app when the browser cut the sound (a call, Siri, an alarm, the locked screen on an iPhone); it has a Resume button."
+  },
   "resume": "Resume",
   "openSettings": "Open settings",
   "keepScreenOnTitle": "Keep the screen on",

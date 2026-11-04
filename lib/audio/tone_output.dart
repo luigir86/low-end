@@ -54,8 +54,9 @@ class SoLoudToneOutput implements ToneOutput {
   /// asked for.
   Future<AudioSource> _source(List<double> frequencies, List<double> gains) =>
       _sources.putIfAbsent(_key(frequencies, gains), () async {
-        // The engine starts and warms up while the tone is built.
-        final engine = ensureSoLoud()..ignore();
+        // The engine starts and warms up while the tone is built; its sound
+        // is woken by play.
+        final engine = prepareSoLoud()..ignore();
         // Building the tone takes a moment: away from the screen's thread.
         final wav = await _build(frequencies, gains);
         await engine;
@@ -74,6 +75,9 @@ class SoLoudToneOutput implements ToneOutput {
       _setVolume(volume);
       return;
     }
+    // In a web page the engine's sound may be held (before the first
+    // touch, asleep, interrupted): it is woken while the tone is got.
+    final awake = ensureSoLoud()..ignore();
     final AudioSource source;
     try {
       source = await _source(frequencies, gains);
@@ -82,6 +86,7 @@ class SoLoudToneOutput implements ToneOutput {
       _sources.remove(key);
       rethrow;
     }
+    await awake;
     final handle = _soloud.play(source, volume: 0, looping: true);
     // The new tone fades in while the old one fades out: no click, no gap.
     _soloud.fadeVolume(handle, volume, _fade);

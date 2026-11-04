@@ -406,6 +406,48 @@ void main() {
     expect(find.text('Paused: headphones unplugged'), findsNothing);
   });
 
+  testWidgets('sound cut by the browser shows as paused, with Resume', (
+    tester,
+  ) async {
+    final click = SilentClickOutput();
+    final route = FakeAudioRoute();
+    await tester.pumpWidget(
+      LowEndApp(
+        toneOutput: SilentToneOutput(),
+        clickOutput: click,
+        micInput: FakeMicInput(),
+        audioRoute: route,
+      ),
+    );
+    await tester.pumpAndSettle();
+    final scope = AudioScope.of(tester.element(find.byType(HomeShell)));
+
+    // Nothing plays: nothing to say.
+    route.interrupt();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Paused: the sound was interrupted'), findsNothing);
+
+    await scope.metronome.start();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(click.bar, isNotNull);
+
+    // A call on the iPhone: the app must not look as if it played on.
+    route.interrupt();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(scope.metronome.isPlaying, isFalse);
+    expect(click.bar, isNull);
+    expect(find.text('Paused: the sound was interrupted'), findsOneWidget);
+
+    await tester.tap(find.text('Resume'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(scope.metronome.isPlaying, isTrue);
+    await scope.metronome.stop();
+    await tester.pump(const Duration(milliseconds: 300));
+  });
+
   testWidgets('with the microphone refused, a button opens the settings', (
     tester,
   ) async {
