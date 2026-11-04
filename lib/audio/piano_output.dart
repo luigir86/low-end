@@ -93,11 +93,12 @@ typedef FlacDecoder = Future<Float32List> Function(Uint8List flac, int frames);
 /// The piano recordings, read and decoded when a chord first needs them,
 /// and kept while they may be needed again.
 class PianoLibrary {
-  PianoLibrary(this._decode, {AssetBundle? bundle, this.oneAtATime = kIsWeb})
+  PianoLibrary(this._decode, {AssetBundle? bundle, this.oneAtATime = true})
     : _bundle = bundle ?? rootBundle;
 
   /// Whether the double bass is read ten files at a time, leaving the screen
-  /// a frame between them: in a browser (see [_doubleBass]).
+  /// a frame between them (see [_doubleBass]): on Android too, where the
+  /// files are decoded on the screen's thread as well.
   final bool oneAtATime;
 
   final FlacDecoder _decode;
@@ -154,8 +155,8 @@ class PianoLibrary {
 
   /// The double bass, every take: some 90 short files, read once.
   ///
-  /// In a browser ten at a time, with a frame between them, so that the
-  /// screen keeps moving.
+  /// Ten at a time, with a frame between them, so that the screen keeps
+  /// moving.
   Future<BassSamples> _doubleBass() => _bass ??=
       () async {
         final files = BassSamples.all.toList();
