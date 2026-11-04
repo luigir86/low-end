@@ -22,6 +22,17 @@ enum ChordQuality {
   /// 7/4, would sound 31 cents flat of it.
   dominant([1, 5 / 4, 3 / 2, 16 / 9], [4, 7, 10], [2, 4, 6]),
 
+  /// Dominant seventh with a flat ninth, 7♭9: the V of a minor key, from
+  /// the harmonic minor. In C minor, G7♭9 is G B D F A♭: the major third is
+  /// the leading tone to C, the ♭9 is the key's A♭. The ninth is 32/15, an
+  /// octave above the pure half step 16/15.
+  dominantFlat9([1, 5 / 4, 3 / 2, 16 / 9, 32 / 15], [4, 7, 10, 13], [
+    2,
+    4,
+    6,
+    8,
+  ]),
+
   /// Major seventh, maj7 (15/8).
   major7([1, 5 / 4, 3 / 2, 15 / 8], [4, 7, 11], [2, 4, 6]),
 
@@ -123,8 +134,8 @@ enum Progression {
     ProgressionStep(7, ChordQuality.dominant, 'V'),
   ]),
 
-  /// Minor blues, twelve bars: Im7 for four, IVm7 IVm7 Im7 Im7, ♭VI7 V7
-  /// Im7 V7. In C minor, Cm7 … Fm7 … A♭7 G7.
+  /// Minor blues, twelve bars: Im7 for four, IVm7 IVm7 Im7 Im7, ♭VI7 V7♭9
+  /// Im7 V7♭9. In C minor, Cm7 … Fm7 … A♭7 G7♭9.
   minorBlues([
     ProgressionStep(0, ChordQuality.minor7, 'I'),
     ProgressionStep(0, ChordQuality.minor7, 'I'),
@@ -135,9 +146,9 @@ enum Progression {
     ProgressionStep(0, ChordQuality.minor7, 'I'),
     ProgressionStep(0, ChordQuality.minor7, 'I'),
     ProgressionStep(8, ChordQuality.dominant, '♭VI'),
-    ProgressionStep(7, ChordQuality.dominant, 'V'),
+    ProgressionStep(7, ChordQuality.dominantFlat9, 'V'),
     ProgressionStep(0, ChordQuality.minor7, 'I'),
-    ProgressionStep(7, ChordQuality.dominant, 'V'),
+    ProgressionStep(7, ChordQuality.dominantFlat9, 'V'),
   ], minor: true),
 
   /// Major II–V–I, closed by the VI7 that turns it around to the II: in C,
@@ -150,10 +161,11 @@ enum Progression {
   ]),
 
   /// Minor II–V–I, closed by the ♭VI7 that turns it around to the II: in
-  /// C, Dm7♭5 G7 Cm7 A♭7, darker than A7 and still in the key.
+  /// C, Dm7♭5 G7♭9 Cm7 A♭7, darker than A7 and still in the key. The V has
+  /// the ♭9 of the minor key (see [ChordQuality.dominantFlat9]).
   minorTwoFiveOne([
     ProgressionStep(2, ChordQuality.halfDiminished, 'II'),
-    ProgressionStep(7, ChordQuality.dominant, 'V'),
+    ProgressionStep(7, ChordQuality.dominantFlat9, 'V'),
     ProgressionStep(0, ChordQuality.minor7, 'I'),
     ProgressionStep(8, ChordQuality.dominant, '♭VI'),
   ], minor: true),
@@ -167,14 +179,15 @@ enum Progression {
   ]),
 
   /// Down the circle of fifths, eight bars, as in Autumn Leaves: in C,
-  /// Dm7 G7 Cmaj7 Fmaj7 Bm7♭5 E7 Am7 A7, and A7 turns it around to Dm7.
+  /// Dm7 G7 Cmaj7 Fmaj7 Bm7♭5 E7♭9 Am7 A7, and A7 turns it around to Dm7.
+  /// E7♭9 is the V of A minor, so it has the ♭9 of that key.
   circleOfFifths([
     ProgressionStep(2, ChordQuality.minor7, 'II'),
     ProgressionStep(7, ChordQuality.dominant, 'V'),
     ProgressionStep(0, ChordQuality.major7, 'I'),
     ProgressionStep(5, ChordQuality.major7, 'IV'),
     ProgressionStep(11, ChordQuality.halfDiminished, 'VII'),
-    ProgressionStep(4, ChordQuality.dominant, 'III'),
+    ProgressionStep(4, ChordQuality.dominantFlat9, 'III'),
     ProgressionStep(9, ChordQuality.minor7, 'VI'),
     ProgressionStep(9, ChordQuality.dominant, 'VI'),
   ]);

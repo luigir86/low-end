@@ -176,6 +176,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chordDominant => 'Dominant 7th (7)';
 
   @override
+  String get chordDominantFlat9 => 'Dominant 7th ♭9 (7♭9)';
+
+  @override
   String get chordMajor7 => 'Major 7th (maj7)';
 
   @override

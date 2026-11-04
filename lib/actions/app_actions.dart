@@ -356,6 +356,7 @@ class AppActions {
         'major',
         'minor',
         'dominant',
+        'dominantFlat9',
         'major7',
         'minor7',
         'halfDiminished',
@@ -364,7 +365,8 @@ class AppActions {
       ],
       'description':
           'The chord played when voicing is "chord": major, minor, dominant '
-          '(7), major7 (maj7), minor7 (m7), halfDiminished (m7b5), diminished '
+          '(7), dominantFlat9 (7b9), major7 (maj7), minor7 (m7), halfDiminished '
+          '(m7b5), diminished '
           '(dim) or sus4.',
     },
     'progression': {
@@ -385,7 +387,7 @@ class AppActions {
           'bar, each 4, 8 or 12 bars long, from the easiest: pop and rock '
           '(I-VI-IV-V, I-V-VI-IV or the Andalusian cadence, '
           'minor), blues (12-bar blues, minor blues) and jazz (II-V-I as '
-          'Dm7 G7 Cmaj7 A7, minor II-V-I as Dm7b5 G7 Cm7 Ab7, I-VI-II-V, '
+          'Dm7 G7 Cmaj7 A7, minor II-V-I as Dm7b5 G7b9 Cm7 Ab7, I-VI-II-V, '
           'circle of fifths in 8 bars as in Autumn Leaves; the II-V-I and the '
           'circle end on a VI7 that turns the loop around). I-VI-IV-V, the "giro di Do", is the one '
           'chosen first.',

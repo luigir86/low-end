@@ -118,6 +118,7 @@
   "chordMajor": "Major",
   "chordMinor": "Minor",
   "chordDominant": "Dominant 7th (7)",
+  "chordDominantFlat9": "Dominant 7th ♭9 (7♭9)",
   "chordMajor7": "Major 7th (maj7)",
   "chordMinor7": "Minor 7th (m7)",
   "chordHalfDiminished": "Half-diminished (m7♭5)",

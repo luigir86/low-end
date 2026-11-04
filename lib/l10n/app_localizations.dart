@@ -392,6 +392,12 @@ abstract class AppLocalizations {
   /// **'Dominant 7th (7)'**
   String get chordDominant;
 
+  /// No description provided for @chordDominantFlat9.
+  ///
+  /// In en, this message translates to:
+  /// **'Dominant 7th ♭9 (7♭9)'**
+  String get chordDominantFlat9;
+
   /// No description provided for @chordMajor7.
   ///
   /// In en, this message translates to:

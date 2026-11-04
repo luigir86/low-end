@@ -121,6 +121,7 @@ void main() {
     final expected = {
       ChordQuality.minor: [6 / 5, 3 / 2],
       ChordQuality.dominant: [5 / 4, 3 / 2, 16 / 9],
+      ChordQuality.dominantFlat9: [5 / 4, 3 / 2, 16 / 9, 32 / 15],
       ChordQuality.major7: [5 / 4, 3 / 2, 15 / 8],
       ChordQuality.minor7: [6 / 5, 3 / 2, 9 / 5],
       ChordQuality.halfDiminished: [6 / 5, 64 / 45, 16 / 9],
@@ -313,7 +314,8 @@ void main() {
       ['A', 'D', 'G', 'C', 'F♯', 'B', 'E', 'E'],
     );
     expect(p.steps[4].quality, ChordQuality.halfDiminished);
-    expect(p.steps[5].quality, ChordQuality.dominant);
+    // E7♭9: the V of A minor.
+    expect(p.steps[5].quality, ChordQuality.dominantFlat9);
     // Em7 for a bar, then E7 back to Am7.
     expect(p.steps[6].quality, ChordQuality.minor7);
     expect(p.steps[7].quality, ChordQuality.dominant);
