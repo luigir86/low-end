@@ -74,6 +74,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String progressionAnatoleLike(String song) {
+    return 'The Anatole, like $song';
+  }
+
+  @override
   String get progressionCircleOfFifths => 'Circle of fifths';
 
   @override

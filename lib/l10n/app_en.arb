@@ -38,6 +38,15 @@
       }
     }
   },
+  "progressionAnatoleLike": "The Anatole, like {song}",
+  "@progressionAnatoleLike": {
+    "description": "Under I–VI–II–V in the progression menu: its name among jazz musicians (the Anatole, the A section of rhythm changes) and a well-known song that uses it.",
+    "placeholders": {
+      "song": {
+        "type": "String"
+      }
+    }
+  },
   "progressionCircleOfFifths": "Circle of fifths",
   "progressionMinorBlues": "Minor blues",
   "progressionLike": "Like {song}",
