@@ -21,6 +21,7 @@ Future<AudioScope> _launch(
   SharedPreferences.setMockInitialValues({
     'seen_guide': true,
     'seen_swipe_hint': true,
+    'section': 'metronome',
     ...prefs,
   });
   if (portrait) {

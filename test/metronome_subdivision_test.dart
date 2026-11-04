@@ -199,7 +199,7 @@ void main() {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 2.625;
       addTearDown(tester.view.reset);
-      final settings = AppSettings();
+      final settings = AppSettings()..rememberSection(AppSection.metronome);
       await tester.pumpWidget(
         LowEndApp(
           toneOutput: SilentToneOutput(),

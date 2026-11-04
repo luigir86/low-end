@@ -17,8 +17,9 @@ const _cx = 285.0, _cy = 240.0, _radius = 330.0;
 const _textLeft = 480;
 
 const _tagline = {
-  'en-US': 'Metronome, piano harmony and tuner for every musician.',
-  'it-IT': 'Metronomo, armonia al piano e accordatore per ogni musicista.',
+  'en-US':
+      'Piano chords and progressions to play over, with metronome and tuner.',
+  'it-IT': 'Accordi e progressioni al piano su cui suonare, con metronomo e accordatore.',
 };
 
 void main() {

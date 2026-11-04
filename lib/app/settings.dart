@@ -85,7 +85,7 @@ class AppSettings extends ChangeNotifier {
         : MetronomeController.startBpm;
     _section =
         AppSection.values.asNameMap()[_read<String>(prefs, _sectionKey)] ??
-        AppSection.metronome;
+        AppSection.drone;
     _drone = _readDrone(prefs);
   }
 
@@ -391,10 +391,11 @@ class AppSettings extends ChangeNotifier {
     }
   }
 
-  var _section = AppSection.metronome;
+  var _section = AppSection.drone;
 
   /// The section on screen when the app was left: it opens there again, so
   /// that whoever plays along with the harmony need not pass the metronome.
+  /// The first time it is Harmony, the section that shows the app best.
   AppSection get section => _section;
 
   /// Keeps [section] for the next launch; nothing listens to it.

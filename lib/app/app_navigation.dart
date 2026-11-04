@@ -7,8 +7,8 @@ enum AppSection { metronome, drone, tuner }
 /// actions from an assistant (see `lib/actions/`) move the app the same way.
 class AppNavigation extends ChangeNotifier {
   /// Opens on [section]: the one the app was left on (see
-  /// AppSettings.section), the metronome the first time.
-  AppNavigation({this._section = AppSection.metronome});
+  /// AppSettings.section), Harmony the first time.
+  AppNavigation({this._section = AppSection.drone});
 
   AppSection _section;
   bool _covered = false;

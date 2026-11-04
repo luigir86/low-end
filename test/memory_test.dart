@@ -66,14 +66,14 @@ void main() {
     test('the harmony and the section for the next launch', () async {
       final settings = await AppSettings.load();
       expect(settings.drone, isNull);
-      expect(settings.section, AppSection.metronome);
+      expect(settings.section, AppSection.drone);
       settings.rememberDrone(_blues);
-      settings.rememberSection(AppSection.drone);
+      settings.rememberSection(AppSection.tuner);
       await Future<void>.delayed(Duration.zero);
 
       final again = await AppSettings.load();
       expect(_plain(again.drone), _plain(_blues));
-      expect(again.section, AppSection.drone);
+      expect(again.section, AppSection.tuner);
     });
 
     test('values they cannot read fall back, one by one', () async {
@@ -90,7 +90,7 @@ void main() {
       expect(drone.style, DroneStyle.beat);
       expect(drone.progression, Progression.values.first);
       expect(drone.flats, {1});
-      expect(settings.section, AppSection.metronome);
+      expect(settings.section, AppSection.drone);
     });
 
     test('nothing for a note out of range', () async {
@@ -100,10 +100,10 @@ void main() {
   });
 
   group('the app opens as it was left', () {
-    testWidgets('the first time on the metronome, the harmony on a '
+    testWidgets('the first time on the harmony, on a '
         'progression, a chord on every beat', (tester) async {
       final scope = await _open(tester, await AppSettings.load());
-      expect(scope.navigation.section, AppSection.metronome);
+      expect(scope.navigation.section, AppSection.drone);
       expect(scope.drone.voicing, DroneVoicing.progression);
       expect(scope.drone.progression, Progression.oneSixFourFive);
       expect(scope.drone.note.pitchClass, 9);

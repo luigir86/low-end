@@ -28,8 +28,8 @@ class _WatchedMic extends FakeMicInput {
 }
 
 void main() {
-  // Opening the app must stay instant: it opens on the metronome, with the
-  // microphone off, and the audio engine waits for the first sound.
+  // Opening the app must stay instant: the first time it opens on Harmony,
+  // with the microphone off, and nothing sounds until the first touch.
   testWidgets('opening the app starts neither the microphone nor the audio', (
     tester,
   ) async {
@@ -38,7 +38,10 @@ void main() {
     await tester.pumpWidget(LowEndApp(toneOutput: output, micInput: mic));
     await tester.pumpAndSettle();
 
-    expect(find.text('Tap to start'), findsOneWidget);
+    expect(
+      find.text('Touch a note to play it. Touch it again to stop.'),
+      findsOneWidget,
+    );
     expect(mic.askedDuring, isNull);
     expect(output.used, isFalse);
 

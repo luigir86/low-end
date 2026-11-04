@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/home_shell.dart';
 import 'package:low_end/app/low_end_app.dart';
 import 'package:low_end/app/settings.dart';
@@ -59,6 +60,7 @@ void main() {
       tester,
     ) async {
       SharedPreferences.setMockInitialValues({
+        'section': 'metronome',
         'metronome_bpm': 96,
         'time_signature': '3/4',
       });
@@ -78,7 +80,10 @@ void main() {
   testWidgets('the metronome row has the pieces of the harmony row', (
     tester,
   ) async {
-    final scope = await _pump(tester, AppSettings());
+    final scope = await _pump(
+      tester,
+      AppSettings()..rememberSection(AppSection.metronome),
+    );
     // The time signature is a field with its name on the border, like the
     // tuner's instrument, and a screen reader announces the name too.
     final semantics = tester.ensureSemantics();

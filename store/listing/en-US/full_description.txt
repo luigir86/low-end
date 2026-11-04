@@ -1,17 +1,17 @@
-Low End is a practice companion for musicians: a metronome, a piano harmony section and a tuner in one light app. Made by an amateur double bass player with the friends from the orchestra in mind, it is useful to everyone. It is free, has no ads, needs no account and works fully offline.
+Low End gives you a band to practise with. Pick a key and a progression and a real grand piano plays it for you, in time with a metronome, while you play over it: scales, improvisation, your part of a song, or simply training your ear. From pop to the blues and jazz standards, with a walking double bass. A chromatic tuner completes it. Made by an amateur double bass player with the friends from the orchestra in mind, it is useful to everyone who plays. It is free, has no ads, needs no account and works fully offline.
+
+HARMONY: YOUR PIANO PLAYER
+• Twelve keys on a dial: touch a note and it plays on a real grand piano, recorded in stereo, in time with the metronome.
+• Nine progressions to play over, from the easiest, in sections for pop and rock, blues and jazz: I–VI–IV–V, I–V–VI–IV, the Andalusian cadence, the twelve-bar blues (major and minor), II–V–I (major and minor), I–VI–II–V and the circle of fifths of Autumn Leaves. One chord per bar, in phrases of 4, 8 or 12 bars, in any key, with the Roman numerals on the keys.
+• Example songs (Stand by Me, Sweet Home Chicago, Blue Bossa, Autumn Leaves and more) set the key, the progression, the tempo and the piano style in one tap.
+• Four ways to play: chords held for the bar, struck on every beat, arpeggiated, or a walking bass: a jazz line on a plucked double bass, with the piano comping lightly above it.
+• Or a single chord to hold (eight kinds, from major to sus4), the note alone, or a held tone instead of the piano. While it sounds, the notes not heard fade on the dial.
+• Start the harmony while the click is running and it comes in on the next bar, with a countdown on the dial.
 
 METRONOME
 • Tempo from 30 to 250 BPM: type it with the pencil, hold − or + to run through it, or use TAP.
 • Time signatures 1/1, 2/4, 3/4, 4/4, 5/4, 6/8, 7/8, 9/8 and 12/8, with the beats grouped the way you count them.
-• A ring that lights up beat by beat, with the downbeat marked, and a short, dry click that stays steady. Two fields under the dial choose the time signature and what fills each beat (quarters, eighths, triplets, sixteenths, and swung eighths and sixteenths, as MuseScore plays "Swing"); or choose a click on 2 and 4 only.
-
-HARMONY
-• Twelve keys on a dial: touch a note and it plays on a real grand piano, recorded in stereo, in time with the metronome.
-• The note alone, or a major, minor or seventh chord, struck once a bar, on every beat or as an arpeggio.
-• Nine progressions to practise over, from the easiest, in sections for pop and rock, blues and jazz: I–VI–IV–V, I–V–VI–IV, the Andalusian cadence, the twelve-bar blues (major and minor), II–V–I (major and minor), I–VI–II–V and the circle of fifths of Autumn Leaves. One chord per bar, four, eight or twelve bars long as phrases are, in any key, each named after a song you know, with the Roman numerals on the keys.
-• Example songs set the key, the progression and the tempo in one tap.
-• Or a held tone instead of the piano. The root sits in a middle-low octave that a phone speaker plays well; while it sounds, the notes not heard fade on the dial.
-• Start the harmony while the click is running and it comes in on the next bar, with a countdown on the dial.
+• A ring that lights up beat by beat and a short, dry click that stays steady. Subdivisions in eighths, triplets, sixteenths and swing (as MuseScore plays "Swing"), or a click on 2 and 4 only.
 
 TUNER
 • Chromatic, with a round strobe and the note in the middle: play any note and it shows up, no string to choose first. Or pick guitar, violin, viola, cello, ukulele or bass strings.
@@ -21,7 +21,6 @@ TUNER
 • If the metronome or the harmony is playing, touch the tuner's dial and they pause, with a Resume button.
 
 MADE FOR PLAYING
-• Each section starts and stops its own sound from the middle of its dial. The tabs and the swipes only change section.
 • Swipe left and right to change section; for rehearsals, lock the gestures in the settings.
 • Keeps playing with the screen off, with a notification that says what is sounding. The screen can stay on while you play.
 • Unplug the headphones and the sound stops, instead of carrying on from the phone's speaker.
