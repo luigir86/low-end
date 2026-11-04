@@ -21,6 +21,27 @@ if (window.AudioContext) {
   };
 }
 
+// Decodes a FLAC recording (a Uint8Array) to the 16-bit samples of its
+// first channel, with the browser's own decoder: off the page's thread and
+// some twenty times faster than the audio engine's. An offline context
+// needs no touch of the screen and plays nothing. The app falls back to the
+// engine if it fails (lib/audio/browser_flac_web.dart).
+window.lowEndDecodeFlac = function (bytes) {
+  const Offline = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  if (!Offline) return Promise.reject(new Error('no OfflineAudioContext'));
+  window.lowEndDecoder = window.lowEndDecoder || new Offline(1, 1, 48000);
+  const data = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+  return window.lowEndDecoder.decodeAudioData(data).then(function (audio) {
+    const f = audio.getChannelData(0);
+    const out = new Int16Array(f.length);
+    for (let i = 0; i < f.length; i++) {
+      const v = Math.round(f[i] * 32768);
+      out[i] = v > 32767 ? 32767 : v < -32768 ? -32768 : v;
+    }
+    return out;
+  });
+};
+
 window.lowEndAudioEngine = new Promise(function (resolve) {
   let started = false;
   window.lowEndLoadAudioEngine = function () {
