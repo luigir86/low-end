@@ -317,6 +317,7 @@ void main() {
             'Mr. P.C.': DroneStyle.walking,
             'Tune Up': DroneStyle.walking,
             'Blue Bossa': DroneStyle.arpeggio,
+            'I Got Rhythm': DroneStyle.walking,
             'Autumn Leaves': DroneStyle.walking,
           },
         );
@@ -335,6 +336,42 @@ void main() {
         drone.setStyle(DroneStyle.held);
         apply('Blue Bossa');
         expect(drone.style, DroneStyle.arpeggio);
+      });
+
+      test('I Got Rhythm is the Anatole in B♭, one chord a bar in 2/4, '
+          'and the next song gives back 4/4', () {
+        metronome.setSignature(TimeSignature.threeFour);
+        apply('I Got Rhythm');
+        expect(drone.note.pitchClass, 10);
+        expect(drone.progression, Progression.oneSixTwoFive);
+        expect(drone.style, DroneStyle.walking);
+        expect(metronome.signature, TimeSignature.twoFour);
+        expect(metronome.bpm, 160);
+        apply('Tune Up');
+        expect(metronome.signature, TimeSignature.fourFour);
+      });
+
+      test('in 2/4 the walking bass plays two notes a chord, the root '
+          'on the one', () {
+        final chords = _chords(Progression.oneSixTwoFive);
+        final line = WalkingBass.line(chords, TimeSignature.twoFour);
+        for (var bar = 0; bar < chords.length; bar++) {
+          final notes = [
+            for (final n in line)
+              if (n.at >= bar * 2 && n.at < bar * 2 + 2) n,
+          ];
+          for (var beat = 0; beat < 2; beat++) {
+            expect(
+              notes.where((n) => n.at == bar * 2 + beat),
+              hasLength(1),
+              reason: 'bar $bar, beat $beat',
+            );
+          }
+          expect(notes.first.midi % 12, chords[bar].first % 12);
+        }
+        for (final n in line) {
+          expect(n.midi, inInclusiveRange(WalkingBass.low, WalkingBass.high));
+        }
       });
 
       test('a song brings the piano back from the held tone', () {
