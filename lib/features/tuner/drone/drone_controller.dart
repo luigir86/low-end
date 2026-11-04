@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
@@ -33,9 +34,10 @@ enum DroneStyle {
 /// follows: the metronome's, so chords change on its "one". It notifies when
 /// the tempo or the time signature change.
 abstract interface class BarClock implements Listenable {
-  /// Beats per minute of the figure the tempo counts: in 6/8, dotted
-  /// quarters (see [TimeSignature.pulsesPerBeat]).
-  int get bpm;
+  /// Beats per minute of the figure the tempo counts (in 6/8, dotted
+  /// quarters, see [TimeSignature.pulsesPerBeat]), as heard: a tempo still
+  /// being chosen on the metronome's − and + is not heard yet.
+  int get soundingBpm;
   TimeSignature get signature;
 
   Duration get barLength;
@@ -49,7 +51,7 @@ class _FixedBar implements BarClock {
   const _FixedBar();
 
   @override
-  int get bpm => 80;
+  int get soundingBpm => 80;
 
   @override
   TimeSignature get signature => TimeSignature.fourFour;
@@ -99,7 +101,7 @@ class DroneController extends ChangeNotifier {
   }) : _clock = clock ?? const _FixedBar(),
        _outputLatency = outputLatency ?? _noLatency {
     _clock.addListener(_onClockChanged);
-    _lastBpm = _clock.bpm;
+    _lastBpm = _clock.soundingBpm;
     _lastSignature = _clock.signature;
   }
 
@@ -190,7 +192,10 @@ class DroneController extends ChangeNotifier {
 
   /// Whether the hub says to wait: the first sound has taken longer than
   /// [waitShownAfter], so that a start that takes a moment does not flash.
-  bool get showsWait => isStarting && _waitShown;
+  /// Also when a change waits on its bar line, the bar line has come and
+  /// the new loop is not ready yet: the old one goes on, faded, meanwhile.
+  bool get showsWait =>
+      (isStarting && _waitShown) || (_handingOver && waitLeft == null);
 
   /// Whether the first sound has been on its way for a while (see
   /// [slowStart]): over a slow network, in a browser.
@@ -442,36 +447,48 @@ class DroneController extends ChangeNotifier {
   /// Applies [changes] (settings of this controller, and of the metronome
   /// it follows) all at once, as a song does: the piano gets one loop ready,
   /// for all of them, instead of one for each setting in turn. Playing, the
-  /// old loop stops at once, its chords too, and the new one starts as at a
-  /// touch, the wait shown while it is got ready (see [showsWait]).
+  /// change is made as one (see [_update]): a new song comes in on the bar
+  /// line, the old one dying away under it.
   void applyAll(VoidCallback changes) {
     final wasPlaying = _playing;
-    _batching = true;
+    _batching++;
     try {
       changes();
     } finally {
-      _batching = false;
+      _batching--;
     }
-    if (!wasPlaying || !_playing || _disposed) return;
-    _barTimer?.cancel();
-    _loopClock.stop();
-    // The new loop comes once the old one has stopped: chained like a
-    // change of sound (see [_sync]).
-    final previous = _pending ?? Future<void>.value();
-    late final Future<void> tracked;
-    tracked = previous.then((_) => _silence()).whenComplete(() {
-      if (identical(_pending, tracked)) _pending = null;
-    });
-    _pending = tracked;
-    _patient = true;
-    start();
+    if (_batching > 0 || !wasPlaying || !_playing || _disposed) return;
+    if (!_changed) return;
+    _changed = false;
+    _apply(restart: _restartWanted);
   }
 
-  /// Whether the next loop is awaited by the player (see [applyAll]).
+  /// Whether the next loop is awaited by the player (a hand-over, see
+  /// [_handOver]): in a page it is mixed a slice at a time.
   var _patient = false;
 
-  /// Whether [applyAll] is under way: each setting waits for the others.
-  var _batching = false;
+  /// How many [applyAll] are under way: each setting waits for the others.
+  var _batching = 0;
+
+  /// Whether a setting changed during [applyAll], and whether one of them
+  /// starts a progression again from its first chord.
+  var _changed = false;
+  var _restartWanted = false;
+
+  /// True when the next piano loop comes in on a bar line, the one playing
+  /// let down under it (see PianoOutput.beginHandOver): a new song,
+  /// progression, style or key, as a band changes them.
+  var _handOverWanted = false;
+
+  /// True from such a change until the new loop is scheduled: the time to
+  /// its bar line then counts down on [_handOverClock].
+  var _handingOver = false;
+  final _handOverClock = Stopwatch();
+  Duration _handOverWait = Duration.zero;
+
+  /// True while a sound change waits for the end of the current event, so
+  /// that the settings changed together in it make one change.
+  var _syncSoon = false;
 
   /// The first sound since [start] is on its way out: a held progression
   /// counts its bars from now (the piano counts its own, see [_playPiano]).
@@ -486,6 +503,8 @@ class DroneController extends ChangeNotifier {
   Future<void> stop() {
     _playing = false;
     _patient = false;
+    _handOverWanted = _handingOver = false;
+    _handOverClock.stop();
     _slowTimer?.cancel();
     _barTimer?.cancel();
     _loopClock.stop();
@@ -498,7 +517,12 @@ class DroneController extends ChangeNotifier {
   /// How long until the piano comes in, when it waits for the metronome's
   /// next bar line, or null when it does not wait (or is not playing).
   Duration? get waitLeft {
-    if (!_playing || !_loopClock.isRunning) return null;
+    if (!_playing) return null;
+    if (_handingOver) {
+      final left = _handOverWait - _handOverClock.elapsed;
+      return left > Duration.zero ? left : null;
+    }
+    if (!_loopClock.isRunning) return null;
     final left = _loopWaiting - _loopClock.elapsed;
     return left > Duration.zero ? left : null;
   }
@@ -517,15 +541,21 @@ class DroneController extends ChangeNotifier {
       () => _note = Note(pitchClass, rootOctave),
       restart: true,
       onTheBeat: _keepsTheBeat,
+      // A progression's key: a new tune, on the bar line.
+      atBarLine: _voicing == DroneVoicing.progression,
     );
   }
 
   void setVoicing(DroneVoicing voicing) {
     if (voicing == _voicing) return;
-    _update(() {
-      _voicing = voicing;
-      if (voicing != DroneVoicing.progression) _chordVoicing = voicing;
-    }, restart: true);
+    _update(
+      () {
+        _voicing = voicing;
+        if (voicing != DroneVoicing.progression) _chordVoicing = voicing;
+      },
+      restart: true,
+      atBarLine: true,
+    );
   }
 
   void setChord(ChordQuality chord) {
@@ -535,12 +565,16 @@ class DroneController extends ChangeNotifier {
 
   void setProgression(Progression progression) {
     if (progression == _progression) return;
-    _update(() => _progression = progression, restart: true);
+    _update(
+      () => _progression = progression,
+      restart: true,
+      atBarLine: _voicing == DroneVoicing.progression,
+    );
   }
 
   void setStyle(DroneStyle style) {
     if (style == _style) return;
-    _update(() => _style = style, restart: true);
+    _update(() => _style = style, restart: true, atBarLine: true);
   }
 
   void setReferencePitch(double a4) {
@@ -550,26 +584,89 @@ class DroneController extends ChangeNotifier {
 
   /// Applies [change]; with [restart], a progression starts again from its
   /// first chord. With [carryOn] the piano carries on from where it is; with
-  /// [onTheBeat] too, but the new chord comes in on its next beat.
+  /// [onTheBeat] too, but the new chord comes in on its next beat. With
+  /// [atBarLine], while the piano plays, the new loop comes in on the next
+  /// bar line (at least a beat away), the old one let down under it
+  /// meanwhile, with the beats to go counted (see [beatsLeft]).
   void _update(
     VoidCallback change, {
     bool restart = false,
     bool carryOn = false,
     bool onTheBeat = false,
+    bool atBarLine = false,
   }) {
     change();
     if (restart) _step = 0;
-    if (onTheBeat) _onTheBeat = true;
+    if (atBarLine && _playing && _patterned && _soundStarted) {
+      _handOverWanted = true;
+    } else if (onTheBeat) {
+      _onTheBeat = true;
+    }
     if (!carryOn && !onTheBeat) _fromTheTop = true;
     _notify();
     if (!_playing) {
       _prepareAgain();
       return;
     }
-    if (_batching) return;
+    if (_batching > 0) {
+      _changed = true;
+      _restartWanted |= restart;
+      return;
+    }
+    _apply(restart: restart);
+  }
+
+  /// Brings the sound in line with a change made while playing.
+  void _apply({required bool restart}) {
+    _restartWanted = false;
+    if (_handOverWanted && _patterned) {
+      _handOver();
+      return;
+    }
     _prepareProgression();
     if (restart) _scheduleBar();
     _sync();
+  }
+
+  /// A change that comes in on the bar line: the old loop is let down by
+  /// it, the chords stay on the first one of the new, and the new loop is
+  /// mixed once the event that made the change is over, so that the
+  /// settings changed together (a song, an action) make one loop.
+  void _handOver() {
+    _barTimer?.cancel();
+    _step = 0;
+    _patient = true;
+    if (!_handingOver) {
+      final clock = _clock;
+      final beat = clock.barLength ~/ clock.signature.beats;
+      final wait = _piano?.beginHandOver(lead: beat);
+      if (wait != null) {
+        _handingOver = true;
+        _handOverWait = wait;
+        _handOverClock
+          ..reset()
+          ..start();
+      } else {
+        // Nothing heard yet to hand over from: it simply starts.
+        _handOverWanted = false;
+      }
+    }
+    _notify();
+    if (_syncSoon) return;
+    _syncSoon = true;
+    scheduleMicrotask(() {
+      _syncSoon = false;
+      if (_playing && !_disposed) _sync();
+    });
+  }
+
+  /// The beats (pulses of the bar) until a waiting sound comes in, for the
+  /// countdown in the middle of the dial; null when nothing waits.
+  int? get beatsLeft {
+    final left = waitLeft;
+    if (left == null) return null;
+    final pulse = _clock.barLength.inMicroseconds / _clock.signature.beats;
+    return math.max(1, (left.inMicroseconds / pulse).ceil());
   }
 
   /// Gets every chord of the progression ready, so each change of chord
@@ -606,7 +703,7 @@ class DroneController extends ChangeNotifier {
           piano.prerender(
             chords: chords,
             style: _pianoStyle,
-            bpm: _clock.bpm * signature.pulsesPerBeat,
+            bpm: _clock.soundingBpm * signature.pulsesPerBeat,
             signature: signature,
             a4: _a4,
           ),
@@ -690,12 +787,12 @@ class DroneController extends ChangeNotifier {
   /// piano follows, carrying on from where it was for a change of tempo,
   /// from the top of the bar for another time signature.
   void _onClockChanged() {
-    final bpm = _clock.bpm, signature = _clock.signature;
+    final bpm = _clock.soundingBpm, signature = _clock.signature;
     final changed = bpm != _lastBpm || signature != _lastSignature;
     if (signature != _lastSignature) _fromTheTop = true;
     _lastBpm = bpm;
     _lastSignature = signature;
-    if (!changed || !_playing || !_patterned || _disposed || _batching) {
+    if (!changed || !_playing || !_patterned || _disposed || _batching > 0) {
       return;
     }
     _sync();
@@ -801,14 +898,16 @@ class DroneController extends ChangeNotifier {
       _toneSounding = false;
       await _output.stop();
     }
-    final fromTheTop = _fromTheTop;
-    final onTheBeat = _onTheBeat;
+    final handOver = _handOverWanted;
+    final fromTheTop = _fromTheTop || handOver;
+    final onTheBeat = _onTheBeat && !handOver;
     final patient = _patient;
     _fromTheTop = false;
     _onTheBeat = false;
     _patient = false;
+    _handOverWanted = false;
     final chords = _pianoChords;
-    final bpm = _lastBpm = _clock.bpm;
+    final bpm = _lastBpm = _clock.soundingBpm;
     final signature = _lastSignature = _clock.signature;
     final started = await _piano!.play(
       chords: chords,
@@ -821,7 +920,13 @@ class DroneController extends ChangeNotifier {
       startAt: fromTheTop ? Duration.zero : null,
       onTheBeat: onTheBeat,
       patient: patient,
+      handOver: handOver,
     );
+    // Scheduled: from now on the wait is the loop's own (see [waitLeft]).
+    if (handOver) {
+      _handingOver = false;
+      _handOverClock.stop();
+    }
     if (!_playing || _disposed) return;
     final bar = _clock.barLength;
     // Lined up with the sound as it is heard, as the metronome does.

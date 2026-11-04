@@ -36,6 +36,14 @@ class BarLoopPlayer {
   /// [play]): enough for no click, short enough to be heard as the beat.
   static const _switchLead = Duration(milliseconds: 10);
 
+  /// How loud a loop handed over to another (see [beginHandOver]) is by the
+  /// bar line where the other comes in: it dies away under it from there.
+  static const handOverLevel = 1 / 3;
+
+  /// The engine time of the bar line a hand-over (see [beginHandOver])
+  /// aims at, while one is under way.
+  Duration? _handOverAt;
+
   AudioSource? _source;
   SoundHandle? _handle;
   Duration _length = Duration.zero;
@@ -69,6 +77,11 @@ class BarLoopPlayer {
   /// [onPulse], for a loop that carries on, is the length of its pulse: the
   /// old loop then plays to its next pulse and gives way there, so that a
   /// new chord is struck on the beat instead of fading in between two.
+  ///
+  /// [handOver], for a loop that starts from [startAt] while another plays,
+  /// brings it in on the bar line [beginHandOver] aimed at (or, if that is
+  /// too close or gone, on the next one), the old loop let go there at the
+  /// level it was let down to.
   Future<LoopStart> play(
     Uint8List wav,
     Duration bar, {
@@ -76,6 +89,7 @@ class BarLoopPlayer {
     Duration preRoll = Duration.zero,
     Duration? onPulse,
     Uint8List Function(Duration position)? tailFor,
+    bool handOver = false,
   }) async {
     await ensureSoLoud();
     final source = await _soloud.loadMem('$name-loop.wav', wav);
@@ -85,7 +99,20 @@ class BarLoopPlayer {
         : null;
     final oldSource = _source;
     final carryOn = startAt == null && old != null;
-    final wait = carryOn ? null : LoopTransport.instance.untilBarLine(name);
+    final handingOver = handOver && !carryOn && old != null;
+    final aimedAt = _handOverAt;
+    _handOverAt = null;
+    final Duration? wait;
+    if (carryOn) {
+      wait = null;
+    } else if (handingOver) {
+      final left = aimedAt == null ? null : aimedAt - _soloud.getEngineTime();
+      wait = left != null && left >= _scheduleLead
+          ? left
+          : _nextBarLine(old, _scheduleLead);
+    } else {
+      wait = LoopTransport.instance.untilBarLine(name);
+    }
     // The moment [wait] counts from, and where the old loop was then.
     final waitedFrom = _soloud.getEngineTime();
     final oldThen = old == null ? null : _soloud.getPosition(old);
@@ -195,7 +222,7 @@ class BarLoopPlayer {
         looping: true,
         volume: _volume,
       );
-      tail?.playAt(startsAt, _volume);
+      tail?.playAt(startsAt, handingOver ? _volume * handOverLevel : _volume);
     }
     _handle = handle;
     _source = source;
@@ -238,10 +265,49 @@ class BarLoopPlayer {
     return (position: position, delay: delay);
   }
 
+  /// The least time a start can be scheduled ahead on the engine's clock.
+  static const _scheduleLead = Duration(milliseconds: 60);
+
+  /// Time until the next bar line at least [minimum] away: the other loop's
+  /// when it plays (this one follows it), otherwise this loop's own, [old]
+  /// playing.
+  Duration _nextBarLine(SoundHandle old, Duration minimum) {
+    final other = LoopTransport.instance.untilBarLine(name, minimum: minimum);
+    if (other != null) return other;
+    return LoopTransport.waitForBarLine(
+      bar: _bar,
+      position: Duration(
+        microseconds:
+            _soloud.getPosition(old).inMicroseconds % _length.inMicroseconds,
+      ),
+      minimum: minimum,
+    );
+  }
+
+  /// Starts handing this loop over to another, as a band changes song: it
+  /// goes down to [handOverLevel] by the next bar line at least [lead]
+  /// away, where [play] with `handOver` brings the new one in. Says how long
+  /// until that bar line, or null when nothing plays (the new loop then
+  /// simply starts).
+  Duration? beginHandOver({required Duration lead}) {
+    final handle = _handle;
+    if (handle == null || _bar <= Duration.zero) return null;
+    if (!_soloud.getIsValidVoiceHandle(handle)) return null;
+    final now = _soloud.getEngineTime();
+    // Already under way: the same bar line, if it is still to come.
+    final aimed = _handOverAt;
+    if (aimed != null && aimed - now >= _scheduleLead) return aimed - now;
+    final wait = _nextBarLine(handle, lead);
+    _handOverAt = now + wait;
+    _soloud.fadeVolume(handle, _volume * handOverLevel, wait);
+    return wait;
+  }
+
   /// Stops the loop. With [tailFor], what the loop sounds like let go
   /// where it is (see PianoSound.tailWav) plays on from that very sample.
   Future<void> stop({Uint8List Function(Duration position)? tailFor}) async {
     final handle = _handle, source = _source;
+    _handOverAt = null;
     _handle = null;
     _source = null;
     LoopTransport.instance.unregister(name, handle);

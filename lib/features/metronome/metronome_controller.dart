@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 
 import '../../audio/click_output.dart';
@@ -49,6 +52,19 @@ class MetronomeController extends ChangeNotifier implements BarClock {
   static const _tapsKept = 4;
 
   int _bpm = startBpm;
+
+  /// The tempo the clicks (and the harmony) play at: [bpm] once the player
+  /// has stopped choosing it (see [step], [nudge], [tap]).
+  int _heardBpm = startBpm;
+
+  /// Applies a tempo still being chosen, once the hand rests (see [_adjust]).
+  Timer? _adjusting;
+
+  /// How long − and + must rest before the tempo they chose is heard.
+  static const adjustRest = Duration(milliseconds: 300);
+
+  /// The least time TAP must rest before its tempo is heard.
+  static const tapRest = Duration(milliseconds: 600);
   TimeSignature _signature = TimeSignature.fourFour;
   Subdivision _subdivision = Subdivision.quarters;
   bool _backbeat = false;
@@ -74,9 +90,13 @@ class MetronomeController extends ChangeNotifier implements BarClock {
   bool _syncAgain = false;
 
   /// The tempo, in beats of [TimeSignature.beatUnit] per minute: in 6/8,
-  /// 60 is a dotted quarter a second, three clicks.
-  @override
+  /// 60 is a dotted quarter a second, three clicks. While it is being chosen
+  /// on − and + or with TAP it may not be heard yet (see [soundingBpm]).
   int get bpm => _bpm;
+
+  /// The tempo heard: [bpm], once the hand rests.
+  @override
+  int get soundingBpm => _heardBpm;
   @override
   TimeSignature get signature => _signature;
 
@@ -105,8 +125,8 @@ class MetronomeController extends ChangeNotifier implements BarClock {
   /// The fastest tempo in the current time signature.
   int get maxTempo => maxBpmFor(_signature);
 
-  /// Clicks per minute: [bpm], or three times it in 6/8.
-  int get pulseBpm => _bpm * _signature.pulsesPerBeat;
+  /// Clicks per minute as heard: [soundingBpm], or three times it in 6/8.
+  int get pulseBpm => _heardBpm * _signature.pulsesPerBeat;
 
   /// True when the last attempt to start sound failed on this device.
   bool get audioFailed => _audioFailed;
@@ -125,6 +145,17 @@ class MetronomeController extends ChangeNotifier implements BarClock {
     if (_clock.elapsed < _waiting) return null;
     final at = _startedAt + _clock.elapsed - _waiting;
     return at.inMicroseconds / barLength.inMicroseconds % 1;
+  }
+
+  /// The pulses until the click comes in, for the countdown in the middle of
+  /// the dial; null when it does not wait.
+  int? get beatsLeft {
+    final left = waitLeft;
+    if (left == null) return null;
+    return math.max(
+      1,
+      (left.inMicroseconds / pulseLength.inMicroseconds).ceil(),
+    );
   }
 
   /// How long until the click comes in, when it waits for the piano's next
@@ -152,6 +183,9 @@ class MetronomeController extends ChangeNotifier implements BarClock {
 
   Future<void> start() {
     if (_playing) return Future.value();
+    // A tempo still being chosen is heard from the start.
+    _adjusting?.cancel();
+    _heardBpm = _bpm;
     _playing = true;
     _audioFailed = false;
     _fresh = true;
@@ -171,16 +205,45 @@ class MetronomeController extends ChangeNotifier implements BarClock {
 
   Future<void> toggle() => _playing ? stop() : start();
 
-  /// Sets the tempo, kept within [minBpm] and [maxTempo]. While playing, the
-  /// beat carries on from where it was.
+  /// Sets the tempo, kept within [minBpm] and [maxTempo], and plays it at
+  /// once (a tempo typed, a song, an action). While playing, the beat
+  /// carries on from where it was.
   void setBpm(int bpm) {
+    _adjusting?.cancel();
     final value = bpm.clamp(minBpm, maxTempo);
-    if (value == _bpm) return;
-    final phase = barPhase;
+    if (value == _bpm && value == _heardBpm) return;
     _bpm = value;
+    _hear();
+  }
+
+  /// Plays [bpm], if it is not what plays already: the beat carries on from
+  /// where it was.
+  void _hear() {
+    _adjusting?.cancel();
+    if (_heardBpm == _bpm) {
+      _notify();
+      return;
+    }
+    final phase = barPhase;
+    _heardBpm = _bpm;
     if (phase != null) _restartClock(barLength * phase);
     _notify();
     if (_playing) _sync();
+  }
+
+  /// Shows [bpm] at once and plays it once the hand has rested for [rest]:
+  /// holding + runs the number, and the click (and the harmony with it)
+  /// moves to the tempo where the finger stops, instead of through every
+  /// one on the way (RF-MET-08). Stopped, nothing is heard, so it is set at
+  /// once.
+  void _adjust(int bpm, Duration rest) {
+    final value = bpm.clamp(minBpm, maxTempo);
+    if (value == _bpm) return;
+    _bpm = value;
+    if (!_playing) return _hear();
+    _notify();
+    _adjusting?.cancel();
+    _adjusting = Timer(rest, _hear);
   }
 
   /// Changes the time signature, keeping the number of the tempo (in 6/8
@@ -190,7 +253,8 @@ class MetronomeController extends ChangeNotifier implements BarClock {
   void setSignature(TimeSignature signature) {
     if (signature == _signature) return;
     _signature = signature;
-    _bpm = _bpm.clamp(minBpm, maxTempo);
+    _adjusting?.cancel();
+    _bpm = _heardBpm = _bpm.clamp(minBpm, maxTempo);
     if (_playing) {
       _fresh = true;
       _starting = true;
@@ -218,8 +282,8 @@ class MetronomeController extends ChangeNotifier implements BarClock {
     if (_playing) _sync();
   }
 
-  /// Moves the tempo up or down by [delta] BPM.
-  void step(int delta) => setBpm(_bpm + delta);
+  /// Moves the tempo up or down by [delta] BPM, heard once the hand rests.
+  void step(int delta) => _adjust(_bpm + delta, adjustRest);
 
   /// Moves the tempo to the next multiple of [unit] above ([direction] > 0)
   /// or below it, so that holding + or − lands on round numbers.
@@ -227,7 +291,7 @@ class MetronomeController extends ChangeNotifier implements BarClock {
     final target = direction > 0
         ? (_bpm ~/ unit + 1) * unit
         : (_bpm - 1) ~/ unit * unit;
-    setBpm(target);
+    _adjust(target, adjustRest);
   }
 
   /// One tap of the TAP button: after two taps or more, sets the tempo to
@@ -240,7 +304,11 @@ class MetronomeController extends ChangeNotifier implements BarClock {
     if (_taps.length < 2) return;
     final span = _taps.last - _taps.first;
     final interval = span.inMicroseconds / (_taps.length - 1);
-    setBpm((60000000 / interval).round());
+    // Heard once the taps stop: a beat and a half with no tap.
+    final rest = Duration(
+      microseconds: math.max(tapRest.inMicroseconds, (interval * 1.5).round()),
+    );
+    _adjust((60000000 / interval).round(), rest);
   }
 
   void _restartClock(Duration at) {
@@ -321,6 +389,7 @@ class MetronomeController extends ChangeNotifier implements BarClock {
 
   @override
   void dispose() {
+    _adjusting?.cancel();
     _disposed = true;
     _playing = false;
     _sync();

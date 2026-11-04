@@ -367,10 +367,9 @@ class _Hub extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final left = metronome.waitLeft;
-    final waiting = left != null && left >= const Duration(milliseconds: 500);
-    final number = waiting
-        ? (left.inMilliseconds / 1000).ceil()
-        : metronome.bpm;
+    final beats = metronome.beatsLeft;
+    final waiting = beats != null && left! >= const Duration(milliseconds: 300);
+    final number = waiting ? beats : metronome.bpm;
     final l10n = AppLocalizations.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,

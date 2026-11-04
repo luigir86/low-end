@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 
 /// Which looping bar is playing, so that a second one starting while the
@@ -89,7 +88,6 @@ class LoopTransport {
 
   /// Time until the next bar line of a loop with bars of [bar], [position]
   /// into it, or [untilStart] away from starting; at least [minimum].
-  @visibleForTesting
   static Duration waitForBarLine({
     required Duration bar,
     Duration? position,

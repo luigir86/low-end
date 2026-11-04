@@ -657,7 +657,8 @@ class AppActions {
               '${exampleSongs.map((s) => s.title).join(', ')}.',
             )),
     };
-    return () {
+    // Every change of one call is one change of the sound (RF-ARM-15).
+    return () => drone.applyAll(() {
       if (song != null) {
         applySong(song, drone: drone, metronome: metronome);
       }
@@ -671,7 +672,7 @@ class AppActions {
       if (flat != null && flat != drone.spelledFlat(key)) {
         drone.toggleSpelling(key);
       }
-    };
+    });
   }
 
   /// The boolean argument [key], or null when not given.

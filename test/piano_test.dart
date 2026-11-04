@@ -957,6 +957,7 @@ class _SlowPianoOutput extends SilentPianoOutput {
     Duration? startAt,
     bool onTheBeat = false,
     bool patient = false,
+    bool handOver = false,
   }) async {
     await Future<void>.delayed(const Duration(milliseconds: 20));
     return super.play(
@@ -968,6 +969,8 @@ class _SlowPianoOutput extends SilentPianoOutput {
       volume: volume,
       startAt: startAt,
       onTheBeat: onTheBeat,
+      patient: patient,
+      handOver: handOver,
     );
   }
 }
@@ -979,8 +982,10 @@ class _Clock extends ChangeNotifier implements BarClock {
   @override
   double? barPhase;
 
-  @override
   int bpm = 120;
+
+  @override
+  int get soundingBpm => bpm;
 
   @override
   TimeSignature signature = TimeSignature.fourFour;
