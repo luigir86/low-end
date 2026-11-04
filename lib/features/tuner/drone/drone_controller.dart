@@ -439,6 +439,40 @@ class DroneController extends ChangeNotifier {
     return _sync();
   }
 
+  /// Applies [changes] (settings of this controller, and of the metronome
+  /// it follows) all at once, as a song does: the piano gets one loop ready,
+  /// for all of them, instead of one for each setting in turn. Playing, the
+  /// old loop stops at once, its chords too, and the new one starts as at a
+  /// touch, the wait shown while it is got ready (see [showsWait]).
+  void applyAll(VoidCallback changes) {
+    final wasPlaying = _playing;
+    _batching = true;
+    try {
+      changes();
+    } finally {
+      _batching = false;
+    }
+    if (!wasPlaying || !_playing || _disposed) return;
+    _barTimer?.cancel();
+    _loopClock.stop();
+    // The new loop comes once the old one has stopped: chained like a
+    // change of sound (see [_sync]).
+    final previous = _pending ?? Future<void>.value();
+    late final Future<void> tracked;
+    tracked = previous.then((_) => _silence()).whenComplete(() {
+      if (identical(_pending, tracked)) _pending = null;
+    });
+    _pending = tracked;
+    _patient = true;
+    start();
+  }
+
+  /// Whether the next loop is awaited by the player (see [applyAll]).
+  var _patient = false;
+
+  /// Whether [applyAll] is under way: each setting waits for the others.
+  var _batching = false;
+
   /// The first sound since [start] is on its way out: a held progression
   /// counts its bars from now (the piano counts its own, see [_playPiano]).
   void _soundStarts() {
@@ -451,6 +485,7 @@ class DroneController extends ChangeNotifier {
 
   Future<void> stop() {
     _playing = false;
+    _patient = false;
     _slowTimer?.cancel();
     _barTimer?.cancel();
     _loopClock.stop();
@@ -531,6 +566,7 @@ class DroneController extends ChangeNotifier {
       _prepareAgain();
       return;
     }
+    if (_batching) return;
     _prepareProgression();
     if (restart) _scheduleBar();
     _sync();
@@ -659,7 +695,9 @@ class DroneController extends ChangeNotifier {
     if (signature != _lastSignature) _fromTheTop = true;
     _lastBpm = bpm;
     _lastSignature = signature;
-    if (!changed || !_playing || !_patterned || _disposed) return;
+    if (!changed || !_playing || !_patterned || _disposed || _batching) {
+      return;
+    }
     _sync();
   }
 
@@ -765,8 +803,10 @@ class DroneController extends ChangeNotifier {
     }
     final fromTheTop = _fromTheTop;
     final onTheBeat = _onTheBeat;
+    final patient = _patient;
     _fromTheTop = false;
     _onTheBeat = false;
+    _patient = false;
     final chords = _pianoChords;
     final bpm = _lastBpm = _clock.bpm;
     final signature = _lastSignature = _clock.signature;
@@ -780,6 +820,7 @@ class DroneController extends ChangeNotifier {
       volume: _volume,
       startAt: fromTheTop ? Duration.zero : null,
       onTheBeat: onTheBeat,
+      patient: patient,
     );
     if (!_playing || _disposed) return;
     final bar = _clock.barLength;

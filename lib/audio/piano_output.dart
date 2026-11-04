@@ -36,6 +36,10 @@ abstract class PianoOutput {
   /// [onTheBeat], carrying on, keeps the old loop until its next beat and
   /// the new one comes in on it: a new chord, struck when the old one
   /// would have been struck again.
+  ///
+  /// [patient]: the player is told to wait for this loop (a new song), so
+  /// in a page it is mixed a slice at a time, the screen and the wait it
+  /// shows moving in between, rather than as fast as it can.
   Future<LoopStart> play({
     required List<PianoChord> chords,
     required PianoStyle style,
@@ -45,6 +49,7 @@ abstract class PianoOutput {
     required double volume,
     Duration? startAt,
     bool onTheBeat = false,
+    bool patient = false,
   });
 
   Future<void> stop();
@@ -304,6 +309,10 @@ class SoLoudPianoOutput implements PianoOutput {
   /// How long recordings got ready by [prepare] wait for a touch.
   static const _keepPreparedFor = Duration(minutes: 2);
 
+  /// How long the screen waits at most while a loop the player waits for is
+  /// mixed, in a page (see [play]).
+  static const _sliceWhileWaited = Duration(milliseconds: 50);
+
   static Future<Float32List> _decodeFlac(Uint8List flac, int frames) async {
     // The engine's code, not the engine itself: no sound starts.
     await webAudioEngineLoaded();
@@ -320,6 +329,7 @@ class SoLoudPianoOutput implements PianoOutput {
     required double volume,
     Duration? startAt,
     bool onTheBeat = false,
+    bool patient = false,
   }) async {
     _forget?.cancel();
     // The engine starts and warms up while the notes are mixed, not before.
@@ -329,10 +339,25 @@ class SoLoudPianoOutput implements PianoOutput {
       bass: style == PianoStyle.walking,
     );
     // Mixed ahead of the touch, or now (which takes a moment: away from
-    // the screen's thread where there is one).
-    final rendered =
-        await _mixedAhead(_keyOf(chords, style, bpm, signature, a4)) ??
-        await _render(samples, chords, style, bpm, signature, a4);
+    // the screen's thread where there is one; in a page, for a new song, a
+    // slice at a time, so that the screen and the wait it shows keep
+    // moving).
+    final key = _keyOf(chords, style, bpm, signature, a4);
+    var rendered = await _mixedAhead(key);
+    if (rendered == null && kIsWeb && patient) {
+      await _mixAhead(
+        chords: chords,
+        style: style,
+        bpm: bpm,
+        signature: signature,
+        a4: a4,
+        // Longer slices than ahead of a touch: the sound is awaited, and
+        // the screen still draws a few frames a second.
+        slice: _sliceWhileWaited,
+      );
+      rendered = await _mixedAhead(key);
+    }
+    rendered ??= await _render(samples, chords, style, bpm, signature, a4);
     await engine;
     _player.setVolume(volume);
     final bar = Duration(
@@ -413,6 +438,24 @@ class SoLoudPianoOutput implements PianoOutput {
     required int bpm,
     required TimeSignature signature,
     required double a4,
+  }) => _mixAhead(
+    chords: chords,
+    style: style,
+    bpm: bpm,
+    signature: signature,
+    a4: a4,
+    slice: const Duration(milliseconds: 6),
+  );
+
+  /// Mixes the loop ahead (see [prerender]), in a page [slice] at a time
+  /// with the screen in between.
+  Future<void> _mixAhead({
+    required List<PianoChord> chords,
+    required PianoStyle style,
+    required int bpm,
+    required TimeSignature signature,
+    required double a4,
+    required Duration slice,
   }) async {
     final key = _keyOf(chords, style, bpm, signature, a4);
     if (_ahead?.key == key) {
@@ -446,6 +489,7 @@ class SoLoudPianoOutput implements PianoOutput {
           out: out,
         ),
         work,
+        slice: slice,
       );
       return out.value;
     }();
@@ -514,6 +558,7 @@ class SilentPianoOutput implements PianoOutput {
     required double volume,
     Duration? startAt,
     bool onTheBeat = false,
+    bool patient = false,
   }) async {
     this.chords = chords;
     this.style = style;

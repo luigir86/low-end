@@ -185,6 +185,7 @@ class _HeldPianoOutput extends SilentPianoOutput {
     required double volume,
     Duration? startAt,
     bool onTheBeat = false,
+    bool patient = false,
   }) async {
     await _held.future;
     return super.play(
