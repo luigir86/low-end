@@ -100,12 +100,15 @@ void main() {
   });
 
   group('the app opens as it was left', () {
-    testWidgets('the first time on the metronome, the chord on every beat', (
-      tester,
-    ) async {
+    testWidgets('the first time on the metronome, the harmony on a '
+        'progression, a chord on every beat', (tester) async {
       final scope = await _open(tester, await AppSettings.load());
       expect(scope.navigation.section, AppSection.metronome);
-      expect(scope.drone.voicing, DroneVoicing.chord);
+      expect(scope.drone.voicing, DroneVoicing.progression);
+      expect(scope.drone.progression, Progression.oneSixFourFive);
+      expect(scope.drone.note.pitchClass, 9);
+      // Chord, from there, is a chord and not the note alone.
+      expect(scope.drone.chordVoicing, DroneVoicing.chord);
       expect(scope.drone.style, DroneStyle.beat);
       expect(scope.drone.isPlaying, isFalse);
     });

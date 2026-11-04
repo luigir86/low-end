@@ -187,9 +187,13 @@ void main() {
     expect(piano.prepared, isNull);
     await tester.tap(_harmonyTab);
     await app.settle();
-    // The chord a touch would play: A major, its root in the bass.
-    expect(piano.prepared, hasLength(1));
-    expect(piano.prepared!.single.first % 12, 9);
+    // What a touch would play, the first time: the giro di Do in A, its four
+    // chords (A F#m D E7) each with its root in the bass.
+    expect(piano.prepared, hasLength(4));
+    expect(
+      [for (final chord in piano.prepared!) chord.first % 12],
+      [9, 6, 2, 4],
+    );
     expect(piano.chords, isNull);
     expect(app.scope.drone.isPlaying, isFalse);
   });
@@ -213,7 +217,7 @@ void main() {
     expect(piano.prepared, isNull);
     await gesture.up();
     await app.settle();
-    expect(piano.prepared, hasLength(1));
+    expect(piano.prepared, hasLength(4));
   });
 
   group('the tuner pauses what plays', () {
