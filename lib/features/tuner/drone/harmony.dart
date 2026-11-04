@@ -3,6 +3,7 @@
 /// checking intonation.
 library;
 
+import '../../metronome/time_signature.dart';
 import 'drone_controller.dart';
 
 /// The kind of a chord: its notes above the root as pure ratios, as
@@ -156,7 +157,8 @@ enum Progression {
     ProgressionStep(8, ChordQuality.dominant, '♭VI'),
   ], minor: true),
 
-  /// I–VI–II–V, the jazz turnaround: in C, Cmaj7 A7 Dm7 G7.
+  /// I–VI–II–V, the jazz turnaround that jazz musicians call the Anatole,
+  /// as in the A section of I Got Rhythm: in C, Cmaj7 A7 Dm7 G7.
   oneSixTwoFive([
     ProgressionStep(0, ChordQuality.major7, 'I'),
     ProgressionStep(9, ChordQuality.dominant, 'VI'),
@@ -208,8 +210,9 @@ class ExampleSong {
     this.pitchClass,
     this.progression,
     this.bpm,
-    this.style,
-  );
+    this.style, {
+    this.signature = TimeSignature.fourFour,
+  });
 
   final String title;
 
@@ -221,8 +224,12 @@ class ExampleSong {
   final int pitchClass;
   final Progression progression;
 
-  /// Beats per minute, in 4/4.
+  /// Beats per minute, in [signature].
   final int bpm;
+
+  /// The metronome's time signature: 4/4, but 2/4 for a song whose chords
+  /// change every half bar, so that each chord still lasts one bar.
+  final TimeSignature signature;
 
   /// How the piano plays it, as the song is played: a jazz standard over
   /// a walking bass, the bossa nova arpeggiated, the slow anthem held a
@@ -230,8 +237,8 @@ class ExampleSong {
   final DroneStyle style;
 }
 
-/// The songs offered, in the order of the progression menu; none needs a
-/// flat or sharp key, so there is no spelling to choose.
+/// The songs offered, in the order of the progression menu; none is in
+/// D♭ or G♭, so there is no spelling to choose.
 const exampleSongs = [
   ExampleSong(
     'Stand by Me',
@@ -288,6 +295,17 @@ const exampleSongs = [
     Progression.minorTwoFiveOne,
     140,
     DroneStyle.arpeggio,
+  ),
+  // Two chords a bar in 4/4, so one a bar in 2/4: B♭ G7 Cm7 F7, the first
+  // two bars of the A section, over and over.
+  ExampleSong(
+    'I Got Rhythm',
+    'George Gershwin',
+    10,
+    Progression.oneSixTwoFive,
+    160,
+    DroneStyle.walking,
+    signature: TimeSignature.twoFour,
   ),
   ExampleSong(
     'Autumn Leaves',

@@ -268,6 +268,11 @@ class _SongPreset extends StatelessWidget {
     final theme = Theme.of(context);
     final style = theme.textTheme.bodyMedium;
     final size = (style?.fontSize ?? 14) * 1.3;
+    // The time signature, only when it is not the usual 4/4: "2/4 · ♩ = 160".
+    final s = song.signature;
+    final meter = s == TimeSignature.fourFour
+        ? ''
+        : '${s.numerator}/${s.denominator} · ';
     WidgetSpan picture(Widget icon) => WidgetSpan(
       alignment: PlaceholderAlignment.middle,
       child: Padding(
@@ -291,7 +296,7 @@ class _SongPreset extends StatelessWidget {
                 '${_songKey(l10n, song, names)}\n',
           ),
           picture(const SectionIcon(SectionGlyph.metronome)),
-          TextSpan(text: '${BeatUnit.quarter.symbol} = ${song.bpm}'),
+          TextSpan(text: '$meter${BeatUnit.quarter.symbol} = ${song.bpm}'),
           const WidgetSpan(child: SizedBox(width: 16)),
           picture(styleIconOf(song.style)),
           TextSpan(text: styleNameOf(l10n, song.style)),

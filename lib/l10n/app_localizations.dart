@@ -218,6 +218,12 @@ abstract class AppLocalizations {
   /// **'Andalusian cadence, like {song}'**
   String progressionAndalusianLike(String song);
 
+  /// Under I–VI–II–V in the progression menu: its name among jazz musicians (the Anatole, the A section of rhythm changes) and a well-known song that uses it.
+  ///
+  /// In en, this message translates to:
+  /// **'The Anatole, like {song}'**
+  String progressionAnatoleLike(String song);
+
   /// No description provided for @progressionCircleOfFifths.
   ///
   /// In en, this message translates to:

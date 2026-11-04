@@ -1,10 +1,10 @@
 import '../../metronome/metronome_controller.dart';
-import '../../metronome/time_signature.dart';
 import 'drone_controller.dart';
 import 'harmony.dart';
 
 /// Applies [song] as a preset: its key, progression and style on the piano
-/// (the held tone gives way to it), and its tempo in 4/4 on the metronome.
+/// (the held tone gives way to it), and its tempo and time signature on
+/// the metronome.
 /// What touching it in the list of example songs does, and the `song` of
 /// the actions; the player may change any of it afterwards.
 void applySong(
@@ -19,6 +19,6 @@ void applySong(
     ..setContinuous(false)
     ..setStyle(song.style);
   metronome
-    ..setSignature(TimeSignature.fourFour)
+    ..setSignature(song.signature)
     ..setBpm(song.bpm);
 }
