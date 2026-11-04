@@ -6,21 +6,25 @@ import 'harmony.dart';
 /// (the held tone gives way to it), and on the metronome its time signature
 /// and tempo, and its subdivision and click on 2 and 4 if it has them.
 /// What touching it in the list of example songs does, and the `song` of
-/// the actions; the player may change any of it afterwards.
+/// the actions; the player may change any of it afterwards. Playing, the
+/// old song stops and the new one starts once it is ready, the wait shown.
 void applySong(
   ExampleSong song, {
   required DroneController drone,
   required MetronomeController metronome,
 }) {
-  drone
-    ..setPitchClass(song.pitchClass)
-    ..setProgression(song.progression)
-    ..setVoicing(DroneVoicing.progression)
-    ..setContinuous(false)
-    ..setStyle(song.style);
-  metronome
-    ..setSignature(song.signature)
-    ..setBpm(song.bpm);
-  if (song.subdivision case final s?) metronome.setSubdivision(s);
-  if (song.backbeat case final b?) metronome.setBackbeat(b);
+  // All at once: the piano gets one loop ready, for the whole song.
+  drone.applyAll(() {
+    drone
+      ..setPitchClass(song.pitchClass)
+      ..setProgression(song.progression)
+      ..setVoicing(DroneVoicing.progression)
+      ..setContinuous(false)
+      ..setStyle(song.style);
+    metronome
+      ..setSignature(song.signature)
+      ..setBpm(song.bpm);
+    if (song.subdivision case final s?) metronome.setSubdivision(s);
+    if (song.backbeat case final b?) metronome.setBackbeat(b);
+  });
 }

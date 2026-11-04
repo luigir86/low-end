@@ -956,6 +956,7 @@ class _SlowPianoOutput extends SilentPianoOutput {
     required double volume,
     Duration? startAt,
     bool onTheBeat = false,
+    bool patient = false,
   }) async {
     await Future<void>.delayed(const Duration(milliseconds: 20));
     return super.play(

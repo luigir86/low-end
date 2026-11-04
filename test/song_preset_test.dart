@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/audio/click_output.dart';
+import 'package:low_end/audio/loop_transport.dart';
+import 'package:low_end/audio/piano_sound.dart';
 import 'package:low_end/audio/piano_output.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/features/metronome/metronome_controller.dart';
@@ -10,6 +12,59 @@ import 'package:low_end/features/tuner/drone/example_song.dart';
 import 'package:low_end/features/tuner/drone/harmony.dart';
 
 void main() {
+  group('changing song while it plays', () {
+    testWidgets('the old song stops, then one loop starts for the new one', (
+      tester,
+    ) async {
+      final piano = _LoggingPiano();
+      final metronome = MetronomeController(SilentClickOutput());
+      final drone = DroneController(
+        SilentToneOutput(),
+        piano: piano,
+        clock: metronome,
+      );
+      ExampleSong song(String title) =>
+          exampleSongs.singleWhere((s) => s.title == title);
+      applySong(song('Autumn Leaves'), drone: drone, metronome: metronome);
+      drone.start();
+      await tester.pump(const Duration(seconds: 3));
+      expect(piano.log, ['play walking 120']);
+      piano.log.clear();
+
+      applySong(song('Stand by Me'), drone: drone, metronome: metronome);
+      // Not heard yet: the chords wait on the first one, the wait shown.
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(drone.isPlaying, isTrue);
+      expect(drone.isStarting, isTrue);
+      expect(drone.step, 0);
+      await tester.pump(const Duration(seconds: 1));
+      // Only the new song, at its own tempo, after the old one stopped.
+      expect(piano.log, ['stop', 'play beat 118 patient']);
+      expect(drone.isStarting, isFalse);
+
+      drone.stop();
+      await tester.pump(const Duration(seconds: 1));
+      drone.dispose();
+      metronome.dispose();
+    });
+
+    test('not playing, a song plays nothing', () async {
+      final piano = _LoggingPiano();
+      final metronome = MetronomeController(SilentClickOutput());
+      final drone = DroneController(
+        SilentToneOutput(),
+        piano: piano,
+        clock: metronome,
+      );
+      addTearDown(drone.dispose);
+      addTearDown(metronome.dispose);
+      applySong(exampleSongs.first, drone: drone, metronome: metronome);
+      await Future<void>.delayed(Duration.zero);
+      expect(piano.log, isEmpty);
+      expect(drone.isPlaying, isFalse);
+    });
+  });
+
   group('a song is a whole preset, as an object', () {
     test('every example song reads back the same from JSON', () {
       for (final song in exampleSongs) {
@@ -99,4 +154,42 @@ void main() {
       }
     });
   });
+}
+
+/// A piano that notes what it is asked to do, and takes a while to get each
+/// loop ready, as rendering does.
+class _LoggingPiano extends SilentPianoOutput {
+  final log = <String>[];
+
+  @override
+  Future<LoopStart> play({
+    required List<PianoChord> chords,
+    required PianoStyle style,
+    required int bpm,
+    required TimeSignature signature,
+    required double a4,
+    required double volume,
+    Duration? startAt,
+    bool onTheBeat = false,
+    bool patient = false,
+  }) async {
+    log.add('play ${style.name} $bpm${patient ? ' patient' : ''}');
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    return super.play(
+      chords: chords,
+      style: style,
+      bpm: bpm,
+      signature: signature,
+      a4: a4,
+      volume: volume,
+      startAt: startAt,
+      onTheBeat: onTheBeat,
+    );
+  }
+
+  @override
+  Future<void> stop() {
+    log.add('stop');
+    return super.stop();
+  }
 }
