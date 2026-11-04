@@ -70,7 +70,7 @@ Oltre a creare gli oggetti, contiene le regole tra sezioni (pausa per l'accordat
 
 | # | Problema | Dove | Requisito a rischio | Fonte |
 | --- | --- | --- | --- | --- |
-| P1 | **Il mix del loop nel web è sul thread dello schermo** e, quando non c'è il pre-mix pronto (tocco subito, cambio di stile, di tonalità, di tempo, di brano), è **intero**, non a fette: `offThread` nel web è un semplice `Future`. Walking di 12 battute: 3,2 s a CPU ×2, 11 s a ×6. | `SoLoudPianoOutput.play` → `_render` | RNF-FLU-01, RNF-LAT-02 | misurato (banco perf-web, 4/11) |
+| P1 | **Il mix del loop nel web è sul thread dello schermo** e, quando non c'è il pre-mix pronto (tocco subito, cambio di stile, di tonalità, di tempo, di brano), è **intero**, non a fette: `offThread` nel web è un semplice `Future`. Walking di 12 battute: 3,2 s a CPU ×2, 11 s a ×6. | `SoLoudPianoOutput.play` → `_render` | RNF-FLU-01, RNF-LAT-01 | misurato (banco perf-web, 4/11) |
 | P2 | **Ogni cambio di tempo con l'Armonia che suona rifà tutto il loop**: tenere premuto + con un walking vuol dire un mix completo per ogni passo che la coda lascia passare; nel web, schermo fermo per secondi. Il pre-mix non aiuta perché la chiave include il tempo. | `_onClockChanged` → `_sync` | RNF-FLU-01 | probabile, da misurare |
 | P3 | **Su Android i campioni sono copiati nell'isolate a ogni mix**: `Isolate.run` copia tutto ciò che la funzione cattura, cioè le note decodificate (fino a decine di MB con il contrabbasso). | `SoLoudPianoOutput._render` | RNF-LAT-01, RNF-MEM-01 | probabile, da misurare |
 | P4 | **La coda (rilascio delle note) è mixata sul thread dello schermo**, in modo sincrono, a ogni stop e a ogni cambio d'accordo, su Android e nel web. | `BarLoopPlayer._Tail.load` → `PianoSound.tailWav` | RNF-FLU-01 | probabile, da misurare |
@@ -90,7 +90,7 @@ Oltre a creare gli oggetti, contiene le regole tra sezioni (pausa per l'accordat
 
 ## 6. Cose piccole trovate strada facendo
 
-- `web/prova-microfono.html` (PR #88, "temporanea") è ancora pubblicata.
+- `web/prova-microfono.html` (PR #88, "temporanea"): tolta il 4/11.
 - Il README dice "The second row under the dial (the first is left empty)": frase da rileggere.
 - `docs/architecture.md` non parla dei brani né del lavoro a fette nel web.
 - Il pacchetto e le azioni dicono `drone`, l'interfaccia dice Armonia: è voluto per le azioni (compatibilità), ma nel codice interno non serve più.

@@ -34,14 +34,15 @@ Fuori dallo scopo, per decisione presa: libreria PDF e conversione in MusicXML/M
 | RF-ARM-04 | Modo **Accordo**: la nota da sola o uno di nove accordi (maggiore, minore, 7, 7♭9, maj7, m7, m7♭5, diminuito, sus4). Il menu ricorda l'ultima scelta tra nota sola e accordo. | ✓ | `drone_controller_test`, `minor_dominant_test` |
 | RF-ARM-05 | Modo **Giro**: un accordo per battuta, giri di 4, 8 o 12 battute nella tonalità della nota toccata; nove giri in tre sezioni (pop/rock, blues, jazz), dal più facile. | ✓ | `progression_test` |
 | RF-ARM-06 | Durante un giro il quadrante mostra la tonalità, i gradi in numeri romani e l'accordo che suona; le note fuori dall'accordo si attenuano. L'accordo mostrato cambia quando lo si **sente**, non quando lo si calcola. | ✓ | `songs_and_degrees_test`, `progression_test` |
-| RF-ARM-07 | Stili al pianoforte: tenuto (una volta a battuta), su ogni battito, arpeggio, walking bass (contrabbasso pizzicato, una nota a battito, piano che accompagna sopra). Quinto stile: suono tenuto continuo al posto del pianoforte. | ✓ | `walking_bass_test`, `piano_test` |
+| RF-ARM-07 | Stili al pianoforte: tenuto (una volta a battuta), su ogni battito, arpeggio, walking bass (contrabbasso pizzicato, una nota a battito, piano che accompagna sopra). Quinto stile: suono tenuto continuo al posto del pianoforte. **Intonazione** (deciso il 4/11): il suono tenuto è a intervalli puri, perché non batta e serva a intonare; il pianoforte, compreso il walking, è temperato. | ✓ | `walking_bass_test`, `piano_test`, `drone_controller_test` |
 | RF-ARM-08 | **Brani**: nove brani di esempio, ognuno un preset completo (tonalità, giro, stile, tempo, metro, eventuali suddivisione e click sul 2 e 4). Un brano si legge e si scrive anche in JSON. | ✓ | `song_preset_test` |
-| RF-ARM-09 | Cambiare brano mentre l'Armonia suona ferma subito il vecchio, prepara **un solo** nuovo loop e lo avvia mostrando l'attesa. | ○ | PR #98 aperta |
+| RF-ARM-09 | Cambiare brano mentre l'Armonia suona ferma subito il vecchio, prepara **un solo** nuovo loop e lo avvia mostrando l'attesa. | ✓ | `song_preset_test` (PR #98); prova sul telefono da fare |
 | RF-ARM-10 | Cambiare nota o accordo negli stili a battito o arpeggio non fa inciampare il battito: il nuovo accordo entra sul battito successivo. Tenuto o in un giro, riparte dall'inizio della battuta. | ✓ | `piano_test` |
 | RF-ARM-11 | Fermare o cambiare accordo lascia andare le note come un pianista (coda), invece di tagliarle. | ◐ | solo ascolto |
 | RF-ARM-12 | Al primo avvio l'Armonia è sul giro I–VI–IV–V in La, stile a battito; dopo ricorda tutto ciò che il musicista ha scelto (non se suonava). | ✓ | `memory_test` |
 | RF-ARM-13 | Se il primo suono tarda (registrazioni o motore ancora in arrivo) il centro del quadrante mostra l'attesa dopo 0,4 s, e dopo 5 s dice che la connessione è lenta; il giro resta sul primo accordo finché non lo si sente. | ✓ | `drone_wait_test` |
 | RF-ARM-14 | L'Armonia segue tempo e metro del metronomo; senza metronomo usa il tempo e il metro impostati. | ✓ | `progression_test` |
+| RF-ARM-15 | **Transizioni musicali** (deciso il 4/11): nessun cambio brusco. Cambiando brano (e, dove ha senso, giro, stile o tonalità) mentre suona, il suono vecchio decade in modo naturale e il nuovo entra sul battito, anche dopo un paio di battiti; meglio aspettare un momento che un taglio. Oggi (PR #98) il vecchio si ferma subito e il nuovo parte quando è pronto, non sul battito. | ○ | da progettare (piano, passo 3) |
 
 ### 2.3 Metronomo (RF-MET)
 
@@ -54,6 +55,7 @@ Fuori dallo scopo, per decisione presa: libreria PDF e conversione in MusicXML/M
 | RF-MET-05 | Anello che si accende battito per battito, il primo marcato; la luce arriva **insieme** al suono (compensando il ritardo dell'uscita: altoparlante, cuffia, Bluetooth, browser). | ◐ | costanti di ritardo mai misurate sul telefono |
 | RF-MET-06 | Il tempo non deriva mai: si suona in loop una battuta intera generata in memoria. | ✓ | `metronome_controller_test` |
 | RF-MET-07 | Tempo, metro, suddivisione e click sul 2 e 4 si ricordano al riavvio. | ✓ | `row_test` |
+| RF-MET-08 | **Cambi di tempo musicali** (deciso il 4/11): tenendo premuto − o + il numero cambia subito, ma il suono (click e Armonia) passa al nuovo tempo solo quando il dito si toglie o si ferma per circa 0,3 s. Anche il TAP non deve far saltare il tempo a ogni colpo: il nuovo tempo si applica in modo graduale o dopo qualche colpo (come esattamente, da decidere ascoltando). | ○ | da fare |
 
 ### 2.4 Insieme Armonia e Metronomo (RF-SYNC)
 
@@ -124,11 +126,11 @@ Fuori dallo scopo, per decisione presa: libreria PDF e conversione in MusicXML/M
 | --- | --- | --- | --- |
 | RNF-AVV-01 | **Avvio velocissimo** su Android: niente di pesante prima del primo frame; motore audio al primo suono, microfono dopo il primo frame. | `startup_test`; `timeToFirstFrameMicros` da misurare con `--trace-startup` | ✓ test, ○ misura sul telefono mai registrata |
 | RNF-AVV-02 | Avvio della web app: primo frame con meno di 3 MB scaricati; avvio dalla cache sotto 2 s. | banco `perf-web` (27/10: 1,8 s in cache) | ◐ |
-| RNF-LAT-01 | **Dal tocco al suono**, Android: metronomo e accordo subito (obiettivo da fissare, proposta < 300 ms a motore acceso); giro walking < 1 s. | nessuna misura sul telefono | ? |
-| RNF-LAT-02 | Dal tocco al suono, web su un telefono come il S20 FE: walking ≤ 1 s dopo qualche secondo di pagina aperta. | banco `perf-web`: 0,7 s (PR #87) | ◐ |
-| RNF-LAT-03 | La luce del battito con il suono, entro 30 ms (obiettivo da confermare). | costanti +20 ms altoparlante, +160 ms BT mai misurate | ○ |
-| RNF-FLU-01 | **Fluidità**: lo schermo non si blocca più di 100 ms per un'azione del musicista (cambio sezione, accordo, brano, tempo), né su Android né nel web. | blocco di ~3,8 s cambiando brano nel web (PR #98) | ○ |
-| RNF-MEM-01 | Memoria contenuta su telefoni economici (obiettivo da fissare, proposta < 150 MB di picco suonando un walking di 12 battute). | mai misurata | ? |
+| RNF-LAT-01 | **Dal tocco al suono** (deciso il 4/11), Android e web, su un telefono come il S20 FE: sempre **sotto 1 s**, obiettivo **0,5 s**, walking compreso. Vale per il primo suono; un cambio mentre suona segue RF-ARM-15 e RF-MET-08, dove aspettare il battito giusto è voluto. | Android mai misurato; web walking 0,7 s (PR #87) | ◐ |
+| RNF-LAT-02 | La **fluidità conta più della velocità** (deciso il 4/11): meglio un'attesa visibile e un ingresso a tempo che un suono rapido ma brusco. | ascolto | ○ |
+| RNF-LAT-03 | La luce del battito con il suono, entro 30 ms (proposta, da confermare dopo le misure). | costanti +20 ms altoparlante, +160 ms BT mai misurate | ○ |
+| RNF-FLU-01 | **Fluidità**: lo schermo non si blocca più di 100 ms per un'azione del musicista (cambio sezione, accordo, brano, tempo), né su Android né nel web; il suono non si interrompe mentre si prepara quello nuovo. | brano: corretto dalla PR #98; tempo e stile nel web ancora a rischio | ○ |
+| RNF-MEM-01 | Memoria contenuta su telefoni economici (proposta, da confermare dopo le misure: < 150 MB di picco suonando un walking di 12 battute). | mai misurata | ? |
 | RNF-DIM-01 | App leggera: pochi pacchetti, codec inutili esclusi; dimensione dell'APK per architettura da tenere sotto controllo (oggi 13 MB di campioni). | `pubspec.yaml` | ◐ |
 | RNF-UX-01 | **UI/UX** prima di tutto, in stile Material 3 e Android standard (durate e curve M3, pulsanti standard, menu uniformi); identità del marchio: bronzo su ebano, sempre scuro, quadrante, strobo, font Edwin. | `style_test`, `theme_test`, `choice_menu_test`, `row_heights_test` | ✓ |
 | RNF-UX-02 | Ogni testo visibile in inglese (riferimento) e italiano; niente testi o colori scritti nel codice. | `.arb`, `style_test` | ✓ |
@@ -142,14 +144,33 @@ Fuori dallo scopo, per decisione presa: libreria PDF e conversione in MusicXML/M
 | RNF-AUD-01 | Qualità del suono "una coccola": pianoforte stereo 48 kHz, nessun clipping (limiter sul mix), niente click a inizio o fine. | ascolto (thread "Qualità del motore audio") | ◐ |
 | RNF-REL-01 | Rilascio: versione nel `pubspec.yaml` alzata a ogni caricamento; targetSdk richiesto da Play; firma con la chiave di upload fuori dal repository. | `docs/release-checklist.md` | ◐ |
 
+### Misure di partenza (4 novembre 2026, Galaxy S20 FE, `main` d372e31, build release, copia `.perf` accanto all'app del Play)
+
+| Misura | `main` di oggi | Play 1.3.0 (29 ottobre) | Requisito |
+| --- | --- | --- | --- |
+| Avvio a freddo (`am start -W`, TotalTime, mediana di 5) | **1040 ms** (978–1977) | 314 ms (273–414) | RNF-AVV-01: **peggiorato di 3 volte** |
+| Memoria a riposo subito dopo l'avvio (PSS totale / nativa) | **413–431 MB / 156–172 MB** | 155 MB / 30 MB | RNF-MEM-01: oltre la proposta di 150 MB |
+| Memoria con Stand by Me dopo 15 s | 349 MB / 173 MB | – | |
+| Memoria con Autumn Leaves (walking) dopo 15 s | 379 MB / 197 MB | – | |
+| Dal comando (link d'azione) al suono (avvio dello stream AAudio) | 270–660 ms, mediana ~520 ms | – | RNF-LAT-01: sotto 1 s, vicino all'obiettivo di 0,5 s |
+| Thread dello schermo fermo, cambio brano | 40–120 ms (Autumn Leaves fino a 120, Tune Up 110, Stand by Me 100) | – | RNF-FLU-01: appena sopra i 100 ms |
+| Thread dello schermo fermo, cambio stile / tempo | 60 ms / 30 ms | – | RNF-FLU-01: rispettato |
+
+Note: `dumpsys gfxinfo` non vede i frame di Flutter, quindi il blocco è misurato campionando ogni 10 ms il thread dello schermo; il tocco vero sullo schermo (non il link) va misurato filmando a 240 fps. Ipotesi da verificare per l'avvio e la memoria: aprendo sull'Armonia (dalla PR #96) l'app prepara subito pianoforte e contrabbasso (`preparePiano` dopo il primo frame, `prefetchBass: true`), cioè motore audio e decodifica di tutti i campioni all'avvio; conta anche l'APK unico da 70 MB contro quello diviso da 30 MB del Play. Trovato anche: il primo link d'azione dopo un avvio da `adb` apre altre istanze della schermata principale (tre nella pila), da controllare. Numeri grezzi e comandi: `C:\Users\ribal\Projects\LowEnd-misure\2026-11-04.md` sul PC di Luigi.
+
 ## 4. Vincoli già decisi (non riproporre)
 
 Sempre tema scuro, un solo accento bronzo; niente tema chiaro né colori per sezione. Niente donazioni. Niente scelta dell'ottava, preset per basso, forme d'accordo. Strumento predefinito dell'accordatore: chitarra. Nome "Low End", pacchetto `com.luigir86.low_end` (permanente). Scheda dello store rivolta a tutti i musicisti. Niente app iOS nativa: per l'iPhone solo la web app. Il click resta quello di oggi (niente woodblock modale).
 
 ## 5. Questioni aperte da decidere
 
-1. **Intonazione.** Il suono tenuto usa intervalli puri (`harmony.dart`, test "plays chords in pure intervals"), il pianoforte è temperato; `llm.md` dice "piano in equal temperament", il README mette la "just intonation" tra le idee future. Va scritto quale delle due è il requisito per il suono tenuto, e se il musicista deve poter scegliere.
-2. **Obiettivi numerici** per RNF-LAT-01, RNF-LAT-03 e RNF-MEM-01: senza un numero non si può dire se un cambiamento migliora o peggiora.
-3. **Cambio di tempo con l'Armonia che suona nel web** (tenere premuto + con un walking): oggi ogni passo del tempo rifà tutto il loop sul thread dello schermo. Va deciso se il requisito RNF-FLU-01 vale anche qui (probabilmente sì) e quindi se il cambio di tempo deve aspettare che il dito si fermi.
-4. **Bluetooth HFP dopo l'accordatore** (RF-ACC-10): valutazione in attesa.
-5. **Pagina di prova del microfono** `web/prova-microfono.html` (PR #88, "temporanea"): da togliere o da dichiarare.
+1. **Bluetooth HFP dopo l'accordatore** (RF-ACC-10): valutazione in attesa.
+2. **Come rendere musicale il TAP** (RF-MET-08) e **come entra il nuovo brano** (RF-ARM-15): da decidere ascoltando delle prove.
+3. **Luce e memoria** (RNF-LAT-03, RNF-MEM-01): i numeri proposti si confermano dopo le misure del passo 1.
+
+### Decise il 4 novembre 2026
+
+- Intonazione: suono tenuto puro, pianoforte temperato (RF-ARM-07); `llm.md` e README corretti.
+- Dal tocco al suono sotto 1 s, obiettivo 0,5 s; la fluidità prima della velocità (RNF-LAT-01, RNF-LAT-02).
+- Transizioni musicali tra brani (RF-ARM-15) e cambi di tempo applicati quando il dito si ferma (RF-MET-08).
+- Pagina di prova del microfono `web/prova-microfono.html` tolta.
