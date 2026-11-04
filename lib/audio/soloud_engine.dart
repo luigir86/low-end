@@ -72,6 +72,7 @@ final _engine = EngineStarter(() async {
     sampleRate: engineSampleRate,
     bufferSize: engineBufferFrames,
   );
+  markWebAudioEngineStarted();
   // A safety net on the whole mix: the piano, the click and the tone never
   // go past full scale together, however they pile up. With no drive (its
   // "threshold" is a boost, here 0 dB) it leaves alone everything below

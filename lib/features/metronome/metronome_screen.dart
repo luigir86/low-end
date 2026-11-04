@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/gestures.dart' show kLongPressTimeout;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -84,8 +85,9 @@ class MetronomeScreen extends StatelessWidget {
                 liveRegion: true,
                 child: Padding(
                   padding: const EdgeInsets.only(top: 8),
+                  // In a browser it is almost always a download that failed.
                   child: Text(
-                    l10n.audioUnavailable,
+                    kIsWeb ? l10n.audioDownloadFailed : l10n.audioUnavailable,
                     textAlign: TextAlign.center,
                     style: TextStyle(color: theme.colorScheme.error),
                   ),

@@ -470,6 +470,24 @@ abstract class AppLocalizations {
   /// **'Sound could not start on this device.'**
   String get audioUnavailable;
 
+  /// Web app: the sound failed to start, almost always because a download failed.
+  ///
+  /// In en, this message translates to:
+  /// **'The sounds could not be downloaded. Check the connection and touch again.'**
+  String get audioDownloadFailed;
+
+  /// Harmony hub, between the touch and the first chord heard.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting the sounds ready…'**
+  String get soundsPreparing;
+
+  /// Web app: the first chord has been on its way for more than 5 seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading the sounds: the connection is slow. Please wait.'**
+  String get soundsDownloadingSlowly;
+
   /// No description provided for @startListening.
   ///
   /// In en, this message translates to:

@@ -227,6 +227,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get audioUnavailable => 'Sound could not start on this device.';
 
   @override
+  String get audioDownloadFailed =>
+      'The sounds could not be downloaded. Check the connection and touch again.';
+
+  @override
+  String get soundsPreparing => 'Getting the sounds ready…';
+
+  @override
+  String get soundsDownloadingSlowly =>
+      'Downloading the sounds: the connection is slow. Please wait.';
+
+  @override
   String get startListening => 'Listen';
 
   @override

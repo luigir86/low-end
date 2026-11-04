@@ -10,6 +10,9 @@ external set _inUse(bool value);
 @JS('lowEndCatchAudioContext')
 external set _catchContext(bool value);
 
+@JS('lowEndAudioEngineStarted')
+external JSFunction? get _started;
+
 @JS('crossOriginIsolated')
 external bool? get _crossOriginIsolated;
 
@@ -45,6 +48,10 @@ Future<void> webAudioEngineLoaded() async {
   // The engine starts next: the page keeps its AudioContext.
   _catchContext = true;
 }
+
+/// Tells the page that the engine has started: of the AudioContexts made
+/// meanwhile, the one still open is the engine's (web/flutter_bootstrap.js).
+void markWebAudioEngineStarted() => _started?.callAsFunction();
 
 /// How late the browser says the engine's sound is heard after it leaves
 /// the engine (its baseLatency and outputLatency), or null before the

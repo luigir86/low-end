@@ -5,20 +5,31 @@
 // and put it to sleep (see lowEndWakeAudio below), and the app can ask the
 // browser how late what it plays is heard (outputLatency,
 // web_audio_engine_web.dart). The app raises lowEndCatchAudioContext just
-// before the engine starts; the microphone's context, made at another time,
-// is not taken for it.
+// before the engine starts, and calls lowEndAudioEngineStarted once it has;
+// the microphone's context, made at another time, is not taken for it.
+// Starting, the engine opens and closes contexts of its own, and suspends
+// them (the single-threaded build does on a first opening): only the one
+// still open once it has started is its own. Taking the first one made, a
+// suspended one was taken for the browser cutting the sound, and the
+// harmony paused as soon as it started.
+let audioContextsMade = [];
 if (window.AudioContext) {
   window.AudioContext = class extends window.AudioContext {
     constructor(...args) {
       super(...args);
-      if (window.lowEndCatchAudioContext) {
-        window.lowEndCatchAudioContext = false;
-        window.lowEndAudioContext = this;
-        watchAudio(this);
-      }
+      if (window.lowEndCatchAudioContext) audioContextsMade.push(this);
     }
   };
 }
+window.lowEndAudioEngineStarted = function () {
+  window.lowEndCatchAudioContext = false;
+  const open = audioContextsMade.filter(function (c) { return c.state !== 'closed'; });
+  audioContextsMade = [];
+  const context = open[open.length - 1];
+  if (!context || context === window.lowEndAudioContext) return;
+  window.lowEndAudioContext = context;
+  watchAudio(context);
+};
 
 // The audio engine's memory, shared with its own thread, is asked for with
 // room to grow to 2 GB. Safari on the iPhone has refused shared memories

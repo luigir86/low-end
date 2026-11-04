@@ -183,6 +183,28 @@ class DroneController extends ChangeNotifier {
   /// True when the last attempt to start sound failed on this device.
   bool get audioFailed => _audioFailed;
 
+  /// Whether the first sound since [start] has yet to be heard: the
+  /// recordings, or in a browser the audio engine itself, are still being
+  /// read or downloaded. Meanwhile a progression stays on its first chord.
+  bool get isStarting => _playing && !_soundStarted;
+
+  /// Whether the hub says to wait: the first sound has taken longer than
+  /// [waitShownAfter], so that a start that takes a moment does not flash.
+  bool get showsWait => isStarting && _waitShown;
+
+  /// Whether the first sound has been on its way for a while (see
+  /// [slowStart]): over a slow network, in a browser.
+  bool get startsSlowly => isStarting && _slow;
+
+  static const waitShownAfter = Duration(milliseconds: 400);
+
+  /// How long the first sound may take before the hub says it is slow.
+  static const slowStart = Duration(seconds: 5);
+  var _soundStarted = false;
+  var _waitShown = false;
+  var _slow = false;
+  Timer? _slowTimer;
+
   /// The note touched: the root, or the key of a progression.
   Note get note => _note;
 
@@ -400,14 +422,36 @@ class DroneController extends ChangeNotifier {
     _audioFailed = false;
     _step = 0;
     _fromTheTop = true;
+    // The chords move on once the first one is heard (see [_soundStarts]).
+    _soundStarted = false;
+    _waitShown = _slow = false;
+    _slowTimer?.cancel();
+    _slowTimer = Timer(waitShownAfter, () {
+      _waitShown = true;
+      _notify();
+      _slowTimer = Timer(slowStart - waitShownAfter, () {
+        _slow = true;
+        _notify();
+      });
+    });
     _notify();
     _prepareProgression();
-    _scheduleBar();
     return _sync();
+  }
+
+  /// The first sound since [start] is on its way out: a held progression
+  /// counts its bars from now (the piano counts its own, see [_playPiano]).
+  void _soundStarts() {
+    if (_soundStarted) return;
+    _soundStarted = true;
+    _slowTimer?.cancel();
+    if (!_patterned) _scheduleBar();
+    _notify();
   }
 
   Future<void> stop() {
     _playing = false;
+    _slowTimer?.cancel();
     _barTimer?.cancel();
     _loopClock.stop();
     _notify();
@@ -574,6 +618,8 @@ class DroneController extends ChangeNotifier {
   void _scheduleBar() {
     _barTimer?.cancel();
     if (!_playing || _voicing != DroneVoicing.progression) return;
+    // Not yet heard: the first chord stays until it is.
+    if (!_soundStarted) return;
     final bar = _clock.barLength;
     Duration wait;
     if (_patterned) {
@@ -694,11 +740,13 @@ class DroneController extends ChangeNotifier {
         final f = frequencies;
         _toneSounding = true;
         await _output.play(f, _gainsFor(f.length), _volume);
+        if (_playing && !_disposed) _soundStarts();
       }
     } catch (error) {
       debugPrint('Drone could not start: $error');
       _playing = false;
       _audioFailed = true;
+      _slowTimer?.cancel();
       _barTimer?.cancel();
       _notify();
     }
@@ -747,6 +795,8 @@ class DroneController extends ChangeNotifier {
     _loopClock
       ..reset()
       ..start();
+    _soundStarted = true;
+    _slowTimer?.cancel();
     if (_voicing == DroneVoicing.progression) {
       // Waiting for the metronome, the first chord is still to come.
       _step = started.delay > Duration.zero
@@ -781,6 +831,7 @@ class DroneController extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     _playing = false;
+    _slowTimer?.cancel();
     _barTimer?.cancel();
     _readyAgain?.cancel();
     _clock.removeListener(_onClockChanged);
