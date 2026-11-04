@@ -358,7 +358,7 @@
   "legendNumerals": "The Roman numerals give the degree of the key each chord is built on. Tap one on the circle to read it here.",
   "legendDots": "The dots are the bars of the progression: the filled one is the chord sounding.",
   "songsTitle": "Example songs",
-  "songsSubtitle": "Sets the key, the progression and the tempo in one tap",
+  "songsSubtitle": "Sets the key, the progression, the tempo and the style in one tap",
   "tunerHeld": "Holding the last note",
   "aboutSource": "Source code: {url}",
   "@aboutSource": {

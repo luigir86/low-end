@@ -552,7 +552,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get songsSubtitle =>
-      'Imposta tonalità, progressione e tempo in un tocco';
+      'Imposta tonalità, progressione, tempo e stile in un tocco';
 
   @override
   String get tunerHeld => 'Nota in attesa';

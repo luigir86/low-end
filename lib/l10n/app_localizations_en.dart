@@ -547,7 +547,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get songsSubtitle =>
-      'Sets the key, the progression and the tempo in one tap';
+      'Sets the key, the progression, the tempo and the style in one tap';
 
   @override
   String get tunerHeld => 'Holding the last note';

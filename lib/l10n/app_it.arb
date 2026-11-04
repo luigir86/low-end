@@ -158,7 +158,7 @@
   "legendNumerals": "I numeri romani dicono il grado della tonalità su cui poggia ogni accordo. Tocca un numero sul cerchio per leggerlo qui.",
   "legendDots": "I pallini sono le battute della progressione: quello pieno è l'accordo che suona.",
   "songsTitle": "Brani d'esempio",
-  "songsSubtitle": "Imposta tonalità, progressione e tempo in un tocco",
+  "songsSubtitle": "Imposta tonalità, progressione, tempo e stile in un tocco",
   "tunerHeld": "Nota in attesa",
   "aboutSource": "Codice sorgente: {url}",
   "subdivisionQuarters": "Semiminime",

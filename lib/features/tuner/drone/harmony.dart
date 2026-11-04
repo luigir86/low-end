@@ -3,6 +3,8 @@
 /// checking intonation.
 library;
 
+import 'drone_controller.dart';
+
 /// The kind of a chord: its notes above the root as pure ratios, as
 /// semitones, and as steps up the scale (2 for a third, 3 for a fourth, 6
 /// for a seventh), which say what letter each note is written with.
@@ -195,8 +197,9 @@ enum Progression {
 /// The sections of the progression menu, by genre, in this order.
 enum ProgressionSection { popRock, blues, jazz }
 
-/// A well-known song to practise on: its key (as a pitch class), progression
-/// and a comfortable tempo, set in one tap. The names are the songs' own and
+/// A well-known song to practise on, a preset of Harmony and the metronome:
+/// its key (as a pitch class), progression, a comfortable tempo and the way
+/// the piano plays it, set in one tap. The names are the songs' own and
 /// are not translated.
 class ExampleSong {
   const ExampleSong(
@@ -204,9 +207,9 @@ class ExampleSong {
     this.artist,
     this.pitchClass,
     this.progression,
-    this.bpm, {
-    this.walking = false,
-  });
+    this.bpm,
+    this.style,
+  );
 
   final String title;
 
@@ -221,22 +224,38 @@ class ExampleSong {
   /// Beats per minute, in 4/4.
   final int bpm;
 
-  /// A jazz standard, swung over a walking bass as it is played: the song
-  /// starts in that style. A bossa nova is not walked, nor a shuffle blues.
-  final bool walking;
+  /// How the piano plays it, as the song is played: a jazz standard over
+  /// a walking bass, the bossa nova arpeggiated, the slow anthem held a
+  /// bar, the rest struck on every beat (a shuffle blues is not walked).
+  final DroneStyle style;
 }
 
 /// The songs offered, in the order of the progression menu; none needs a
 /// flat or sharp key, so there is no spelling to choose.
 const exampleSongs = [
-  ExampleSong('Stand by Me', 'Ben E. King', 9, Progression.oneSixFourFive, 118),
-  ExampleSong('With or Without You', 'U2', 2, Progression.oneFiveSixFour, 110),
+  ExampleSong(
+    'Stand by Me',
+    'Ben E. King',
+    9,
+    Progression.oneSixFourFive,
+    118,
+    DroneStyle.beat,
+  ),
+  ExampleSong(
+    'With or Without You',
+    'U2',
+    2,
+    Progression.oneFiveSixFour,
+    110,
+    DroneStyle.held,
+  ),
   ExampleSong(
     'Hit the Road Jack',
     'Ray Charles',
     9,
     Progression.andalusian,
     168,
+    DroneStyle.beat,
   ),
   ExampleSong(
     'Sweet Home Chicago',
@@ -244,6 +263,7 @@ const exampleSongs = [
     4,
     Progression.blues,
     100,
+    DroneStyle.beat,
   ),
   ExampleSong(
     'Mr. P.C.',
@@ -251,7 +271,7 @@ const exampleSongs = [
     0,
     Progression.minorBlues,
     160,
-    walking: true,
+    DroneStyle.walking,
   ),
   ExampleSong(
     'Tune Up',
@@ -259,7 +279,7 @@ const exampleSongs = [
     2,
     Progression.twoFiveOne,
     160,
-    walking: true,
+    DroneStyle.walking,
   ),
   ExampleSong(
     'Blue Bossa',
@@ -267,6 +287,7 @@ const exampleSongs = [
     0,
     Progression.minorTwoFiveOne,
     140,
+    DroneStyle.arpeggio,
   ),
   ExampleSong(
     'Autumn Leaves',
@@ -274,6 +295,6 @@ const exampleSongs = [
     7,
     Progression.circleOfFifths,
     120,
-    walking: true,
+    DroneStyle.walking,
   ),
 ];
