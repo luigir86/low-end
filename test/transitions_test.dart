@@ -75,6 +75,20 @@ void main() {
       expect(piano.handOvers, 1);
     });
 
+    test('changed and changed back, the loop goes on as it was', () async {
+      final plays = piano.plays;
+      drone
+        ..setProgression(Progression.blues)
+        ..setProgression(Progression.oneSixFourFive);
+      await settle();
+      // Compared with what plays (step 3): nothing to mix, the fade undone.
+      expect(piano.handOvers, 1);
+      expect(piano.handOversCancelled, 1);
+      expect(piano.plays, plays);
+      expect(drone.beatsLeft, isNull);
+      expect(drone.isPlaying, isTrue);
+    });
+
     test('a chord in Chord mode still changes on the beat', () async {
       drone.setVoicing(DroneVoicing.chord);
       await settle();

@@ -303,6 +303,16 @@ class BarLoopPlayer {
     return wait;
   }
 
+  /// Calls off a hand-over under way (see [beginHandOver]): the loop
+  /// playing stays, back up to its level.
+  void cancelHandOver() {
+    final handle = _handle;
+    if (_handOverAt == null || handle == null) return;
+    _handOverAt = null;
+    if (!_soloud.getIsValidVoiceHandle(handle)) return;
+    _soloud.fadeVolume(handle, _volume, const Duration(milliseconds: 300));
+  }
+
   /// Stops the loop. With [tailFor], what the loop sounds like let go
   /// where it is (see PianoSound.tailWav) plays on from that very sample.
   Future<void> stop({Uint8List Function(Duration position)? tailFor}) async {
