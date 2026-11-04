@@ -5,7 +5,6 @@ import '../../../audio/audio_scope.dart';
 import '../../../audio/pitch.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../widgets/section_icons.dart';
-import '../../metronome/time_signature.dart';
 import 'drone_controller.dart';
 import 'drone_panel.dart';
 import 'example_song.dart';
@@ -291,7 +290,7 @@ class _SongPreset extends StatelessWidget {
                 '${_songKey(l10n, song, names)}\n',
           ),
           picture(const SectionIcon(SectionGlyph.metronome)),
-          TextSpan(text: '${BeatUnit.quarter.symbol} = ${song.bpm}'),
+          TextSpan(text: '${song.signature.beatUnit.symbol} = ${song.bpm}'),
           const WidgetSpan(child: SizedBox(width: 16)),
           picture(styleIconOf(song.style)),
           TextSpan(text: styleNameOf(l10n, song.style)),
