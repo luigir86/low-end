@@ -272,7 +272,7 @@ void main() {
   });
 
   group('the countdown to the other one\'s bar line', () {
-    testWidgets('the metronome\'s dial counts the seconds, then the tempo', (
+    testWidgets('the metronome\'s dial counts the beats, then the tempo', (
       tester,
     ) async {
       final app = await _open(
@@ -284,12 +284,14 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
       expect(app.scope.metronome.waitLeft, isNotNull);
-      expect(find.text('3'), findsOneWidget);
+      // Three seconds at 80 make four beats of 0.75 s (RF-ARM-15).
+      expect(app.scope.metronome.beatsLeft, 4);
+      expect(find.text('4'), findsOneWidget);
       expect(find.text('80'), findsNothing);
 
       await app.scope.metronome.stop();
       await tester.pump(const Duration(milliseconds: 200));
-      expect(find.text('3'), findsNothing);
+      expect(find.text('4'), findsNothing);
       expect(find.text('80'), findsOneWidget);
     });
 
@@ -306,7 +308,9 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
       expect(app.scope.drone.waitLeft, isNotNull);
-      expect(find.text('2'), findsOneWidget);
+      // Two seconds at 80 are three beats to go.
+      expect(app.scope.drone.beatsLeft, 3);
+      expect(find.text('3'), findsOneWidget);
 
       // The tuner pausing it ends the countdown.
       await tester.tap(find.text('Tuner'));

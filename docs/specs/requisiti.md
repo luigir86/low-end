@@ -42,7 +42,7 @@ Fuori dallo scopo, per decisione presa: libreria PDF e conversione in MusicXML/M
 | RF-ARM-12 | Al primo avvio l'Armonia è sul giro I–VI–IV–V in La, stile a battito; dopo ricorda tutto ciò che il musicista ha scelto (non se suonava). | ✓ | `memory_test` |
 | RF-ARM-13 | Se il primo suono tarda (registrazioni o motore ancora in arrivo) il centro del quadrante mostra l'attesa dopo 0,4 s, e dopo 5 s dice che la connessione è lenta; il giro resta sul primo accordo finché non lo si sente. | ✓ | `drone_wait_test` |
 | RF-ARM-14 | L'Armonia segue tempo e metro del metronomo; senza metronomo usa il tempo e il metro impostati. | ✓ | `progression_test` |
-| RF-ARM-15 | **Transizioni musicali** (deciso il 4/11): nessun cambio brusco. Cambiando brano (e, dove ha senso, giro, stile o tonalità) mentre suona, il suono vecchio decade in modo naturale e il nuovo entra sul battito, anche dopo un paio di battiti; meglio aspettare un momento che un taglio. Oggi (PR #98) il vecchio si ferma subito e il nuovo parte quando è pronto, non sul battito. | ○ | da progettare (piano, passo 3) |
+| RF-ARM-15 | **Transizioni musicali** (deciso il 4/11, demo 3b e 3c in `audio-demo/transizioni/`). Mentre l'Armonia suona al pianoforte, cambiare **brano, giro, stile, o tonalità di un giro** non taglia il suono: il nuovo appare subito sullo schermo, il vecchio continua e **cala di volume** (fino a circa un terzo) fino alla **stanghetta** successiva, dove lascia andare le note mentre il nuovo attacca a volume pieno. Se alla stanghetta manca meno di un battito, il cambio passa alla battuta dopo. Con il metronomo che suona, la stanghetta è la sua. Al centro del quadrante si contano i **battiti** che mancano (3… 2… 1). Più cambi fatti insieme (un brano, un'azione con più argomenti) sono un solo cambio. Cambiare nota o accordo in modo Accordo resta sul battito (RF-ARM-10). | ◐ | `transitions_test`, `song_preset_test`; livello del calo da sentire sul telefono |
 
 ### 2.3 Metronomo (RF-MET)
 
@@ -55,7 +55,7 @@ Fuori dallo scopo, per decisione presa: libreria PDF e conversione in MusicXML/M
 | RF-MET-05 | Anello che si accende battito per battito, il primo marcato; la luce arriva **insieme** al suono (compensando il ritardo dell'uscita: altoparlante, cuffia, Bluetooth, browser). | ◐ | costanti di ritardo mai misurate sul telefono |
 | RF-MET-06 | Il tempo non deriva mai: si suona in loop una battuta intera generata in memoria. | ✓ | `metronome_controller_test` |
 | RF-MET-07 | Tempo, metro, suddivisione e click sul 2 e 4 si ricordano al riavvio. | ✓ | `row_test` |
-| RF-MET-08 | **Cambi di tempo musicali** (deciso il 4/11): tenendo premuto − o + il numero cambia subito, ma il suono (click e Armonia) passa al nuovo tempo solo quando il dito si toglie o si ferma per circa 0,3 s. Anche il TAP non deve far saltare il tempo a ogni colpo: il nuovo tempo si applica in modo graduale o dopo qualche colpo (come esattamente, da decidere ascoltando). | ○ | da fare |
+| RF-MET-08 | **Cambi di tempo musicali** (deciso il 4/11): con − e + (tocco o pressione lunga) il numero cambia subito, ma il suono (click e Armonia) passa al nuovo tempo solo quando il dito si ferma per 0,3 s, e prosegue dal punto della battuta in cui è. Con il TAP il numero segue i colpi e il suono cambia quando si smette di battere (dopo una volta e mezza l'intervallo tra i colpi, almeno 0,6 s). Il tempo scritto, quello di un brano e quello di un'azione si applicano subito. | ✓ | `transitions_test`, `metronome_controller_test` |
 
 ### 2.4 Insieme Armonia e Metronomo (RF-SYNC)
 
@@ -165,7 +165,7 @@ Sempre tema scuro, un solo accento bronzo; niente tema chiaro né colori per sez
 ## 5. Questioni aperte da decidere
 
 1. **Bluetooth HFP dopo l'accordatore** (RF-ACC-10): valutazione in attesa.
-2. **Come rendere musicale il TAP** (RF-MET-08) e **come entra il nuovo brano** (RF-ARM-15): da decidere ascoltando delle prove.
+2. Livello e durata del calo di volume (RF-ARM-15): da riascoltare sul telefono.
 3. **Luce e memoria** (RNF-LAT-03, RNF-MEM-01): i numeri proposti si confermano dopo le misure del passo 1.
 
 ### Decise il 4 novembre 2026

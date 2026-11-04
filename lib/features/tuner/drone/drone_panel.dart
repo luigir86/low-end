@@ -520,17 +520,19 @@ class _DialCenterState extends State<_DialCenter> {
     // Spelled as in the key: D♯ in C♯ minor, G♭ in D♭.
     final rootName = spell(root.pitchClass, drone.rootLetter, names);
     final chord = drone.currentChord;
-    // Waiting for the metronome's bar line: the seconds to go, in the muted
-    // ink, and under them what is about to come in.
+    // Waiting for a bar line (the metronome's, or the loop's own while the
+    // old one fades): the beats to go, in the muted ink, and under them what
+    // is about to come in.
     final left = drone.waitLeft;
-    final waiting = left != null && left >= const Duration(milliseconds: 500);
+    final beats = drone.beatsLeft;
+    final waiting = beats != null && left! >= const Duration(milliseconds: 300);
     _sync(left != null);
     if (waiting) {
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            '${(left.inMilliseconds / 1000).ceil()}',
+            '$beats',
             style: noteStyle?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
               fontFeatures: const [FontFeature.tabularFigures()],

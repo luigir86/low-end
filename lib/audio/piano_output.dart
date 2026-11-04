@@ -50,7 +50,14 @@ abstract class PianoOutput {
     Duration? startAt,
     bool onTheBeat = false,
     bool patient = false,
+    bool handOver = false,
   });
+
+  /// Starts letting the loop playing now down, for another to come in on
+  /// the next bar line at least [lead] away (see BarLoopPlayer.beginHandOver):
+  /// a [play] with [handOver] then starts there. Says how long until that
+  /// bar line, or null when nothing plays.
+  Duration? beginHandOver({required Duration lead});
 
   Future<void> stop();
 
@@ -330,6 +337,7 @@ class SoLoudPianoOutput implements PianoOutput {
     Duration? startAt,
     bool onTheBeat = false,
     bool patient = false,
+    bool handOver = false,
   }) async {
     _forget?.cancel();
     // The engine starts and warms up while the notes are mixed, not before.
@@ -383,8 +391,13 @@ class SoLoudPianoOutput implements PianoOutput {
       startAt: startAt,
       onPulse: onTheBeat ? bar ~/ signature.beats : null,
       tailFor: was == null ? null : (position) => _tail(was, position),
+      handOver: handOver,
     );
   }
+
+  @override
+  Duration? beginHandOver({required Duration lead}) =>
+      _player.beginHandOver(lead: lead);
 
   /// [was] let go at [position] in its loop (see PianoSound.tailWav).
   static Uint8List _tail(_Playing was, Duration position) => PianoSound.tailWav(
@@ -559,7 +572,23 @@ class SilentPianoOutput implements PianoOutput {
     Duration? startAt,
     bool onTheBeat = false,
     bool patient = false,
+    bool handOver = false,
   }) async {
+    this.handOver = handOver;
+    this.patient = patient;
+    if (handOver && this.chords != null && handOverIn != null) {
+      final wait = handOverIn!;
+      handOverIn = null;
+      this.chords = chords;
+      this.style = style;
+      this.bpm = bpm;
+      this.signature = signature;
+      this.startAt = startAt;
+      this.onTheBeat = onTheBeat;
+      this.volume = volume;
+      plays++;
+      return (position: Duration.zero, delay: wait);
+    }
     this.chords = chords;
     this.style = style;
     this.bpm = bpm;
@@ -572,7 +601,30 @@ class SilentPianoOutput implements PianoOutput {
   }
 
   @override
-  Future<void> stop() async => chords = null;
+  Future<void> stop() async {
+    chords = null;
+    handOverIn = null;
+  }
+
+  /// How long a hand-over waits for its bar line, as a real loop would.
+  Duration handOverWait = const Duration(seconds: 1);
+
+  /// The wait of the hand-over under way, if any.
+  Duration? handOverIn;
+
+  /// How many times [beginHandOver] was asked for.
+  var handOvers = 0;
+
+  /// Whether the last [play] was a hand-over, and one the player waits for.
+  bool handOver = false;
+  bool patient = false;
+
+  @override
+  Duration? beginHandOver({required Duration lead}) {
+    if (chords == null) return null;
+    handOvers++;
+    return handOverIn ??= handOverWait;
+  }
 
   /// What [prepare] was last asked for.
   List<PianoChord>? prepared;

@@ -316,12 +316,20 @@ void main() {
       final slow = _SlowClickOutput();
       final m = MetronomeController(slow);
       await m.start();
+      final before = slow.plays;
       for (var i = 0; i < 20; i++) {
         m.step(1);
       }
+      // The number follows at once, the sound once the finger rests
+      // (RF-MET-08): one rebuild with all of them, not twenty.
+      expect(m.bpm, 100);
       await slow.drain();
-      // One rebuild under way, then one with all the rest: not twenty.
-      expect(slow.plays, lessThanOrEqualTo(3));
+      expect(slow.plays, before);
+      await Future<void>.delayed(
+        MetronomeController.adjustRest + const Duration(milliseconds: 50),
+      );
+      await slow.drain();
+      expect(slow.plays, before + 1);
       expect(_samples(slow.bar!), ClickSound.sampleRate * 60 * 4 ~/ 100);
     },
   );

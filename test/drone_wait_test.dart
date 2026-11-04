@@ -40,7 +40,7 @@ void main() {
     expect(drone.waitLeft, isNull);
   });
 
-  testWidgets('the hub shows the seconds to go', (tester) async {
+  testWidgets('the hub shows the beats to go', (tester) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
@@ -65,13 +65,13 @@ void main() {
     await scope.drone.start();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
-    expect(find.text('3'), findsOneWidget);
+    expect(find.text('4'), findsOneWidget);
     expect(find.text('A4'), findsNothing);
 
     // Stopped, the hub goes back to its hint.
     await scope.drone.stop();
     await tester.pump(const Duration(milliseconds: 200));
-    expect(find.text('3'), findsNothing);
+    expect(find.text('4'), findsNothing);
   });
 
   testWidgets('the hub writes a chord out, and the hertz of a note alone', (
@@ -84,7 +84,7 @@ void main() {
       LowEndApp(
         toneOutput: SilentToneOutput(),
         clickOutput: SilentClickOutput(),
-        pianoOutput: SilentPianoOutput(),
+        pianoOutput: SilentPianoOutput()..handOverWait = Duration.zero,
         micInput: FakeMicInput(),
       ),
     );
@@ -107,6 +107,7 @@ void main() {
     // The root's frequency would mislead about a chord.
     expect(find.textContaining('Hz'), findsNothing);
 
+    // A change of voicing waits for the bar line (RF-ARM-15), here at once.
     scope.drone.setVoicing(DroneVoicing.root);
     await tester.pump(const Duration(milliseconds: 200));
     expect(find.text('A C♯ E'), findsNothing);
@@ -186,6 +187,7 @@ class _HeldPianoOutput extends SilentPianoOutput {
     Duration? startAt,
     bool onTheBeat = false,
     bool patient = false,
+    bool handOver = false,
   }) async {
     await _held.future;
     return super.play(
@@ -197,6 +199,8 @@ class _HeldPianoOutput extends SilentPianoOutput {
       volume: volume,
       startAt: startAt,
       onTheBeat: onTheBeat,
+      patient: patient,
+      handOver: handOver,
     );
   }
 }

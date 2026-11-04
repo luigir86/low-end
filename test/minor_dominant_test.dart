@@ -19,8 +19,10 @@ class _Clock extends ChangeNotifier implements BarClock {
   @override
   double? barPhase;
 
-  @override
   int bpm = 120;
+
+  @override
+  int get soundingBpm => bpm;
 
   @override
   TimeSignature signature = TimeSignature.fourFour;

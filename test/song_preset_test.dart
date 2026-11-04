@@ -13,40 +13,45 @@ import 'package:low_end/features/tuner/drone/harmony.dart';
 
 void main() {
   group('changing song while it plays', () {
-    testWidgets('the old song stops, then one loop starts for the new one', (
-      tester,
-    ) async {
-      final piano = _LoggingPiano();
-      final metronome = MetronomeController(SilentClickOutput());
-      final drone = DroneController(
-        SilentToneOutput(),
-        piano: piano,
-        clock: metronome,
-      );
-      ExampleSong song(String title) =>
-          exampleSongs.singleWhere((s) => s.title == title);
-      applySong(song('Autumn Leaves'), drone: drone, metronome: metronome);
-      drone.start();
-      await tester.pump(const Duration(seconds: 3));
-      expect(piano.log, ['play walking 120']);
-      piano.log.clear();
+    testWidgets(
+      'the old song fades to its bar line, then the new one comes in',
+      (tester) async {
+        final piano = _LoggingPiano();
+        final metronome = MetronomeController(SilentClickOutput());
+        final drone = DroneController(
+          SilentToneOutput(),
+          piano: piano,
+          clock: metronome,
+        );
+        ExampleSong song(String title) =>
+            exampleSongs.singleWhere((s) => s.title == title);
+        applySong(song('Autumn Leaves'), drone: drone, metronome: metronome);
+        drone.start();
+        await tester.pump(const Duration(seconds: 3));
+        expect(piano.log, ['play walking 120']);
+        piano.log.clear();
 
-      applySong(song('Stand by Me'), drone: drone, metronome: metronome);
-      // Not heard yet: the chords wait on the first one, the wait shown.
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(drone.isPlaying, isTrue);
-      expect(drone.isStarting, isTrue);
-      expect(drone.step, 0);
-      await tester.pump(const Duration(seconds: 1));
-      // Only the new song, at its own tempo, after the old one stopped.
-      expect(piano.log, ['stop', 'play beat 118 patient']);
-      expect(drone.isStarting, isFalse);
+        applySong(song('Stand by Me'), drone: drone, metronome: metronome);
+        // The old song goes on, fading, and the beats to its bar line are
+        // counted (RF-ARM-15): one change for the whole song.
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(drone.isPlaying, isTrue);
+        expect(drone.isStarting, isFalse);
+        expect(drone.step, 0);
+        expect(piano.handOvers, 1);
+        expect(drone.beatsLeft, isNotNull);
+        await tester.pump(const Duration(seconds: 1));
+        // Only the new song, at its own tempo, handed over without a stop.
+        expect(piano.log, ['play beat 118 patient']);
+        expect(piano.handOver, isTrue);
+        expect(drone.isStarting, isFalse);
 
-      drone.stop();
-      await tester.pump(const Duration(seconds: 1));
-      drone.dispose();
-      metronome.dispose();
-    });
+        drone.stop();
+        await tester.pump(const Duration(seconds: 1));
+        drone.dispose();
+        metronome.dispose();
+      },
+    );
 
     test('not playing, a song plays nothing', () async {
       final piano = _LoggingPiano();
@@ -172,6 +177,7 @@ class _LoggingPiano extends SilentPianoOutput {
     Duration? startAt,
     bool onTheBeat = false,
     bool patient = false,
+    bool handOver = false,
   }) async {
     log.add('play ${style.name} $bpm${patient ? ' patient' : ''}');
     await Future<void>.delayed(const Duration(milliseconds: 500));
@@ -184,6 +190,8 @@ class _LoggingPiano extends SilentPianoOutput {
       volume: volume,
       startAt: startAt,
       onTheBeat: onTheBeat,
+      patient: patient,
+      handOver: handOver,
     );
   }
 
