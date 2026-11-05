@@ -2,12 +2,16 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-/// The pictures of two styles of Harmony that Material's icon font lacks:
-/// four strokes for the chord struck on every beat (its three dots would
-/// read as "more"), and two bare footprints, one a step ahead of the other,
-/// for the walking bass. Drawn on the same 24-unit grid as the Material
-/// icons; the other styles use Material icons.
-enum StyleGlyph { beats, footprints }
+/// The pictures of the styles of Harmony, drawn on the same 24-unit grid as
+/// the Material icons. The three ways the piano plays a chord are written as
+/// in a score: a chord of three whole notes for the chord held a bar, a
+/// chord of three quarter notes for the chord struck on every beat, three
+/// quarter notes one above the other for the arpeggio. The notes stand a
+/// hair apart, which a score would not do, so that they do not run into one
+/// shape at this size. Two bare footprints, one a step ahead of the other,
+/// for the walking bass; a single wave for the held tone, which is a drone,
+/// not the piano.
+enum StyleGlyph { heldChord, struckChord, arpeggio, footprints, wave }
 
 /// An icon like [Icon]: it takes its size and colour from the [IconTheme].
 class StyleIcon extends StatelessWidget {
@@ -43,28 +47,81 @@ class _StyleIconPainter extends CustomPainter {
     canvas.scale(size.width / 24, size.height / 24);
     final ink = Paint()..color = color;
     switch (glyph) {
-      case StyleGlyph.beats:
-        _beats(canvas);
+      case StyleGlyph.heldChord:
+        // A layer of its own, so the holes open onto the menu, not onto
+        // black.
+        canvas.saveLayer(const Rect.fromLTWH(0, 0, 24, 24), Paint());
+        for (final y in const [5.3, 12.0, 18.7]) {
+          _wholeNote(canvas, ink, Offset(12, y));
+        }
+        canvas.restore();
+      case StyleGlyph.struckChord:
+        const x = 10.5;
+        for (final y in const [6.7, 13.2, 19.7]) {
+          _blackNote(canvas, ink, Offset(x, y), 2.95, 2.1);
+        }
+        // One stem for the three notes, on the right going up.
+        canvas.drawRect(const Rect.fromLTRB(x + 1.5, 1.2, x + 2.9, 19.7), ink);
+      case StyleGlyph.arpeggio:
+        for (final (x, y) in const [(4.2, 19.5), (11.6, 15.5), (19.0, 11.5)]) {
+          _blackNote(canvas, ink, Offset(x, y), 2.65, 1.9);
+          canvas.drawRect(Rect.fromLTRB(x + 1.4, y - 11, x + 2.6, y), ink);
+        }
       case StyleGlyph.footprints:
         // The left foot behind, the right one a step ahead, both turned a
         // little outwards as feet walk.
         _foot(canvas, ink, const Offset(7.2, 14.1), -12, mirrored: true);
         _foot(canvas, ink, const Offset(16.8, 9.9), 12, mirrored: false);
+      case StyleGlyph.wave:
+        // One wave across, as a steady tone would be drawn.
+        canvas.drawPath(
+          Path()
+            ..moveTo(2, 12)
+            ..quadraticBezierTo(7, 2, 12, 12)
+            ..quadraticBezierTo(17, 22, 22, 12),
+          Paint()
+            ..color = color
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2
+            ..strokeCap = StrokeCap.round,
+        );
     }
   }
 
-  /// Four short upright strokes, evenly spaced: the four beats of a bar,
-  /// as the long line of [Icons.horizontal_rule] is the chord held a bar.
-  void _beats(Canvas canvas) {
-    final line = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round;
-    for (var i = 0; i < 4; i++) {
-      final x = 5.0 + i * 14 / 3;
-      canvas.drawLine(Offset(x, 8), Offset(x, 16), line);
-    }
+  /// A whole note about 8.4 units wide around [centre]: an open oval whose
+  /// hole leans to the left, thick on the sides and thin above and below.
+  void _wholeNote(Canvas canvas, Paint ink, Offset centre) {
+    canvas.save();
+    canvas.translate(centre.dx, centre.dy);
+    canvas.drawOval(
+      Rect.fromCenter(center: Offset.zero, width: 8.4, height: 5.1),
+      ink,
+    );
+    canvas.rotate(-25 * math.pi / 180);
+    canvas.drawOval(
+      Rect.fromCenter(center: Offset.zero, width: 3.3, height: 4.3),
+      Paint()..blendMode = BlendMode.clear,
+    );
+    canvas.restore();
+  }
+
+  /// A filled note head around [centre], [rx] by [ry], tilted up to the
+  /// right as engraved.
+  void _blackNote(
+    Canvas canvas,
+    Paint ink,
+    Offset centre,
+    double rx,
+    double ry,
+  ) {
+    canvas.save();
+    canvas.translate(centre.dx, centre.dy);
+    canvas.rotate(-20 * math.pi / 180);
+    canvas.drawOval(
+      Rect.fromCenter(center: Offset.zero, width: 2 * rx, height: 2 * ry),
+      ink,
+    );
+    canvas.restore();
   }
 
   /// A footprint about 16 units long around [centre], toes up, turned by
