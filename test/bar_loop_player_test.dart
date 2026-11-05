@@ -153,30 +153,104 @@ void main() {
     final wait = piano.beginHandOver(lead: ms(500))!;
     final line = engine.now + wait;
     const faster = Duration(milliseconds: 1500);
-    final start = await click.play(
+    final clicks = click.play(
       fakeWav(faster),
       faster,
       startAt: Duration.zero,
       atMeeting: true,
     );
-    expect(start.delay, _near(wait));
-    final newClick = engine.voices.values.lastWhere(
-      (v) => v.name == 'click-loop.wav',
+    // Let down with the piano by that bar line, waiting for its new loop.
+    await Future<void>.delayed(Duration.zero);
+    // Down within a beat, not along the wait: the clicks are heard low.
+    expect(
+      oldClick.volumeAt(engine.now + ms(150)),
+      closeTo(BarLoopPlayer.meetingLevel, 1e-9),
     );
-    expect(newClick.startsAt, line);
-    expect(oldClick.stopsAt, line);
-    expect(oldClick.volumeAt(line), closeTo(BarLoopPlayer.handOverLevel, 1e-9));
-    // The piano's new loop comes in on that same bar line.
+    expect(oldClick.volumeAt(line), closeTo(BarLoopPlayer.meetingLevel, 1e-9));
+    // The piano's new loop comes in on that same bar line, and so do the
+    // clicks.
     await piano.play(
       fakeWav(faster),
       faster,
       startAt: Duration.zero,
       handOver: true,
     );
+    final start = await clicks;
+    expect(start.delay, _near(wait));
     final newPiano = engine.voices.values.lastWhere(
       (v) => v.name == 'piano-loop.wav',
     );
+    final newClick = engine.voices.values.lastWhere(
+      (v) => v.name == 'click-loop.wav',
+    );
     expect(newPiano.startsAt, line);
+    expect(newClick.startsAt, line);
+    expect(oldClick.stopsAt, line);
+  });
+
+  test('clicks wait for a piano that comes in a bar late, low with it '
+      'until then', () async {
+    await click.play(fakeWav(bar), bar);
+    await piano.play(fakeWav(bar), bar, startAt: Duration.zero);
+    engine.advance(bar + ms(400));
+    final oldClick = only('click-loop.wav');
+    final oldPiano = only('piano-loop.wav');
+    final wait = piano.beginHandOver(lead: ms(500))!;
+    final line = engine.now + wait;
+    const faster = Duration(milliseconds: 1500);
+    final clicks = click.play(
+      fakeWav(faster),
+      faster,
+      startAt: Duration.zero,
+      atMeeting: true,
+    );
+    await Future<void>.delayed(Duration.zero);
+    // The piano's new loop is ready only after the bar line it aimed at.
+    engine.advance(wait + ms(100));
+    expect(
+      oldClick.volumeAt(engine.now),
+      closeTo(BarLoopPlayer.meetingLevel, 1e-9),
+    );
+    expect(oldClick.stopsAt, isNull);
+    await piano.play(
+      fakeWav(faster),
+      faster,
+      startAt: Duration.zero,
+      handOver: true,
+    );
+    await clicks;
+    final newPiano = engine.voices.values.lastWhere(
+      (v) => v.name == 'piano-loop.wav',
+    );
+    final newClick = engine.voices.values.lastWhere(
+      (v) => v.name == 'click-loop.wav',
+    );
+    expect(newPiano.startsAt, greaterThan(line));
+    expect(newClick.startsAt, newPiano.startsAt);
+    expect(oldClick.stopsAt, newPiano.startsAt);
+    expect(oldPiano.stopsAt, newPiano.startsAt);
+  });
+
+  test('clicks waiting for the piano change on their own when it is '
+      'called off', () async {
+    await click.play(fakeWav(bar), bar);
+    await piano.play(fakeWav(bar), bar, startAt: Duration.zero);
+    engine.advance(bar + ms(400));
+    piano.beginHandOver(lead: ms(500));
+    const faster = Duration(milliseconds: 1500);
+    final clicks = click.play(
+      fakeWav(faster),
+      faster,
+      startAt: Duration.zero,
+      atMeeting: true,
+    );
+    await Future<void>.delayed(Duration.zero);
+    piano.cancelHandOver();
+    await clicks;
+    final newClick = engine.voices.values.lastWhere(
+      (v) => v.name == 'click-loop.wav',
+    );
+    expect(newClick.startsAt, isNotNull);
   });
 
   test('a hand-over called off brings the loop back up', () async {
