@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_soloud/flutter_soloud.dart';
 
 import 'loop_engine.dart';
@@ -18,10 +20,41 @@ class LoopTransport {
   final _loops = <String, _Loop>{};
 
   /// The engine time of the bar line a hand-over aims at (see
-  /// BarLoopPlayer.beginHandOver), while one is under way: a new song
-  /// changes the piano and the clicks together there, and the metronome
-  /// keeps going at its old tempo until then (RF-ARM-15).
+  /// BarLoopPlayer.beginHandOver), while one is under way, and once the
+  /// piano's new loop is scheduled, the time it really comes in: a new
+  /// song changes the piano and the clicks together there, and the
+  /// metronome keeps going at its old tempo, let down, until then
+  /// (RF-ARM-15).
   Duration? meetAt;
+
+  Completer<Duration?>? _meeting;
+
+  /// A hand-over aims at [at]: the clicks wait for the piano's new loop.
+  void beginMeeting(Duration at) {
+    meetAt = at;
+    _meeting ??= Completer<Duration?>();
+  }
+
+  /// The piano's new loop is scheduled to come in at [startsAt] (later than
+  /// aimed when its mix took longer than the wait): the clicks come in
+  /// there too.
+  void meet(Duration startsAt) {
+    meetAt = startsAt;
+    _meeting?.complete(startsAt);
+    _meeting = null;
+  }
+
+  /// The hand-over was called off, or the piano stopped: nothing to wait
+  /// for.
+  void cancelMeeting() {
+    meetAt = null;
+    _meeting?.complete(null);
+    _meeting = null;
+  }
+
+  /// When the piano's new loop comes in, once it is known; null if the
+  /// hand-over was called off.
+  Future<Duration?> get meeting => _meeting?.future ?? Future.value(meetAt);
 
   LoopEngine get _soloud => engine;
 

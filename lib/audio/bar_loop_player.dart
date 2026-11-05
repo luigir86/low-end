@@ -88,9 +88,10 @@ class BarLoopPlayer {
   /// level it was let down to.
   ///
   /// [atMeeting], for a loop that starts from [startAt] while the other
-  /// one hands over (see [beginHandOver]), comes in on that same bar line,
-  /// this loop playing on as it was until then: the clicks of a new song
-  /// change with the piano, not before it.
+  /// one hands over (see [beginHandOver]), comes in where the other's new
+  /// loop does, this loop playing on until then, let down with it: the
+  /// clicks of a new song change with the piano, not before it, even when
+  /// the piano's new loop takes longer than a bar to get ready.
   Future<LoopStart> play(
     Uint8List wav,
     Duration bar, {
@@ -113,17 +114,30 @@ class BarLoopPlayer {
     final aimedAt = _handOverAt;
     _handOverAt = null;
     Duration? wait;
-    final meet = transport.meetAt;
-    final meetLeft = meet == null ? null : meet - _soloud.getEngineTime();
+    // Meeting the piano's new loop: let down with the piano by the bar line
+    // it aims at, as a band changing song, then wait to hear when it
+    // really comes in.
+    var meeting = false;
+    Duration? met;
+    if (atMeeting && !carryOn && old != null) {
+      final aimed = transport.meetAt;
+      if (aimed != null) {
+        meeting = true;
+        final left = aimed - _soloud.getEngineTime();
+        if (left > Duration.zero) {
+          _soloud.fadeVolume(old, _volume * handOverLevel, left);
+        }
+        met = await transport.meeting.timeout(
+          _meetingLimit,
+          onTimeout: () => null,
+        );
+      }
+    }
+    final metLeft = met == null ? null : met - _soloud.getEngineTime();
     if (carryOn) {
       wait = null;
-    } else if (atMeeting &&
-        old != null &&
-        meetLeft != null &&
-        meetLeft >= _scheduleLead) {
-      wait = meetLeft;
-      // Let down with the piano by that bar line, as a band changing song.
-      _soloud.fadeVolume(old, _volume * handOverLevel, meetLeft);
+    } else if (meeting && metLeft != null && metLeft >= _scheduleLead) {
+      wait = metLeft;
     } else if (handingOver) {
       final left = aimedAt == null ? null : aimedAt - _soloud.getEngineTime();
       wait = left != null && left >= _scheduleLead
@@ -264,6 +278,11 @@ class BarLoopPlayer {
     _bar = bar;
     transport.unregister(name, old);
     transport.register(name, handle, bar, startsAt: startsAt);
+    if (handingOver && startsAt != null) {
+      transport.meet(startsAt);
+    } else if (handOver) {
+      transport.cancelMeeting();
+    }
     if (old != null && switchAt != null) {
       // Both run together, silent the new one, until the pulse.
       _soloud.fadeScheduled(old, switchAt, 0, _switchLead, thenStop: true);
@@ -299,6 +318,10 @@ class BarLoopPlayer {
     return (position: position, delay: delay);
   }
 
+  /// How long the clicks wait for the piano's new loop at most (see
+  /// [play] with atMeeting): past it they change on their own.
+  static const _meetingLimit = Duration(seconds: 30);
+
   /// The least time a start can be scheduled ahead on the engine's clock.
   static const _scheduleLead = Duration(milliseconds: 60);
 
@@ -333,7 +356,7 @@ class BarLoopPlayer {
     if (aimed != null && aimed - now >= _scheduleLead) return aimed - now;
     final wait = _nextBarLine(handle, lead);
     _handOverAt = now + wait;
-    transport.meetAt = _handOverAt;
+    transport.beginMeeting(now + wait);
     _soloud.fadeVolume(handle, _volume * handOverLevel, wait);
     return wait;
   }
@@ -344,7 +367,7 @@ class BarLoopPlayer {
     final handle = _handle;
     if (_handOverAt == null || handle == null) return;
     _handOverAt = null;
-    transport.meetAt = null;
+    transport.cancelMeeting();
     if (!_soloud.getIsValidVoiceHandle(handle)) return;
     _soloud.fadeVolume(handle, _volume, const Duration(milliseconds: 300));
   }
@@ -355,6 +378,7 @@ class BarLoopPlayer {
     Future<Uint8List> Function(Duration position)? tailFor,
   }) async {
     final handle = _handle, source = _source;
+    if (_handOverAt != null) transport.cancelMeeting();
     _handOverAt = null;
     _handle = null;
     _source = null;
