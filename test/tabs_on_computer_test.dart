@@ -94,4 +94,33 @@ void main() {
     await tester.pumpAndSettle();
     expect(navigation.section, AppSection.drone);
   });
+
+  // Windows with "Animation effects" off: the browser asks for reduced
+  // motion, and the page must still go to the tab.
+  for (final (name, size) in [
+    ('rail', const Size(1600, 900)),
+    ('bottom bar', const Size(900, 1600)),
+  ]) {
+    testWidgets('with the animations off a tab shows its section ($name)', (
+      tester,
+    ) async {
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: true);
+      addTearDown(
+        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+      );
+      final navigation = await open(tester, size);
+      final pages = tester.widget<PageView>(find.byType(PageView)).controller!;
+      for (final (tab, section) in [
+        ('Tuner', AppSection.tuner),
+        ('Metronome', AppSection.metronome),
+        ('Harmony', AppSection.drone),
+      ]) {
+        await tester.tap(find.text(tab).last);
+        await tester.pumpAndSettle();
+        expect(navigation.section, section);
+        expect(pages.page, section.index.toDouble());
+      }
+    });
+  }
 }

@@ -79,13 +79,18 @@ class _HomeShellState extends State<HomeShell> {
     if (!_pages.hasClients) return;
     final page = _pages.page?.round() ?? 0;
     if (page == section.index) return;
+    // With the animations turned off (Windows "Animation effects", Android
+    // "Remove animations") the page jumps: a slide of no length never
+    // moves at all.
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _pages.jumpToPage(section.index);
+      return;
+    }
     _sliding = true;
     try {
       await _pages.animateToPage(
         section.index,
-        duration: MediaQuery.disableAnimationsOf(context)
-            ? Duration.zero
-            : Durations.medium1,
+        duration: Durations.medium1,
         curve: Easing.standard,
       );
     } finally {
