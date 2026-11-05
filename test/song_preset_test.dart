@@ -28,7 +28,7 @@ void main() {
         applySong(song('Autumn Leaves'), drone: drone, metronome: metronome);
         drone.start();
         await tester.pump(const Duration(seconds: 3));
-        expect(piano.log, ['play walking 120']);
+        expect(piano.log, ['play walking 112']);
         piano.log.clear();
 
         applySong(song('Stand by Me'), drone: drone, metronome: metronome);
@@ -86,7 +86,7 @@ void main() {
         'artist': 'Miles Davis',
         'key': 2,
         'progression': 'twoFiveOne',
-        'bpm': 160,
+        'bpm': 120,
         'style': 'walking',
         'signature': '4/4',
       });

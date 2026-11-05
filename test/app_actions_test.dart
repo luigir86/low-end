@@ -210,7 +210,7 @@ void main() {
     expect(result['ok'], true);
     expect(actions.drone.voicing, DroneVoicing.progression);
     expect(actions.drone.note.pitchClass, 0);
-    expect(actions.metronome.bpm, 140);
+    expect(actions.metronome.bpm, 126);
     expect(
       (await actions.call('drone_set', {'song': 'Yesterday'}))['ok'],
       false,
