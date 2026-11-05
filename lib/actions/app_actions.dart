@@ -186,7 +186,8 @@ class AppActions {
           'Changes the time signature, the tempo, what sounds inside each '
           'beat or the click on 2 and 4, without starting, stopping or '
           'changing section. Give at least one. The settings are remembered '
-          'for the next launch.',
+          'for the next launch. The tempo is also the one Harmony plays at '
+          '(shown in its Tempo field).',
       parameters: _metronomeParameters,
     ),
     const AppAction(

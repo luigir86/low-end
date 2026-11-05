@@ -422,6 +422,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tuningInstrument => 'Strumento';
 
   @override
+  String get tempoLabel => 'Tempo';
+
+  @override
   String get voicingLabel => 'Modalità';
 
   @override

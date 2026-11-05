@@ -286,6 +286,10 @@
   },
   "tuningChromatic": "Chromatic",
   "tuningInstrument": "Instrument",
+  "tempoLabel": "Tempo",
+  "@tempoLabel": {
+    "description": "Name of the Harmony field that shows and changes the tempo, the same as the metronome's."
+  },
   "voicingLabel": "Mode",
   "@voicingLabel": {
     "description": "Name of the Harmony field that chooses between one chord and a progression."

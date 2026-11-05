@@ -13,6 +13,7 @@ import '../../audio/audio_scope.dart';
 import '../../audio/pitch.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/choice_menu.dart';
+import '../metronome/tempo_dialog.dart';
 import '../../widgets/dial.dart';
 import '../../widgets/style_icons.dart';
 import '../../widgets/page_dots.dart';
@@ -60,7 +61,16 @@ class DronePanel extends StatelessWidget {
           upper: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _VoicingSwitch(drone: drone),
+              // Two halves like the metronome's first row: what plays, and
+              // the tempo it plays at, the metronome's, so that it can be
+              // changed without leaving Harmony.
+              Row(
+                children: [
+                  Expanded(child: _VoicingSwitch(drone: drone)),
+                  const SizedBox(width: rowGap),
+                  const Expanded(child: _TempoField()),
+                ],
+              ),
               if (drone.audioFailed)
                 Semantics(
                   liveRegion: true,
@@ -672,6 +682,39 @@ class _VoicingSwitch extends StatelessWidget {
           // Back from a progression, the note alone or the chord last chosen.
           drone.setVoicing(p ? DroneVoicing.progression : drone.chordVoicing);
         },
+      ),
+    );
+  }
+}
+
+/// The tempo Harmony plays at, which is the metronome's: "♩ = 80". A touch
+/// opens the same sheet as the metronome's pencil, so the sound changes once,
+/// on OK, and not at every step of the way.
+class _TempoField extends StatelessWidget {
+  const _TempoField();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final metronome = AudioScope.of(context).metronome;
+    final style = Theme.of(context).textTheme.bodyLarge;
+    return ListenableBuilder(
+      listenable: metronome,
+      builder: (context, _) => LabeledField(
+        key: const Key('harmonyTempo'),
+        label: l10n.tempoLabel,
+        // Heard as "Tempo, 80 BPM".
+        value: l10n.bpmValue('${metronome.bpm}'),
+        // The note comes from the music font, taller than the text: the line
+        // keeps the height of the text, so the field matches the one beside it.
+        display: Text(
+          '${metronome.signature.beatUnit.symbol} = ${metronome.bpm}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: style,
+          strutStyle: StrutStyle.fromTextStyle(style!, forceStrutHeight: true),
+        ),
+        onTap: () => showTempoDialog(context, metronome),
       ),
     );
   }
