@@ -3,8 +3,8 @@ import 'dart:typed_data';
 
 import 'package:flutter_soloud/flutter_soloud.dart';
 
+import 'loop_engine.dart';
 import 'loop_transport.dart';
-import 'soloud_engine.dart';
 
 /// Plays one looping recording of whole bars with the SoLoud engine: the
 /// metronome's clicks, or the piano's chords. Two of them (see [name])
@@ -17,7 +17,11 @@ class BarLoopPlayer {
     this.name, {
     this.follows = false,
     this.crossfade = Duration.zero,
-  });
+    LoopTransport? transport,
+  }) : transport = transport ?? LoopTransport.instance;
+
+  /// Keeps this loop with the other one, and holds the engine both play on.
+  final LoopTransport transport;
 
   /// 'click' or 'piano': how the other loop knows this one.
   final String name;
@@ -50,7 +54,7 @@ class BarLoopPlayer {
   Duration _bar = Duration.zero;
   double _volume = 1;
 
-  SoLoud get _soloud => SoLoud.instance;
+  LoopEngine get _soloud => transport.engine;
 
   bool get isPlaying => _handle != null;
 
@@ -91,7 +95,7 @@ class BarLoopPlayer {
     Future<Uint8List> Function(Duration position)? tailFor,
     bool handOver = false,
   }) async {
-    await ensureSoLoud();
+    await _soloud.ensure();
     final source = await _soloud.loadMem('$name-loop.wav', wav);
     final length = _soloud.getLength(source);
     final old = _handle != null && _soloud.getIsValidVoiceHandle(_handle!)
@@ -111,7 +115,7 @@ class BarLoopPlayer {
           ? left
           : _nextBarLine(old, _scheduleLead);
     } else {
-      wait = LoopTransport.instance.untilBarLine(name);
+      wait = transport.untilBarLine(name);
     }
     // The moment [wait] counts from, and where the old loop was then.
     var waitedFrom = _soloud.getEngineTime();
@@ -124,7 +128,7 @@ class BarLoopPlayer {
         microseconds:
             _soloud.getPosition(old).inMicroseconds % _length.inMicroseconds,
       );
-      final leader = follows ? LoopTransport.instance.phaseOf(name) : null;
+      final leader = follows ? transport.phaseOf(name) : null;
       if (_bar > Duration.zero) {
         // Back on the other loop's beat: the old loop went on at the old
         // tempo while the new one was made, and drifted from it. With no
@@ -176,6 +180,7 @@ class BarLoopPlayer {
           oldThen + (wait ?? Duration.zero),
           _length,
           since,
+          _soloud,
         );
       } catch (_) {
         // Without its tail the old loop is simply cut, as it used to be.
@@ -191,8 +196,7 @@ class BarLoopPlayer {
           tail = null;
           waitedFrom = now;
           wait =
-              LoopTransport.instance.untilBarLine(name) ??
-              _nextBarLine(old!, _scheduleLead);
+              transport.untilBarLine(name) ?? _nextBarLine(old!, _scheduleLead);
         }
       }
     }
@@ -243,8 +247,8 @@ class BarLoopPlayer {
     _source = source;
     _length = length;
     _bar = bar;
-    LoopTransport.instance.unregister(name, old);
-    LoopTransport.instance.register(name, handle, bar, startsAt: startsAt);
+    transport.unregister(name, old);
+    transport.register(name, handle, bar, startsAt: startsAt);
     if (old != null && switchAt != null) {
       // Both run together, silent the new one, until the pulse.
       _soloud.fadeScheduled(old, switchAt, 0, _switchLead, thenStop: true);
@@ -287,7 +291,7 @@ class BarLoopPlayer {
   /// when it plays (this one follows it), otherwise this loop's own, [old]
   /// playing.
   Duration _nextBarLine(SoundHandle old, Duration minimum) {
-    final other = LoopTransport.instance.untilBarLine(name, minimum: minimum);
+    final other = transport.untilBarLine(name, minimum: minimum);
     if (other != null) return other;
     return LoopTransport.waitForBarLine(
       bar: _bar,
@@ -337,7 +341,7 @@ class BarLoopPlayer {
     _handOverAt = null;
     _handle = null;
     _source = null;
-    LoopTransport.instance.unregister(name, handle);
+    transport.unregister(name, handle);
     if (handle != null &&
         tailFor != null &&
         _soloud.getIsValidVoiceHandle(handle)) {
@@ -348,6 +352,7 @@ class BarLoopPlayer {
           _soloud.getPosition(handle),
           _length,
           since,
+          _soloud,
         );
         tail.playNow(_volume);
       } catch (_) {
@@ -368,7 +373,7 @@ class BarLoopPlayer {
 /// What a loop sounds like let go at a place in it, ready to play from
 /// that place on.
 class _Tail {
-  _Tail._(this._source, this._clock, this._length);
+  _Tail._(this._soloud, this._source, this._clock, this._length);
 
   /// Makes the tail of a loop of [length] let go at [position] (taken
   /// round the loop) and loads it. [clock] runs from when [position] was
@@ -378,6 +383,7 @@ class _Tail {
     Duration position,
     Duration length,
     Stopwatch clock,
+    LoopEngine engine,
   ) async {
     final at = length > Duration.zero
         ? Duration(
@@ -385,15 +391,14 @@ class _Tail {
           )
         : position;
     final wav = await tailFor(at);
-    final source = await SoLoud.instance.loadMem('tail.wav', wav);
-    return _Tail._(source, clock, SoLoud.instance.getLength(source));
+    final source = await engine.loadMem('tail.wav', wav);
+    return _Tail._(engine, source, clock, engine.getLength(source));
   }
 
   final AudioSource _source;
   final Stopwatch _clock;
   final Duration _length;
-
-  SoLoud get _soloud => SoLoud.instance;
+  final LoopEngine _soloud;
 
   /// From where the loop is now, which went on while the tail was made.
   void playNow(double volume) {
