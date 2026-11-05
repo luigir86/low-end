@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/app_localizations.dart';
+import 'version.dart';
 
 const sourceCodeUrl = 'https://github.com/luigir86/low-end';
 
@@ -25,6 +26,7 @@ void showLowEndAbout(BuildContext context) {
   showAboutDialog(
     context: context,
     applicationName: l10n.appTitle,
+    applicationVersion: appVersionLabel,
     applicationIcon: ExcludeSemantics(
       child: Image.asset('assets/brand/logo.png', width: 80, height: 80),
     ),
