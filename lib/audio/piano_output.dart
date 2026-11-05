@@ -12,7 +12,7 @@ import 'browser_flac.dart';
 import 'click_sound.dart';
 import 'in_steps.dart';
 import 'loop_transport.dart';
-import 'off_thread.dart';
+import 'piano_mixer.dart';
 import 'piano_sound.dart';
 import 'soloud_engine.dart';
 import 'walking_bass.dart';
@@ -84,15 +84,19 @@ abstract class PianoOutput {
 }
 
 /// A loop mixed by [SoLoudPianoOutput.prerender], for the settings in [key].
-typedef _Ahead = ({
-  String key,
-  Future<({Uint8List wav, double scale})> loop,
-  SlicedWork? work,
-});
+typedef _Ahead = ({String key, Future<MixedLoop> loop, SlicedWork? work});
 
 /// Decodes a mono FLAC file of [frames] samples to its samples, from -1
 /// to 1.
 typedef FlacDecoder = Future<Float32List> Function(Uint8List flac, int frames);
+
+/// Decodes [flac] with the audio engine's own decoder (in an isolate of
+/// its own on the phone; in a page, see decodeFlacInBrowser first). Only
+/// the engine's code is needed, not the engine: no sound starts.
+Future<Float32List> decodeFlacWithEngine(Uint8List flac, int frames) async {
+  await webAudioEngineLoaded();
+  return SoLoud.instance.readSamplesFromMem(flac, frames);
+}
 
 /// The piano recordings, read and decoded when a chord first needs them,
 /// and kept while they may be needed again.
@@ -272,15 +276,8 @@ class PianoLibrary {
 }
 
 /// What the piano loop playing now was made of, to let it go.
-typedef _Playing = ({
-  PianoSamples samples,
-  List<PianoChord> chords,
-  PianoStyle style,
-  int bpm,
-  TimeSignature signature,
-  double a4,
-  double scale,
-});
+/// What plays now: its settings, and the gain its loop was mixed at.
+typedef _Playing = ({PianoLoop loop, double scale});
 
 /// [PianoOutput] backed by the SoLoud audio engine.
 class SoLoudPianoOutput implements PianoOutput {
@@ -292,21 +289,35 @@ class SoLoudPianoOutput implements PianoOutput {
     follows: true,
     crossfade: const Duration(milliseconds: 40),
   );
-  final _library = PianoLibrary(_decodeFlac);
   _Playing? _playing;
+
+  /// Where the recordings are kept and the loops mixed: on the phone an
+  /// isolate of its own (see IsolatePianoMixer), started at the first need;
+  /// in a page, or if that isolate cannot start, the screen's thread.
+  Future<PianoMixer> get _mixer => _mixerReady ??= _startMixer();
+  Future<PianoMixer>? _mixerReady;
+
+  static Future<PianoMixer> _startMixer() async {
+    if (!kIsWeb) {
+      try {
+        return FallingBackMixer(
+          await IsolatePianoMixer.spawn(token: RootIsolateToken.instance),
+          () => LocalPianoMixer(PianoLibrary(decodeFlacWithEngine)),
+        );
+      } catch (error) {
+        debugPrint('The piano isolate could not start: $error');
+      }
+    }
+    return LocalPianoMixer(PianoLibrary(decodeFlacWithEngine));
+  }
 
   /// The loop mixed ahead of the touch, if any (see [prerender]).
   _Ahead? _ahead;
 
-  static String _keyOf(
-    List<PianoChord> chords,
-    PianoStyle style,
-    int bpm,
-    TimeSignature signature,
-    double a4,
-  ) =>
-      '$chords ${style.name} $bpm ${signature.numerator}/'
-      '${signature.denominator} ${signature.groups} $a4';
+  static String _keyOf(PianoLoop loop) =>
+      '${loop.chords} ${loop.style.name} ${loop.bpm} '
+      '${loop.signature.numerator}/${loop.signature.denominator} '
+      '${loop.signature.groups} ${loop.a4}';
 
   /// Lets the recordings go a while after the piano stops: started again
   /// soon, it need not read them again.
@@ -325,10 +336,15 @@ class SoLoudPianoOutput implements PianoOutput {
   /// mixed, in a page (see [play]).
   static const _sliceWhileWaited = Duration(milliseconds: 50);
 
-  static Future<Float32List> _decodeFlac(Uint8List flac, int frames) async {
-    // The engine's code, not the engine itself: no sound starts.
-    await webAudioEngineLoaded();
-    return SoLoud.instance.readSamplesFromMem(flac, frames);
+  /// The same for a touch while nothing was mixed ahead (a tempo, a chord):
+  /// the screen still moves, at some 30 frames a second.
+  static const _sliceWhileTouched = Duration(milliseconds: 25);
+
+  void _forgetAfter(Duration wait) {
+    _forget?.cancel();
+    _forget = _keepWhilePageOpen
+        ? null
+        : Timer(wait, () => _mixer.then((m) => m.clear()));
   }
 
   @override
@@ -347,30 +363,28 @@ class SoLoudPianoOutput implements PianoOutput {
     _forget?.cancel();
     // The engine starts and warms up while the notes are mixed, not before.
     final engine = ensureSoLoud()..ignore();
-    final samples = await _library.forChords(
-      chords,
-      bass: style == PianoStyle.walking,
+    final loop = (
+      chords: chords,
+      style: style,
+      bpm: bpm,
+      signature: signature,
+      a4: a4,
     );
     // Mixed ahead of the touch, or now (which takes a moment: away from
-    // the screen's thread where there is one; in a page, for a new song, a
-    // slice at a time, so that the screen and the wait it shows keep
-    // moving).
-    final key = _keyOf(chords, style, bpm, signature, a4);
+    // the screen's thread where there is one; in a page a slice at a time,
+    // so that the screen and the wait it shows keep moving (P1): longer
+    // slices than ahead of a touch, since the sound is awaited, and longer
+    // still for a change that waits for its bar line).
+    final key = _keyOf(loop);
     var rendered = await _mixedAhead(key);
-    if (rendered == null && kIsWeb && patient) {
+    if (rendered == null) {
       await _mixAhead(
-        chords: chords,
-        style: style,
-        bpm: bpm,
-        signature: signature,
-        a4: a4,
-        // Longer slices than ahead of a touch: the sound is awaited, and
-        // the screen still draws a few frames a second.
-        slice: _sliceWhileWaited,
+        loop,
+        slice: patient ? _sliceWhileWaited : _sliceWhileTouched,
       );
       rendered = await _mixedAhead(key);
     }
-    rendered ??= await _render(samples, chords, style, bpm, signature, a4);
+    rendered ??= await (await _mixer).loop(loop);
     await engine;
     _player.setVolume(volume);
     final bar = Duration(
@@ -381,15 +395,7 @@ class SoLoudPianoOutput implements PianoOutput {
           ClickSound.sampleRate,
     );
     final was = _playing;
-    _playing = (
-      samples: samples,
-      chords: chords,
-      style: style,
-      bpm: bpm,
-      signature: signature,
-      a4: a4,
-      scale: rendered.scale,
-    );
+    _playing = (loop: loop, scale: rendered.scale);
     return _player.play(
       rendered.wav,
       bar,
@@ -407,41 +413,20 @@ class SoLoudPianoOutput implements PianoOutput {
   @override
   void cancelHandOver() => _player.cancelHandOver();
 
-  /// [was] let go at [position] in its loop (see PianoSound.tailWav).
-  static Uint8List _tail(_Playing was, Duration position) => PianoSound.tailWav(
-    samples: was.samples,
-    chords: was.chords,
-    style: was.style,
-    bpm: was.bpm,
-    signature: was.signature,
-    a4: was.a4,
-    scale: was.scale,
-    position: position.inMicroseconds * ClickSound.sampleRate ~/ 1000000,
-  );
-
-  /// Static, so that the closure sent to the isolate captures nothing but
-  /// what it needs.
-  static Future<({Uint8List wav, double scale})> _render(
-    PianoSamples samples,
-    List<PianoChord> chords,
-    PianoStyle style,
-    int bpm,
-    TimeSignature signature,
-    double a4,
-  ) => offThread(
-    () => PianoSound.loopWav(
-      samples: samples,
-      chords: chords,
-      style: style,
-      bpm: bpm,
-      signature: signature,
-      a4: a4,
-    ),
-  );
+  /// [was] let go at [position] in its loop (see PianoSound.tailWav): away
+  /// from the screen's thread where there is one, in a page a slice at a
+  /// time.
+  Future<Uint8List> _tail(_Playing was, Duration position) async =>
+      (await _mixer).tail(
+        was.loop,
+        scale: was.scale,
+        position: position.inMicroseconds * ClickSound.sampleRate ~/ 1000000,
+        slice: _sliceWhileWaited,
+      );
 
   /// The loop mixed ahead for [key], finished at full speed if still under
   /// way; null if there is none, or it failed.
-  Future<({Uint8List wav, double scale})?> _mixedAhead(String key) async {
+  Future<MixedLoop?> _mixedAhead(String key) async {
     final ahead = _ahead;
     if (ahead == null || ahead.key != key) return null;
     ahead.work?.hurry();
@@ -459,28 +444,22 @@ class SoLoudPianoOutput implements PianoOutput {
     required int bpm,
     required TimeSignature signature,
     required double a4,
-  }) => _mixAhead(
+  }) => _mixAhead((
     chords: chords,
     style: style,
     bpm: bpm,
     signature: signature,
     a4: a4,
-    slice: const Duration(milliseconds: 6),
-  );
+  ), slice: const Duration(milliseconds: 6));
 
-  /// Mixes the loop ahead (see [prerender]), in a page [slice] at a time
+  /// Mixes [loop] ahead (see [prerender]), in a page [slice] at a time
   /// with the screen in between.
-  Future<void> _mixAhead({
-    required List<PianoChord> chords,
-    required PianoStyle style,
-    required int bpm,
-    required TimeSignature signature,
-    required double a4,
-    required Duration slice,
-  }) async {
-    final key = _keyOf(chords, style, bpm, signature, a4);
+  Future<void> _mixAhead(PianoLoop loop, {required Duration slice}) async {
+    final key = _keyOf(loop);
     if (_ahead?.key == key) {
-      await _ahead!.loop;
+      try {
+        await _ahead!.loop;
+      } catch (_) {}
       return;
     }
     // Other settings: the loop for the old ones is no longer wanted.
@@ -489,39 +468,15 @@ class SoLoudPianoOutput implements PianoOutput {
     final work = kIsWeb ? SlicedWork() : null;
     // Known at once, so that a touch while the recordings are still read
     // waits for this loop instead of mixing a second one.
-    final loop = () async {
-      final samples = await _library.forChords(
-        chords,
-        bass: style == PianoStyle.walking,
-      );
-      if (work == null) {
-        return _render(samples, chords, style, bpm, signature, a4);
-      }
-      if (work.cancelled) throw const StepsCancelled();
-      final out = StepResult<({Uint8List wav, double scale})>();
-      await runInSlices(
-        PianoSound.loopWavSteps(
-          samples: samples,
-          chords: chords,
-          style: style,
-          bpm: bpm,
-          signature: signature,
-          a4: a4,
-          out: out,
-        ),
-        work,
-        slice: slice,
-      );
-      return out.value;
-    }();
-    _ahead = (key: key, loop: loop, work: work);
+    final mixed = _mixer.then((m) => m.loop(loop, work: work, slice: slice));
+    _ahead = (key: key, loop: mixed, work: work);
     try {
-      await loop;
+      await mixed;
     } on StepsCancelled {
       // Replaced by another; nothing to do.
-    } catch (_) {
-      if (identical(_ahead?.loop, loop)) _ahead = null;
-      rethrow;
+    } catch (error) {
+      if (identical(_ahead?.loop, mixed)) _ahead = null;
+      debugPrint('The piano could not mix ahead: $error');
     }
   }
 
@@ -533,8 +488,7 @@ class SoLoudPianoOutput implements PianoOutput {
     await _player.stop(
       tailFor: was == null ? null : (position) => _tail(was, position),
     );
-    _forget?.cancel();
-    _forget = _keepWhilePageOpen ? null : Timer(_keepFor, _library.clear);
+    _forgetAfter(_keepFor);
   }
 
   @override
@@ -543,13 +497,10 @@ class SoLoudPianoOutput implements PianoOutput {
     // touch; the recordings are read there without it (see
     // decodeFlacInBrowser).
     if (!kIsWeb) await ensureSoLoud();
-    await _library.forChords(chords, bass: bass);
+    await (await _mixer).prepare(chords, bass: bass);
     // Not played after all: they go, as after a stop, a while later.
     if (_playing != null) return;
-    _forget?.cancel();
-    _forget = _keepWhilePageOpen
-        ? null
-        : Timer(_keepPreparedFor, _library.clear);
+    _forgetAfter(_keepPreparedFor);
   }
 }
 

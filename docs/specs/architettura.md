@@ -149,9 +149,9 @@ Il metronomo ha un meccanismo equivalente scritto in un altro modo (`_syncing`/`
 | Interfaccia e controller | thread UI | thread della pagina | thread della pagina |
 | Disegno | raster thread | worker Skwasm (pagina isolata) | thread della pagina |
 | Mix audio | thread di SoLoud (miniaudio/AAudio) | AudioWorklet (pagina isolata) o ScriptProcessor | idem |
-| Decodifica FLAC | decoder di miniaudio via FFI (da verificare se blocca il thread UI) + conversione a Int16 sul thread UI | decoder del browser (asincrono) | decoder del browser |
-| Mix del loop dell'Armonia | `Isolate.run` (i campioni vengono **copiati** nell'isolate a ogni mix) | thread della pagina: a fette se pre-mix, **intero** se al tocco o al cambio | idem |
-| Coda (rilascio delle note) | thread UI, sincrono | thread della pagina, sincrono | idem |
+| Decodifica FLAC | dal 5/11 nell'isolate del pianoforte (`IsolatePianoMixer`): decoder di miniaudio (un `compute` a file) e conversione a Int16 | decoder del browser (asincrono) | decoder del browser |
+| Mix del loop dell'Armonia | dal 5/11 nell'isolate del pianoforte, che resta vivo e tiene i campioni (niente copia; il WAV torna senza copia). Se non parte, `Isolate.run` come prima (`FallingBackMixer`) | thread della pagina, sempre a fette (6 ms prima del tocco, 25 al tocco, 50 per un cambio alla stanghetta) | idem |
+| Coda (rilascio delle note) | nell'isolate del pianoforte | thread della pagina, a fette da 50 ms | idem |
 | Battuta del metronomo | thread UI (piccola) | thread della pagina | idem |
 | Suono tenuto | `Isolate.run` | thread della pagina | idem |
 | YIN | thread UI, ogni 50 ms | thread della pagina | idem |

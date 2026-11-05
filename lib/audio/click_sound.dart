@@ -154,7 +154,7 @@ abstract final class ClickSound {
   /// Wraps two channels from -1 to 1 into a 16-bit stereo PCM WAV file,
   /// with a touch of triangular dither, so the quiet ends of the notes and
   /// the room fade into noise rather than into steps.
-  static Uint8List stereoWav(Float64List left, Float64List right) {
+  static Uint8List stereoWav(Float32List left, Float32List right) {
     final out = StepResult<Uint8List>();
     runSteps(stereoWavSteps(left, right, out));
     return out.value;
@@ -162,8 +162,8 @@ abstract final class ClickSound {
 
   /// [stereoWav] cut into small steps (see runInSlices).
   static Iterable<void> stereoWavSteps(
-    Float64List left,
-    Float64List right,
+    Float32List left,
+    Float32List right,
     StepResult<Uint8List> out,
   ) sync* {
     final frames = left.length;
@@ -210,8 +210,8 @@ abstract final class ClickSound {
   /// Samples [from] to [to] (not included) of [stereoWav], the channels
   /// taken in turn.
   static void _toPcm(
-    Float64List left,
-    Float64List right,
+    Float32List left,
+    Float32List right,
     ByteData bytes,
     Int16List? pcm,
     math.Random random,

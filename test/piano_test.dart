@@ -53,7 +53,7 @@ double _pitch(Float64List loop, int from, int length) {
   return crossings / 2 / (length / ClickSound.sampleRate);
 }
 
-double _energy(Float64List loop, int from, int length) {
+double _energy(List<double> loop, int from, int length) {
   var e = 0.0;
   for (var i = from; i < from + length; i++) {
     e += loop[i] * loop[i];
@@ -375,7 +375,7 @@ void main() {
       );
       final quiet = render(0.2), strong = render(2);
       final peak = strong.map((v) => v.abs()).reduce(math.max);
-      expect(peak, lessThanOrEqualTo(0.97 + 1e-9));
+      expect(peak, lessThanOrEqualTo(0.97 + 1e-6)); // 32-bit mix
       expect(peak, greaterThan(0.9));
       // The loud loop is the quiet one scaled: the same shape, no new
       // partials.
