@@ -77,6 +77,51 @@ typedef DroneSetup = ({
   Set<int> flats,
 });
 
+/// [setup] as JSON, in the songs' words ([ExampleSong.toJson]): the key as
+/// a pitch class, the progression and the style by name.
+Map<String, Object> droneSetupToJson(DroneSetup setup) => {
+  'key': setup.pitchClass,
+  'voicing': setup.voicing.name,
+  'chordVoicing': setup.chordVoicing.name,
+  'chord': setup.chord.name,
+  'progression': setup.progression.name,
+  'style': setup.style.name,
+  'continuous': setup.continuous,
+  'flats': [...setup.flats]..sort(),
+};
+
+/// Reads what [droneSetupToJson] wrote, or null without a key from 0 to
+/// 11: any other part that cannot be read falls back to its default.
+DroneSetup? droneSetupFromJson(Object? json) {
+  if (json is! Map) return null;
+  final key = json['key'];
+  if (key is! int || key < 0 || key > 11) return null;
+  T pick<T extends Enum>(List<T> values, String name, T fallback) =>
+      switch (json[name]) {
+        final String text => values.asNameMap()[text] ?? fallback,
+        _ => fallback,
+      };
+  final flats = json['flats'];
+  return (
+    pitchClass: key,
+    voicing: pick(DroneVoicing.values, 'voicing', DroneVoicing.chord),
+    chordVoicing: pick(DroneVoicing.values, 'chordVoicing', DroneVoicing.chord),
+    chord: pick(ChordQuality.values, 'chord', ChordQuality.major),
+    progression: pick(
+      Progression.values,
+      'progression',
+      Progression.values.first,
+    ),
+    style: pick(DroneStyle.values, 'style', DroneStyle.beat),
+    continuous: json['continuous'] == true,
+    flats: {
+      if (flats is List)
+        for (final f in flats)
+          if (f is int && f >= 0 && f < 12) f,
+    },
+  );
+}
+
 /// State and playback of the drone: the piano playing a note, a chord or a
 /// progression, in time with the metronome, to practise on.
 ///

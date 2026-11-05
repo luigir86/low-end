@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 // The app opens as it was left: on the same section, with the harmony set as
 // the player chose it, like the metronome's tempo.
 
@@ -91,6 +93,47 @@ void main() {
       expect(drone.progression, Progression.values.first);
       expect(drone.flats, {1});
       expect(settings.section, AppSection.drone);
+    });
+
+    test('the harmony in one key, in the songs\' words', () async {
+      final settings = await AppSettings.load();
+      settings.rememberDrone(_blues);
+      await Future<void>.delayed(Duration.zero);
+      final prefs = await SharedPreferences.getInstance();
+      final json = jsonDecode(prefs.getString('harmony')!) as Map;
+      expect(json['key'], _blues.pitchClass);
+      expect(json['progression'], _blues.progression.name);
+      expect(json['style'], _blues.style.name);
+      expect(prefs.getKeys().where((k) => k.startsWith('harmony_')), isEmpty);
+    });
+
+    test('the keys of before are read once, then removed', () async {
+      SharedPreferences.setMockInitialValues({
+        'harmony_note': 5,
+        'harmony_voicing': 'progression',
+        'harmony_progression': 'blues',
+        'harmony_style': 'walking',
+        'harmony_continuous': true,
+        'harmony_flats': ['10'],
+      });
+      final drone = (await AppSettings.load()).drone!;
+      await Future<void>.delayed(Duration.zero);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getKeys().where((k) => k.startsWith('harmony_')), isEmpty);
+      final again = (await AppSettings.load()).drone!;
+      for (final d in [drone, again]) {
+        expect(d.pitchClass, 5);
+        expect(d.voicing, DroneVoicing.progression);
+        expect(d.progression, Progression.blues);
+        expect(d.style, DroneStyle.walking);
+        expect(d.continuous, isTrue);
+        expect(d.flats, {10});
+      }
+    });
+
+    test('a key it cannot read is no harmony', () async {
+      SharedPreferences.setMockInitialValues({'harmony': '{"key": 3'});
+      expect((await AppSettings.load()).drone, isNull);
     });
 
     test('nothing for a note out of range', () async {
