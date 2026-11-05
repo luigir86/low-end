@@ -27,6 +27,11 @@ class SectionFlip extends InheritedWidget {
 ///
 /// It has to be a deliberate flick: far enough, and quick. A slow drag, such
 /// as a finger resting on the dial while the other hand plays, is not one.
+///
+/// Only fingers and pens flick. A mouse (the web app on a computer, whose
+/// wide window has the rail) changes section with the tabs: its drag starts
+/// after a single pixel, so a click that moves a little would become a drag
+/// and the tab, or the middle of the dial, would never get it.
 class FlipDetector extends StatefulWidget {
   const FlipDetector({super.key, required this.child});
 
@@ -36,6 +41,14 @@ class FlipDetector extends StatefulWidget {
   /// long press): what Flutter counts as a deliberate drag.
   static const distance = kPanSlop * 2;
   static const duration = kLongPressTimeout;
+
+  /// What can flick: everything but a mouse and a trackpad.
+  static const devices = {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.stylus,
+    PointerDeviceKind.invertedStylus,
+    PointerDeviceKind.unknown,
+  };
 
   @override
   State<FlipDetector> createState() => _FlipDetectorState();
@@ -52,6 +65,7 @@ class _FlipDetectorState extends State<FlipDetector> {
     if (flip == null) return widget.child;
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
+      supportedDevices: FlipDetector.devices,
       onVerticalDragStart: (d) {
         final media = MediaQuery.of(context);
         // The strip along the top and bottom edges is the system's: the
