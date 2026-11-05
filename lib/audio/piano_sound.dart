@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 
 import '../features/metronome/time_signature.dart';
+import 'audio_format.dart';
 import 'click_sound.dart';
 import 'freeverb.dart';
 import 'in_steps.dart';
@@ -100,7 +101,7 @@ class PianoSamples {
   /// The double bass of the walking bass, when loaded.
   final BassSamples? bass;
 
-  static const sampleRate = 48000;
+  static const sampleRate = audioSampleRate;
 
   /// The notes recorded, a minor third apart, from C2 to C5: Harmony plays
   /// from C2 (the root doubled) to B4, so higher ones would never sound.
@@ -373,7 +374,7 @@ abstract final class PianoSound {
     required int bpm,
     required TimeSignature signature,
   }) {
-    final beat = (ClickSound.sampleRate * 60 / bpm).round();
+    final beat = pulseFrames(bpm);
     final barLength = beat * signature.beats;
     final strokes = <_Stroke>[];
     // The hand's small unevenness, the same at every turn of the loop.
@@ -864,7 +865,7 @@ abstract final class PianoSound {
     double a4 = 440,
   }) sync* {
     final bars = barsOf(chords, style, signature);
-    final beat = (ClickSound.sampleRate * 60 / bpm).round();
+    final beat = pulseFrames(bpm);
     final length = beat * signature.beats * bars.length;
     final sound = (left: Float32List(length), right: Float32List(length));
     final strokes = _strokes(
@@ -1028,7 +1029,7 @@ abstract final class PianoSound {
   }) sync* {
     final rate = ClickSound.sampleRate;
     final bars = barsOf(chords, style, signature);
-    final beat = (rate * 60 / bpm).round();
+    final beat = pulseFrames(bpm);
     final length = beat * signature.beats * bars.length;
     // Enough before it for the room to be full, as it is in the loop.
     final before = rate * 2;

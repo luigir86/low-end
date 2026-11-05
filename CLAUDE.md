@@ -16,7 +16,7 @@ flutter build web --wasm --release --no-web-resources-cdn   # the web app for iP
 
 ## Structure
 
-- `lib/app/` shell, settings, theme (always dark, bronze), guide; `lib/features/{metronome,tuner,tuner/drone}/` controllers + screens; `lib/audio/` sound and microphone behind interfaces with silent/fake twins for tests; `lib/actions/app_actions.dart` the action layer; `lib/l10n/` English (reference) and Italian.
+- `lib/app/` shell, settings, theme (always dark, bronze), guide; `lib/features/{metronome,tuner,harmony,songs}/` controllers + screens; `lib/audio/` sound and microphone behind interfaces with silent/fake twins for tests; `lib/actions/app_actions.dart` the action layer; `lib/l10n/` English (reference) and Italian.
 - State is plain `ChangeNotifier` controllers passed by `AudioScope`; no state-management package.
 
 ## Product rules (keep them true)

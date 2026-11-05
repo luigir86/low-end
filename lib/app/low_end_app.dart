@@ -15,8 +15,8 @@ import '../audio/soloud_engine.dart';
 import '../audio/tone_output.dart';
 import '../audio/web_audio_engine.dart';
 import '../features/metronome/metronome_controller.dart';
-import '../features/tuner/drone/drone_controller.dart';
-import '../features/tuner/drone/drone_panel.dart'
+import '../features/harmony/drone_controller.dart';
+import '../features/harmony/harmony_names.dart'
     show chordSymbol, progressionName;
 import '../features/tuner/tuner_controller.dart';
 import '../l10n/app_localizations.dart';

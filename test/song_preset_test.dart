@@ -7,9 +7,9 @@ import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/features/metronome/metronome_controller.dart';
 import 'package:low_end/features/metronome/subdivision.dart';
 import 'package:low_end/features/metronome/time_signature.dart';
-import 'package:low_end/features/tuner/drone/drone_controller.dart';
-import 'package:low_end/features/tuner/drone/example_song.dart';
-import 'package:low_end/features/tuner/drone/harmony.dart';
+import 'package:low_end/features/harmony/drone_controller.dart';
+import 'package:low_end/features/songs/example_song.dart';
+import 'package:low_end/features/harmony/harmony.dart';
 
 void main() {
   group('changing song while it plays', () {

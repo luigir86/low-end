@@ -6,8 +6,8 @@ import '../audio/pitch.dart';
 import '../features/metronome/metronome_controller.dart';
 import '../features/metronome/subdivision.dart';
 import '../features/metronome/time_signature.dart';
-import '../features/tuner/drone/drone_controller.dart';
-import '../features/tuner/drone/harmony.dart';
+import '../features/harmony/drone_controller.dart';
+import '../features/harmony/harmony.dart';
 import '../features/tuner/tuner_tuning.dart';
 import 'app_navigation.dart';
 

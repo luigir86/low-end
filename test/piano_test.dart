@@ -11,8 +11,8 @@ import 'package:low_end/audio/piano_output.dart';
 import 'package:low_end/audio/piano_sound.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/features/metronome/time_signature.dart';
-import 'package:low_end/features/tuner/drone/drone_controller.dart';
-import 'package:low_end/features/tuner/drone/harmony.dart';
+import 'package:low_end/features/harmony/drone_controller.dart';
+import 'package:low_end/features/harmony/harmony.dart';
 
 /// Pure tones in place of the piano: each recorded note a sine at its own
 /// pitch, a second long, so what is played can be told by its frequency.

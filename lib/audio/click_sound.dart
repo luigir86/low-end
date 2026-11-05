@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import '../features/metronome/subdivision.dart';
 import '../features/metronome/time_signature.dart';
+import 'audio_format.dart';
 import 'in_steps.dart';
 
 /// The metronome click, made in code: a short, dry woodblock-like tick, the
@@ -11,7 +12,7 @@ import 'in_steps.dart';
 /// The clicks between the beats are the same tick, softer.
 abstract final class ClickSound {
   /// The engine's rate (see engineSampleRate), so nothing is resampled.
-  static const sampleRate = 48000;
+  static const sampleRate = audioSampleRate;
 
   /// Pitch of the plain click and of the accented first beat, in Hz.
   static const plainHz = 800.0;
@@ -77,7 +78,7 @@ abstract final class ClickSound {
     bool backbeat = false,
   }) {
     final beats = signature.beats;
-    final beatLength = (sampleRate * 60 / bpm).round();
+    final beatLength = pulseFrames(bpm);
     final samples = Float64List(beatLength * beats);
     final inEighths = signature.denominator == 8;
     final inner = inEighths ? const <double>[] : subdivision.inner;

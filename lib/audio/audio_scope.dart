@@ -4,7 +4,7 @@ import '../actions/app_actions.dart';
 import '../app/app_navigation.dart';
 import '../app/settings.dart';
 import '../features/metronome/metronome_controller.dart';
-import '../features/tuner/drone/drone_controller.dart';
+import '../features/harmony/drone_controller.dart';
 import '../features/tuner/tuner_controller.dart';
 
 /// Makes the app's sound sources, the tuner listening to the microphone,

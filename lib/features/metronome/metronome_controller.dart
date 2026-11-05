@@ -7,7 +7,7 @@ import '../../audio/click_output.dart';
 import '../../audio/click_sound.dart';
 import '../../audio/latest_request.dart';
 import '../../audio/sound_clock.dart';
-import '../tuner/drone/drone_controller.dart';
+import 'bar_clock.dart';
 import 'subdivision.dart';
 import 'time_signature.dart';
 

@@ -15,7 +15,7 @@ import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/features/metronome/metronome_controller.dart';
 import 'package:low_end/features/metronome/subdivision.dart';
 import 'package:low_end/features/metronome/time_signature.dart';
-import 'package:low_end/features/tuner/drone/drone_controller.dart';
+import 'package:low_end/features/harmony/drone_controller.dart';
 import 'package:low_end/features/tuner/tuner_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../audio/audio_scope.dart';
 import '../features/metronome/metronome_screen.dart';
-import '../features/tuner/drone/drone_panel.dart';
+import '../features/harmony/drone_panel.dart';
 import '../features/tuner/tuner_panel.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/dial.dart';

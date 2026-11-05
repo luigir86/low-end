@@ -3,14 +3,17 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
-import '../../../audio/latest_request.dart';
-import '../../../audio/piano_output.dart';
-import '../../../audio/piano_sound.dart';
-import '../../../audio/pitch.dart';
-import '../../../audio/sound_clock.dart';
-import '../../../audio/tone_output.dart';
-import '../../metronome/time_signature.dart';
+import '../../audio/latest_request.dart';
+import '../../audio/piano_output.dart';
+import '../../audio/piano_sound.dart';
+import '../../audio/pitch.dart';
+import '../../audio/sound_clock.dart';
+import '../../audio/tone_output.dart';
+import '../metronome/bar_clock.dart';
+import '../metronome/time_signature.dart';
 import 'harmony.dart';
+
+export '../metronome/bar_clock.dart';
 
 /// What the drone plays on its note: the note alone, a chord built on it,
 /// or a progression in its key.
@@ -30,22 +33,6 @@ enum DroneStyle {
   const DroneStyle(this.piano);
 
   final PianoStyle piano;
-}
-
-/// The length, position, tempo and time signature of the bar a progression
-/// follows: the metronome's, so chords change on its "one". It notifies when
-/// the tempo or the time signature change.
-abstract interface class BarClock implements Listenable {
-  /// Beats per minute of the figure the tempo counts (in 6/8, dotted
-  /// quarters, see [TimeSignature.pulsesPerBeat]), as heard: a tempo still
-  /// being chosen on the metronome's − and + is not heard yet.
-  int get soundingBpm;
-  TimeSignature get signature;
-
-  Duration get barLength;
-
-  /// How far into the bar it is, 0 to 1, or null when not counting.
-  double? get barPhase;
 }
 
 /// 4/4 at 80 BPM, for when nothing else keeps time.

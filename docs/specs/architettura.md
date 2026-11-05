@@ -64,10 +64,10 @@ Tre livelli come dice `docs/architecture.md` (schermate → controller → uscit
 | `app/home_shell.dart` | 390 | Schede in basso o rail a sinistra, `PageView` con le tre sezioni sempre vive (`KeepAlive`, `TickerMode` per quelle fuori schermo), suggerimento di scorrimento |
 | `app/settings.dart` | 449 | Tutte le preferenze in `shared_preferences`, una chiave per valore (25 chiavi), lettura tollerante agli errori; memoria del metronomo, della sezione e dell'Armonia |
 | `features/metronome/metronome_controller.dart` | 329 | Tempo, metro, suddivisione, TAP; genera la battuta (`ClickSound.bar`) e la manda all'uscita; tiene un cronometro per la luce; fa da `BarClock` per l'Armonia |
-| `features/tuner/drone/drone_controller.dart` | 841 | **Armonia**: modello armonico (nota, accordo, giro, gradi, ortografia ♯/♭, note della tonalità), scelta pianoforte o suono tenuto, coda delle modifiche al suono, preparazione e pre-mix del loop, conteggio delle battute del giro, stato d'attesa per l'interfaccia |
-| `features/tuner/drone/harmony.dart` | 394 | Dati: qualità d'accordo (rapporti puri e semitoni), giri, sezioni, brani di esempio con JSON |
-| `features/tuner/drone/example_song.dart` | 26 | `applySong`: applica un brano chiamando uno per uno i setter di Armonia e Metronomo |
-| `features/tuner/drone/drone_panel.dart` + `drone_key_sheets.dart` | 961 + 341 | Quadrante delle note, centro con conto alla rovescia e attesa, menu accordo/giro/stile, lista dei brani; anche funzioni di nome (`chordSymbol`, `progressionName`) usate dalla notifica |
+| `features/harmony/drone_controller.dart` | 841 | **Armonia**: modello armonico (nota, accordo, giro, gradi, ortografia ♯/♭, note della tonalità), scelta pianoforte o suono tenuto, coda delle modifiche al suono, preparazione e pre-mix del loop, conteggio delle battute del giro, stato d'attesa per l'interfaccia |
+| `features/harmony/harmony.dart` | 394 | Dati: qualità d'accordo (rapporti puri e semitoni), giri, sezioni, brani di esempio con JSON |
+| `features/songs/example_song.dart` | 26 | `applySong`: applica un brano chiamando uno per uno i setter di Armonia e Metronomo |
+| `features/harmony/drone_panel.dart` + `drone_key_sheets.dart` | 961 + 341 | Quadrante delle note, centro con conto alla rovescia e attesa, menu accordo/giro/stile, lista dei brani; anche funzioni di nome (`chordSymbol`, `progressionName`) usate dalla notifica |
 | `features/tuner/tuner_controller.dart` | 205 | Microfono, finestra scorrevole, YIN, mediana delle letture, stato e permessi |
 | `actions/app_actions.dart` | 852 | Catalogo delle azioni (schema JSON), controllo degli argomenti, esecuzione sui controller, stato completo, parser dei link |
 | `audio/piano_output.dart` | 559 | `PianoLibrary` (lettura e decodifica FLAC, cache delle note), `SoLoudPianoOutput` (mix del loop, pre-mix prima del tocco, coda, tempi di conservazione dei campioni) |
@@ -84,16 +84,16 @@ Tre livelli come dice `docs/architecture.md` (schermate → controller → uscit
 
 ```mermaid
 flowchart LR
-  MC[metronome_controller] -->|BarClock| DC[tuner/drone/drone_controller]
-  ES[tuner/drone/example_song] --> MC
+  DC[harmony/drone_controller] -->|BarClock| MC[metronome_controller]
+  ES[songs/example_song] --> MC
   ES --> DC
-  LEA[app/low_end_app] -->|chordSymbol, progressionName| DPN[tuner/drone/drone_panel]
+  LEA[app/low_end_app] -->|chordSymbol, progressionName| DPN[harmony/harmony_names]
   ACT[actions/app_actions] --> DC & MC & TC[tuner_controller] & SET[app/settings] & NAV[app/app_navigation] & ES
   SET -->|DroneSetup, TimeSignature, Subdivision| DC & MC
   PO[audio/piano_output] -->|TimeSignature| MCF[metronome/time_signature]
 ```
 
-Da notare: il **metronomo dipende dall'Armonia** (l'interfaccia `BarClock` sta in `drone_controller.dart`), l'Armonia vive dentro la cartella dell'**accordatore** (`features/tuner/drone/`), le **impostazioni** conoscono i tipi interni di Armonia e Metronomo, e la **notifica** prende i nomi degli accordi da un file di schermata.
+Da notare (fino al 5/11): il **metronomo dipendeva dall'Armonia** (l'interfaccia `BarClock` stava in `drone_controller.dart`; ora in `metronome/bar_clock.dart`), l'Armonia vive dentro la cartella dell'**accordatore** (`features/tuner/drone/`), le **impostazioni** conoscono i tipi interni di Armonia e Metronomo, e la **notifica** prende i nomi degli accordi da un file di schermata.
 
 ## 4. Flussi a runtime
 

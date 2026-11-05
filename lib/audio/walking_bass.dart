@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import '../features/metronome/time_signature.dart';
+import 'audio_format.dart';
 import 'piano_sound.dart';
 
 /// Recorded double bass notes, plucked, a few of them pitched up and down to
@@ -18,7 +19,7 @@ class BassSamples {
   /// The takes of each recorded note, by MIDI number, then by layer.
   final Map<int, Map<int, List<Int16List>>> notes;
 
-  static const sampleRate = 48000;
+  static const sampleRate = audioSampleRate;
 
   /// The notes recorded, a minor third apart, from D#1 to D#3.
   static const roots = [27, 30, 33, 36, 39, 42, 45, 48, 51];
