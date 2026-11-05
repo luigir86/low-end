@@ -241,6 +241,19 @@ class _InstrumentField extends StatelessWidget {
   }
 }
 
+/// The shape that goes with the verdict's colour: a tick in tune, an arrow
+/// up or down when close, two arrows when far off (the same limits as
+/// [_centsColor]), so that close and far differ by more than their colour.
+IconData verdictIcon(double cents, double tolerance) {
+  final off = cents.abs();
+  if (off <= tolerance) return Icons.check_circle;
+  final far = off > math.max(15, tolerance);
+  if (cents < 0) {
+    return far ? Icons.keyboard_double_arrow_down : Icons.arrow_downward;
+  }
+  return far ? Icons.keyboard_double_arrow_up : Icons.arrow_upward;
+}
+
 /// Green when in tune, ochre when close, red when far off: the shades live
 /// in lib/app/theme.dart and keep at least 3:1 contrast (WCAG 1.4.3, 1.4.11).
 Color _centsColor(ThemeData theme, double cents, double tolerance) {
@@ -634,7 +647,7 @@ class _NoteDisplay extends StatelessWidget {
           opacity: held ? 0.55 : 1,
           child: fit([
             // The note in the ink of the text; the verdict alone, under it,
-            // turns green, orange or red.
+            // turns teal green, yellow or red.
             _NoteName(
               note: target,
               names: names,
@@ -645,11 +658,10 @@ class _NoteDisplay extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // A shape as well as a colour, for colour-blind players.
+                // A shape as well as a colour, for colour-blind players: a
+                // tick in tune, one arrow close, two arrows far off.
                 Icon(
-                  r.inTune
-                      ? Icons.check_circle
-                      : (cents < 0 ? Icons.arrow_downward : Icons.arrow_upward),
+                  verdictIcon(r.cents, tolerance),
                   color: color,
                   size: LowEndType.headline,
                 ),
@@ -731,13 +743,14 @@ class _NoteName extends StatelessWidget {
   }
 }
 
-/// The cents, 50 flat to 50 sharp, in the first row under the dial, drawn
-/// with a thin track as wide as the rows above
-/// it: the same thin track, the same short mark in the middle and the same
-/// round thumb. The thumb says how far off the note is, by its place, its
-/// size and the verdict's colour; no shaded zone, which looked like
-/// something to drag. The strobe shows the same thing by turning,
-/// which is hard to read at a glance, and this by position, which is not.
+/// The cents, 50 flat to 50 sharp, in the first row under the dial: a scale
+/// on a horizontal axis, with a tick every 5 cents, and a needle at the
+/// note. The axis takes the verdict's colour from 0 to the needle, so the
+/// length of that stretch says how far off the note is even to a player who
+/// cannot tell the colours apart. No zone is marked round 0: the needle's
+/// colour and the verdict in the dial say when the note is in tune. The
+/// strobe shows the same thing by turning, which is hard to read at a
+/// glance, and this by position, which is not.
 class _CentsBar extends StatelessWidget {
   const _CentsBar({
     required this.reading,
@@ -751,13 +764,17 @@ class _CentsBar extends StatelessWidget {
   final double tolerance;
   final bool listening;
 
-  /// The room left at each side so that the thumb at the ends stays inside
-  /// the width of the rows above it, as a slider leaves for its thumb.
+  /// The room left at each side, so that the numbers under the ends of the
+  /// scale stay inside the width of the rows below it.
   static const _inset = 24.0;
+
+  /// The numbers written under the scale.
+  static const _numbers = [-50, -25, 0, 25, 50];
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final r = reading;
     final show = listening && r != null;
     final label = theme.textTheme.labelMedium?.copyWith(
@@ -770,36 +787,63 @@ class _CentsBar extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // A word over the track.
-            Text(AppLocalizations.of(context).centsTitle, style: label),
+            // Over the scale: which side is flat, which sharp, and what it
+            // counts.
+            Row(
+              children: [
+                Expanded(child: Text(l10n.flat, style: label)),
+                Text(l10n.centsTitle, style: label),
+                Expanded(
+                  child: Text(
+                    l10n.sharp,
+                    style: label,
+                    textAlign: TextAlign.end,
+                  ),
+                ),
+              ],
+            ),
             SizedBox(
-              height: 32,
+              height: 36,
               width: double.infinity,
               child: CustomPaint(
-                painter: _CentsBarPainter(
+                painter: _CentsScalePainter(
                   cents: show ? r.cents : null,
                   // The verdict's colour: green in tune, yellow close, red
-                  // far off; grey while the note is only held.
-                  marker: show && !held
+                  // far off; the colour of the borders while the note is
+                  // only held.
+                  needle: show && !held
                       ? _centsColor(theme, r.cents, tolerance)
                       : theme.colorScheme.outline,
-                  tolerance: tolerance,
-                  track: theme.colorScheme.outlineVariant,
-                  middle: theme.colorScheme.outline,
-                  hub: theme.colorScheme.surface,
+                  axis: theme.colorScheme.outline,
+                  minorTick: theme.colorScheme.outlineVariant,
                 ),
               ),
             ),
-            // The scale under the track, so that the thumb's place reads as
-            // cents: its ends and its middle.
-            Row(
-              children: [
-                Expanded(child: Text('−50', style: label)),
-                Text('0', style: label),
-                Expanded(
-                  child: Text('+50', style: label, textAlign: TextAlign.end),
+            // The numbers, each centred under its tick.
+            LayoutBuilder(
+              builder: (context, box) => SizedBox(
+                width: box.maxWidth,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Holds the height of a line of numbers.
+                    Opacity(opacity: 0, child: Text('0', style: label)),
+                    for (final n in _numbers)
+                      Positioned(
+                        left: centsOnScale(n.toDouble()) * box.maxWidth,
+                        child: FractionalTranslation(
+                          translation: const Offset(-0.5, 0),
+                          child: Text(
+                            // A real minus sign: the hyphen is too short next
+                            // to the plus.
+                            n > 0 ? '+$n' : (n < 0 ? '−${-n}' : '0'),
+                            style: label,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ],
         ),
@@ -808,68 +852,74 @@ class _CentsBar extends StatelessWidget {
   }
 }
 
-/// The radius of the cents bar's thumb: 10 dp within [tolerance] of the
-/// note, down to 5 dp at 50 cents off.
-double centsThumbRadius(double cents, double tolerance) {
-  final off = cents.abs() - tolerance;
-  if (off <= 0) return 10;
-  return 10 - 5 * (off / math.max(1, 50 - tolerance)).clamp(0.0, 1.0);
-}
+/// Where [cents] fall on the scale, from 0 (50 flat) to 1 (50 sharp); a
+/// note further off stays at the end.
+double centsOnScale(double cents) => (cents.clamp(-50, 50) + 50) / 100;
 
-class _CentsBarPainter extends CustomPainter {
-  _CentsBarPainter({
+class _CentsScalePainter extends CustomPainter {
+  _CentsScalePainter({
     required this.cents,
-    required this.marker,
-    required this.tolerance,
-    required this.track,
-    required this.middle,
-    required this.hub,
+    required this.needle,
+    required this.axis,
+    required this.minorTick,
   });
 
   final double? cents;
-  final Color marker;
-  final double tolerance;
-  final Color track;
-  final Color middle;
-  final Color hub;
+  final Color needle;
+  final Color axis;
+  final Color minorTick;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final mid = size.height / 2;
-    double x(double c) => (c.clamp(-50, 50) + 50) / 100 * size.width;
-    // The track of a slider: 4 dp, with round ends.
+    // The axis runs along the bottom; the ticks stand on it and the
+    // needle's head sits over them.
+    final y = size.height - 4;
+    double x(double c) => centsOnScale(c) * size.width;
     canvas.drawRRect(
-      RRect.fromLTRBR(
-        0,
-        mid - 2,
-        size.width,
-        mid + 2,
-        const Radius.circular(2),
-      ),
-      Paint()..color = track,
+      RRect.fromLTRBR(0, y - 1, size.width, y + 1, const Radius.circular(1)),
+      Paint()..color = axis,
     );
-    // The middle: 2 by 16 dp.
-    canvas.drawRect(
-      Rect.fromCenter(center: Offset(x(0), mid), width: 2, height: 16),
-      Paint()..color = middle,
-    );
+    // A tick every 5 cents: tall and thicker at 0, ±25 and ±50, middle at
+    // every 10, short in between.
+    for (var c = -50; c <= 50; c += 5) {
+      final major = c % 25 == 0;
+      final height = major ? 14.0 : (c % 10 == 0 ? 9.0 : 6.0);
+      final width = major ? 2.0 : 1.0;
+      canvas.drawRect(
+        Rect.fromLTRB(
+          x(c.toDouble()) - width / 2,
+          y - height,
+          x(c.toDouble()) + width / 2,
+          y,
+        ),
+        Paint()..color = major ? axis : minorTick,
+      );
+    }
     final c = cents;
     if (c == null) return;
-    // A round thumb, with a thin halo against the track and the mark: as big
-    // as a slider's when in tune, smaller the further off the note is, so
-    // that it reads as a reading, not as something to drag.
-    final at = Offset(x(c), mid);
-    final r = centsThumbRadius(c, tolerance);
-    canvas.drawCircle(at, r + 1.5, Paint()..color = hub);
-    canvas.drawCircle(at, r, Paint()..color = marker);
+    final paint = Paint()..color = needle;
+    // The axis in the needle's colour from 0 to the needle, however short.
+    final from = math.min(x(0), x(c));
+    final to = math.max(x(0), x(c));
+    canvas.drawRect(Rect.fromLTRB(from, y - 2.5, to, y + 2.5), paint);
+    // The needle: a line from over the ticks to under the axis, with a
+    // head pointing down at the scale.
+    final at = x(c);
+    canvas.drawRect(Rect.fromLTRB(at - 1.25, 9, at + 1.25, y + 4), paint);
+    canvas.drawPath(
+      Path()
+        ..moveTo(at - 6, 0)
+        ..lineTo(at + 6, 0)
+        ..lineTo(at, 10)
+        ..close(),
+      paint,
+    );
   }
 
   @override
-  bool shouldRepaint(_CentsBarPainter old) =>
+  bool shouldRepaint(_CentsScalePainter old) =>
       old.cents != cents ||
-      old.marker != marker ||
-      old.tolerance != tolerance ||
-      old.track != track ||
-      old.middle != middle ||
-      old.hub != hub;
+      old.needle != needle ||
+      old.axis != axis ||
+      old.minorTick != minorTick;
 }
