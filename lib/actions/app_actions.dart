@@ -388,10 +388,11 @@ class AppActions {
           'bar, each 4, 8 or 12 bars long, from the easiest: pop and rock '
           '(I-VI-IV-V, I-V-VI-IV or the Andalusian cadence, '
           'minor), blues (12-bar blues, minor blues) and jazz (II-V-I as '
-          'Dm7 G7 Cmaj7 A7, minor II-V-I as Dm7b5 G7b9 Cm7 Ab7, I-VI-II-V as '
+          'Dm7 G7 Cmaj7 A7, minor II-V-I as Dm7b5 G7b9 Cm7 Cm7, I-VI-II-V as '
           'Cmaj7 A7 Dm7 G7, the "Anatole" of I Got Rhythm, '
-          'circle of fifths in 8 bars as in Autumn Leaves; the II-V-I and the '
-          'circle end on a VI7 that turns the loop around). I-VI-IV-V, the "giro di Do", is the one '
+          'circle of fifths in 8 bars as in Autumn Leaves; the major II-V-I '
+          'and the circle end on a VI7 that turns the loop around, the minor '
+          'II-V-I rests on the I for two bars). I-VI-IV-V, the "giro di Do", is the one '
           'chosen first.',
     },
     'style': {

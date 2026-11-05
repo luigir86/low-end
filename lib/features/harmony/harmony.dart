@@ -160,14 +160,16 @@ enum Progression {
     ProgressionStep(9, ChordQuality.dominant, 'VI'),
   ]),
 
-  /// Minor II–V–I, closed by the ♭VI7 that turns it around to the II: in
-  /// C, Dm7♭5 G7♭9 Cm7 A♭7, darker than A7 and still in the key. The V has
-  /// the ♭9 of the minor key (see [ChordQuality.dominantFlat9]).
+  /// Minor II–V–I with the I held for two bars: in C, Dm7♭5 G7♭9 Cm7 Cm7,
+  /// as Blue Bossa ends. No turnaround: A♭7 (the tritone substitute of D7)
+  /// wants to go to G, not back to Dm7♭5, and A7 would bring C♯ and E into
+  /// the minor key. The V has the ♭9 of the minor key (see
+  /// [ChordQuality.dominantFlat9]).
   minorTwoFiveOne([
     ProgressionStep(2, ChordQuality.halfDiminished, 'II'),
     ProgressionStep(7, ChordQuality.dominantFlat9, 'V'),
     ProgressionStep(0, ChordQuality.minor7, 'I'),
-    ProgressionStep(8, ChordQuality.dominant, '♭VI'),
+    ProgressionStep(0, ChordQuality.minor7, 'I'),
   ], minor: true),
 
   /// I–VI–II–V, the jazz turnaround that jazz musicians call the Anatole,
