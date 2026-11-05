@@ -5,13 +5,14 @@ ARMONIA: IL TUO PIANISTA
 • Nove progressioni su cui suonare, dalla più semplice, in sezioni per pop e rock, blues e jazz: il giro di Do (I–VI–IV–V), I–V–VI–IV, la cadenza andalusa, il blues di dodici battute (maggiore e minore), II–V–I (maggiore e minore), I–VI–II–V e il ciclo delle quinte di Autumn Leaves. Un accordo per battuta, in frasi di 4, 8 o 12 battute, in qualunque tonalità, con i numeri romani sui tasti.
 • I brani d'esempio (Stand by Me, Sweet Home Chicago, Blue Bossa, Autumn Leaves e altri) impostano tonalità, progressione, tempo e stile del pianoforte in un tocco.
 • Quattro modi di suonare: accordi tenuti per la battuta, battuti a ogni movimento, arpeggiati, oppure il walking bass: una linea jazz su un contrabbasso pizzicato, con il pianoforte che accompagna leggero sopra.
-• Oppure un accordo solo da tenere (otto tipi, dal maggiore al sus4), la nota da sola, o un tono continuo al posto del pianoforte. Mentre suona, le note che non senti si attenuano sul cerchio.
+• Oppure un accordo solo da tenere (nove tipi, dal maggiore al sus4), la nota da sola, o un tono continuo al posto del pianoforte. Mentre suona, le note che non senti si attenuano sul cerchio.
 • Se avvii l'armonia mentre il click è in corso, entra sulla battuta successiva, con un conto alla rovescia al centro del cerchio.
+• Cambia brano, giro o stile mentre suona: il vecchio sfuma e il nuovo entra sul "uno" della battuta dopo, come in una band.
 
 METRONOMO
 • Tempo da 30 a 250 BPM: scrivilo con la matita, tieni premuto − o + per farlo scorrere, oppure usa TAP.
 • Tempi 1/1, 2/4, 3/4, 4/4, 5/4, 6/8, 7/8, 9/8 e 12/8, con i movimenti raggruppati come si contano.
-• Un anello che si accende movimento per movimento e un click breve e secco, sempre stabile. Suddivisioni in crome, terzine, semicrome e swing (come MuseScore suona «Swing»), oppure il click solo su 2 e 4.
+• Un anello che si accende movimento per movimento e un click breve e secco. Suddivisioni in crome, terzine, semicrome e swing (come MuseScore suona «Swing»), oppure il click solo su 2 e 4.
 
 ACCORDATORE
 • Cromatico, con uno strobo rotondo e la nota al centro: suona una nota qualsiasi e compare, senza dover scegliere prima la corda. Oppure scegli le corde di chitarra, violino, viola, violoncello, ukulele o basso.
@@ -24,13 +25,13 @@ PENSATA PER SUONARE
 • Scorri a sinistra e a destra per cambiare sezione; per le prove, blocca i gesti nelle impostazioni.
 • Continua a suonare con lo schermo spento, con una notifica che dice cosa sta suonando. Lo schermo può restare acceso mentre suoni.
 • Se stacchi le cuffie il suono si ferma, invece di passare all'altoparlante del telefono.
-• Un aspetto scuro in bronzo ed ebano, riposante sul palco; italiano e inglese; nomi delle note Do Re Mi o C D E.
+• Un aspetto scuro in bronzo ed ebano, comodo sul palco; italiano e inglese; nomi delle note Do Re Mi o C D E.
 • Progettata per essere accessibile: etichette per i lettori di schermo, testo ingrandibile e colori mai usati come unico segnale.
 
 PRIVATA E APERTA
 • Nessun account, nessuna pubblicità, nessun tracciamento, nessuna connessione a internet.
 • Il microfono è usato solo mentre l'accordatore è sullo schermo.
 • Software libero e open source con licenza MIT: https://github.com/luigir86/low-end
-• Suoni del pianoforte: Salamander Grand Piano di Alexander Holm (pubblico dominio).
+• Suoni: pianoforte Salamander Grand Piano di Alexander Holm, contrabbasso Meatbass di Karoryfer Lecolds (pubblico dominio).
 
 Domande o idee? Scrivi a ribaluigi@gmail.com o apri una segnalazione su GitHub.

@@ -5,8 +5,9 @@ HARMONY: YOUR PIANO PLAYER
 • Nine progressions to play over, from the easiest, in sections for pop and rock, blues and jazz: I–VI–IV–V, I–V–VI–IV, the Andalusian cadence, the twelve-bar blues (major and minor), II–V–I (major and minor), I–VI–II–V and the circle of fifths of Autumn Leaves. One chord per bar, in phrases of 4, 8 or 12 bars, in any key, with the Roman numerals on the keys.
 • Example songs (Stand by Me, Sweet Home Chicago, Blue Bossa, Autumn Leaves and more) set the key, the progression, the tempo and the piano style in one tap.
 • Four ways to play: chords held for the bar, struck on every beat, arpeggiated, or a walking bass: a jazz line on a plucked double bass, with the piano comping lightly above it.
-• Or a single chord to hold (eight kinds, from major to sus4), the note alone, or a held tone instead of the piano. While it sounds, the notes not heard fade on the dial.
+• Or a single chord to hold (nine kinds, from major to sus4), the note alone, or a held tone instead of the piano. While it sounds, the notes not heard fade on the dial.
 • Start the harmony while the click is running and it comes in on the next bar, with a countdown on the dial.
+• Change song, progression or style while it plays: the old one fades and the new one comes in on the "one" of the next bar, as in a band.
 
 METRONOME
 • Tempo from 30 to 250 BPM: type it with the pencil, hold − or + to run through it, or use TAP.
@@ -31,6 +32,6 @@ PRIVATE AND OPEN
 • No account, no ads, no tracking, no internet connection needed.
 • The microphone is used only while the tuner is on screen.
 • Free and open-source software under the MIT License: https://github.com/luigir86/low-end
-• Piano sounds from the Salamander Grand Piano by Alexander Holm (public domain).
+• Sounds: Salamander Grand Piano by Alexander Holm, Meatbass double bass by Karoryfer Lecolds (public domain).
 
 Questions or ideas? Write to ribaluigi@gmail.com or open an issue on GitHub.
