@@ -3,14 +3,50 @@ name: CI
 on:
   push:
     branches: [main]
+    paths:
+      - '**'
+      # Texts only: nothing to build or test.
+      - '!**.md'
+      - '!docs/**'
+      - '!store/**'
+      # Except the action catalog, which a test compares with the code.
+      - 'docs/llm-actions.json'
   pull_request:
+    paths:
+      - '**'
+      - '!**.md'
+      - '!docs/**'
+      - '!store/**'
+      - 'docs/llm-actions.json'
 
 # The workflow only reads the code: no other permission is needed.
 permissions:
   contents: read
 
+# A new push to a pull request stops the run of the previous one; on main
+# every merge is checked to the end.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Three jobs side by side: the run lasts as long as the longest one.
 jobs:
   test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed lib test
+      - run: flutter analyze
+      - run: flutter test
+
+  # Catches a mistake in the manifest or in Gradle before it reaches a
+  # phone. Debug: a release build needs the upload key (see store/README.md).
+  android:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,12 +58,23 @@ jobs:
         with:
           channel: stable
           cache: true
+      # Keeps Gradle and the Android libraries between runs (saved by main,
+      # read by pull requests).
+      - uses: gradle/actions/setup-gradle@v4
       - run: flutter pub get
-      - run: dart format --output=none --set-exit-if-changed lib test
-      - run: flutter analyze
-      - run: flutter test
-      # Catches a mistake in the manifest or in Gradle before it reaches a
-      # phone. Debug: a release build needs the upload key (see store/README.md).
-      - run: flutter build apk --debug
-      # The same for the web app (docs/web.md).
+      # arm64 only (nearly every phone, the S20 FE too): the C++ audio engine
+      # is compiled once instead of once per processor type. The .aab for the
+      # Play Store is built on the PC and still holds every type.
+      - run: flutter build apk --debug --target-platform android-arm64
+
+  # The same for the web app (docs/web.md); web.yml publishes it.
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
       - run: flutter build web --wasm --release --no-web-resources-cdn

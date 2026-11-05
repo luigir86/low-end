@@ -78,7 +78,7 @@ All colours are in `lib/app/theme.dart` (bronze on ebony, always dark: one accen
 flutter test test_screenshots/ui_review_test.dart --update-goldens
 ```
 
-CI (`.github/workflows/ci.yml`) runs `dart format --set-exit-if-changed lib test`, `flutter analyze` and `flutter test` on every push to `main` and every pull request.
+CI (`.github/workflows/ci.yml`) runs three jobs side by side on every push to `main` and every pull request that touches more than texts (`*.md`, `docs/` except `docs/llm-actions.json`, `store/`): `dart format --set-exit-if-changed lib test`, `flutter analyze` and `flutter test`; a debug APK for arm64 only (the C++ audio engine compiled once; Gradle cached); the web build. A new push to a pull request cancels its previous run.
 
 ## Release
 
