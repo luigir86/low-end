@@ -328,7 +328,7 @@ void main() {
         metronome.setBpm(60);
         apply('Tune Up');
         expect(drone.style, DroneStyle.walking);
-        expect(metronome.bpm, 160);
+        expect(metronome.bpm, 120);
         apply('Stand by Me');
         expect(drone.style, DroneStyle.beat);
         expect(metronome.bpm, 118);
@@ -346,7 +346,7 @@ void main() {
         expect(drone.progression, Progression.oneSixTwoFive);
         expect(drone.style, DroneStyle.walking);
         expect(metronome.signature, TimeSignature.twoFour);
-        expect(metronome.bpm, 160);
+        expect(metronome.bpm, 120);
         apply('Tune Up');
         expect(metronome.signature, TimeSignature.fourFour);
       });

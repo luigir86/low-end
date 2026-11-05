@@ -187,7 +187,7 @@ void main() {
     expect(scope.drone.voicing, DroneVoicing.progression);
     expect(scope.drone.progression, Progression.minorTwoFiveOne);
     expect(scope.drone.note.pitchClass, 0);
-    expect(scope.metronome.bpm, 140);
+    expect(scope.metronome.bpm, 126);
   });
 
   test('the example songs follow the order of the progression menu', () {

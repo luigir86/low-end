@@ -337,7 +337,7 @@ const exampleSongs = [
     'Ray Charles',
     9,
     Progression.andalusian,
-    168,
+    144,
     DroneStyle.beat,
   ),
   ExampleSong(
@@ -353,7 +353,7 @@ const exampleSongs = [
     'John Coltrane',
     0,
     Progression.minorBlues,
-    160,
+    132,
     DroneStyle.walking,
   ),
   ExampleSong(
@@ -361,7 +361,7 @@ const exampleSongs = [
     'Miles Davis',
     2,
     Progression.twoFiveOne,
-    160,
+    120,
     DroneStyle.walking,
   ),
   ExampleSong(
@@ -369,7 +369,7 @@ const exampleSongs = [
     'Kenny Dorham',
     0,
     Progression.minorTwoFiveOne,
-    140,
+    126,
     DroneStyle.arpeggio,
   ),
   // Two chords a bar in 4/4, so one a bar in 2/4: B♭ G7 Cm7 F7, the first
@@ -379,7 +379,7 @@ const exampleSongs = [
     'George Gershwin',
     10,
     Progression.oneSixTwoFive,
-    160,
+    120,
     DroneStyle.walking,
     signature: TimeSignature.twoFour,
   ),
@@ -388,7 +388,7 @@ const exampleSongs = [
     'Joseph Kosma',
     7,
     Progression.circleOfFifths,
-    120,
+    112,
     DroneStyle.walking,
   ),
 ];
