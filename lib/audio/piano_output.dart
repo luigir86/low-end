@@ -325,6 +325,10 @@ class SoLoudPianoOutput implements PianoOutput {
   /// mixed, in a page (see [play]).
   static const _sliceWhileWaited = Duration(milliseconds: 50);
 
+  /// The same for a touch while nothing was mixed ahead (a tempo, a chord):
+  /// the screen still moves, at some 30 frames a second.
+  static const _sliceWhileTouched = Duration(milliseconds: 25);
+
   static Future<Float32List> _decodeFlac(Uint8List flac, int frames) async {
     // The engine's code, not the engine itself: no sound starts.
     await webAudioEngineLoaded();
@@ -357,16 +361,17 @@ class SoLoudPianoOutput implements PianoOutput {
     // moving).
     final key = _keyOf(chords, style, bpm, signature, a4);
     var rendered = await _mixedAhead(key);
-    if (rendered == null && kIsWeb && patient) {
+    if (rendered == null && kIsWeb) {
+      // In a page every mix a slice at a time (P1): longer slices than
+      // ahead of a touch, since the sound is awaited, and longer still for
+      // a change that waits for its bar line; the screen keeps drawing.
       await _mixAhead(
         chords: chords,
         style: style,
         bpm: bpm,
         signature: signature,
         a4: a4,
-        // Longer slices than ahead of a touch: the sound is awaited, and
-        // the screen still draws a few frames a second.
-        slice: _sliceWhileWaited,
+        slice: patient ? _sliceWhileWaited : _sliceWhileTouched,
       );
       rendered = await _mixedAhead(key);
     }
@@ -407,17 +412,43 @@ class SoLoudPianoOutput implements PianoOutput {
   @override
   void cancelHandOver() => _player.cancelHandOver();
 
-  /// [was] let go at [position] in its loop (see PianoSound.tailWav).
-  static Uint8List _tail(_Playing was, Duration position) => PianoSound.tailWav(
-    samples: was.samples,
-    chords: was.chords,
-    style: was.style,
-    bpm: was.bpm,
-    signature: was.signature,
-    a4: was.a4,
-    scale: was.scale,
-    position: position.inMicroseconds * ClickSound.sampleRate ~/ 1000000,
-  );
+  /// [was] let go at [position] in its loop (see PianoSound.tailWav): away
+  /// from the screen's thread where there is one, in a page a slice at a
+  /// time.
+  static Future<Uint8List> _tail(_Playing was, Duration position) async {
+    final at = position.inMicroseconds * ClickSound.sampleRate ~/ 1000000;
+    if (!kIsWeb) {
+      return offThread(
+        () => PianoSound.tailWav(
+          samples: was.samples,
+          chords: was.chords,
+          style: was.style,
+          bpm: was.bpm,
+          signature: was.signature,
+          a4: was.a4,
+          scale: was.scale,
+          position: at,
+        ),
+      );
+    }
+    final out = StepResult<Uint8List>();
+    await runInSlices(
+      PianoSound.tailWavSteps(
+        samples: was.samples,
+        chords: was.chords,
+        style: was.style,
+        bpm: was.bpm,
+        signature: was.signature,
+        a4: was.a4,
+        scale: was.scale,
+        position: at,
+        out: out,
+      ),
+      SlicedWork(),
+      slice: _sliceWhileWaited,
+    );
+    return out.value;
+  }
 
   /// Static, so that the closure sent to the isolate captures nothing but
   /// what it needs.

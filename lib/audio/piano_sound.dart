@@ -214,7 +214,7 @@ class _Stroke {
 }
 
 /// Two channels of sound, from -1 to 1.
-typedef Stereo = ({Float64List left, Float64List right});
+typedef Stereo = ({Float32List left, Float32List right});
 
 /// Renders the bars of a chord progression played on the piano as one
 /// looping recording, the same length as the metronome's bar so that the
@@ -866,7 +866,7 @@ abstract final class PianoSound {
     final bars = barsOf(chords, style, signature);
     final beat = (ClickSound.sampleRate * 60 / bpm).round();
     final length = beat * signature.beats * bars.length;
-    final sound = (left: Float64List(length), right: Float64List(length));
+    final sound = (left: Float32List(length), right: Float32List(length));
     final strokes = _strokes(
       chords: bars,
       style: style,
@@ -996,6 +996,36 @@ abstract final class PianoSound {
     required double scale,
     double a4 = 440,
   }) {
+    final out = StepResult<Uint8List>();
+    runSteps(
+      tailWavSteps(
+        samples: samples,
+        chords: chords,
+        style: style,
+        bpm: bpm,
+        signature: signature,
+        position: position,
+        scale: scale,
+        a4: a4,
+        out: out,
+      ),
+    );
+    return out.value;
+  }
+
+  /// [tailWav] cut into small steps (see runInSlices): in a browser the
+  /// tail is mixed a slice at a time, the screen drawn in between.
+  static Iterable<void> tailWavSteps({
+    required PianoSamples samples,
+    required List<PianoChord> chords,
+    required PianoStyle style,
+    required int bpm,
+    required TimeSignature signature,
+    required int position,
+    required double scale,
+    required StepResult<Uint8List> out,
+    double a4 = 440,
+  }) sync* {
     final rate = ClickSound.sampleRate;
     final bars = barsOf(chords, style, signature);
     final beat = (rate * 60 / bpm).round();
@@ -1003,9 +1033,9 @@ abstract final class PianoSound {
     // Enough before it for the room to be full, as it is in the loop.
     final before = rate * 2;
     final after = tailLength.inMicroseconds * rate ~/ 1000000;
-    final out = (
-      left: Float64List(before + after),
-      right: Float64List(before + after),
+    final dry = (
+      left: Float32List(before + after),
+      right: Float32List(before + after),
     );
     final origin = position - before;
     final strokes = _strokes(
@@ -1029,22 +1059,27 @@ abstract final class PianoSound {
             hold: held ? position - at : s.hold,
             damp: held || s.damp,
           ),
-          out,
+          dry,
           a4,
           origin: origin,
           wrap: false,
         );
+        yield null;
       }
     }
-    for (var i = 0; i < out.left.length; i++) {
-      out.left[i] *= scale;
-      out.right[i] *= scale;
+    for (var i = 0; i < dry.left.length; i++) {
+      dry.left[i] *= scale;
+      dry.right[i] *= scale;
     }
-    final sound = Freeverb.room().run(out);
-    return ClickSound.stereoWav(
-      Float64List.sublistView(sound.left, before),
-      Float64List.sublistView(sound.right, before),
+    final sound = StepResult<Stereo>();
+    yield* Freeverb.room().fromSilenceSteps(dry, sound);
+    final wav = StepResult<Uint8List>();
+    yield* ClickSound.stereoWavSteps(
+      Float32List.sublistView(sound.value.left, before),
+      Float32List.sublistView(sound.value.right, before),
+      wav,
     );
+    out.value = wav.value;
   }
 
   /// Beats from [pulse] to the next strike of the chord in the bar, or to

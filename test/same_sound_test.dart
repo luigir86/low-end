@@ -32,10 +32,19 @@ void main() {
       for (var i = 0; i < 70000; i++) random.nextDouble() - 0.5,
     ]);
     final dry = (left: noise(), right: noise());
-    final fast = Freeverb.room().loop(dry);
+    // The mix is kept in 32 bits (half the memory, step 4 of the plan):
+    // the same sound, but for differences some 120 dB down.
+    final fast = Freeverb.room().loop((
+      left: Float32List.fromList(dry.left),
+      right: Float32List.fromList(dry.right),
+    ));
     final plain = _plainRoom(dry);
-    expect(fast.left, plain.left);
-    expect(fast.right, plain.right);
+    var worst = 0.0;
+    for (var i = 0; i < plain.left.length; i++) {
+      worst = math.max(worst, (fast.left[i] - plain.left[i]).abs());
+      worst = math.max(worst, (fast.right[i] - plain.right[i]).abs());
+    }
+    expect(worst, lessThan(1e-6));
   });
 }
 

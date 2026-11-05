@@ -52,7 +52,7 @@ class Freeverb {
     // Run over the end of the loop first, so the room is already full of
     // it when the loop starts.
     final lead = math.min(n, ClickSound.sampleRate * 2);
-    final input = Float64List(lead + n);
+    final input = Float32List(lead + n);
     for (var i = 0; i < lead; i++) {
       final j = n - lead + i;
       input[i] = (dry.left[j] + dry.right[j]) / 2;
@@ -66,14 +66,20 @@ class Freeverb {
 
   /// [dry] with the room added, from silence.
   Stereo run(Stereo dry) {
+    final out = StepResult<Stereo>();
+    runSteps(fromSilenceSteps(dry, out));
+    return out.value;
+  }
+
+  /// [run] cut into small steps (see runInSlices).
+  Iterable<void> fromSilenceSteps(Stereo dry, StepResult<Stereo> out) sync* {
     final n = dry.left.length;
-    final input = Float64List(n);
+    final input = Float32List(n);
     for (var i = 0; i < n; i++) {
       input[i] = (dry.left[i] + dry.right[i]) / 2;
     }
-    final out = StepResult<Stereo>();
-    runSteps(_mix(dry, input, 0, out));
-    return out.value;
+    yield null;
+    yield* _mix(dry, input, 0, out);
   }
 
   /// Samples a step of [_mix] filters at a time.
@@ -87,22 +93,22 @@ class Freeverb {
   /// sample through all of them, and several times faster in a browser.
   Iterable<void> _mix(
     Stereo dry,
-    Float64List input,
+    Float32List input,
     int lead,
     StepResult<Stereo> out,
   ) sync* {
     final n = dry.left.length;
     final scale = ClickSound.sampleRate / 44100;
     final delay = preDelay.inMicroseconds * ClickSound.sampleRate ~/ 1000000;
-    final left = Float64List.fromList(dry.left);
-    final right = Float64List.fromList(dry.right);
+    final left = Float32List.fromList(dry.left);
+    final right = Float32List.fromList(dry.right);
     final m = input.length;
     // The input, delayed and scaled, the same for both channels.
-    final x = Float64List(m);
+    final x = Float32List(m);
     for (var i = delay; i < m; i++) {
       x[i] = input[i - delay] * _inputGain;
     }
-    final y = Float64List(m);
+    final y = Float32List(m);
     for (final (channel, spread) in [(left, 0), (right, _spread)]) {
       y.fillRange(0, m, 0.0);
       for (final c in _combs) {
@@ -140,7 +146,7 @@ class _Comb {
   var _store = 0.0;
 
   /// Adds what it gives for [x] from [from] to [to] (not included) to [y].
-  void run(Float64List x, Float64List y, int from, int to) {
+  void run(Float32List x, Float32List y, int from, int to) {
     final buffer = _buffer, size = buffer.length;
     final feedback = _feedback, damp = _damp;
     var index = _index, store = _store;
@@ -164,7 +170,7 @@ class _AllPass {
   var _index = 0;
 
   /// Runs [y] through it in place, from [from] to [to] (not included).
-  void run(Float64List y, int from, int to) {
+  void run(Float32List y, int from, int to) {
     final buffer = _buffer, size = buffer.length;
     var index = _index;
     for (var i = from; i < to; i++) {

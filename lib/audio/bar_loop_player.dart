@@ -88,7 +88,7 @@ class BarLoopPlayer {
     Duration? startAt,
     Duration preRoll = Duration.zero,
     Duration? onPulse,
-    Uint8List Function(Duration position)? tailFor,
+    Future<Uint8List> Function(Duration position)? tailFor,
     bool handOver = false,
   }) async {
     await ensureSoLoud();
@@ -102,7 +102,7 @@ class BarLoopPlayer {
     final handingOver = handOver && !carryOn && old != null;
     final aimedAt = _handOverAt;
     _handOverAt = null;
-    final Duration? wait;
+    Duration? wait;
     if (carryOn) {
       wait = null;
     } else if (handingOver) {
@@ -114,7 +114,7 @@ class BarLoopPlayer {
       wait = LoopTransport.instance.untilBarLine(name);
     }
     // The moment [wait] counts from, and where the old loop was then.
-    final waitedFrom = _soloud.getEngineTime();
+    var waitedFrom = _soloud.getEngineTime();
     final oldThen = old == null ? null : _soloud.getPosition(old);
     final since = Stopwatch()..start();
     var position = startAt ?? Duration.zero;
@@ -179,6 +179,21 @@ class BarLoopPlayer {
         );
       } catch (_) {
         // Without its tail the old loop is simply cut, as it used to be.
+      }
+      // Making the tail took longer than the wait (a slow phone, a page):
+      // the next bar line instead, without the tail, made for the one
+      // gone. The new loop's first chord covers the old one stopping.
+      final w = wait;
+      if (tail != null && w != null) {
+        final now = _soloud.getEngineTime();
+        if (waitedFrom + w - now < _scheduleLead) {
+          tail.dispose();
+          tail = null;
+          waitedFrom = now;
+          wait =
+              LoopTransport.instance.untilBarLine(name) ??
+              _nextBarLine(old!, _scheduleLead);
+        }
       }
     }
     // A new chord carrying on: the engine time at which the old loop gives
@@ -315,7 +330,9 @@ class BarLoopPlayer {
 
   /// Stops the loop. With [tailFor], what the loop sounds like let go
   /// where it is (see PianoSound.tailWav) plays on from that very sample.
-  Future<void> stop({Uint8List Function(Duration position)? tailFor}) async {
+  Future<void> stop({
+    Future<Uint8List> Function(Duration position)? tailFor,
+  }) async {
     final handle = _handle, source = _source;
     _handOverAt = null;
     _handle = null;
@@ -357,7 +374,7 @@ class _Tail {
   /// round the loop) and loads it. [clock] runs from when [position] was
   /// read, so that a tail played at once starts where the loop is by then.
   static Future<_Tail> load(
-    Uint8List Function(Duration position) tailFor,
+    Future<Uint8List> Function(Duration position) tailFor,
     Duration position,
     Duration length,
     Stopwatch clock,
@@ -367,7 +384,7 @@ class _Tail {
             microseconds: position.inMicroseconds % length.inMicroseconds,
           )
         : position;
-    final wav = tailFor(at);
+    final wav = await tailFor(at);
     final source = await SoLoud.instance.loadMem('tail.wav', wav);
     return _Tail._(source, clock, SoLoud.instance.getLength(source));
   }
@@ -392,6 +409,9 @@ class _Tail {
     _soloud.playScheduled(_source, time, volume: volume);
     _disposeAfter(time - _soloud.getEngineTime() + _length);
   }
+
+  /// Never played after all.
+  void dispose() => _soloud.disposeSource(_source);
 
   void _disposeAfter(Duration wait) => Future<void>.delayed(
     wait + const Duration(milliseconds: 200),
