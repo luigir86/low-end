@@ -359,7 +359,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
             )
           : chord == null
           ? root
-          : chordSymbol(l10n, chord, root);
+          : chordSymbol(chord, root, names);
       parts.add('${l10n.harmonyTab} $what');
     }
     return parts.join('\n');

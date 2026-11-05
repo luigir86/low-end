@@ -157,7 +157,7 @@ Il metronomo ha un meccanismo equivalente scritto in un altro modo (`_syncing`/`
 | Disegno | raster thread | worker Skwasm (pagina isolata) | thread della pagina |
 | Mix audio | thread di SoLoud (miniaudio/AAudio) | AudioWorklet (pagina isolata) o ScriptProcessor | idem |
 | Decodifica FLAC | dal 5/11 nell'isolate del pianoforte (`IsolatePianoMixer`): decoder di miniaudio (un `compute` a file) e conversione a Int16 | decoder del browser (asincrono) | decoder del browser |
-| Mix del loop dell'Armonia | dal 5/11 nell'isolate del pianoforte, che resta vivo e tiene i campioni (niente copia; il WAV torna senza copia). Se non parte, `Isolate.run` come prima (`FallingBackMixer`) | thread della pagina, sempre a fette (6 ms prima del tocco, 25 al tocco, 50 per un cambio alla stanghetta) | idem |
+| Mix del loop dell'Armonia | dal 5/11 nell'isolate del pianoforte, che resta vivo e tiene i campioni (niente copia; il WAV torna senza copia). I file li legge l'isolate principale e li passa all'isolate del pianoforte (letti da lì, su Android la risposta non arrivava mai: 1.4.0 bloccata su "Preparo i suoni"). Se non parte, fallisce o non risponde alla prima richiesta entro 20 s, `Isolate.run` come prima (`FallingBackMixer`) | thread della pagina, sempre a fette (6 ms prima del tocco, 25 al tocco, 50 per un cambio alla stanghetta) | idem |
 | Coda (rilascio delle note) | nell'isolate del pianoforte | thread della pagina, a fette da 50 ms | idem |
 | Battuta del metronomo | thread UI (piccola) | thread della pagina | idem |
 | Suono tenuto | `Isolate.run` | thread della pagina | idem |

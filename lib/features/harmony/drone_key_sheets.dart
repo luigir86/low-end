@@ -97,7 +97,7 @@ class _KeySheet extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (showsKey) ...[
-          heading(l10n.keySheetTitle(keyName(l10n, drone, names))),
+          heading(l10n.keySheetTitle(keyName(drone, names))),
           for (final s in steps)
             ListTile(
               // The second chord on a numeral (A7 after Am7) adds its kind.
@@ -120,7 +120,6 @@ class _KeySheet extends StatelessWidget {
               title: Text(degreeName(l10n, s.degree, minor: drone.keyIsMinor)),
               subtitle: Text(
                 chordSymbol(
-                  l10n,
                   (
                     root: (drone.note.pitchClass + s.offset) % 12,
                     quality: s.quality,
@@ -130,6 +129,7 @@ class _KeySheet extends StatelessWidget {
                     (drone.keyLetter + s.degree) % 7,
                     names,
                   ),
+                  names,
                 ),
               ),
             ),
@@ -256,7 +256,7 @@ class _SongPreset extends StatelessWidget {
             text:
                 '${song.artist}\n'
                 '${progressionShort(l10n, song.progression)} · '
-                '${_songKey(l10n, song, names)}\n',
+                '${_songKey(song, names)}\n',
           ),
           picture(const SectionIcon(SectionGlyph.metronome)),
           TextSpan(text: '$meter${s.beatUnit.symbol} = ${song.bpm}'),
@@ -270,11 +270,12 @@ class _SongPreset extends StatelessWidget {
   }
 }
 
-String _songKey(AppLocalizations l10n, ExampleSong song, NoteNames names) {
+String _songKey(ExampleSong song, NoteNames names) {
   final tonic = Note(song.pitchClass, 4).name(names);
+  final words = chordWords(names);
   return song.progression.minor
-      ? l10n.droneChordMinor(tonic)
-      : l10n.droneChordMajor(tonic);
+      ? words.droneChordMinor(tonic)
+      : words.droneChordMajor(tonic);
 }
 
 /// The heading of a section of the example songs, as in the progression

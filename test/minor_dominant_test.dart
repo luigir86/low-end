@@ -72,7 +72,11 @@ void main() {
   test('G7♭9 is written G7♭9, its ♭9 as A♭', () async {
     final l10n = await AppLocalizations.delegate.load(const Locale('en'));
     expect(
-      chordSymbol(l10n, (root: 7, quality: ChordQuality.dominantFlat9), 'G'),
+      chordSymbol(
+        (root: 7, quality: ChordQuality.dominantFlat9),
+        'G',
+        NoteNames.letters,
+      ),
       'G7♭9',
     );
     expect(chordName(l10n, ChordQuality.dominantFlat9), contains('7♭9'));
