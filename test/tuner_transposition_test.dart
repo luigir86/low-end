@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/actions/app_actions.dart';
 import 'package:low_end/app/app_navigation.dart';
@@ -109,13 +109,24 @@ void main() {
     }
   });
 
-  test('the cents thumb shrinks the further off the note is', () {
-    expect(centsThumbRadius(0, 5), 10);
-    expect(centsThumbRadius(-5, 5), 10);
-    expect(centsThumbRadius(20, 5), lessThan(10));
-    expect(centsThumbRadius(20, 5), greaterThan(centsThumbRadius(40, 5)));
-    expect(centsThumbRadius(-50, 5), 5);
-    expect(centsThumbRadius(80, 5), 5);
+  test('the cents scale runs from 50 flat to 50 sharp, clamped', () {
+    expect(centsOnScale(-50), 0);
+    expect(centsOnScale(0), 0.5);
+    expect(centsOnScale(25), 0.75);
+    expect(centsOnScale(-80), 0);
+    expect(centsOnScale(80), 1);
+  });
+
+  test('close and far off differ by their arrows, not only by colour', () {
+    expect(verdictIcon(2, 5), Icons.check_circle);
+    expect(verdictIcon(-5, 5), Icons.check_circle);
+    expect(verdictIcon(-9, 5), Icons.arrow_downward);
+    expect(verdictIcon(12, 5), Icons.arrow_upward);
+    expect(verdictIcon(-32, 5), Icons.keyboard_double_arrow_down);
+    expect(verdictIcon(32, 5), Icons.keyboard_double_arrow_up);
+    // A wide in-tune zone moves the limit of "close" with it.
+    expect(verdictIcon(-8, 10), Icons.check_circle);
+    expect(verdictIcon(15, 10), Icons.arrow_upward);
   });
 
   testWidgets('a B♭ instrument sees its written note', (tester) async {

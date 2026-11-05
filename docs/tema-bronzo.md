@@ -27,7 +27,7 @@ La schermata di avvio di Android usa l'ebano (`android/app/src/main/res/values/c
 
 ## 4. Verdetti dell'accordatore
 
-Intonato verde #8FD19E, quasi giallo #F2DA4E, lontano rosso puro #FF5F56. Stanno solo sulla scritta del verdetto con la sua freccia o spunta e sull'indicatore tondo della barra dei cent; la nota resta bianca. Il giallo è lontano dal bronzo per tonalità (almeno 20 gradi, controllato da `test/theme_test.dart`), non solo per luminosità. Il verdetto è detto anche a parole e dal verso dello strobo: nessuna informazione affidata al solo colore.
+Intonato verde acqua #5FD7C8, quasi giallo #F2DA4E, lontano rosso puro #FF5F56. Il verde tende all'acqua perché chi non distingue rosso e verde (protanopia, deuteranopia) lo veda grigio chiaro e non beige come il bronzo e il giallo. Stanno solo sulla scritta del verdetto con la sua spunta o freccia (una freccia se vicino, due se lontano) e sulla lancetta della scala dei cent con il tratto d'asse da 0 alla lancetta; la nota resta bianca. Il giallo è lontano dal bronzo per tonalità (almeno 20 gradi, controllato da `test/theme_test.dart`), non solo per luminosità. Il verdetto è detto anche a parole e dal verso dello strobo: nessuna informazione affidata al solo colore.
 
 ## 5. Contrasto (WCAG)
 

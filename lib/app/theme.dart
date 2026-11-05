@@ -26,8 +26,11 @@ abstract final class Palette {
   static const inkOnDarkMuted = Color(0xFFC9C5BF);
 
   // Tuner verdicts: green, amber and a pure red, told apart from the bronze
-  // by their hue, so a verdict never reads as the app's own colour.
-  static const inTune = Color(0xFF8FD19E);
+  // by their hue, so a verdict never reads as the app's own colour. The
+  // green leans to teal: a player who cannot tell red from green
+  // (protanopia, deuteranopia) sees it as a pale grey, not as a beige
+  // next to the bronze and the yellow.
+  static const inTune = Color(0xFF5FD7C8);
   static const close = Color(0xFFF2DA4E);
   static const off = Color(0xFFFF5F56);
 }
