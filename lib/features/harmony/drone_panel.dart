@@ -550,7 +550,7 @@ class _DialCenterState extends State<_DialCenter> {
             ),
           ),
           Text(
-            chord != null ? chordSymbol(l10n, chord, rootName) : rootName,
+            chord != null ? chordSymbol(chord, rootName, names) : rootName,
             textAlign: TextAlign.center,
             style: theme.textTheme.titleMedium,
           ),
@@ -572,7 +572,7 @@ class _DialCenterState extends State<_DialCenter> {
             ),
             const SizedBox(height: 12),
             Text(
-              chord != null ? chordSymbol(l10n, chord, rootName) : rootName,
+              chord != null ? chordSymbol(chord, rootName, names) : rootName,
               textAlign: TextAlign.center,
               style: theme.textTheme.titleMedium,
             ),
@@ -610,7 +610,7 @@ class _DialCenterState extends State<_DialCenter> {
           ),
           if (chord != null)
             Text(
-              chordSymbol(l10n, chord, rootName),
+              chordSymbol(chord, rootName, names),
               textAlign: TextAlign.center,
               style: theme.textTheme.titleMedium,
             ),

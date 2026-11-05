@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
@@ -67,6 +68,45 @@ void main() {
     expect(tailThere, tailHere);
   });
 
+  test('by default the isolate asks this isolate for the recordings', () async {
+    // As on the phone: the isolate does not read the assets itself (on
+    // Android its request was never answered and Harmony waited for ever).
+    final isolate = await IsolatePianoMixer.spawn(
+      decode: _fakeDecode,
+      mainLoad: _fromDisk,
+    );
+    addTearDown(isolate.dispose);
+    final local = LocalPianoMixer(
+      PianoLibrary(_fakeDecode, bundle: _DiskBundle()),
+    );
+    final there = await isolate.loop(loop);
+    final here = await local.loop(loop);
+    expect(there.wav, here.wav);
+  });
+
+  test('a recording this isolate cannot read is an error there', () async {
+    final isolate = await IsolatePianoMixer.spawn(
+      decode: _fakeDecode,
+      mainLoad: _noAssets,
+    );
+    addTearDown(isolate.dispose);
+    await expectLater(isolate.loop(loop), throwsA(isA<StateError>()));
+  });
+
+  test('an isolate that never answers is left for the screen', () async {
+    final isolate = await IsolatePianoMixer.spawn(
+      decode: _fakeDecode,
+      mainLoad: _never,
+    );
+    final mixer = FallingBackMixer(
+      isolate,
+      () => LocalPianoMixer(PianoLibrary(_fakeDecode, bundle: _DiskBundle())),
+      firstAnswerWithin: const Duration(milliseconds: 300),
+    );
+    final mixed = await mixer.loop(loop);
+    expect(mixed.wav.length, greaterThan(44));
+  });
+
   test('a failure comes back as an error, not a silence', () async {
     final isolate = await IsolatePianoMixer.spawn(
       decode: _fakeDecode,
@@ -93,6 +133,9 @@ void main() {
     await mixer.prepare(loop.chords);
   });
 }
+
+/// A request for a recording that is never answered.
+Future<ByteData> _never(String key) => Completer<ByteData>().future;
 
 /// A phone that would not let the isolate read the assets.
 Future<ByteData> _noAssets(String key) async =>

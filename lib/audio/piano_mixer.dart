@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
@@ -159,9 +158,19 @@ Uint8List mixTail(
 /// would not let it read the assets, say), the screen's thread's from then
 /// on: the sound must never be lost to it.
 class FallingBackMixer implements PianoMixer {
-  FallingBackMixer(this._first, this._makeLocal);
+  FallingBackMixer(
+    this._first,
+    this._makeLocal, {
+    this.firstAnswerWithin = const Duration(seconds: 20),
+  });
 
   final IsolatePianoMixer _first;
+
+  /// How long the isolate's first answer may take: past it the isolate is
+  /// taken for stuck (as when the phone never answered its request for a
+  /// recording) and the screen's thread mixes instead, rather than leaving
+  /// Harmony waiting for ever.
+  final Duration firstAnswerWithin;
   final PianoMixer Function() _makeLocal;
   PianoMixer? _local;
   var _proven = false;
@@ -170,7 +179,16 @@ class FallingBackMixer implements PianoMixer {
     final local = _local;
     if (local != null) return task(local);
     try {
-      final value = await task(_first);
+      final asked = task(_first);
+      final value = _proven
+          ? await asked
+          : await asked.timeout(
+              firstAnswerWithin,
+              onTimeout: () => throw TimeoutException(
+                'The piano isolate did not answer',
+                firstAnswerWithin,
+              ),
+            );
       _proven = true;
       return value;
     } catch (error) {
@@ -215,21 +233,31 @@ typedef AssetLoader = Future<ByteData> Function(String key);
 /// for each mix had to (P3), and the screen's thread never decodes,
 /// converts or mixes (P4, P7). The loops come back without a copy.
 class IsolatePianoMixer implements PianoMixer {
-  IsolatePianoMixer._(this._isolate, this._requests, this._replies);
+  IsolatePianoMixer._(
+    this._isolate,
+    this._requests,
+    this._replies,
+    this._mainLoad,
+  );
 
   final Isolate _isolate;
   final SendPort _requests;
   final ReceivePort _replies;
+  final AssetLoader _mainLoad;
   final _waiting = <int, Completer<Object?>>{};
   var _next = 0;
 
-  /// Starts the isolate. [decode] and [load], in it, decode a FLAC file
-  /// and read an asset: by default with the audio engine's decoder and the
-  /// app's assets, reached from the isolate through [token].
+  /// Starts the isolate. [decode], in it, decodes a FLAC file: by default
+  /// with the audio engine's decoder. [load], in it, reads an asset; by
+  /// default the isolate asks this isolate for it, which reads it with
+  /// [mainLoad] (the app's assets). The isolate does not read the assets
+  /// itself through [BackgroundIsolateBinaryMessenger]: on Android the
+  /// answer never came, and Harmony waited for ever (1.4.0).
   static Future<IsolatePianoMixer> spawn({
     RootIsolateToken? token,
     FlacDecoder? decode,
     AssetLoader? load,
+    AssetLoader? mainLoad,
   }) async {
     final ready = ReceivePort();
     final replies = ReceivePort();
@@ -247,16 +275,45 @@ class IsolatePianoMixer implements PianoMixer {
       replies.close();
       throw StateError('The piano isolate did not start: $first');
     }
-    final mixer = IsolatePianoMixer._(isolate, first, replies);
+    final mixer = IsolatePianoMixer._(
+      isolate,
+      first,
+      replies,
+      mainLoad ?? rootBundle.load,
+    );
     replies.listen(mixer._onReply);
     return mixer;
   }
 
   void _onReply(Object? message) {
+    if (message case ('asset', final int id, final String key)) {
+      _sendAsset(id, key);
+      return;
+    }
     final (id, ok, value) = message! as (int, bool, Object?);
     final waiting = _waiting.remove(id);
     if (waiting == null) return;
     ok ? waiting.complete(value) : waiting.completeError(StateError('$value'));
+  }
+
+  /// Reads [key] here for the isolate and sends it over, moved, not copied.
+  Future<void> _sendAsset(int id, String key) async {
+    try {
+      final data = await _mainLoad(key);
+      _requests.send((
+        -2,
+        (
+          'asset',
+          id,
+          true,
+          TransferableTypedData.fromList([
+            data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+          ]),
+        ),
+      ));
+    } catch (error) {
+      _requests.send((-2, ('asset', id, false, '$error')));
+    }
   }
 
   Future<Object?> _ask(Object request) {
@@ -318,6 +375,17 @@ class IsolatePianoMixer implements PianoMixer {
     setup,
   ) async {
     final PianoLibrary library;
+    // The assets the isolate waits for from the main isolate.
+    final assets = <int, Completer<ByteData>>{};
+    var nextAsset = 0;
+    Future<ByteData> askMain(String key) {
+      final id = nextAsset++;
+      final done = Completer<ByteData>();
+      assets[id] = done;
+      setup.replies.send(('asset', id, key));
+      return done.future;
+    }
+
     try {
       final token = setup.token;
       if (token != null) {
@@ -325,7 +393,7 @@ class IsolatePianoMixer implements PianoMixer {
       }
       library = PianoLibrary(
         setup.decode ?? decodeFlacWithEngine,
-        bundle: _LoaderBundle(setup.load ?? _loadAppAsset),
+        bundle: _LoaderBundle(setup.load ?? askMain),
       );
     } catch (error) {
       setup.ready.send('$error');
@@ -337,6 +405,17 @@ class IsolatePianoMixer implements PianoMixer {
         library.forChords(loop.chords, bass: loop.style == PianoStyle.walking);
     requests.listen((message) async {
       final (id, request) = message! as (int, Record);
+      if (request case ('asset', final int at, final bool ok, final value)) {
+        final done = assets.remove(at);
+        if (done == null) return;
+        if (ok) {
+          final bytes = (value! as TransferableTypedData).materialize();
+          done.complete(ByteData.view(bytes));
+        } else {
+          done.completeError(StateError('$value'));
+        }
+        return;
+      }
       try {
         final Object? value = switch (request) {
           ('prepare', final List<PianoChord> chords, final bool bass) =>
@@ -365,18 +444,6 @@ class IsolatePianoMixer implements PianoMixer {
   static Object? _cleared(PianoLibrary library) {
     library.clear();
     return null;
-  }
-
-  /// An asset of the app, read from the isolate (as PlatformAssetBundle
-  /// does on the screen's thread).
-  static Future<ByteData> _loadAppAsset(String key) async {
-    final encoded = utf8.encode(Uri(path: Uri.encodeFull(key)).path);
-    final data = await BackgroundIsolateBinaryMessenger.instance.send(
-      'flutter/assets',
-      ByteData.sublistView(encoded),
-    );
-    if (data == null) throw StateError('Unable to load asset: "$key".');
-    return data;
   }
 }
 

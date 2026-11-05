@@ -1,3 +1,5 @@
+import 'dart:ui' show Locale;
+
 import '../../audio/pitch.dart';
 import '../../l10n/app_localizations.dart';
 import 'drone_controller.dart';
@@ -20,8 +22,17 @@ String chordName(AppLocalizations l10n, ChordQuality chord) => switch (chord) {
 };
 
 /// A chord on [note], as musicians write it: "A major", "La minore", "A7",
-/// "Rem7", "Domaj7".
-String chordSymbol(AppLocalizations l10n, DroneChord chord, String note) =>
+/// "Rem7", "Domaj7"; its words in the language of [names].
+String chordSymbol(DroneChord chord, String note, NoteNames names) =>
+    _chordSymbol(chordWords(names), chord, note);
+
+/// The words round a chord or key name ("major", "maggiore") follow the
+/// note names, not the app's language: C D E go with English words
+/// (C♯ major), Do Re Mi with Italian ones (Do♯ maggiore).
+AppLocalizations chordWords(NoteNames names) =>
+    lookupAppLocalizations(Locale(names == NoteNames.letters ? 'en' : 'it'));
+
+String _chordSymbol(AppLocalizations l10n, DroneChord chord, String note) =>
     switch (chord.quality) {
       ChordQuality.major => l10n.droneChordMajor(note),
       ChordQuality.minor => l10n.droneChordMinor(note),
@@ -81,11 +92,12 @@ String progressionNote(AppLocalizations l10n, Progression p) => switch (p) {
 
 /// The key written out: "La maggiore", "C minor", spelled as the key is
 /// (D♭ major, not C♯).
-String keyName(AppLocalizations l10n, DroneController drone, NoteNames names) {
+String keyName(DroneController drone, NoteNames names) {
   final tonic = spell(drone.note.pitchClass, drone.keyLetter, names);
+  final words = chordWords(names);
   return drone.keyIsMinor
-      ? l10n.droneChordMinor(tonic)
-      : l10n.droneChordMajor(tonic);
+      ? words.droneChordMinor(tonic)
+      : words.droneChordMajor(tonic);
 }
 
 /// A progression by its numerals, or the name of the blues, which is too long
@@ -100,7 +112,7 @@ String progressionShort(AppLocalizations l10n, Progression p) => switch (p) {
 String keyLine(AppLocalizations l10n, DroneController drone, NoteNames names) =>
     l10n.keyLine(
       progressionShort(l10n, drone.progression),
-      keyName(l10n, drone, names),
+      keyName(drone, names),
     );
 
 /// The name of a degree of the scale, [degree] 0 for the tonic.

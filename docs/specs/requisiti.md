@@ -87,7 +87,7 @@ Fuori dallo scopo, per decisione presa: libreria PDF e conversione in MusicXML/M
 | Codice | Requisito | Stato | Test |
 | --- | --- | --- | --- |
 | RF-IMP-01 | Ingranaggio in alto a destra, con dentro "Informazioni" (versione, licenze). | ✓ | `widget_test`, `review/layout_review_test` |
-| RF-IMP-02 | Lingua (sistema, inglese, italiano); nomi delle note (segue la lingua, Do Re Mi, C D E); numerazione delle ottave (scientifica La4 = 440, italiana La3 = 440) indipendente dai nomi. | ✓ | `language_test`, `names_test` |
+| RF-IMP-02 | Lingua (sistema, inglese, italiano); nomi delle note (segue la lingua, Do Re Mi, C D E); numerazione delle ottave (scientifica La4 = 440, italiana La3 = 440) indipendente dai nomi. Le parole di accordi e tonalità ("maggiore", "major", "diminuito") seguono i nomi delle note, non la lingua: con C D E si scrive "C♯ major" anche nell'app in italiano, con Do Re Mi "Do♯ maggiore" anche in inglese (deciso il 5/11). | ✓ | `language_test`, `names_test`, `chord_words_test` |
 | RF-IMP-03 | A di riferimento, cerchio (quinte o semitoni), schermo acceso mentre suona o ascolta (sì per default), blocco dei gesti, zona intonata, traspositore. | ✓ | `review/settings_review_test` |
 | RF-IMP-04 | Tutto si salva solo sul telefono (backup Android spento); impostazioni illeggibili non bloccano mai l'avvio: si riparte dai valori predefiniti, un valore alla volta. | ✓ | `memory_test`, `row_test` |
 | RF-IMP-05 | Nessuna scelta di tema: l'app è sempre scura. | ✓ | `theme_test` |
