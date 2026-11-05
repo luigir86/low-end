@@ -53,6 +53,75 @@ void main() {
       },
     );
 
+    testWidgets(
+      'with the metronome playing, the clicks change with the piano on the '
+      'bar line, not at the touch',
+      (tester) async {
+        final piano = _LoggingPiano();
+        final clicks = SilentClickOutput();
+        final metronome = MetronomeController(clicks);
+        final drone = DroneController(
+          SilentToneOutput(),
+          piano: piano,
+          clock: metronome,
+        );
+        ExampleSong song(String title) =>
+            exampleSongs.singleWhere((s) => s.title == title);
+        applySong(song('Autumn Leaves'), drone: drone, metronome: metronome);
+        metronome.start();
+        drone.start();
+        await tester.pump(const Duration(seconds: 3));
+        final plays = clicks.plays;
+        piano.log.clear();
+
+        applySong(song('I Got Rhythm'), drone: drone, metronome: metronome);
+        await tester.pump(const Duration(milliseconds: 100));
+        // One new bar for the whole song, asked to come in with the
+        // piano's new loop, from its "one".
+        expect(clicks.plays, plays + 1);
+        expect(clicks.atMeeting, isTrue);
+        expect(clicks.startAt, Duration.zero);
+        expect(metronome.signature, song('I Got Rhythm').signature);
+        expect(metronome.soundingBpm, song('I Got Rhythm').bpm);
+        expect(piano.handOvers, 1);
+        await tester.pump(const Duration(seconds: 1));
+        // The piano's new loop at the new tempo, handed over.
+        expect(piano.log, hasLength(1));
+        expect(piano.handOver, isTrue);
+
+        drone.stop();
+        metronome.stop();
+        await tester.pump(const Duration(seconds: 1));
+        drone.dispose();
+        metronome.dispose();
+      },
+    );
+
+    testWidgets('with the harmony stopped, the metronome changes at once', (
+      tester,
+    ) async {
+      final clicks = SilentClickOutput();
+      final metronome = MetronomeController(clicks);
+      final drone = DroneController(
+        SilentToneOutput(),
+        piano: _LoggingPiano(),
+        clock: metronome,
+      );
+      metronome.start();
+      await tester.pump(const Duration(milliseconds: 100));
+      applySong(
+        exampleSongs.singleWhere((s) => s.title == 'I Got Rhythm'),
+        drone: drone,
+        metronome: metronome,
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(clicks.atMeeting, isFalse);
+      metronome.stop();
+      await tester.pump(const Duration(milliseconds: 100));
+      drone.dispose();
+      metronome.dispose();
+    });
+
     test('not playing, a song plays nothing', () async {
       final piano = _LoggingPiano();
       final metronome = MetronomeController(SilentClickOutput());

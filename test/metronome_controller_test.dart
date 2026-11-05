@@ -503,9 +503,13 @@ void main() {
 
 class _SlowClickOutput extends SilentClickOutput {
   @override
-  Future<LoopStart> play(Uint8List barWav, {Duration? startAt}) async {
+  Future<LoopStart> play(
+    Uint8List barWav, {
+    Duration? startAt,
+    bool atMeeting = false,
+  }) async {
     await Future<void>.delayed(const Duration(milliseconds: 5));
-    return super.play(barWav, startAt: startAt);
+    return super.play(barWav, startAt: startAt, atMeeting: atMeeting);
   }
 
   Future<void> drain() =>
@@ -514,6 +518,9 @@ class _SlowClickOutput extends SilentClickOutput {
 
 class _FailingClickOutput extends SilentClickOutput {
   @override
-  Future<LoopStart> play(Uint8List barWav, {Duration? startAt}) =>
-      Future.error(StateError('no audio device'));
+  Future<LoopStart> play(
+    Uint8List barWav, {
+    Duration? startAt,
+    bool atMeeting = false,
+  }) => Future.error(StateError('no audio device'));
 }

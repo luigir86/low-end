@@ -228,9 +228,9 @@ class MetronomeController extends ChangeNotifier
     }
     final phase = barPhase;
     _heardBpm = _bpm;
-    if (phase != null) _restartClock(barLength * phase);
+    if (phase != null && !_deferring) _restartClock(barLength * phase);
     _notify();
-    if (_playing) _sync();
+    _syncIfPlaying();
   }
 
   /// Shows [bpm] at once and plays it once the hand has rested for [rest]:
@@ -257,13 +257,13 @@ class MetronomeController extends ChangeNotifier
     _signature = signature;
     _adjusting?.cancel();
     _bpm = _heardBpm = _bpm.clamp(minBpm, maxTempo);
-    if (_playing) {
+    if (_playing && !_deferring) {
       _fresh = true;
       _starting = true;
       _restartClock(Duration.zero);
     }
     _notify();
-    if (_playing) _sync();
+    _syncIfPlaying();
   }
 
   /// Sets what fills each beat. While playing, the bar carries on from where
@@ -272,7 +272,7 @@ class MetronomeController extends ChangeNotifier
     if (subdivision == _subdivision) return;
     _subdivision = subdivision;
     _notify();
-    if (_playing) _sync();
+    _syncIfPlaying();
   }
 
   /// Puts the click on 2 and 4 only, or back on every beat. It is kept when
@@ -281,7 +281,7 @@ class MetronomeController extends ChangeNotifier
     if (backbeat == _backbeat) return;
     _backbeat = backbeat;
     _notify();
-    if (_playing) _sync();
+    _syncIfPlaying();
   }
 
   /// Moves the tempo up or down by [delta] BPM, heard once the hand rests.
@@ -315,6 +315,53 @@ class MetronomeController extends ChangeNotifier
 
   void _restartClock(Duration at) => _clock.restartAt(at);
 
+  /// True while [changeAtBarLine] makes its changes: they are heard
+  /// together, on the bar line, not one by one at once.
+  var _deferring = false;
+  var _notifyWanted = false;
+
+  /// True when the next bar comes in with the piano's new loop (see
+  /// ClickOutput.play), the old one clicking on until then.
+  var _atMeeting = false;
+
+  /// Makes [changes] (the tempo, the time signature, the subdivision of a
+  /// new song) and, while playing, lets them be heard on the bar line where
+  /// the piano hands over to its new loop: the click goes on at its old
+  /// tempo, like a band, and the two change together from that "one"
+  /// (RF-ARM-15). Stopped, they are simply set.
+  void changeAtBarLine(VoidCallback changes) {
+    if (!_playing) return changes();
+    _deferring = true;
+    try {
+      changes();
+    } finally {
+      _deferring = false;
+    }
+    if (_notifyWanted) {
+      _notifyWanted = false;
+      _notify();
+    }
+    if (!_changedWhileDeferring) return;
+    _changedWhileDeferring = false;
+    _adjusting?.cancel();
+    _heardBpm = _bpm;
+    _fresh = true;
+    _atMeeting = true;
+    _starting = true;
+    _sync();
+  }
+
+  var _changedWhileDeferring = false;
+
+  void _syncIfPlaying() {
+    if (!_playing) return;
+    if (_deferring) {
+      _changedWhileDeferring = true;
+      return;
+    }
+    _sync();
+  }
+
   /// Brings the sound in line with [isPlaying] and [bpm], one call at a
   /// time; changes made meanwhile are applied right after, all at once, so
   /// holding + only rebuilds the bar as often as the engine can follow.
@@ -329,7 +376,9 @@ class MetronomeController extends ChangeNotifier
       // The first beat always sounds from its start; after a change of tempo
       // the bar carries on from where it was.
       final fresh = _fresh;
+      final atMeeting = _atMeeting;
       _fresh = false;
+      _atMeeting = false;
       final started = await _output.play(
         ClickSound.bar(
           bpm: pulseBpm,
@@ -338,6 +387,7 @@ class MetronomeController extends ChangeNotifier
           backbeat: _backbeat,
         ),
         startAt: fresh ? Duration.zero : null,
+        atMeeting: atMeeting,
       );
       // The sound starts now (or on the piano's next bar line): line the
       // screen up with it, as it is heard. A fresh start lights up once the
@@ -359,6 +409,10 @@ class MetronomeController extends ChangeNotifier
   }
 
   void _notify() {
+    if (_deferring) {
+      _notifyWanted = true;
+      return;
+    }
     if (!_disposed) notifyListeners();
   }
 

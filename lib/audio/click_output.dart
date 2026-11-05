@@ -17,7 +17,15 @@ abstract class ClickOutput {
   /// the piano does the same. With one, it starts that far into the bar; if
   /// the piano is playing it then waits for the piano's next bar line, so
   /// the two stay together. Says where and when it began.
-  Future<LoopStart> play(Uint8List barWav, {Duration? startAt});
+  ///
+  /// [atMeeting], with a [startAt], while the piano hands over to a new
+  /// loop: the new bar comes in on the bar line where the piano's does, the
+  /// old one clicking on until then.
+  Future<LoopStart> play(
+    Uint8List barWav, {
+    Duration? startAt,
+    bool atMeeting = false,
+  });
 
   Future<void> stop();
 }
@@ -27,7 +35,11 @@ class SoLoudClickOutput implements ClickOutput {
   final _player = BarLoopPlayer('click');
 
   @override
-  Future<LoopStart> play(Uint8List barWav, {Duration? startAt}) {
+  Future<LoopStart> play(
+    Uint8List barWav, {
+    Duration? startAt,
+    bool atMeeting = false,
+  }) {
     // The loop is one bar long.
     final bar = Duration(
       microseconds:
@@ -38,6 +50,7 @@ class SoLoudClickOutput implements ClickOutput {
       bar,
       startAt: startAt,
       preRoll: preRollFor(barWav),
+      atMeeting: atMeeting,
     );
   }
 
@@ -74,13 +87,21 @@ class SilentClickOutput implements ClickOutput {
   Duration? startAt;
   var plays = 0;
 
+  /// Whether the last bar was asked to come in with the piano's new loop.
+  var atMeeting = false;
+
   /// How long the next start waits, as if the piano were playing.
   Duration delay = Duration.zero;
 
   @override
-  Future<LoopStart> play(Uint8List barWav, {Duration? startAt}) async {
+  Future<LoopStart> play(
+    Uint8List barWav, {
+    Duration? startAt,
+    bool atMeeting = false,
+  }) async {
     bar = barWav;
     this.startAt = startAt;
+    this.atMeeting = atMeeting;
     plays++;
     return (position: startAt ?? Duration.zero, delay: delay);
   }

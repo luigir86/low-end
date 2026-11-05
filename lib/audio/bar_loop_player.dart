@@ -86,6 +86,11 @@ class BarLoopPlayer {
   /// brings it in on the bar line [beginHandOver] aimed at (or, if that is
   /// too close or gone, on the next one), the old loop let go there at the
   /// level it was let down to.
+  ///
+  /// [atMeeting], for a loop that starts from [startAt] while the other
+  /// one hands over (see [beginHandOver]), comes in on that same bar line,
+  /// this loop playing on as it was until then: the clicks of a new song
+  /// change with the piano, not before it.
   Future<LoopStart> play(
     Uint8List wav,
     Duration bar, {
@@ -94,6 +99,7 @@ class BarLoopPlayer {
     Duration? onPulse,
     Future<Uint8List> Function(Duration position)? tailFor,
     bool handOver = false,
+    bool atMeeting = false,
   }) async {
     await _soloud.ensure();
     final source = await _soloud.loadMem('$name-loop.wav', wav);
@@ -107,8 +113,17 @@ class BarLoopPlayer {
     final aimedAt = _handOverAt;
     _handOverAt = null;
     Duration? wait;
+    final meet = transport.meetAt;
+    final meetLeft = meet == null ? null : meet - _soloud.getEngineTime();
     if (carryOn) {
       wait = null;
+    } else if (atMeeting &&
+        old != null &&
+        meetLeft != null &&
+        meetLeft >= _scheduleLead) {
+      wait = meetLeft;
+      // Let down with the piano by that bar line, as a band changing song.
+      _soloud.fadeVolume(old, _volume * handOverLevel, meetLeft);
     } else if (handingOver) {
       final left = aimedAt == null ? null : aimedAt - _soloud.getEngineTime();
       wait = left != null && left >= _scheduleLead
@@ -318,6 +333,7 @@ class BarLoopPlayer {
     if (aimed != null && aimed - now >= _scheduleLead) return aimed - now;
     final wait = _nextBarLine(handle, lead);
     _handOverAt = now + wait;
+    transport.meetAt = _handOverAt;
     _soloud.fadeVolume(handle, _volume * handOverLevel, wait);
     return wait;
   }
@@ -328,6 +344,7 @@ class BarLoopPlayer {
     final handle = _handle;
     if (_handOverAt == null || handle == null) return;
     _handOverAt = null;
+    transport.meetAt = null;
     if (!_soloud.getIsValidVoiceHandle(handle)) return;
     _soloud.fadeVolume(handle, _volume, const Duration(milliseconds: 300));
   }
