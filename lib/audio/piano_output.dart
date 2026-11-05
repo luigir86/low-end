@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 
 import '../features/metronome/time_signature.dart';
+import 'audio_format.dart';
 import 'bar_loop_player.dart';
 import 'browser_flac.dart';
 import 'click_sound.dart';
@@ -387,13 +388,7 @@ class SoLoudPianoOutput implements PianoOutput {
     rendered ??= await (await _mixer).loop(loop);
     await engine;
     _player.setVolume(volume);
-    final bar = Duration(
-      microseconds:
-          (ClickSound.sampleRate * 60 / bpm).round() *
-          signature.beats *
-          1000000 ~/
-          ClickSound.sampleRate,
-    );
+    final bar = barDuration(bpm, signature.beats);
     final was = _playing;
     _playing = (loop: loop, scale: rendered.scale);
     return _player.play(

@@ -6,9 +6,9 @@ import 'package:low_end/app/settings.dart';
 import 'package:low_end/audio/audio_scope.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/tone_output.dart';
-import 'package:low_end/features/tuner/drone/drone_controller.dart';
-import 'package:low_end/features/tuner/drone/harmony.dart';
-import 'package:low_end/features/tuner/drone/drone_panel.dart'
+import 'package:low_end/features/harmony/drone_controller.dart';
+import 'package:low_end/features/harmony/harmony.dart';
+import 'package:low_end/features/harmony/harmony_names.dart'
     show progressionSong;
 import 'package:low_end/widgets/style_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';

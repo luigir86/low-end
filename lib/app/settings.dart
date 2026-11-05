@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart';
+import 'dart:convert';
+
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -6,8 +7,7 @@ import '../audio/pitch.dart';
 import '../features/metronome/metronome_controller.dart';
 import '../features/metronome/subdivision.dart';
 import '../features/metronome/time_signature.dart';
-import '../features/tuner/drone/drone_controller.dart';
-import '../features/tuner/drone/harmony.dart';
+import '../features/harmony/drone_controller.dart';
 import '../features/tuner/tuner_tuning.dart';
 import 'app_navigation.dart';
 
@@ -91,34 +91,62 @@ class AppSettings extends ChangeNotifier {
 
   /// The harmony as it was left, or null if nothing was kept (the first
   /// launch) or it cannot be read: each part falls back to its default.
+  /// Kept as one JSON value since 1.4; the keys of before are read once,
+  /// written in the new way and removed.
   static DroneSetup? _readDrone(SharedPreferences prefs) {
-    final note = _read<int>(prefs, _droneNoteKey);
-    if (note == null || note < 0 || note > 11) return null;
-    T pick<T extends Enum>(List<T> values, String key, T fallback) =>
-        values.asNameMap()[_read<String>(prefs, key)] ?? fallback;
-    final flats = _read<List<Object?>>(prefs, _droneFlatsKey) ?? const [];
-    return (
-      pitchClass: note,
-      voicing: pick(DroneVoicing.values, _droneVoicingKey, DroneVoicing.chord),
-      chordVoicing: pick(
-        DroneVoicing.values,
-        _droneChordVoicingKey,
-        DroneVoicing.chord,
-      ),
-      chord: pick(ChordQuality.values, _droneChordKey, ChordQuality.major),
-      progression: pick(
-        Progression.values,
-        _droneProgressionKey,
-        Progression.values.first,
-      ),
-      style: pick(DroneStyle.values, _droneStyleKey, DroneStyle.beat),
-      continuous: _read<bool>(prefs, _droneContinuousKey) ?? false,
-      flats: {
-        for (final f in flats)
-          if (f is String && int.tryParse(f) != null) int.parse(f),
-      },
-    );
+    if (_read<String>(prefs, _droneKey) case final text?) {
+      try {
+        return droneSetupFromJson(jsonDecode(text));
+      } on FormatException {
+        return null;
+      }
+    }
+    final old = _readOldDrone(prefs);
+    if (old != null) {
+      final write = prefs.setString(
+        _droneKey,
+        jsonEncode(droneSetupToJson(old)),
+      );
+      write.then((saved) async {
+        if (!saved) return;
+        for (final key in _oldDroneKeys) {
+          await prefs.remove(key);
+        }
+      }, onError: (Object error) => debugPrint('Not saved: $error'));
+    }
+    return old;
   }
+
+  /// The harmony as kept by 1.3 and earlier, one key a choice.
+  static DroneSetup? _readOldDrone(SharedPreferences prefs) {
+    final note = _read<int>(prefs, 'harmony_note');
+    if (note == null) return null;
+    String? text(String key) => _read<String>(prefs, key);
+    return droneSetupFromJson({
+      'key': note,
+      'voicing': text('harmony_voicing'),
+      'chordVoicing': text('harmony_chord_voicing'),
+      'chord': text('harmony_chord'),
+      'progression': text('harmony_progression'),
+      'style': text('harmony_style'),
+      'continuous': _read<bool>(prefs, 'harmony_continuous'),
+      'flats': [
+        for (final f in _read<List<Object?>>(prefs, 'harmony_flats') ?? [])
+          if (f is String) ?int.tryParse(f),
+      ],
+    });
+  }
+
+  static const _oldDroneKeys = [
+    'harmony_note',
+    'harmony_voicing',
+    'harmony_chord_voicing',
+    'harmony_chord',
+    'harmony_progression',
+    'harmony_style',
+    'harmony_continuous',
+    'harmony_flats',
+  ];
 
   /// Reads the saved settings.
   static Future<AppSettings> load() async =>
@@ -147,14 +175,7 @@ class AppSettings extends ChangeNotifier {
   static const _backbeatKey = 'metronome_backbeat';
   static const _transpositionKey = 'tuner_transposition';
   static const _sectionKey = 'section';
-  static const _droneNoteKey = 'harmony_note';
-  static const _droneVoicingKey = 'harmony_voicing';
-  static const _droneChordVoicingKey = 'harmony_chord_voicing';
-  static const _droneChordKey = 'harmony_chord';
-  static const _droneProgressionKey = 'harmony_progression';
-  static const _droneStyleKey = 'harmony_style';
-  static const _droneContinuousKey = 'harmony_continuous';
-  static const _droneFlatsKey = 'harmony_flats';
+  static const _droneKey = 'harmony';
 
   final SharedPreferences? _prefs;
   String? _languageCode;
@@ -406,6 +427,7 @@ class AppSettings extends ChangeNotifier {
   }
 
   DroneSetup? _drone;
+  String? _droneJson;
 
   /// The harmony as it was left, or null the first time.
   DroneSetup? get drone => _drone;
@@ -413,37 +435,11 @@ class AppSettings extends ChangeNotifier {
   /// Keeps the harmony's choices for the next launch, as the metronome's
   /// are; nothing listens to them.
   void rememberDrone(DroneSetup setup) {
-    final was = _drone;
     _drone = setup;
-    final prefs = _prefs;
-    if (prefs == null) return;
-    if (was?.pitchClass != setup.pitchClass) {
-      _save(prefs.setInt(_droneNoteKey, setup.pitchClass));
-    }
-    if (was?.voicing != setup.voicing) {
-      _save(prefs.setString(_droneVoicingKey, setup.voicing.name));
-    }
-    if (was?.chordVoicing != setup.chordVoicing) {
-      _save(prefs.setString(_droneChordVoicingKey, setup.chordVoicing.name));
-    }
-    if (was?.chord != setup.chord) {
-      _save(prefs.setString(_droneChordKey, setup.chord.name));
-    }
-    if (was?.progression != setup.progression) {
-      _save(prefs.setString(_droneProgressionKey, setup.progression.name));
-    }
-    if (was?.style != setup.style) {
-      _save(prefs.setString(_droneStyleKey, setup.style.name));
-    }
-    if (was?.continuous != setup.continuous) {
-      _save(prefs.setBool(_droneContinuousKey, setup.continuous));
-    }
-    if (!setEquals(was?.flats, setup.flats)) {
-      _save(
-        prefs.setStringList(_droneFlatsKey, [
-          for (final f in setup.flats) '$f',
-        ]),
-      );
-    }
+    // Nothing to write when only what plays changed, not the choice.
+    final json = jsonEncode(droneSetupToJson(setup));
+    if (json == _droneJson) return;
+    _droneJson = json;
+    _save(_prefs?.setString(_droneKey, json));
   }
 }

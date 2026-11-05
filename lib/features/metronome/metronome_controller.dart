@@ -5,18 +5,24 @@ import 'package:flutter/foundation.dart';
 
 import '../../audio/click_output.dart';
 import '../../audio/click_sound.dart';
-import '../tuner/drone/drone_controller.dart';
+import '../../audio/latest_request.dart';
+import '../../audio/sound_section.dart';
+import '../../audio/sound_clock.dart';
+import 'bar_clock.dart';
 import 'subdivision.dart';
 import 'time_signature.dart';
 
 /// State and playback of the metronome.
-class MetronomeController extends ChangeNotifier implements BarClock {
+class MetronomeController extends ChangeNotifier
+    implements BarClock, SoundSection {
   MetronomeController(
     this._output, {
     Stopwatch? clock,
     Duration Function()? outputLatency,
-  }) : _clock = clock ?? Stopwatch(),
-       _outputLatency = outputLatency ?? _noLatency;
+  }) : _clock = SoundClock(clock),
+       _outputLatency = outputLatency ?? _noLatency {
+    _requests = LatestRequest(_apply);
+  }
 
   final ClickOutput _output;
 
@@ -27,9 +33,11 @@ class MetronomeController extends ChangeNotifier implements BarClock {
 
   static Duration _noLatency() => Duration.zero;
 
-  /// Measures time for the beat shown on screen (the sound keeps its own
-  /// perfect time in the audio engine).
-  final Stopwatch _clock;
+  /// The beat shown on screen, lined up with the sound as it is heard.
+  final SoundClock _clock;
+
+  /// Brings the sound in line with the settings, one run at a time.
+  late final LatestRequest _requests;
 
   /// The tempo range, in beats per minute of the figure the tempo counts
   /// (see [TimeSignature.beatUnit]): quarters, or dotted quarters in 6/8.
@@ -72,12 +80,7 @@ class MetronomeController extends ChangeNotifier implements BarClock {
   bool _audioFailed = false;
   var _disposed = false;
 
-  // Where in the bar the screen's clock started, see [barPhase].
-  Duration _startedAt = Duration.zero;
-
-  // How long into the screen's clock the sound begins, when it waits for
-  // the piano's next bar line, and whether it has been asked for yet.
-  Duration _waiting = Duration.zero;
+  // Whether the sound has been asked for and not yet started.
   var _starting = false;
 
   final _taps = <Duration>[];
@@ -85,9 +88,6 @@ class MetronomeController extends ChangeNotifier implements BarClock {
   /// True when the next bar must start from its "one", because the sound
   /// has just started or the bar has changed shape.
   bool _fresh = false;
-
-  bool _syncing = false;
-  bool _syncAgain = false;
 
   /// The tempo, in beats of [TimeSignature.beatUnit] per minute: in 6/8,
   /// 60 is a dotted quarter a second, three clicks. While it is being chosen
@@ -120,6 +120,7 @@ class MetronomeController extends ChangeNotifier implements BarClock {
 
   /// Pulses (segments of the ring, clicks) in a bar.
   int get beatsPerBar => _signature.beats;
+  @override
   bool get isPlaying => _playing;
 
   /// The fastest tempo in the current time signature.
@@ -142,8 +143,8 @@ class MetronomeController extends ChangeNotifier implements BarClock {
   double? get barPhase {
     if (!_playing || _starting) return null;
     // Before the sound comes in, nothing is lit.
-    if (_clock.elapsed < _waiting) return null;
-    final at = _startedAt + _clock.elapsed - _waiting;
+    final at = _clock.position;
+    if (at == null) return null;
     return at.inMicroseconds / barLength.inMicroseconds % 1;
   }
 
@@ -162,8 +163,7 @@ class MetronomeController extends ChangeNotifier implements BarClock {
   /// bar line, or null when it does not wait (or the wait is not known yet).
   Duration? get waitLeft {
     if (!_playing || _starting) return null;
-    final left = _waiting - _clock.elapsed;
-    return left > Duration.zero ? left : null;
+    return _clock.waitLeft;
   }
 
   /// The pulse now sounding (the segment lit), 0 (the "one") to the last of
@@ -181,6 +181,7 @@ class MetronomeController extends ChangeNotifier implements BarClock {
     return pulseLength * inBeat;
   }
 
+  @override
   Future<void> start() {
     if (_playing) return Future.value();
     // A tempo still being chosen is heard from the start.
@@ -195,6 +196,7 @@ class MetronomeController extends ChangeNotifier implements BarClock {
     return _sync();
   }
 
+  @override
   Future<void> stop() {
     if (!_playing) return Future.value();
     _playing = false;
@@ -311,32 +313,12 @@ class MetronomeController extends ChangeNotifier implements BarClock {
     _adjust((60000000 / interval).round(), rest);
   }
 
-  void _restartClock(Duration at) {
-    _startedAt = at;
-    _waiting = Duration.zero;
-    _clock
-      ..reset()
-      ..start();
-  }
+  void _restartClock(Duration at) => _clock.restartAt(at);
 
   /// Brings the sound in line with [isPlaying] and [bpm], one call at a
   /// time; changes made meanwhile are applied right after, all at once, so
   /// holding + only rebuilds the bar as often as the engine can follow.
-  Future<void> _sync() async {
-    if (_syncing) {
-      _syncAgain = true;
-      return;
-    }
-    _syncing = true;
-    try {
-      do {
-        _syncAgain = false;
-        await _apply();
-      } while (_syncAgain && !_disposed);
-    } finally {
-      _syncing = false;
-    }
-  }
+  Future<void> _sync() => _requests.run();
 
   Future<void> _apply() async {
     try {
@@ -362,14 +344,7 @@ class MetronomeController extends ChangeNotifier implements BarClock {
       // first click comes out; a bar carrying on shows its place as it was
       // that long ago.
       _starting = false;
-      final latency = _outputLatency();
-      if (fresh) {
-        _restartClock(started.position);
-        _waiting = started.delay + latency;
-      } else {
-        _restartClock(started.position - latency);
-        _waiting = started.delay;
-      }
+      _clock.heard(started, latency: _outputLatency(), fresh: fresh);
     } catch (error) {
       debugPrint('Metronome could not start: $error');
       _playing = false;

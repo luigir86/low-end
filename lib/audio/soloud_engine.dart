@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 
+import 'audio_format.dart';
 import 'web_audio_engine.dart';
 
 /// How long the engine plays silence after it starts, before the first
@@ -14,7 +15,7 @@ const engineWarmUp = Duration(milliseconds: kIsWeb ? 100 : 300);
 /// The engine's sample rate: the one phones play at natively, so that
 /// nothing is resampled on the way out, and the one the piano was recorded
 /// at.
-const engineSampleRate = 48000;
+const engineSampleRate = audioSampleRate;
 
 /// Frames the engine mixes at a time (SoLoud's default): it is also the
 /// period of the audio device, so a sound comes out about that much later

@@ -6,6 +6,8 @@ The actions live in [`lib/actions/app_actions.dart`](../lib/actions/app_actions.
 
 ## How the app behaves
 
+The rules below are a summary for assistants; the full behaviour, one code per rule, is in [the requirements](specs/requisiti.md) (in Italian), and where the two differ the requirements are right.
+
 Three sections: **Metronome**, **Harmony** (Armonia) and **Tuner**. Harmony keeps its original names in the actions: `drone_play`, `drone_stop`, `drone_set` and the section id `drone`. Know these rules before calling anything:
 
 - **Each sound has its own switch.** The metronome, Harmony and the tuner are started and stopped on their own, from their own section (the middle of the dial). The tabs and the swipes only move between sections.

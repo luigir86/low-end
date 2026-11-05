@@ -1,6 +1,6 @@
 # Low End: user guide
 
-*Italiano: [manuale-utente.md](manuale-utente.md).*
+*Italiano: [manuale-utente.md](manuale-utente.md).* What every control does is also written, with a code each, in [the requirements](specs/requisiti.md) (in Italian); where this guide says something else, the requirements are right.
 
 Low End is a metronome, a piano harmony section and a tuner in one app. It was made by an amateur double bass player with the friends from the orchestra in mind, and it is meant for every musician. It is free, shows no ads, collects nothing and needs no internet. It always has the same dark look, bronze on ebony; there is no theme to choose.
 

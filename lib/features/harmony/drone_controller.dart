@@ -3,12 +3,18 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
-import '../../../audio/piano_output.dart';
-import '../../../audio/piano_sound.dart';
-import '../../../audio/pitch.dart';
-import '../../../audio/tone_output.dart';
-import '../../metronome/time_signature.dart';
+import '../../audio/latest_request.dart';
+import '../../audio/piano_output.dart';
+import '../../audio/piano_sound.dart';
+import '../../audio/pitch.dart';
+import '../../audio/sound_clock.dart';
+import '../../audio/sound_section.dart';
+import '../../audio/tone_output.dart';
+import '../metronome/bar_clock.dart';
+import '../metronome/time_signature.dart';
 import 'harmony.dart';
+
+export '../metronome/bar_clock.dart';
 
 /// What the drone plays on its note: the note alone, a chord built on it,
 /// or a progression in its key.
@@ -28,22 +34,6 @@ enum DroneStyle {
   const DroneStyle(this.piano);
 
   final PianoStyle piano;
-}
-
-/// The length, position, tempo and time signature of the bar a progression
-/// follows: the metronome's, so chords change on its "one". It notifies when
-/// the tempo or the time signature change.
-abstract interface class BarClock implements Listenable {
-  /// Beats per minute of the figure the tempo counts (in 6/8, dotted
-  /// quarters, see [TimeSignature.pulsesPerBeat]), as heard: a tempo still
-  /// being chosen on the metronome's − and + is not heard yet.
-  int get soundingBpm;
-  TimeSignature get signature;
-
-  Duration get barLength;
-
-  /// How far into the bar it is, 0 to 1, or null when not counting.
-  double? get barPhase;
 }
 
 /// 4/4 at 80 BPM, for when nothing else keeps time.
@@ -87,11 +77,56 @@ typedef DroneSetup = ({
   Set<int> flats,
 });
 
+/// [setup] as JSON, in the songs' words ([ExampleSong.toJson]): the key as
+/// a pitch class, the progression and the style by name.
+Map<String, Object> droneSetupToJson(DroneSetup setup) => {
+  'key': setup.pitchClass,
+  'voicing': setup.voicing.name,
+  'chordVoicing': setup.chordVoicing.name,
+  'chord': setup.chord.name,
+  'progression': setup.progression.name,
+  'style': setup.style.name,
+  'continuous': setup.continuous,
+  'flats': [...setup.flats]..sort(),
+};
+
+/// Reads what [droneSetupToJson] wrote, or null without a key from 0 to
+/// 11: any other part that cannot be read falls back to its default.
+DroneSetup? droneSetupFromJson(Object? json) {
+  if (json is! Map) return null;
+  final key = json['key'];
+  if (key is! int || key < 0 || key > 11) return null;
+  T pick<T extends Enum>(List<T> values, String name, T fallback) =>
+      switch (json[name]) {
+        final String text => values.asNameMap()[text] ?? fallback,
+        _ => fallback,
+      };
+  final flats = json['flats'];
+  return (
+    pitchClass: key,
+    voicing: pick(DroneVoicing.values, 'voicing', DroneVoicing.chord),
+    chordVoicing: pick(DroneVoicing.values, 'chordVoicing', DroneVoicing.chord),
+    chord: pick(ChordQuality.values, 'chord', ChordQuality.major),
+    progression: pick(
+      Progression.values,
+      'progression',
+      Progression.values.first,
+    ),
+    style: pick(DroneStyle.values, 'style', DroneStyle.beat),
+    continuous: json['continuous'] == true,
+    flats: {
+      if (flats is List)
+        for (final f in flats)
+          if (f is int && f >= 0 && f < 12) f,
+    },
+  );
+}
+
 /// State and playback of the drone: the piano playing a note, a chord or a
 /// progression, in time with the metronome, to practise on.
 ///
 /// Without a piano (in tests) it falls back to a sustained tone.
-class DroneController extends ChangeNotifier {
+class DroneController extends ChangeNotifier implements SoundSection {
   DroneController(
     this._output, {
     BarClock? clock,
@@ -156,9 +191,7 @@ class DroneController extends ChangeNotifier {
   // The piano keeps its own count of bars (see [_scheduleBar]): where in
   // its loop the clock started, and how long it waited for the metronome's
   // next bar line before the first chord.
-  final _loopClock = Stopwatch();
-  Duration _loopStartedAt = Duration.zero;
-  Duration _loopWaiting = Duration.zero;
+  final _loopClock = SoundClock();
   late int _lastBpm;
   late TimeSignature _lastSignature;
 
@@ -173,13 +206,10 @@ class DroneController extends ChangeNotifier {
   double _a4 = 440;
   var _disposed = false;
 
-  /// The latest sound change still under way, if any (see [_sync]).
-  Future<void>? _pending;
+  /// Sound changes, one at a time (see [_sync]).
+  late final _requests = LatestRequest(_play);
 
-  /// A change waiting for the one under way, if any: later changes join it
-  /// rather than queue up behind it (see [_sync]).
-  Future<void>? _queued;
-
+  @override
   bool get isPlaying => _playing;
 
   /// True when the last attempt to start sound failed on this device.
@@ -422,6 +452,7 @@ class DroneController extends ChangeNotifier {
     for (var i = 0; i < voices; i++) i == 0 ? 1.0 : 0.7,
   ];
 
+  @override
   Future<void> start() {
     _playing = true;
     _audioFailed = false;
@@ -500,6 +531,7 @@ class DroneController extends ChangeNotifier {
     _notify();
   }
 
+  @override
   Future<void> stop() {
     _playing = false;
     _patient = false;
@@ -522,9 +554,7 @@ class DroneController extends ChangeNotifier {
       final left = _handOverWait - _handOverClock.elapsed;
       return left > Duration.zero ? left : null;
     }
-    if (!_loopClock.isRunning) return null;
-    final left = _loopWaiting - _loopClock.elapsed;
-    return left > Duration.zero ? left : null;
+    return _loopClock.waitLeft;
   }
 
   /// What a note key does: plays [pitchClass], switches to it if another
@@ -756,12 +786,11 @@ class DroneController extends ChangeNotifier {
     final bar = _clock.barLength;
     Duration wait;
     if (_patterned) {
-      final elapsed = _loopClock.elapsed;
-      if (elapsed < _loopWaiting) {
+      final at = _loopClock.position;
+      if (at == null) {
         // Still waiting to come in: the first chord is up on the screen.
-        wait = _loopWaiting + bar - elapsed;
+        wait = (_loopClock.waitLeft ?? Duration.zero) + bar;
       } else {
-        final at = _loopStartedAt + elapsed - _loopWaiting;
         wait =
             bar -
             Duration(microseconds: at.inMicroseconds % bar.inMicroseconds);
@@ -840,27 +869,7 @@ class DroneController extends ChangeNotifier {
   /// every step in turn.
   Future<void> _sync() {
     if (!_playing || _disposed) return _silence();
-    // The change already waiting reads the state when its turn comes, so it
-    // takes this one in too.
-    if (_queued case final queued?) return queued;
-    final previous = _pending;
-    final Future<void> done;
-    if (previous == null) {
-      done = _play();
-    } else {
-      late final Future<void> next;
-      next = previous.then((_) {
-        // Its turn: from now on, a change waits for it to finish.
-        if (identical(_queued, next)) _queued = null;
-        return _play();
-      });
-      done = _queued = next;
-    }
-    late final Future<void> tracked;
-    tracked = done.whenComplete(() {
-      if (identical(_pending, tracked)) _pending = null;
-    });
-    return _pending = tracked;
+    return _requests.run();
   }
 
   /// What the piano's loop is mixed from: two loops with the same are the
@@ -929,9 +938,8 @@ class DroneController extends ChangeNotifier {
         _handingOver = false;
         _handOverClock.stop();
         // The chords shown go back to the one the loop is on.
-        final elapsed = _loopClock.elapsed;
-        if (_voicing == DroneVoicing.progression && elapsed >= _loopWaiting) {
-          final at = _loopStartedAt + elapsed - _loopWaiting;
+        final at = _loopClock.position;
+        if (_voicing == DroneVoicing.progression && at != null) {
           _step =
               (at.inMicroseconds ~/ _clock.barLength.inMicroseconds) %
               chords.length;
@@ -964,24 +972,14 @@ class DroneController extends ChangeNotifier {
     if (!_playing || _disposed) return;
     final bar = _clock.barLength;
     // Lined up with the sound as it is heard, as the metronome does.
-    final latency = _outputLatency();
-    if (fromTheTop) {
-      _loopStartedAt = started.position;
-      _loopWaiting = started.delay + latency;
-    } else {
-      _loopStartedAt = started.position - latency;
-      _loopWaiting = started.delay;
-    }
-    _loopClock
-      ..reset()
-      ..start();
+    _loopClock.heard(started, latency: _outputLatency(), fresh: fromTheTop);
     _soundStarted = true;
     _slowTimer?.cancel();
     if (_voicing == DroneVoicing.progression) {
       // Waiting for the metronome, the first chord is still to come.
       _step = started.delay > Duration.zero
           ? 0
-          : (_loopStartedAt.inMicroseconds / bar.inMicroseconds).floor() %
+          : (_loopClock.startedAt.inMicroseconds / bar.inMicroseconds).floor() %
                 chords.length;
       _notify();
       _scheduleBar();

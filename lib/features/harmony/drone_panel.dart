@@ -5,20 +5,21 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../app/settings.dart';
-import '../../../app/style.dart';
-import '../../../widgets/row_controls.dart';
-import '../../../app/theme.dart';
-import '../../../audio/audio_scope.dart';
-import '../../../audio/pitch.dart';
-import '../../../l10n/app_localizations.dart';
-import '../../../widgets/choice_menu.dart';
-import '../../../widgets/dial.dart';
-import '../../../widgets/style_icons.dart';
-import '../../../widgets/page_dots.dart';
+import '../../app/settings.dart';
+import '../../app/style.dart';
+import '../../widgets/row_controls.dart';
+import '../../app/theme.dart';
+import '../../audio/audio_scope.dart';
+import '../../audio/pitch.dart';
+import '../../l10n/app_localizations.dart';
+import '../../widgets/choice_menu.dart';
+import '../../widgets/dial.dart';
+import '../../widgets/style_icons.dart';
+import '../../widgets/page_dots.dart';
 import 'drone_controller.dart';
 import 'drone_key_sheets.dart';
 import 'harmony.dart';
+import 'harmony_names.dart';
 
 /// The twelve notes in circle-of-fifths order, C at the top and clockwise:
 /// each step is a fifth up, so the neighbours of a key are its closest
@@ -632,79 +633,6 @@ class _DialCenterState extends State<_DialCenter> {
     );
   }
 }
-
-/// The name of a kind of chord, as listed in the chord menu.
-String chordName(AppLocalizations l10n, ChordQuality chord) => switch (chord) {
-  ChordQuality.major => l10n.chordMajor,
-  ChordQuality.minor => l10n.chordMinor,
-  ChordQuality.dominant => l10n.chordDominant,
-  ChordQuality.dominantFlat9 => l10n.chordDominantFlat9,
-  ChordQuality.major7 => l10n.chordMajor7,
-  ChordQuality.minor7 => l10n.chordMinor7,
-  ChordQuality.halfDiminished => l10n.chordHalfDiminished,
-  ChordQuality.diminished => l10n.chordDiminished,
-  ChordQuality.sus4 => l10n.chordSus4,
-};
-
-/// A chord on [note], as musicians write it: "A major", "La minore", "A7",
-/// "Rem7", "Domaj7".
-String chordSymbol(AppLocalizations l10n, DroneChord chord, String note) =>
-    switch (chord.quality) {
-      ChordQuality.major => l10n.droneChordMajor(note),
-      ChordQuality.minor => l10n.droneChordMinor(note),
-      ChordQuality.dominant => l10n.droneChordSeventh(note),
-      ChordQuality.dominantFlat9 => '${note}7♭9',
-      ChordQuality.major7 => '${note}maj7',
-      ChordQuality.minor7 => '${note}m7',
-      ChordQuality.halfDiminished => l10n.droneChordHalfDiminished(note),
-      ChordQuality.diminished => l10n.droneChordDiminished(note),
-      ChordQuality.sus4 => '${note}sus4',
-    };
-
-/// The name of a progression, as listed in its menu.
-String progressionName(AppLocalizations l10n, Progression p) => switch (p) {
-  Progression.twoFiveOne => 'II–V–I',
-  Progression.minorTwoFiveOne => l10n.progressionMinorTwoFiveOne,
-  Progression.circleOfFifths => l10n.progressionCircleOfFifths,
-  Progression.oneSixTwoFive => 'I–VI–II–V',
-  Progression.blues => l10n.progressionBlues,
-  Progression.minorBlues => l10n.progressionMinorBlues,
-  Progression.oneSixFourFive => 'I–VI–IV–V',
-  Progression.oneFiveSixFour => 'I–V–VI–IV',
-  Progression.andalusian => 'I–♭VII–♭VI–V',
-};
-
-/// The well-known song a progression is named after in the menu.
-String progressionSong(Progression p) => switch (p) {
-  Progression.twoFiveOne => 'Tune Up',
-  Progression.minorTwoFiveOne => 'Blue Bossa',
-  Progression.circleOfFifths => 'Autumn Leaves',
-  Progression.oneSixTwoFive => 'I Got Rhythm',
-  Progression.blues => 'Sweet Home Chicago',
-  Progression.minorBlues => 'Mr. P.C.',
-  Progression.oneSixFourFive => 'Stand by Me',
-  Progression.oneFiveSixFour => 'With or Without You',
-  Progression.andalusian => 'Hit the Road Jack',
-};
-
-/// The heading of a section of the progression menu.
-String progressionSectionName(AppLocalizations l10n, ProgressionSection s) =>
-    switch (s) {
-      ProgressionSection.popRock => l10n.progressionSectionPopRock,
-      ProgressionSection.blues => l10n.progressionSectionBlues,
-      ProgressionSection.jazz => l10n.progressionSectionJazz,
-    };
-
-/// The line under the name in the menu: "Like With or Without You"; for I–VI–IV–V,
-/// I–♭VII–♭VI–V and I–VI–II–V also their common names, the "giro di Do" of
-/// Italian musicians, the Andalusian cadence and the Anatole of jazz
-/// musicians.
-String progressionNote(AppLocalizations l10n, Progression p) => switch (p) {
-  Progression.oneSixFourFive => l10n.progressionGiroLike(progressionSong(p)),
-  Progression.andalusian => l10n.progressionAndalusianLike(progressionSong(p)),
-  Progression.oneSixTwoFive => l10n.progressionAnatoleLike(progressionSong(p)),
-  _ => l10n.progressionLike(progressionSong(p)),
-};
 
 /// Chord (the note alone being one of them) or Progression, full width, as
 /// tall as the other sections' first row.

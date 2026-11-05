@@ -1,6 +1,6 @@
-import '../../metronome/metronome_controller.dart';
-import 'drone_controller.dart';
-import 'harmony.dart';
+import '../metronome/metronome_controller.dart';
+import '../harmony/drone_controller.dart';
+import '../harmony/harmony.dart';
 
 /// Applies [song] as a preset: its key, progression and style on the piano
 /// (the held tone gives way to it), and on the metronome its time signature

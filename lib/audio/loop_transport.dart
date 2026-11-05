@@ -1,17 +1,23 @@
 import 'package:flutter_soloud/flutter_soloud.dart';
 
+import 'loop_engine.dart';
+
 /// Which looping bar is playing, so that a second one starting while the
 /// first plays comes in on its "one" instead of at a random point: the
 /// metronome's clicks and the piano's chords are two loops of the same
 /// length (or of a whole number of bars), and must stay together.
 class LoopTransport {
-  LoopTransport._();
+  /// A transport of its own, on [engine]: for tests on a fake engine.
+  LoopTransport({this.engine = LoopEngine.soloud});
 
-  static final instance = LoopTransport._();
+  /// The one the app's loops share.
+  static final instance = LoopTransport();
+
+  final LoopEngine engine;
 
   final _loops = <String, _Loop>{};
 
-  SoLoud get _soloud => SoLoud.instance;
+  LoopEngine get _soloud => engine;
 
   /// Notes that the loop [name], playing as [handle], has bars of [bar].
   /// [startsAt], the engine time (see SoLoud.getEngineTime) it was

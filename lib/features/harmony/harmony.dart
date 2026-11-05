@@ -3,8 +3,8 @@
 /// checking intonation.
 library;
 
-import '../../metronome/subdivision.dart';
-import '../../metronome/time_signature.dart';
+import '../metronome/subdivision.dart';
+import '../metronome/time_signature.dart';
 import 'drone_controller.dart';
 
 /// The kind of a chord: its notes above the root as pure ratios, as

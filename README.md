@@ -120,6 +120,8 @@ Texts live in `lib/l10n/app_en.arb` (English, the reference) and `lib/l10n/app_i
 
 ## Documentation
 
+What the app does is written once, with a code for each behaviour (`RF-ARM-07`, `RNF-AVV-01`…), in [docs/specs/requisiti.md](docs/specs/requisiti.md) (in Italian). This README, the user guides, `llm.md` and the store listing tell it to different readers; where one of them says something else, the requirements are right and the other is to be fixed.
+
 | Document | For |
 | --- | --- |
 | [docs/user-guide.md](docs/user-guide.md) (English), [docs/manuale-utente.md](docs/manuale-utente.md) (Italiano) | Players: what every control does |

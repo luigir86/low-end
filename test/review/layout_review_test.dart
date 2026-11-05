@@ -12,8 +12,8 @@ import 'package:low_end/app/settings.dart';
 import 'package:low_end/audio/audio_scope.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/tone_output.dart';
-import 'package:low_end/features/tuner/drone/drone_controller.dart';
-import 'package:low_end/features/tuner/drone/harmony.dart';
+import 'package:low_end/features/harmony/drone_controller.dart';
+import 'package:low_end/features/harmony/harmony.dart';
 
 // Roboto and the Material icons, copied from the Flutter SDK into the repo
 // (Apache 2.0, licences beside them) so the tests find them on any machine.

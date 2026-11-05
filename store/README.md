@@ -26,6 +26,8 @@ Raise `version:` in `pubspec.yaml` (the number after `+` must grow with every up
 
 ## Store listing
 
+The texts in `listing/` describe the app to the people on Google Play; what it does is written in [docs/specs/requisiti.md](../docs/specs/requisiti.md), and before each release the texts are read against it (see the release checklist): what they promise must be there, as the requirements say it.
+
 | Field | Value |
 | --- | --- |
 | App name | Low End: Metronome & Tuner (it: Low End: Metronomo Accordatore) |

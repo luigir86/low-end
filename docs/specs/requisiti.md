@@ -140,7 +140,7 @@ Fuori dallo scopo, per decisione presa: libreria PDF e conversione in MusicXML/M
 | RNF-OSS-01 | **Open source MIT**; ogni componente e campione con licenza compatibile e citata (Salamander pubblico dominio, Meatbass CC0, Edwin e Noto Music OFL). | `THIRD_PARTY_NOTICES.md`, audit del 24/10 | ✓ |
 | RNF-LLM-01 | **LLM first**: nessuna funzione solo da dita (vedi RF-LLM-01); la documentazione per assistenti aggiornata con il codice. | `app_actions_test` | ✓ |
 | RNF-TEST-01 | Tutto si prova senza telefono: ogni cosa esterna dietro un'interfaccia con un gemello muto o finto. | ~430 test, CI su ogni PR | ✓ |
-| RNF-TEST-02 | Il codice che parla davvero con il motore audio (loop, code, sincronia) è verificato con prove ripetibili. | nessun test automatico su `BarLoopPlayer` e `SoLoud*Output` | ○ |
+| RNF-TEST-02 | Il codice che parla davvero con il motore audio (loop, code, sincronia) è verificato con prove ripetibili. | `bar_loop_player_test` su un motore finto con il suo orologio (dal 5/11); nessun test sulle uscite `SoLoud*Output` | ◐ |
 | RNF-AUD-01 | Qualità del suono "una coccola": pianoforte stereo 48 kHz, nessun clipping (limiter sul mix), niente click a inizio o fine. | ascolto (thread "Qualità del motore audio") | ◐ |
 | RNF-REL-01 | Rilascio: versione nel `pubspec.yaml` alzata a ogni caricamento; targetSdk richiesto da Play; firma con la chiave di upload fuori dal repository. | `docs/release-checklist.md` | ◐ |
 

@@ -1,51 +1,16 @@
 import 'package:flutter/material.dart';
 
-import '../../../app/theme.dart';
-import '../../../audio/audio_scope.dart';
-import '../../../audio/pitch.dart';
-import '../../../l10n/app_localizations.dart';
-import '../../../widgets/section_icons.dart';
-import '../../metronome/time_signature.dart';
+import '../../app/theme.dart';
+import '../../audio/audio_scope.dart';
+import '../../audio/pitch.dart';
+import '../../l10n/app_localizations.dart';
+import '../../widgets/section_icons.dart';
+import '../metronome/time_signature.dart';
 import 'drone_controller.dart';
 import 'drone_panel.dart';
-import 'example_song.dart';
+import '../songs/example_song.dart';
 import 'harmony.dart';
-
-/// The key written out: "La maggiore", "C minor", spelled as the key is
-/// (D♭ major, not C♯).
-String keyName(AppLocalizations l10n, DroneController drone, NoteNames names) {
-  final tonic = spell(drone.note.pitchClass, drone.keyLetter, names);
-  return drone.keyIsMinor
-      ? l10n.droneChordMinor(tonic)
-      : l10n.droneChordMajor(tonic);
-}
-
-/// A progression by its numerals, or the name of the blues, which is too long
-/// to list (the key says whether it is minor): "II–V–I", "Blues".
-String progressionShort(AppLocalizations l10n, Progression p) => switch (p) {
-  Progression.minorTwoFiveOne => 'II–V–I',
-  Progression.blues || Progression.minorBlues => l10n.progressionBluesShort,
-  _ => progressionName(l10n, p),
-};
-
-/// "II–V–I in La maggiore": what is being practised, and in which key.
-String keyLine(AppLocalizations l10n, DroneController drone, NoteNames names) =>
-    l10n.keyLine(
-      progressionShort(l10n, drone.progression),
-      keyName(l10n, drone, names),
-    );
-
-/// The name of a degree of the scale, [degree] 0 for the tonic.
-String degreeName(AppLocalizations l10n, int degree, {bool minor = false}) =>
-    switch (degree) {
-      0 => l10n.degreeName1,
-      1 => l10n.degreeName2,
-      2 => l10n.degreeName3,
-      3 => l10n.degreeName4,
-      4 => l10n.degreeName5,
-      5 => l10n.degreeName6,
-      _ => minor ? l10n.degreeName7Minor : l10n.degreeName7,
-    };
+import 'harmony_names.dart';
 
 /// Tells what a Roman numeral on the circle stands for, and what the colours
 /// and dots mean. With [numeral] (the one touched) its row is marked.

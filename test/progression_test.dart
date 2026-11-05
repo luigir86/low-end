@@ -3,8 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/features/metronome/time_signature.dart';
 import 'package:low_end/audio/pitch.dart';
 import 'package:low_end/audio/tone_output.dart';
-import 'package:low_end/features/tuner/drone/drone_controller.dart';
-import 'package:low_end/features/tuner/drone/harmony.dart';
+import 'package:low_end/features/harmony/drone_controller.dart';
+import 'package:low_end/features/harmony/harmony.dart';
 
 /// A bar clock set by hand, as the metronome would be.
 class _Clock extends ChangeNotifier implements BarClock {

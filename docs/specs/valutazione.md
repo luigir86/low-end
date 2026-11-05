@@ -38,6 +38,8 @@ In 841 righe: teoria (gradi, ortografia, note della tonalità), politica del suo
 
 Oltre a creare gli oggetti, contiene le regole tra sezioni (pausa per l'accordatore, cuffie, interruzioni), la macchina a stati della notifica, il testo della notifica, i link, l'avvio anticipato del motore web e la preparazione del pianoforte. Sono regole di prodotto (RF-ACC-08, RF-BG-01/02) che oggi si possono provare solo montando l'intera app.
 
+*Corretto il 5/11 (passo 8):* le regole tra sezioni e la notifica sono in `app/playback_rules.dart` (`PauseRules`, `NowPlayingNotification`), provate da `playback_rules_test` con due sezioni finte; in `LowEndApp` restano il collegamento e lo snackbar.
+
 ### D4. Confini tra moduli rovesciati (bassa, ma costa a ogni modifica)
 
 - Il **metronomo importa l'Armonia** per l'interfaccia `BarClock` (dovrebbe essere il contrario, o un modulo comune).
@@ -46,9 +48,13 @@ Oltre a creare gli oggetti, contiene le regole tra sezioni (pausa per l'accordat
 - La **notifica** in `LowEndApp` usa funzioni di nome che stanno in `drone_panel.dart`, cioè in un file di schermata.
 - `AppSettings` conosce i tipi interni di Armonia e Metronomo e li salva in 25 chiavi singole: aggiungere un campo all'Armonia vuol dire toccare controller, `DroneSetup`, impostazioni, test della memoria e azioni.
 
+*Corretto il 5/11 (passi 7 e 9):* `features/harmony/`, `BarClock` in `features/metronome/bar_clock.dart` (il metronomo non importa più l'Armonia), `applySong` in `features/songs/`, i nomi in `harmony_names.dart`; l'Armonia è salvata in una sola chiave JSON con le parole dei brani (`droneSetupToJson`). Il nome `drone` nel codice resta, come nelle azioni.
+
 ### D5. Singleton globali nel percorso audio (media)
 
 `SoLoud.instance`, `LoopTransport.instance` e l'avviatore del motore sono globali. Per questo `BarLoopPlayer` e le uscite `SoLoud*` non hanno test automatici: la parte più delicata (sostituzione dei loop, code, ingressi sulla stanghetta, dissolvenze) si verifica solo a orecchio sul telefono (RNF-TEST-02 ○). `loop_transport_test` prova solo la matematica.
+
+*In parte corretto il 5/11 (passo 10):* `BarLoopPlayer` e `LoopTransport` passano per `LoopEngine` (le chiamate a SoLoud che usano) e ricevono il trasporto; `bar_loop_player_test` segue su un motore finto con il suo orologio sostituzioni, ingressi sulla stanghetta, code e dissolvenze. Restano globali l'avviatore del motore e le uscite `SoLoud*`, e l'orecchio sul telefono resta l'ultima prova.
 
 ### D6. Il web è un secondo programma nascosto (media)
 
@@ -58,13 +64,13 @@ Oltre a creare gli oggetti, contiene le regole tra sezioni (pausa per l'accordat
 
 | # | Che cosa | Dove | Effetto |
 | --- | --- | --- | --- |
-| DU1 | **Tre meccanismi di coda** per lo stesso problema (applicare l'ultima richiesta senza sovrapporsi) | `MetronomeController._sync` (`_syncing`/`_syncAgain`), `DroneController._sync` (`_pending`/`_queued`), `TunerController` (`_generation`) | Tre modi di sbagliare; la correzione di uno non arriva agli altri |
-| DU2 | **Allineamento della luce al suono** e **conto alla rovescia** | `MetronomeController._apply` e `DroneController._playPiano` (stessa logica `fresh`/`carryOn` con `outputLatency`), due `waitLeft` | Una correzione della latenza va fatta due volte |
-| DU3 | **Frequenza di campionamento** dichiarata quattro volte | `engineSampleRate`, `ClickSound.sampleRate`, `PianoSamples.sampleRate`, `WalkingBass.sampleRate` (e `DroneSound` che punta a `ClickSound`) | `ClickSound.sampleRate` è usato come costante globale in 22 punti |
-| DU4 | **Lunghezza della battuta** calcolata in quattro posti | `MetronomeController.barLength`, `SoLoudPianoOutput.play`, `SoLoudClickOutput.play` (dalla lunghezza del WAV), `PianoSound.renderSteps` | Arrotondamenti diversi possono separare di qualche campione la battuta vista e quella sentita |
+| DU1 | **Tre meccanismi di coda** per lo stesso problema (applicare l'ultima richiesta senza sovrapporsi) | `MetronomeController._sync` (`_syncing`/`_syncAgain`), `DroneController._sync` (`_pending`/`_queued`), `TunerController` (`_generation`) | Tre modi di sbagliare; la correzione di uno non arriva agli altri. *Corretto il 5/11 (passo 6) per metronomo e Armonia:* `LatestRequest`; l'accordatore tiene `_generation`, che scarta le letture vecchie e non accoda lavori |
+| DU2 | **Allineamento della luce al suono** e **conto alla rovescia** | `MetronomeController._apply` e `DroneController._playPiano` (stessa logica `fresh`/`carryOn` con `outputLatency`), due `waitLeft` | Una correzione della latenza va fatta due volte. *Corretto il 5/11 (passo 6):* `SoundClock` |
+| DU3 | **Frequenza di campionamento** dichiarata quattro volte | `engineSampleRate`, `ClickSound.sampleRate`, `PianoSamples.sampleRate`, `WalkingBass.sampleRate` (e `DroneSound` che punta a `ClickSound`) | `ClickSound.sampleRate` è usato come costante globale in 22 punti. *Corretto il 5/11 (passo 7):* `audioSampleRate` in `audio/audio_format.dart` |
+| DU4 | **Lunghezza della battuta** calcolata in quattro posti | `MetronomeController.barLength`, `SoLoudPianoOutput.play`, `SoLoudClickOutput.play` (dalla lunghezza del WAV), `PianoSound.renderSteps` | Arrotondamenti diversi possono separare di qualche campione la battuta vista e quella sentita. *Corretto il 5/11 (passo 7):* `pulseFrames` e `barDuration` in `audio_format.dart` |
 | DU5 | **Tre cache con tre durate** | `PianoLibrary` (30 s dopo lo stop, 2 min se preparata, per sempre nel web, 8 note in più), pre-mix `_ahead` (una chiave testuale), `SoLoudToneOutput._sources` | Difficile sapere quanta memoria si usa e quando si libera |
-| DU6 | **Nomi dei valori** in tre vocabolari | nomi delle azioni (`swing_eighths`), chiavi e valori salvati, enum Dart | Ogni nuovo valore va aggiunto in tre mappe |
-| DU7 | **Lo stesso comportamento descritto sei volte** | README, `user-guide.md`, `manuale-utente.md`, `llm.md`, `architecture.md`, scheda dello store | Le descrizioni divergono: il suono tenuto è a intervalli puri nel codice, "equal temperament" in `llm.md`, "just intonation" è un'idea futura nel README |
+| DU6 | **Nomi dei valori** in tre vocabolari | nomi delle azioni (`swing_eighths`), chiavi e valori salvati, enum Dart | Ogni nuovo valore va aggiunto in tre mappe. *In parte corretto il 5/11 (passo 9):* l'Armonia salvata usa le parole dei brani |
+| DU7 | **Lo stesso comportamento descritto sei volte** | README, `user-guide.md`, `manuale-utente.md`, `llm.md`, `architecture.md`, scheda dello store | Le descrizioni divergono: il suono tenuto è a intervalli puri nel codice, "equal temperament" in `llm.md`, "just intonation" è un'idea futura nel README. *Corretto il 4–5/11 (passo 11):* le divergenze corrette, e README, guide, `llm.md`, `architecture.md` e la scheda dello store rimandano a `requisiti.md`, che vale in caso di dubbio |
 
 ## 4. Inefficienze e rischi di prestazioni
 
@@ -91,6 +97,6 @@ Oltre a creare gli oggetti, contiene le regole tra sezioni (pausa per l'accordat
 ## 6. Cose piccole trovate strada facendo
 
 - `web/prova-microfono.html` (PR #88, "temporanea"): tolta il 4/11.
-- Il README dice "The second row under the dial (the first is left empty)": frase da rileggere.
-- `docs/architecture.md` non parla dei brani né del lavoro a fette nel web.
+- Il README dice "The second row under the dial (the first is left empty)": riletta il 5/11, è giusta (sotto il quadrante tre righe, la prima vuota per Metronomo e Armonia).
+- `docs/architecture.md` non parla dei brani né del lavoro a fette nel web: aggiornato il 5/11 (passo 11).
 - Il pacchetto e le azioni dicono `drone`, l'interfaccia dice Armonia: è voluto per le azioni (compatibilità), ma nel codice interno non serve più.
