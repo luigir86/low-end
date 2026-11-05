@@ -160,7 +160,7 @@ Il metronomo ha un meccanismo equivalente scritto in un altro modo (`_syncing`/`
 
 - **Impostazioni**: `shared_preferences`, 25 chiavi singole; l'Armonia è salvata come 8 chiavi (`harmony_*`).
 - **Campioni del pianoforte**: 13 note × 3 dinamiche × 2 canali + smorzatori, FLAC 16 bit 48 kHz; decodificati in `Int16List` (~3,5 MB per nota con le tre dinamiche). Ne restano in memoria fino a 8 oltre a quelli che servono. Su Android si liberano 30 s dopo lo stop (2 minuti se solo preparati); nel web restano finché la pagina è aperta.
-- **Contrabbasso**: ~90 file letti tutti insieme la prima volta che serve (e, per scelta, subito dopo il pianoforte: `prefetchBass: true`).
+- **Contrabbasso**: ~90 file letti tutti insieme la prima volta che serve (dal 4/11 solo quando lo stile è walking; prima anche subito dopo il pianoforte con `prefetchBass: true`). Dieci file alla volta con un frame in mezzo, anche su Android, dove la decodifica FLAC e la conversione in Int16 girano sul thread dello schermo. Aprendo sull'Armonia il pianoforte si prepara 1,2 s dopo il primo frame (`LowEndApp.prepareAfterLaunch`).
 - **Loop mixati**: buffer `Float64` stereo per tutta la lunghezza del giro, poi riverbero, poi WAV 16 bit; un giro di 12 battute a 80 BPM sono 36 s, cioè ~28 MB per ogni buffer `Float64` stereo (stima, mai misurata).
 - **Pre-mix**: uno solo, con una chiave testuale di tutti i parametri; un parametro diverso lo butta.
 - **Motore**: due voci in loop al massimo (click e piano) più code e dissolvenze; i sorgenti vecchi si liberano con ritardi a tempo.

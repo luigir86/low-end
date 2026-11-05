@@ -28,6 +28,11 @@ import 'screen_awake.dart';
 import 'theme.dart';
 
 class LowEndApp extends StatefulWidget {
+  /// How long after the first frame the harmony's piano is got ready, when
+  /// the app opens on it: a touch before then plays all the same.
+  @visibleForTesting
+  static const prepareAfterLaunch = Duration(milliseconds: 1200);
+
   const LowEndApp({
     super.key,
     this.toneOutput,
@@ -82,9 +87,6 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
         widget.pianoOutput ??
         (widget.toneOutput == null ? SoLoudPianoOutput() : null),
     outputLatency: () => _route.outputLatency,
-    // The double bass is got ready right after the piano, for a walking
-    // bass chosen later: reading it takes seconds on a phone's browser.
-    prefetchBass: true,
   );
   late final _metronome = MetronomeController(
     widget.clickOutput ?? SoLoudClickOutput(),
@@ -167,12 +169,14 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     );
     // If the app opens on the tuner (where it was left, or a link), start
     // listening once the first frame is up, so the microphone never delays
-    // it; opening on the harmony, its piano is got ready then too (in a
-    // browser only its recordings are read: the sound engine waits for a
-    // touch, see SoLoudPianoOutput.prepare).
+    // it. Opening on the harmony, its piano is got ready a moment later
+    // (RNF-AVV-01): reading the recordings holds the screen's thread, and
+    // the first frames, the slide hint among them, must not wait for it.
+    // In a browser only the recordings are read: the sound engine waits
+    // for a touch (see SoLoudPianoOutput.prepare).
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_navigation.tunerVisible) _tuner.resume();
-      _preparePiano();
+      _prepareAtLaunch = Timer(LowEndApp.prepareAfterLaunch, _preparePiano);
       if (_startsEngineAhead) {
         _engineAhead = Timer(_engineAheadAfter, _startEngineWhenStill);
       }
@@ -231,6 +235,8 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
       webPageIsolated();
 
   Timer? _engineAhead;
+
+  Timer? _prepareAtLaunch;
 
   /// Long enough for the first frame's own work to be done.
   static const _engineAheadAfter = Duration(milliseconds: 300);
@@ -469,6 +475,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     _navigation.removeListener(_onNavigationChanged);
     _navigation.sliding.removeListener(_preparePiano);
     _engineAhead?.cancel();
+    _prepareAtLaunch?.cancel();
     _drone.removeListener(_onPlayingChanged);
     _drone.removeListener(_rememberDrone);
     _metronome.removeListener(_onPlayingChanged);

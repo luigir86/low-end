@@ -863,6 +863,16 @@ class DroneController extends ChangeNotifier {
     return _pending = tracked;
   }
 
+  /// What the piano's loop is mixed from: two loops with the same are the
+  /// same sound.
+  String _loopKey(List<PianoChord> chords, int bpm, TimeSignature signature) =>
+      '$chords ${_pianoStyle.name} $bpm ${signature.numerator}/'
+      '${signature.denominator} ${signature.groups} $_a4';
+
+  /// The loop the piano plays now (see [_loopKey]), or null when it plays
+  /// nothing, or something being replaced.
+  String? _sounding;
+
   Future<void> _play() async {
     if (!_playing || _disposed) return;
     try {
@@ -873,6 +883,7 @@ class DroneController extends ChangeNotifier {
         final piano = _piano;
         if (piano != null) await piano.stop();
         final f = frequencies;
+        _sounding = null;
         _toneSounding = true;
         await _output.play(f, _gainsFor(f.length), _volume);
         if (_playing && !_disposed) _soundStarts();
@@ -909,6 +920,28 @@ class DroneController extends ChangeNotifier {
     final chords = _pianoChords;
     final bpm = _lastBpm = _clock.soundingBpm;
     final signature = _lastSignature = _clock.signature;
+    // What the change asks for is what already plays (changed and changed
+    // back, or set to what it was): the loop goes on, not mixed again.
+    final wanted = _loopKey(chords, bpm, signature);
+    if (wanted == _sounding && !(fromTheTop && !handOver)) {
+      if (handOver) {
+        _piano!.cancelHandOver();
+        _handingOver = false;
+        _handOverClock.stop();
+        // The chords shown go back to the one the loop is on.
+        final elapsed = _loopClock.elapsed;
+        if (_voicing == DroneVoicing.progression && elapsed >= _loopWaiting) {
+          final at = _loopStartedAt + elapsed - _loopWaiting;
+          _step =
+              (at.inMicroseconds ~/ _clock.barLength.inMicroseconds) %
+              chords.length;
+        }
+        _scheduleBar();
+      }
+      _notify();
+      return;
+    }
+    _sounding = null;
     final started = await _piano!.play(
       chords: chords,
       style: _pianoStyle,
@@ -922,6 +955,7 @@ class DroneController extends ChangeNotifier {
       patient: patient,
       handOver: handOver,
     );
+    _sounding = wanted;
     // Scheduled: from now on the wait is the loop's own (see [waitLeft]).
     if (handOver) {
       _handingOver = false;
@@ -959,6 +993,7 @@ class DroneController extends ChangeNotifier {
   }
 
   Future<void> _silence() async {
+    _sounding = null;
     try {
       _toneSounding = false;
       await _output.stop();

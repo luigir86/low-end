@@ -59,6 +59,10 @@ abstract class PianoOutput {
   /// bar line, or null when nothing plays.
   Duration? beginHandOver({required Duration lead});
 
+  /// Calls off a hand-over under way: the loop playing goes on, back up to
+  /// its level.
+  void cancelHandOver();
+
   Future<void> stop();
 
   /// Gets the audio engine and the recordings [chords] need ready while
@@ -93,11 +97,12 @@ typedef FlacDecoder = Future<Float32List> Function(Uint8List flac, int frames);
 /// The piano recordings, read and decoded when a chord first needs them,
 /// and kept while they may be needed again.
 class PianoLibrary {
-  PianoLibrary(this._decode, {AssetBundle? bundle, this.oneAtATime = kIsWeb})
+  PianoLibrary(this._decode, {AssetBundle? bundle, this.oneAtATime = true})
     : _bundle = bundle ?? rootBundle;
 
   /// Whether the double bass is read ten files at a time, leaving the screen
-  /// a frame between them: in a browser (see [_doubleBass]).
+  /// a frame between them (see [_doubleBass]): on Android too, where the
+  /// files are decoded on the screen's thread as well.
   final bool oneAtATime;
 
   final FlacDecoder _decode;
@@ -154,8 +159,8 @@ class PianoLibrary {
 
   /// The double bass, every take: some 90 short files, read once.
   ///
-  /// In a browser ten at a time, with a frame between them, so that the
-  /// screen keeps moving.
+  /// Ten at a time, with a frame between them, so that the screen keeps
+  /// moving.
   Future<BassSamples> _doubleBass() => _bass ??=
       () async {
         final files = BassSamples.all.toList();
@@ -399,6 +404,9 @@ class SoLoudPianoOutput implements PianoOutput {
   Duration? beginHandOver({required Duration lead}) =>
       _player.beginHandOver(lead: lead);
 
+  @override
+  void cancelHandOver() => _player.cancelHandOver();
+
   /// [was] let go at [position] in its loop (see PianoSound.tailWav).
   static Uint8List _tail(_Playing was, Duration position) => PianoSound.tailWav(
     samples: was.samples,
@@ -624,6 +632,16 @@ class SilentPianoOutput implements PianoOutput {
     if (chords == null) return null;
     handOvers++;
     return handOverIn ??= handOverWait;
+  }
+
+  /// How many times [cancelHandOver] was asked for.
+  var handOversCancelled = 0;
+
+  @override
+  void cancelHandOver() {
+    if (handOverIn == null) return;
+    handOverIn = null;
+    handOversCancelled++;
   }
 
   /// What [prepare] was last asked for.

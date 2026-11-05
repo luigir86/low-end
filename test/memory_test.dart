@@ -126,10 +126,38 @@ void main() {
       expect(pages.controller!.page, AppSection.drone.index);
       expect(_plain(scope.drone.setup), _plain(_blues));
       expect(scope.drone.isPlaying, isFalse);
-      // Got ready for the touch, the double bass with it.
+      // Got ready for the touch a moment after the first frames
+      // (RNF-AVV-01), the double bass with it: the blues is walking.
+      expect(piano.prepared, isNull);
+      await tester.pump(LowEndApp.prepareAfterLaunch);
       expect(piano.prepared, isNotNull);
       expect(piano.preparedBass, isTrue);
       expect(piano.chords, isNull);
+    });
+
+    testWidgets('on the harmony, the double bass only for a walking bass', (
+      tester,
+    ) async {
+      final first = await AppSettings.load();
+      first.rememberDrone((
+        pitchClass: _blues.pitchClass,
+        voicing: _blues.voicing,
+        chordVoicing: _blues.chordVoicing,
+        chord: _blues.chord,
+        progression: _blues.progression,
+        style: DroneStyle.beat,
+        continuous: _blues.continuous,
+        flats: _blues.flats,
+      ));
+      first.rememberSection(AppSection.drone);
+      await tester.pump();
+
+      final piano = SilentPianoOutput();
+      await _open(tester, await AppSettings.load(), piano: piano);
+      await tester.pump(LowEndApp.prepareAfterLaunch);
+      expect(piano.prepared, isNotNull);
+      // Not read ahead any more: 90 files, on the screen's thread.
+      expect(piano.preparedBass, isFalse);
     });
 
     testWidgets('what the player changes is kept', (tester) async {
