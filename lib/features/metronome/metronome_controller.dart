@@ -6,13 +6,15 @@ import 'package:flutter/foundation.dart';
 import '../../audio/click_output.dart';
 import '../../audio/click_sound.dart';
 import '../../audio/latest_request.dart';
+import '../../audio/sound_section.dart';
 import '../../audio/sound_clock.dart';
 import 'bar_clock.dart';
 import 'subdivision.dart';
 import 'time_signature.dart';
 
 /// State and playback of the metronome.
-class MetronomeController extends ChangeNotifier implements BarClock {
+class MetronomeController extends ChangeNotifier
+    implements BarClock, SoundSection {
   MetronomeController(
     this._output, {
     Stopwatch? clock,
@@ -118,6 +120,7 @@ class MetronomeController extends ChangeNotifier implements BarClock {
 
   /// Pulses (segments of the ring, clicks) in a bar.
   int get beatsPerBar => _signature.beats;
+  @override
   bool get isPlaying => _playing;
 
   /// The fastest tempo in the current time signature.
@@ -178,6 +181,7 @@ class MetronomeController extends ChangeNotifier implements BarClock {
     return pulseLength * inBeat;
   }
 
+  @override
   Future<void> start() {
     if (_playing) return Future.value();
     // A tempo still being chosen is heard from the start.
@@ -192,6 +196,7 @@ class MetronomeController extends ChangeNotifier implements BarClock {
     return _sync();
   }
 
+  @override
   Future<void> stop() {
     if (!_playing) return Future.value();
     _playing = false;

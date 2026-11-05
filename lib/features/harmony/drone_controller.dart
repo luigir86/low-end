@@ -8,6 +8,7 @@ import '../../audio/piano_output.dart';
 import '../../audio/piano_sound.dart';
 import '../../audio/pitch.dart';
 import '../../audio/sound_clock.dart';
+import '../../audio/sound_section.dart';
 import '../../audio/tone_output.dart';
 import '../metronome/bar_clock.dart';
 import '../metronome/time_signature.dart';
@@ -80,7 +81,7 @@ typedef DroneSetup = ({
 /// progression, in time with the metronome, to practise on.
 ///
 /// Without a piano (in tests) it falls back to a sustained tone.
-class DroneController extends ChangeNotifier {
+class DroneController extends ChangeNotifier implements SoundSection {
   DroneController(
     this._output, {
     BarClock? clock,
@@ -163,6 +164,7 @@ class DroneController extends ChangeNotifier {
   /// Sound changes, one at a time (see [_sync]).
   late final _requests = LatestRequest(_play);
 
+  @override
   bool get isPlaying => _playing;
 
   /// True when the last attempt to start sound failed on this device.
@@ -405,6 +407,7 @@ class DroneController extends ChangeNotifier {
     for (var i = 0; i < voices; i++) i == 0 ? 1.0 : 0.7,
   ];
 
+  @override
   Future<void> start() {
     _playing = true;
     _audioFailed = false;
@@ -483,6 +486,7 @@ class DroneController extends ChangeNotifier {
     _notify();
   }
 
+  @override
   Future<void> stop() {
     _playing = false;
     _patient = false;

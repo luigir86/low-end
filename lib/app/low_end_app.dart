@@ -24,6 +24,7 @@ import 'app_navigation.dart';
 import 'background_audio.dart';
 import 'settings.dart';
 import 'home_shell.dart';
+import 'playback_rules.dart';
 import 'screen_awake.dart';
 import 'theme.dart';
 
@@ -109,6 +110,22 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
   // The app opens on the section it was left on.
   late final _navigation = AppNavigation(section: _settings.section);
 
+  /// With the screen off or the app in the background, the drone and the
+  /// metronome carry on, kept alive by a media notification.
+  late final _notification = NowPlayingNotification(
+    drone: _drone,
+    metronome: _metronome,
+    background: _background,
+    describe: () => _describePlaying(_notificationTexts()),
+    playingTitle: () => _notificationTexts().backgroundPlaying,
+    appTitle: () => _notificationTexts().appTitle,
+  );
+  late final _pauses = PauseRules(
+    drone: _drone,
+    metronome: _metronome,
+    notification: _notification,
+  );
+
   /// Shows the notice that the sound paused for the tuner.
   final _messenger = GlobalKey<ScaffoldMessengerState>();
   late final _settings = widget.settings ?? AppSettings();
@@ -159,13 +176,15 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     // Coming to the tuner starts it only when nothing plays.
     _tuner.autoStartAllowed = () => !_drone.isPlaying && !_metronome.isPlaying;
     _tuner.addListener(_onTunerChanged);
-    _commands = _background.commands.listen(_onMediaCommand);
+    _commands = _background.commands.listen(_notification.command);
     // Headphones pulled out: the sound stops before it reaches the speaker.
-    _unplugged = _route.unplugged.listen((_) => _pauseFor(_Pause.unplugged));
+    _unplugged = _route.unplugged.listen(
+      (_) => _pauseFor(PauseReason.unplugged),
+    );
     // The iPhone's browser cut the sound (a call, the locked screen): the
     // app must not look as if it played on, unheard.
     _interrupted = _route.interrupted.listen(
-      (_) => _pauseFor(_Pause.interrupted),
+      (_) => _pauseFor(PauseReason.interrupted),
     );
     // If the app opens on the tuner (where it was left, or a link), start
     // listening once the first frame is up, so the microphone never delays
@@ -200,7 +219,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
   void _onSettingsChanged() {
     _keepScreenOn();
     // The notification names the notes in the player's way.
-    if (_shown == MediaState.playing) _onPlayingChanged();
+    _notification.refresh();
     // The tuner listens as high as the instrument chosen plays.
     _tuner.highestHz = _settings.tuning.highestHz;
     if (_settings.a4 == _droneA4) return;
@@ -274,40 +293,29 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
   /// with a button to play it again.
   void _onTunerChanged() {
     _keepScreenOn();
-    if (_tuner.isListening && (_drone.isPlaying || _metronome.isPlaying)) {
-      _pauseFor(_Pause.tuner);
-    }
+    _showPaused(_pauses.tunerChanged(listening: _tuner.isListening));
   }
 
-  /// Stops whatever sounds, with a notice that says why and a button to play
-  /// it again. Headphones pulled out pause it as a music player does: the
-  /// notification stays, paused, with its play button.
-  void _pauseFor(_Pause why) {
-    final drone = _drone.isPlaying, metronome = _metronome.isPlaying;
-    if (!drone && !metronome) return;
-    if (why == _Pause.unplugged) {
-      _pauseInNotification();
-    } else {
-      if (drone) _drone.stop();
-      if (metronome) _metronome.stop();
-    }
+  void _pauseFor(PauseReason why) => _showPaused(_pauses.pauseFor(why));
+
+  /// A notice that says why the sound paused, with a button to play it
+  /// again (see [PauseRules]).
+  void _showPaused(Paused? paused) {
+    if (paused == null) return;
     final l10n = _notificationTexts();
     _messenger.currentState
       ?..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(switch (why) {
-            _Pause.tuner => l10n.pausedForTuner,
-            _Pause.unplugged => l10n.pausedUnplugged,
-            _Pause.interrupted => l10n.pausedInterrupted,
+          content: Text(switch (paused.why) {
+            PauseReason.tuner => l10n.pausedForTuner,
+            PauseReason.unplugged => l10n.pausedUnplugged,
+            PauseReason.interrupted => l10n.pausedInterrupted,
           }),
           persist: false,
           action: SnackBarAction(
             label: l10n.resume,
-            onPressed: () {
-              if (drone && !_drone.isPlaying) _drone.start();
-              if (metronome && !_metronome.isPlaying) _metronome.start();
-            },
+            onPressed: () => _pauses.resume(paused),
           ),
         ),
       );
@@ -319,52 +327,13 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
         (_drone.isPlaying || _metronome.isPlaying || _tuner.isListening),
   );
 
-  /// With the screen off or the app in the background, the drone and the
-  /// metronome carry on, kept alive by a media notification (see
-  /// [BackgroundAudio]) that is there while one of them plays, and after a
-  /// pause from the notification, to resume from.
-  var _shown = MediaState.off;
-  var _pausedFromNotification = false;
-  var _stoppingFromNotification = false;
-  var _heldDrone = false;
-  var _heldMetronome = false;
   StreamSubscription<MediaCommand>? _commands;
-
-  /// What the notification says is playing, kept while it is paused.
-  var _nowPlaying = '';
-  var _shownText = '';
 
   void _onPlayingChanged() {
     _keepScreenOn();
-    final playing = _drone.isPlaying || _metronome.isPlaying;
     // In a web page the engine sleeps a while after the last sound.
-    setWebAudioIdle(!playing);
-    final l10n = _notificationTexts();
-    // Not while the notification's own pause is stopping things: stopping
-    // the drone first, with the metronome still sounding, would otherwise
-    // look like a restart and forget the pause (and play would do nothing).
-    if (playing && !_stoppingFromNotification) {
-      _pausedFromNotification = false;
-      _nowPlaying = _describePlaying(l10n);
-    }
-    final state = playing
-        ? MediaState.playing
-        : _pausedFromNotification
-        ? MediaState.paused
-        : MediaState.off;
-    // A new tempo, note or chord changes the text, not the state.
-    if (state == _shown && _nowPlaying == _shownText) return;
-    _shown = state;
-    _shownText = _nowPlaying;
-    // What plays, and at what tempo, on the first line: that is what the
-    // small notification shows beside the play button. The app's name and
-    // icon sit in its header, as on a music player.
-    final lines = _nowPlaying.split('\n').where((s) => s.isNotEmpty).toList();
-    _background.show(
-      state,
-      title: lines.isEmpty ? l10n.backgroundPlaying : lines.first,
-      text: lines.length > 1 ? lines[1] : l10n.appTitle,
-    );
+    setWebAudioIdle(!_drone.isPlaying && !_metronome.isPlaying);
+    _notification.update();
   }
 
   /// "Metronome 120 BPM · 4/4" and "Harmony A major", one per line: what is
@@ -394,38 +363,6 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
       parts.add('${l10n.harmonyTab} $what');
     }
     return parts.join('\n');
-  }
-
-  void _onMediaCommand(MediaCommand command) {
-    switch (command) {
-      case MediaCommand.pause:
-        if (!_drone.isPlaying && !_metronome.isPlaying) return;
-        _pauseInNotification();
-      case MediaCommand.play:
-        if (!_pausedFromNotification) return;
-        if (_heldDrone) _drone.start();
-        if (_heldMetronome) _metronome.start();
-      case MediaCommand.stop:
-        _pausedFromNotification = false;
-        _drone.stop();
-        _metronome.stop();
-        // Nothing was playing when paused: the notification must go anyway.
-        _onPlayingChanged();
-    }
-  }
-
-  /// Stops what plays and keeps the notification, paused, to play it again
-  /// from there: its pause button, or the headphones pulled out.
-  void _pauseInNotification() {
-    _heldDrone = _drone.isPlaying;
-    _heldMetronome = _metronome.isPlaying;
-    _pausedFromNotification = true;
-    _stoppingFromNotification = true;
-    _drone.stop();
-    _metronome.stop();
-    _stoppingFromNotification = false;
-    // Shows the paused notification, whatever the stops showed.
-    _onPlayingChanged();
   }
 
   Locale _locale() =>
@@ -529,6 +466,3 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     ],
   );
 }
-
-/// Why the sound was stopped by the app rather than by the player.
-enum _Pause { tuner, unplugged, interrupted }
