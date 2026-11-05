@@ -161,7 +161,12 @@ void main() {
     );
     // Let down with the piano by that bar line, waiting for its new loop.
     await Future<void>.delayed(Duration.zero);
-    expect(oldClick.volumeAt(line), closeTo(BarLoopPlayer.handOverLevel, 1e-9));
+    // Down within a beat, not along the wait: the clicks are heard low.
+    expect(
+      oldClick.volumeAt(engine.now + ms(150)),
+      closeTo(BarLoopPlayer.meetingLevel, 1e-9),
+    );
+    expect(oldClick.volumeAt(line), closeTo(BarLoopPlayer.meetingLevel, 1e-9));
     // The piano's new loop comes in on that same bar line, and so do the
     // clicks.
     await piano.play(
@@ -204,7 +209,7 @@ void main() {
     engine.advance(wait + ms(100));
     expect(
       oldClick.volumeAt(engine.now),
-      closeTo(BarLoopPlayer.handOverLevel, 1e-9),
+      closeTo(BarLoopPlayer.meetingLevel, 1e-9),
     );
     expect(oldClick.stopsAt, isNull);
     await piano.play(

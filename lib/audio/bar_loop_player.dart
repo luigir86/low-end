@@ -44,6 +44,12 @@ class BarLoopPlayer {
   /// bar line where the other comes in: it dies away under it from there.
   static const handOverLevel = 1 / 3;
 
+  /// How loud clicks waiting to meet the piano (see [play] with atMeeting)
+  /// are let down to: lower than the piano, as a short click stands out
+  /// more than a held chord at the same level, so that both are heard to
+  /// fade alike (about -15 dB).
+  static const meetingLevel = 1 / 6;
+
   /// The engine time of the bar line a hand-over (see [beginHandOver])
   /// aims at, while one is under way.
   Duration? _handOverAt;
@@ -123,10 +129,10 @@ class BarLoopPlayer {
       final aimed = transport.meetAt;
       if (aimed != null) {
         meeting = true;
-        final left = aimed - _soloud.getEngineTime();
-        if (left > Duration.zero) {
-          _soloud.fadeVolume(old, _volume * handOverLevel, left);
-        }
+        // Down at once, not along the wait: a click sounds only on the
+        // beats, the last one a beat before the bar line, and a slow fade
+        // would never be heard.
+        _soloud.fadeVolume(old, _volume * meetingLevel, _meetingFade);
         met = await transport.meeting.timeout(
           _meetingLimit,
           onTimeout: () => null,
@@ -321,6 +327,10 @@ class BarLoopPlayer {
   /// How long the clicks wait for the piano's new loop at most (see
   /// [play] with atMeeting): past it they change on their own.
   static const _meetingLimit = Duration(seconds: 30);
+
+  /// How fast clicks waiting to meet the piano go down: before the next
+  /// click at any tempo the app plays.
+  static const _meetingFade = Duration(milliseconds: 150);
 
   /// The least time a start can be scheduled ahead on the engine's clock.
   static const _scheduleLead = Duration(milliseconds: 60);
