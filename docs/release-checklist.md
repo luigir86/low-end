@@ -54,7 +54,9 @@ marks anything that cannot be confirmed from the code.
 
 - [ ] Texts: `store/listing/en-US/` and `store/listing/it-IT/` (title ≤ 30,
       short ≤ 80, full ≤ 4000, release notes ≤ 500 characters; already within
-      the limits, see store/README.md).
+      the limits, see store/README.md). Read them against
+      `docs/specs/requisiti.md`: nothing promised that is not there, nothing
+      said differently.
 - [ ] Graphics: `store/graphics/icon-512.png`, feature graphic 1024×500 per
       language, phone screenshots in `store/graphics/phone/<locale>/`.
       Regenerate with

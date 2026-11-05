@@ -1,6 +1,6 @@
 # Low End: manuale utente
 
-*English: [user-guide.md](user-guide.md).*
+*English: [user-guide.md](user-guide.md).* Che cosa fa ogni comando è scritto anche, con un codice ciascuno, nei [requisiti](specs/requisiti.md); dove questo manuale dice altro, valgono i requisiti.
 
 Low End è un metronomo, una sezione di armonia al pianoforte e un accordatore in un'unica app. L'ha realizzata un contrabbassista amatoriale pensando agli amici dell'orchestra, ma è pensata per ogni musicista. È gratuita, senza pubblicità, non raccoglie nulla e non ha bisogno di internet. Ha sempre lo stesso aspetto scuro, bronzo su ebano: non c'è un tema da scegliere.
 
