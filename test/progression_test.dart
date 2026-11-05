@@ -211,13 +211,13 @@ void main() {
         'D♯',
         'G♯',
         'C♯',
-        'A',
+        'C♯',
       ]);
       expect(names(drone, 6, Progression.minorTwoFiveOne), [
         'G♯',
         'C♯',
         'F♯',
-        'D',
+        'F♯',
       ]);
     });
 
@@ -270,13 +270,22 @@ void main() {
     expect(steps[2].quality, ChordQuality.minor7);
   });
 
-  test('the jazz loops turn around on a VI7 instead of resting on the I', () {
-    // In C: A7 leads back to Dm7; in C minor A♭7, still in the key.
+  test('the minor II–V–I rests on the I for two bars, with no turnaround', () {
+    // In C minor Dm7♭5 G7♭9 Cm7 Cm7: A♭7 would want G, not Dm7♭5.
+    final steps = Progression.minorTwoFiveOne.steps;
+    expect(steps.length, 4);
+    for (final step in steps.sublist(2)) {
+      expect(
+        (step.offset, step.quality, step.numeral),
+        (0, ChordQuality.minor7, 'I'),
+      );
+    }
+  });
+
+  test('the major jazz loops turn around on a VI7, not resting on the I', () {
+    // In C: A7 leads back to Dm7.
     final major = Progression.twoFiveOne.steps.last;
     expect((major.offset, major.quality), (9, ChordQuality.dominant));
-    final minor = Progression.minorTwoFiveOne.steps.last;
-    expect((minor.offset, minor.quality), (8, ChordQuality.dominant));
-    expect(minor.numeral, '♭VI');
     final circle = Progression.circleOfFifths.steps;
     expect(
       (circle.last.offset, circle.last.quality),

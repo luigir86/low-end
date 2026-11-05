@@ -51,14 +51,14 @@ void main() {
       16 / 9,
       32 / 15,
     ]);
-    // Minor II–V–I in C: Dm7♭5 G7♭9 Cm7 A♭7.
+    // Minor II–V–I in C: Dm7♭5 G7♭9 Cm7 Cm7.
     expect(
       [for (final s in Progression.minorTwoFiveOne.steps) s.quality],
       [
         ChordQuality.halfDiminished,
         ChordQuality.dominantFlat9,
         ChordQuality.minor7,
-        ChordQuality.dominant,
+        ChordQuality.minor7,
       ],
     );
     // The minor blues: both its V chords.
