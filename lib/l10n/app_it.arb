@@ -120,6 +120,7 @@
   "octaveExamples": "{a4} = 440 Hz, il Mi grave del basso è {e1}",
   "tuningChromatic": "Cromatico",
   "tuningInstrument": "Strumento",
+  "tempoLabel": "Tempo",
   "voicingLabel": "Modalità",
   "voicingChordHint": "Una nota o un accordo, finché lo fermi",
   "voicingProgressionHint": "Accordi in sequenza, a tempo col metronomo",

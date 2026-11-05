@@ -818,6 +818,12 @@ abstract class AppLocalizations {
   /// **'Instrument'**
   String get tuningInstrument;
 
+  /// Name of the Harmony field that shows and changes the tempo, the same as the metronome's.
+  ///
+  /// In en, this message translates to:
+  /// **'Tempo'**
+  String get tempoLabel;
+
   /// Name of the Harmony field that chooses between one chord and a progression.
   ///
   /// In en, this message translates to:

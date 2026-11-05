@@ -419,6 +419,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tuningInstrument => 'Instrument';
 
   @override
+  String get tempoLabel => 'Tempo';
+
+  @override
   String get voicingLabel => 'Mode';
 
   @override
