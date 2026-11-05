@@ -17,6 +17,12 @@ class LoopTransport {
 
   final _loops = <String, _Loop>{};
 
+  /// The engine time of the bar line a hand-over aims at (see
+  /// BarLoopPlayer.beginHandOver), while one is under way: a new song
+  /// changes the piano and the clicks together there, and the metronome
+  /// keeps going at its old tempo until then (RF-ARM-15).
+  Duration? meetAt;
+
   LoopEngine get _soloud => engine;
 
   /// Notes that the loop [name], playing as [handle], has bars of [bar].

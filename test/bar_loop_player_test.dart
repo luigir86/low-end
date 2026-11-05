@@ -144,6 +144,41 @@ void main() {
     expect(tail.volumeAt(line), closeTo(BarLoopPlayer.handOverLevel, 1e-9));
   });
 
+  test('clicks asked to meet the piano change on its hand-over bar line, '
+      'the old ones clicking until then', () async {
+    await click.play(fakeWav(bar), bar);
+    await piano.play(fakeWav(bar), bar, startAt: Duration.zero);
+    engine.advance(bar + ms(400));
+    final oldClick = only('click-loop.wav');
+    final wait = piano.beginHandOver(lead: ms(500))!;
+    final line = engine.now + wait;
+    const faster = Duration(milliseconds: 1500);
+    final start = await click.play(
+      fakeWav(faster),
+      faster,
+      startAt: Duration.zero,
+      atMeeting: true,
+    );
+    expect(start.delay, _near(wait));
+    final newClick = engine.voices.values.lastWhere(
+      (v) => v.name == 'click-loop.wav',
+    );
+    expect(newClick.startsAt, line);
+    expect(oldClick.stopsAt, line);
+    expect(oldClick.volumeAt(line), closeTo(BarLoopPlayer.handOverLevel, 1e-9));
+    // The piano's new loop comes in on that same bar line.
+    await piano.play(
+      fakeWav(faster),
+      faster,
+      startAt: Duration.zero,
+      handOver: true,
+    );
+    final newPiano = engine.voices.values.lastWhere(
+      (v) => v.name == 'piano-loop.wav',
+    );
+    expect(newPiano.startsAt, line);
+  });
+
   test('a hand-over called off brings the loop back up', () async {
     await piano.play(fakeWav(bar), bar);
     engine.advance(ms(300));
