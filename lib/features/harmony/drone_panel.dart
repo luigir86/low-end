@@ -832,15 +832,16 @@ enum _StyleLine {
       drone.usesPiano ? values.firstWhere((l) => l.piano == drone.style) : tone;
 }
 
-/// The picture of a line: a long line for the chord held a bar, strokes for
-/// the beats, a climb for the arpeggio, footprints for the walking bass, a
-/// wave for the held tone.
+/// The picture of a line: the piano's chord written as in a score (whole
+/// notes held a bar, quarter notes on every beat, quarter notes one after
+/// the other for the arpeggio), footprints for the walking bass, a wave for
+/// the held tone.
 Widget _styleIcon(_StyleLine line) => switch (line) {
-  _StyleLine.held => const Icon(Icons.horizontal_rule),
-  _StyleLine.beat => const StyleIcon(StyleGlyph.beats),
-  _StyleLine.arpeggio => const Icon(Icons.trending_up),
+  _StyleLine.held => const StyleIcon(StyleGlyph.heldChord),
+  _StyleLine.beat => const StyleIcon(StyleGlyph.struckChord),
+  _StyleLine.arpeggio => const StyleIcon(StyleGlyph.arpeggio),
   _StyleLine.walking => const StyleIcon(StyleGlyph.footprints),
-  _StyleLine.tone => const Icon(Icons.waves),
+  _StyleLine.tone => const StyleIcon(StyleGlyph.wave),
   _StyleLine.legend => const Icon(Icons.info_outline),
 };
 
