@@ -1,14 +1,14 @@
 # Player (Ascolto): piano di riferimento
 
-Il quarto tab di Low End: un brano proprio, rallentato senza cambiare intonazione, con un passaggio che si ripete. Questo file dice **come** si costruisce e in quali passi; **cosa** l'app deve fare sta in [requisiti.md](requisiti.md), sezione 2.10 (codici RF-PLY). Se i due file dicono cose diverse vale `requisiti.md`, e questo file va corretto.
+Il terzo tab di Low End: un brano proprio, rallentato senza cambiare intonazione, con un passaggio che si ripete. Questo file dice **come** si costruisce e in quali passi; **cosa** l'app deve fare sta in [requisiti.md](requisiti.md), sezione 2.10 (codici RF-PLY). Se i due file dicono cose diverse vale `requisiti.md`, e questo file va corretto.
 
-Revisione 2, 6 novembre 2026: riscrive il piano dopo la prima prova di Luigi su PR #122 e #123. La revisione 1 (stesso giorno, prima del codice) è nella storia di git di questo file e nel documento "Tab Player: piano di implementazione"; la valutazione delle strade da cui è partita non serve più.
+Revisione 3, 6 novembre 2026 sera: rivede la scelta del passaggio dopo la seconda prova di Luigi (su `main` fino alla PR #129). Valuta la sua proposta (bandiere A e B, striscia dritta della forma d'onda sotto il quadrante, niente zoom sul toro), dice cosa conviene tenere e come costruirlo. Le revisioni 1 e 2 sono nella storia di git di questo file.
 
 ## 1. Come si usa
 
 - **Spec prima del codice.** Una decisione nuova si scrive prima in `requisiti.md`, poi qui, poi nel codice. Ogni PR cita i codici RF-PLY che realizza, nei commit, nella descrizione e nei nomi dei test, e alla fine aggiorna la colonna Stato (◐ unita, ✓ dopo la prova sul telefono).
 - **Per chi implementa (una sessione Sonnet che lavora da sola).** Leggi `CLAUDE.md`, `docs/architecture.md`, `docs/specs/README.md`, la sezione 2.10 di `requisiti.md` e questo file. Poi una PR alla volta, nell'ordine della sezione 6, ognuna su un ramo nuovo da `main` aggiornato e solo dopo che la precedente è unita. Ogni PR lascia l'app funzionante e passa format, analyze, test e le build APK e web della CI.
-- **Le scelte di prodotto sono già fatte.** Una scelta tecnica non coperta qui: la più semplice che rispetta `CLAUDE.md`, scritta nella PR sotto "Scelte fatte". Fermati solo ai punti segnati CANCELLO, dove servono Luigi e il telefono. Le domande della sezione 10 hanno una risposta predefinita: usala senza aspettare.
+- **Le scelte di prodotto sono già fatte.** Una scelta tecnica non coperta qui: la più semplice che rispetta `CLAUDE.md`, scritta nella PR sotto "Scelte fatte". Fermati solo al CANCELLO 3, dove servono Luigi e il telefono. Le domande della sezione 10 hanno una risposta predefinita: usala senza aspettare.
 - **Flutter nel container.** Se manca, scarica `flutter_linux_3.47.9-stable.tar.xz` da `https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/`, scompattalo fuori dal repository e metti `flutter/bin` nel PATH.
 - **Da non fare:** spettrogramma, file_picker, just_audio_background, riconoscimento del tempo, registrazione (fase 1b, da approvare a parte), colori o testi scritti nel codice, dipendenze nuove oltre a quelle già in `pubspec.yaml`.
 
@@ -18,25 +18,59 @@ In `main` dal 6/11:
 
 | PR | Cosa porta | Codici |
 | --- | --- | --- |
-| #122 | Quarto tab: scelta del file, play e pausa dal centro, toro con le tacche e il punto di ascolto, regole con le altre sezioni, notifica, azioni `player_open`, `player_play`, `player_pause`, `player_seek` | RF-GEN-01, RF-PLY-01…07, 16 |
-| #123 | Velocità 50-125%, loop A-B con "A qui" e "B qui", segmenti Inizio/Fine con − e + da 0,1 s, arco disegnato con pressione lunga, azioni `player_speed`, `player_loop`, `player_mark`, `player_loop_nudge`, `player_loop_off` | RF-PLY-08…12 |
+| #122, #123 | Il tab, il motore (just_audio 0.10.6), velocità 50-125%, loop A-B, azioni `player_*` | RF-PLY-01…12 |
+| #124 | Revisione 2 di questo piano | — |
+| #125 | Ordine Metronomo, Armonia, Ascolto, Accordatore; cursore radiale; forma d'onda nel toro (Android e web) | RF-GEN-01, RF-PLY-03, 15 |
+| #126 | Passaggio sul toro: pressione lunga per disegnare, maniglie A e B trascinabili, vista Passaggio legata al Loop, riga dei messaggi, gruppi A e B con − e + da 10 ms | RF-PLY-09…12, 16…18 |
+| #129 | Brano, passaggio e velocità ricordati; titolo e autore dai tag; cache dei picchi | RF-PLY-13, 14 |
 
-File principali: `lib/audio/track_output.dart` e `just_audio_track_output.dart` (il motore, just_audio 0.10.6), `lib/audio/track_files.dart` e `system_track_files_{io,web}.dart` (i file), `android/.../TrackFiles.kt` (canale `low_end/track_files`), `lib/features/player/` (`player_controller.dart`, `player_dial.dart`, `player_panel.dart`, `clock_text.dart`), `lib/widgets/step_button.dart`.
+File del Player: `lib/features/player/` (`player_controller.dart`, `player_dial.dart`, `player_panel.dart`, `ring_window.dart`, `ring_wave.dart`, `track_peaks.dart`, `track_tags.dart`, `player_setup.dart`, `clock_text.dart`), `lib/audio/track_output.dart`, `lib/audio/track_files*.dart`, `lib/widgets/step_button.dart`, `android/.../TrackFiles.kt` e `TrackPeaks.kt`, `lowEndPeaks` in `web/flutter_bootstrap.js`.
 
-Le prove sul telefono del CANCELLO 1 (velocità al 70 e al 50%, stacco del loop, peso dell'APK, iPhone) non sono ancora state riportate: passano al CANCELLO 2.
+Le prove del CANCELLO 2 non riportate (velocità al 70 e al 50%, stacco del loop, peso dell'APK, iPhone) passano al CANCELLO 3.
 
-## 3. Cosa cambia dopo la prova di Luigi (6/11)
+## 3. La proposta di Luigi (6/11 sera): pro e contro
 
-| Punto di Luigi | Decisione | Perché |
+![Le due schermate della revisione 3](player-rev3.svg)
+
+*A sinistra il brano aperto senza passaggio; a destra il passaggio posato, il loop acceso e la bandiera B attiva. Disegno indicativo: nell'app il Loop resta l'icona di oggi e i colori vengono dal tema.*
+
+### 3.1 Cosa non funziona oggi, e perché
+
+| Punto di Luigi | Causa nel codice di oggi | Come lo risolve la revisione 3 |
 | --- | --- | --- |
-| 1. Ascolto come terzo tab | Ordine Metronomo, Armonia, **Ascolto**, Accordatore. Il nome resta Player / Ascolto / Escucha / Écoute | Deciso da Luigi. La sezione si salva per nome, quindi niente migrazione |
-| 2. A e B con "A qui / B qui" non è intuitivo; meglio toccare il toro | Il passaggio si sceglie **sul toro**: pressione lunga e scorrere disegna A-B (c'era già, ma nessuno lo vedeva: ora lo spiega la riga dei messaggi); le maniglie **A e B si trascinano direttamente**. I pulsanti "A qui" e "B qui" spariscono dallo schermo; "segna qui" resta per il lettore di schermo e per gli assistenti | Il gesto diretto è quello che Luigi si aspetta; serve però la vista Passaggio (sotto) perché sia preciso |
-| 3. Il pallino non si capisce; meglio un segmento che scorre | Il punto di ascolto diventa un **cursore**: un segmento radiale che attraversa tutto lo spessore del toro, come la linea di riproduzione dei programmi audio | Letto "segmento" come la linea dei programmi audio, non come un arco |
-| 4. Manca la forma d'onda del disegno | La **forma d'onda** entra subito (era la vecchia PR 4): i picchi del brano ogni 10 ms, disegnati dentro il toro, simmetrici attorno al suo centro. Niente spettrogramma | Lo spettrogramma costa migliaia di FFT e sul web bloccherebbe lo schermo; i picchi mostrano già attacchi, pieni e pianissimi, che è ciò che serve per mettere A e B |
-| 5. − e + da 0,1 s sono troppo grossi e lontani da A e B | **Ogni estremo ha i suoi − e +**, sotto il suo tempo: A a sinistra, B a destra, il Loop in mezzo. Un tocco sposta di **10 ms**, tenuto accelera e dopo 2,4 s va di 100 ms. I tempi si leggono al centesimo (1:12,34) | Letto "pulsanti legati ai segmenti A e B" come − e + attaccati a ciascun estremo; la scelta Inizio/Fine sparisce |
-| Aggiunta del piano | **Vista Passaggio**: con il loop acceso il giro del toro è il passaggio, più un margine prima e dopo; con il loop spento è il brano intero | Su un brano di 6 minuti un secondo vale circa 2 punti sul toro, meno della punta di un dito: senza questa vista il tocco diretto non può essere preciso. In un passaggio di 8 secondi un secondo vale circa 70 punti |
+| 1. Non si capisce come uscire dallo zoom | La vista Passaggio è legata al Loop: per uscire bisogna spegnere il Loop, ma niente lo dice | Il toro mostra **sempre** il brano intero; lo zoom è la striscia della prima riga, che c'è quando A e B sono posati. Non c'è più un modo da cui uscire |
+| 2. Le selezioni con trascinamento fanno effetto ma non sono chiare | Pressione lunga e scorrere è un gesto invisibile; le maniglie non dicono di essere trascinabili | Le **bandiere** A e B stanno ferme negli angoli, si vedono prima di usarle e si portano sul toro. La pressione lunga sparisce |
+| 3. Il Loop è lontano dal cerchio | Sta nella terza riga | Il Loop apre la **seconda** riga, la prima con dei comandi sotto il quadrante |
+| 4. Il tempo al centro è grande e non si capisce se debba esserci la fine | "1:12 / 6:03" sotto l'icona play | Al centro **solo il tempo trascorso**, come il numero del metronomo; la durata la dice il lettore di schermo |
+| 5. Non si capisce cosa facciano A– e B–; − e + sembrano invertiti; sono nell'ultima riga | "A –" è il segnaposto di un estremo non segnato ma si legge "A meno"; − e + parlano di tempo, ma per A il − allarga il passaggio e per B lo stringe | Due **frecce** ‹ e › che dicono la direzione nel tempo (sinistra prima, destra dopo) con la lettera della bandiera che spostano, nella seconda riga. Niente "A –" |
 
-Restano come sono: motore e regole tra le sezioni, notifica, velocità e il suo foglio, la regola "il suono segue dopo 0,3 s di quiete", la pressione lunga per disegnare (lo scorrimento tra le sezioni resta libero), le azioni per assistenti (cambiano solo due descrizioni).
+### 3.2 Pro e contro, punto per punto
+
+| Proposta | Pro | Contro | Raccomandazione |
+| --- | --- | --- | --- |
+| **Toro con la forma d'onda** (resta) | Piace, funziona, è già fatto | — | Tenere |
+| **Niente play al centro, "Tocca per avviare"** | È il modello del metronomo (numero grande e, da fermo, "Tocca per avviare"): tutti i cerchi funzionano allo stesso modo. Libera spazio per titolo e tempo | Fermo o in riproduzione si capisce meno a colpo d'occhio | Sì. Lo stato si vede dal cursore che gira, dal pallino del tab e dalla scritta che c'è solo da fermo; il lettore di schermo continua a dire "Riproduci" o "Pausa" |
+| **Titolo e autore che scorrono "come nelle vecchie radio"** | Mostra i tag in uno spazio rotondo e stretto; ha il carattere del quadrante | Un testo che si muove distrae mentre si studia. WCAG 2.2.2 (livello A): un movimento che parte da solo e dura più di 5 s deve potersi fermare | Sì, con misura: scorre **una sola passata** quando si apre il brano e a ogni play, al massimo 5 s, poi resta fermo all'inizio. Fermo se entra, mai con le animazioni ridotte. Solo se il file ha almeno un tag |
+| **Tempo più grande, fine sì o no** | Un numero solo si legge da lontano, sul leggio | Senza la durata non si sa quanto manca | Solo il trascorso. La durata è il giro intero del toro (ore 12 è inizio e fine) e la dice il lettore di schermo |
+| **Bandiere A e B negli angoli bassi, da trascinare o da toccare e poi toccare il toro** | Si vedono prima di usarle: nessun gesto nascosto. Due passi chiari. Il "tocca e poi tocca" è anche la strada senza trascinare (WCAG 2.5.7, RF-PLY-16). Usano lo spazio vuoto degli angoli. A a sinistra e B a destra si leggono come inizio e fine | Sul toro intero la posa è grossolana: in un brano di 6 minuti un punto vale circa 0,4 s, e il dito copre il punto. Sui quadranti sotto i 280 dp gli angoli sono stretti. Un trascinamento che parte dall'angolo deve vincere sullo scorrimento tra i tab | Sì. Mentre si porta la bandiera il centro mostra il suo tempo al centesimo; la precisione arriva dalla striscia e dalle frecce. Sotto i 280 dp la bandiera tocca il bordo del toro (sezione 5.2). Il trascinamento usa il riconoscitore "vince subito" di oggi |
+| **Striscia dritta nella prima riga, centrata sul passaggio** | Niente zoom da cui uscire. È la vista dei programmi audio. Si vedono insieme il brano intero (toro) e il dettaglio (striscia). Forma d'onda più alta (circa 40 dp contro i 25 del toro). Riusa `RingWindow.passage` e `TrackPeaks.heights` | La striscia è lunga circa 350 dp, la vista Passaggio sul toro circa 960: per punto è precisa meno della metà. La prima riga non ha più spazio per i messaggi quando c'è il passaggio. Un trascinamento orizzontale sulla striscia somiglia allo scorrimento tra i tab. È una forma d'onda, non uno spettrogramma (deciso il 6/11) | Sì. Le frecce da 10 ms coprono la precisione che manca. I messaggi servono solo prima del passaggio. Sulla striscia vince subito solo un trascinamento che parte da una bandiera, come sul toro |
+| **Seconda riga: Loop, ‹, ›, Velocità** | Loop e ritocchi vicino al cerchio; le frecce dicono la direzione; la Velocità, che si cambia spesso studiando, sale | Con la lettura alla lettera (‹ anticipa A, › posticipa B) le frecce **allargano soltanto**. Il ritocco più comune è stringere: B che prende l'attacco della nota dopo, A che prende la coda di quella prima. Stringere resterebbe affidato al trascinamento sulla striscia, che arriva a circa 30-120 ms, e la precisione da 10 ms chiesta stamattina varrebbe solo in un verso | Sì, con le frecce sulla **bandiera attiva** (sezione 3.3): ‹ e › spostano prima o dopo l'ultima bandiera posata, trascinata o toccata, e portano scritta la sua lettera ("‹ B", "B ›") |
+| **Loop dentro il cerchio vicino al play** (prima idea del punto 3) | Vicinissimo | Due bersagli nel centro, dove ogni altro tab ne ha uno; facile toccare quello sbagliato | No: nella seconda riga, come dice la sintesi di Luigi |
+| **Terza riga: solo il file** | Si sceglie una volta e via; libera la seconda riga | L'ultima riga è la più comoda per il pollice e va a un comando raro (poco male) | Sì. Senza brano il centro continua ad aprire il selettore |
+
+### 3.3 Le frecce: tre varianti
+
+| Variante | Come funziona | Pro | Contro |
+| --- | --- | --- | --- |
+| V1, alla lettera | ‹ porta A prima, › porta B dopo | Due pulsanti che fanno sempre la stessa cosa | Allarga e basta: per stringere bisogna trascinare o riposare la bandiera |
+| **V2, bandiera attiva (consigliata)** | ‹ e › spostano la bandiera attiva prima o dopo. Attiva è l'ultima posata, trascinata o toccata sulla striscia; le frecce ne portano la lettera e sulla striscia è piena, l'altra vuota | Due pulsanti, tutte e due le direzioni, 10 ms per entrambe le bandiere. Il flusso naturale (posi A e ritocchi A, posi B e ritocchi B) non chiede passi in più | Per tornare ad A dopo aver posato B serve un tocco sulla sua bandierina nella striscia |
+| V3, quattro frecce | "‹A", "A›", Loop, "‹B", "B›"; la Velocità scende accanto al file | Nessuna bandiera attiva | Quattro pulsanti dove Luigi ne vuole due; è la riga di oggi con le frecce al posto di − e + |
+
+### 3.4 Cosa resta e cosa sparisce
+
+Restano: motore e regole tra le sezioni, notifica, velocità e il suo foglio, forma d'onda e cache dei picchi, ricordo del brano, la regola "il suono segue dopo 0,3 s di quiete", passi da 10 e 100 ms, "Segna qui" per il lettore di schermo e per gli assistenti, le azioni.
+
+Spariscono: la vista Passaggio sul toro (finestra animata, cucitura a ore 12), la pressione lunga che disegna, la terza riga A / Loop / B con i tempi e i − e +, i suggerimenti "Tieni premuto…" e "Trascina A e B…", l'icona play e la durata al centro.
 
 ## 4. Requisiti in breve
 
@@ -44,120 +78,191 @@ Il testo che vale è in `requisiti.md`; qui solo dove si realizzano.
 
 | Codice | In breve | PR |
 | --- | --- | --- |
-| RF-GEN-01 | Quattro sezioni: Metronomo, Armonia, Ascolto, Accordatore | 3 |
-| RF-PLY-03 | Toro = orologio del brano, con cursore radiale, tacche e forma d'onda | 3 |
-| RF-PLY-15 | Forma d'onda: picchi ogni 10 ms, fuori dal thread dello schermo, che si riempie mentre si legge; sul web fino a 15 minuti e 40 MB | 3 |
-| RF-PLY-09 | "Segna qui" (meno 150 ms × velocità) solo per lettore di schermo e assistenti | 4 |
-| RF-PLY-10 | − e + per ciascun estremo, 10 ms al tocco, 100 ms tenuti; tempi al centesimo | 4 |
-| RF-PLY-11 | Sul toro: pressione lunga e scorrere disegna il passaggio; le maniglie A e B si trascinano | 4 |
-| RF-PLY-12 | Interruttore Loop in mezzo tra A e B; acceso = ripete e mostra la vista Passaggio | 4 |
-| RF-PLY-17 | Vista Passaggio: il giro è il passaggio con i margini; transizione animata | 4 |
-| RF-PLY-18 | Riga dei messaggi: errori, oppure come si sceglie e si ritocca il passaggio | 4 |
-| RF-PLY-16 | Accessibilità senza trascinare: azioni "segna qui" sul toro, − e + | 4 |
-| RF-PLY-13 | Brano, loop e velocità tornano al prossimo avvio (Android) | 5 |
-| RF-PLY-14 | Titolo e autore dai tag | 5 |
+| RF-PLY-02 | Centro come gli altri cerchi: niente icona, tempo trascorso, "Tocca per avviare" da fermo | 6 |
+| RF-PLY-03 | Il toro mostra sempre il brano intero; al centro solo il tempo trascorso | 6, 7 |
+| RF-PLY-19 | Titolo e autore che scorrono al centro, una passata di al massimo 5 s | 6 |
+| RF-PLY-09 | "Segna qui" (meno 150 ms × velocità) con le regole delle bandiere | 7 |
+| RF-PLY-10 | Frecce ‹ e › sulla bandiera attiva, 10 ms al tocco, 100 ms tenute | 7 |
+| RF-PLY-11 | Bandiere A e B negli angoli: trascinarle sul toro, o toccarle e poi toccare il toro | 7 |
+| RF-PLY-12 | Loop primo della seconda riga; il toro non cambia vista | 7 |
+| RF-PLY-17 | Striscia del passaggio nella prima riga | 7 |
+| RF-PLY-18 | Riga dei messaggi finché le bandiere non sono posate | 7 |
+| RF-PLY-16 | Accessibilità: due tocchi, frecce, cursori sulla striscia | 7 |
+| RF-PLY-01, 08 | Brano da solo nella terza riga; Velocità nella seconda | 7 |
 
 ## 5. Progetto
 
 ### 5.1 La schermata
 
-`PlayerPanel` resta un `DialLayout`: il quadrante e tre righe da 80 dp sotto. Larghezza minima da reggere 288 dp (telefono da 320), testo fino a 2×, quattro lingue (`layout_review_test` e `row_heights_test` girano già su ogni `AppSection`).
+`PlayerPanel` resta un `DialLayout`: il quadrante e tre righe da 80 dp. Larghezza minima da reggere 288 dp (telefono da 320), testo fino a 2×, quattro lingue, verticale e orizzontale (`layout_review_test` e `row_heights_test` girano già su ogni `AppSection`).
 
-| Posto | Senza brano | Con brano, senza passaggio | Con passaggio |
+| Posto | Senza brano | Brano aperto, bandiere non posate | Bandiere posate |
 | --- | --- | --- | --- |
-| Toro | Anello spento; al centro cartella e "Scegli un brano" | Brano intero: forma d'onda, tacche, cursore | Maniglie A e B; loop acceso: vista Passaggio |
-| Prima riga (`header`): messaggi | Vuota, o l'errore | "Tieni premuto sull'anello e scorri per scegliere un passaggio da ripetere" | "Trascina A e B sull'anello per ritoccare il passaggio" |
-| Seconda riga (`upper`) | Brano ("Scegli un brano") e Velocità, come oggi | uguale | uguale |
-| Terza riga (`lower`) | Gruppo A, Loop, gruppo B, spenti | uguale, spenti ("A –", "B –") | A, Loop, B accesi |
+| Toro | Anello spento | Brano intero: forma d'onda, tacche, cursore | In più le bandiere A e B sul toro e, a loop acceso, il passaggio in bronzo |
+| Centro | Cartella e "Scegli un brano" (apre il selettore) | Titolo e autore (se ci sono tag), tempo trascorso, "Tocca per avviare" da fermo | Uguale |
+| Angoli bassi | Niente | Bandiere A e B piene, pronte | Al loro posto la traccia tratteggiata |
+| Prima riga (`header`) | Vuota, o l'errore | Il passo successivo (sezione 5.4) | La striscia del passaggio |
+| Seconda riga (`upper`) | Loop, ‹, ›, Velocità spenti | Uguale; le frecce si accendono con la bandiera attiva posata | Accese |
+| Terza riga (`lower`) | Brano ("Scegli un brano") | Brano (titolo) | Uguale |
 
-**Riga dei messaggi** (RF-PLY-18). Un solo testo centrato, al massimo due righe, `bodyMedium` in `onSurfaceVariant`. Un errore ("Questo file non si può aprire.", "Il file non è più disponibile.") prende il posto del suggerimento, in `colorScheme.error` e in `Semantics(liveRegion: true)`; oggi l'errore sta sotto i campi della seconda riga e va spostato qui. Il suggerimento non è una regione live: non deve parlare a ogni cambio.
+`PlayerPanel` diventa uno `StatefulWidget`: il `Ticker` che oggi sta nel quadrante (e il `ValueNotifier` della posizione letta a ogni frame) sale nel pannello, perché lo usano il quadrante e la striscia. Corre solo mentre il brano suona, come oggi.
 
-**Terza riga** (RF-PLY-10, RF-PLY-12). `Row` con `Expanded(gruppo A)`, l'interruttore Loop, `Expanded(gruppo B)`, separati da `rowGap`. Un gruppo è una `Column` centrata: in alto il tempo ("A 1:12,34", `labelLarge`, `FittedBox(scaleDown)`), sotto due `StepButton` (− e +) affiancati con 8 dp in mezzo. Misure a 288 dp: (288 − 48 − 2 × 8) / 2 = 112 dp per gruppo, contro i 104 che servono (2 × 48 + 8). Il Loop è il `RowButton` di oggi (icone `repeat` / `repeat_on`, pieno mentre ripete, `Semantics(toggled:)`, almeno 48 dp). Senza passaggio i − e + hanno `onStep: null` (spenti come ogni `IconButton` di Material) e il tempo dice "A –"; il testo resta pieno, non spento, perché deve passare il controllo del contrasto.
+### 5.2 Le bandiere
 
-Spariscono: il `SegmentedButton` Inizio/Fine, "A qui", "B qui", `PlayerController.edge` e `selectEdge`.
+**Una sola forma, tre posti.** Una bandiera è un'asta e una bandierina rettangolare (angoli di 3 dp) con la lettera in `labelLarge` grassetto. La bandierina di A sta a destra dell'asta e quella di B a sinistra, cioè tutte e due verso il passaggio. Un solo painter condiviso, per esempio `paintFlag(canvas, pole, letter, side, look)` in un file nuovo `lib/features/player/flag_painter.dart`, disegna:
 
-### 5.2 Il toro: strati e misure
+| Aspetto | Quando | Colori |
+| --- | --- | --- |
+| Piena | Nell'angolo, pronta; sul toro; sulla striscia quando è la bandiera attiva | Asta e bandierina `primary`, lettera `onPrimary` |
+| Vuota | Sulla striscia quando non è attiva | Bandierina `surface` con bordo `primary` da 1,5 dp, lettera `primary` |
+| Traccia | Nell'angolo quando la bandiera è sul toro; sul toro, l'altra bandiera che sta per tornare nel suo angolo (sotto) | Tratteggio 3/3 da 1,5 dp, lettera `onSurfaceVariant`. Il tratteggio deve passare 3:1 sullo sfondo (WCAG 1.4.11): se `outline` non basta, `onSurfaceVariant` |
+| Armata | Toccata nell'angolo, in attesa del tocco sul toro | Piena, con un alone: cerchio di 26 dp di raggio, tratto 2 dp, `primary` |
 
-`w` = spessore del toro (`ringOuter − ringInner` di `DialGeometry`, circa 50 dp su un quadrante da 300); le frazioni si misurano da `ringInner` verso fuori. Due `CustomPainter`, ognuno in un `RepaintBoundary` come oggi.
+**Negli angoli.** Bersaglio da 48 dp con il centro sulle diagonali basse del quadrante (A a sinistra, B a destra), a distanza `(r − 24) × √2` dal centro (`r` = metà del lato), cioè con il bersaglio che tocca i lati del riquadro. Una funzione pubblica `holderCenter(LoopEdge, Size)` lo dice ai test. Su un quadrante da 380 dp (S20 FE in verticale) resta un margine di circa 25 dp dal bordo esterno del toro. Sotto i 280 dp (telefoni piccoli, schermo diviso) il bersaglio entra nel toro: un tocco entro `ringOuter` va al toro, il resto alla bandiera. Il disegno è alto circa 34 dp (asta) per 24 (bandierina). Le bandiere stanno **dentro** il riquadro del quadrante: in Flutter un figlio dipinto fuori dal genitore non riceve i tocchi.
 
-| Strato | Dove | Colore | Si ridisegna |
-| --- | --- | --- | --- |
-| Base | Tutto il toro, `paintSegment` con bordo | `outlineVariant`, bordo `outline` | Mai, salvo cambio di tema |
-| Forma d'onda | Simmetrica attorno a 0,5 w; mezza altezza fino a 0,40 w; il silenzio resta una linea sottile (0,01 w) | Fuori dal passaggio `onSurfaceVariant`; dentro il passaggio, a loop acceso, `primary` | Quando arrivano picchi, cambia la finestra o il passaggio |
-| Tacche | Bordo esterno, da 0,92 a 1,0 w, tratto 1,5 dp | `onSurfaceVariant` | Con la finestra |
-| Cucitura (solo vista Passaggio) | Ore 12, tutto lo spessore, tratto 2 dp; la forma d'onda lascia libero 1° per parte | `outline` | Con la finestra |
-| Maniglie A e B | Linea radiale su tutto lo spessore, 2 dp; impugnatura: disco di raggio 0,2 w con la lettera (A a 0,25 w, B a 0,75 w), bordo 1,5 dp | Linea e disco `primary`, lettera `onPrimary` in grassetto (0,26 w), bordo `surface` | Con passaggio e finestra |
-| Cursore | Segmento radiale da −0,06 a 1,06 w: tratto 3 dp sopra un tratto 6 dp | `onSurface` sopra `surface` | A ogni frame mentre suona (secondo painter, mosso dal `Ticker` di oggi) |
+**Sul toro.** L'asta attraversa il toro come la linea delle maniglie di oggi (2,5 dp, `primary`). La bandierina (circa 0,4 w × 0,3 w, `w` = spessore del toro) ha il centro a 0,25 w per A e a 0,75 w per B, come i dischi di oggi, spostato lungo il giro di mezza larghezza verso il passaggio. La lettera resta dritta. Bersaglio: entro 24 dp dal centro della bandierina o dall'asta (`gripAt` di oggi, con `gripCenter` che diventa il centro della bandierina).
 
-La forma d'onda si disegna come una sola `Path` chiusa per colore (bordo esterno avanti, bordo interno indietro), non come centinaia di linee. Spicchi: `min(720, fotogrammi da 10 ms nella finestra)`. Uno spicchio non ancora letto non si disegna, così la forma si riempie in senso orario mentre il brano viene letto. All'arrivo dei primi picchi, una dissolvenza (`Durations.medium1`, `Easing.standard`), nessuna con le animazioni ridotte.
+**Portare una bandiera sul toro, trascinando.** Il trascinamento parte entro il bersaglio della bandiera, nell'angolo o sul toro, e vince subito sullo scorrimento tra i tab (sezione 5.8).
+- Dall'angolo: la bandiera segue il dito. Quando il dito è nella fascia del toro (dal raggio del centro fino a `ringOuter` + 24 dp) la bandiera si aggancia al toro all'angolo del dito, e il centro del quadrante mostra il suo tempo al centesimo ("A 1:12,34"). Fuori dalla fascia la bandiera si disegna 40 dp sopra il dito, così il dito non la copre. Se la posizione supera l'altra bandiera (A oltre B − 1 s, o B prima di A + 1 s), l'altra si disegna come traccia: lasciando il dito, torna nel suo angolo. Il dito lasciato nella fascia posa la bandiera (`place`, sezione 5.7); lasciato fuori non cambia niente e la bandiera torna nell'angolo.
+- Dal toro (bandiera già posata): si sposta seguendo l'angolo del dito con `moveEdge`, che la ferma a 1 s dall'altra e ai bordi del brano, come le maniglie di oggi. Il centro mostra il suo tempo. Il dito non fa il giro oltre ore 12: un salto di più di mezzo giro si ferma all'inizio o alla fine del brano.
+- Un tick aptico (`HapticFeedback.selectionClick`) quando la bandiera si stacca dall'angolo o dal toro, e uno quando si aggancia al toro.
 
-Le impugnature stanno a raggi diversi apposta: anche quando A e B sono vicinissimi (un passaggio breve nel brano intero) restano entrambe visibili e afferrabili. Il colore non è l'unico segnale (WCAG 1.4.1): il passaggio ha anche le maniglie con le lettere e l'interruttore Loop.
+**Portare una bandiera sul toro, con due tocchi.** Un tocco sulla bandiera nell'angolo la arma (alone) e la prima riga dice dove toccare. Il tocco seguente sul toro (fuori dal centro) la posa lì con `place`. Un altro tocco sulla stessa bandiera la disarma; un tocco sull'altra arma quella. Mentre una bandiera è armata il tocco sul toro posa e non sposta l'ascolto; il centro continua a fare play e pausa. Si disarma anche cambiando brano o tab.
 
-### 5.3 La finestra: brano intero o passaggio
+**Regole della posa** (`place`, uguali per trascinamento, due tocchi e "Segna qui"):
+1. La bandiera va al tempo indicato, dentro il brano.
+2. Se l'altra è posata e l'ordine non regge più (A oltre B − 1 s, o B prima di A + 1 s), l'altra torna nel suo angolo e il loop si spegne.
+3. Se dopo la posa ci sono tutte e due, il loop si accende; se il brano suona, riparte da A (come `setLoop` oggi).
+4. La bandiera posata diventa quella attiva.
 
-Il toro mostra una finestra del brano, `RingWindow(from, to)`, mappata sul giro intero da ore 12 in senso orario. Funzioni pure in `player_dial.dart` (o in un file nuovo `ring_window.dart`), coperte da `player_ring_test`:
+Non c'è un modo di togliere il passaggio: basta spegnere il Loop, e un brano nuovo riporta le bandiere negli angoli (domanda 5 della sezione 10).
 
-```dart
-@immutable
-class RingWindow {
-  const RingWindow(this.from, this.to);
-  final Duration from, to;
+### 5.3 Il toro
 
-  /// Tutto il brano (RF-PLY-03).
-  factory RingWindow.whole(Duration duration) => RingWindow(Duration.zero, duration);
+Sempre il brano intero: `RingWindow.whole(durata)`. Dal quadrante si tolgono la vista Passaggio (`_morph`, `_from`, `_to`, `_curve`, `_passageView`, `_quiet`, `_retarget`, `_go`), la cucitura (`_RingPainter.seam`, `RingWave.gap`, `_seamGap`), `PlayerDial.passageStep` e la pressione lunga che disegna (`_drawing`, `_drawStart`, `_drawMove`, `_drawEnd`).
 
-  /// Il passaggio [a]-[b] con un margine per parte: un quarto della sua
-  /// lunghezza, tra 0,5 e 10 s, senza uscire dal brano (RF-PLY-17).
-  factory RingWindow.passage(Duration a, Duration b, Duration duration);
+| Strato | Cambia? |
+| --- | --- |
+| Base, tacche (sempre quelle del brano intero) | No |
+| Forma d'onda, `primary` dentro il passaggio a loop acceso | No |
+| Maniglie | Diventano le bandiere della sezione 5.2 (`_GripsPainter` → painter delle bandiere, che disegna anche gli angoli e la bandiera sotto il dito) |
+| Cursore | No |
 
-  Duration get length => to - from;
-  double angleOf(Duration t);      // 0..2π, fuori dalla finestra si ferma ai bordi
-  Duration timeAt(double angle);   // il contrario
-  RingWindow lerp(RingWindow other, double t);
-}
+Gesti sul toro, alla fine:
 
-/// Tacche: 0,5 s sotto i 5 s di finestra, 1 s sotto i 20 s, 5 s sotto il
-/// minuto, 10 s sotto i 2 minuti, 1 minuto fino a 20, poi 5 minuti. Cadono
-/// sui multipli veri del brano (1:13,0, 1:14,0…), non della finestra.
-Duration tickInterval(Duration windowLength);
-List<Duration> tickTimes(RingWindow window);
-```
+| Gesto | Effetto |
+| --- | --- |
+| Tocco (nessuna bandiera armata) | Sposta l'ascolto; a loop acceso, fuori da A-B spegne il loop (regola di oggi) |
+| Tocco (bandiera armata) | Posa la bandiera lì |
+| Trascinare da una bandiera (angolo o toro) | Sezione 5.2 |
+| Scorrere altrove | Cambia sezione |
+| Pressione lunga | Niente (tolta) |
 
-`ringAngle`, `timeAtAngle` e le `tickTimes(duration)` di oggi diventano casi della finestra intera; i test esistenti restano veri.
+### 5.4 La prima riga: messaggi, poi la striscia
 
-**Quale finestra** (RF-PLY-17). Loop acceso: `RingWindow.passage(A, B, durata)`. Loop spento o senza passaggio: `RingWindow.whole(durata)`. Nient'altro decide la vista: non c'è un pulsante a parte (domanda 1 della sezione 10).
+Finché le due bandiere non sono posate, la prima riga è quella dei messaggi di oggi (un testo centrato, al massimo due righe, `bodyMedium` in `onSurfaceVariant`; un errore in `colorScheme.error` e in `Semantics(liveRegion: true)`). Il testo dice il passo successivo:
 
-**Come cambia.**
-- Il loop si accende o si spegne (interruttore, passaggio appena disegnato, tocco fuori dal passaggio): la finestra va da quella mostrata alla nuova in `Durations.medium4`, con `Easing.emphasizedDecelerate` entrando nel passaggio ed `Easing.emphasizedAccelerate` uscendo. Il passaggio sembra aprirsi fino a riempire il giro, e richiudersi al suo posto nel brano.
-- A o B cambiano a loop acceso (trascinamento, − e +): la finestra **non** si muove mentre il dito lavora. Si riadatta quando A e B restano fermi per `PlayerController.settleAfter` (0,3 s) e nessuna maniglia è afferrata, in `Durations.short4` con `Easing.standard`.
-- Con le animazioni ridotte (`MediaQuery.disableAnimations`) la finestra salta subito.
+| Stato | Testo (it) |
+| --- | --- |
+| Errore del file | "Questo file non si può aprire." / "Il file non è più disponibile." |
+| Nessuna bandiera posata | "Porta A e B sull'anello per scegliere il passaggio da ripetere" |
+| A armata | "Tocca l'anello dove inizia il passaggio" |
+| B armata | "Tocca l'anello dove finisce il passaggio" |
+| Solo A posata | "Ora porta B dove finisce il passaggio" |
+| Solo B posata | "Ora porta A dove inizia il passaggio" |
 
-Il cursore dentro la vista Passaggio non può uscire dalla finestra: a loop acceso l'ascolto sta tra A e B; un tocco fuori spegne il loop e la vista torna al brano intero.
+Con le due bandiere posate la riga diventa la **striscia del passaggio** (file nuovo `lib/features/player/passage_strip.dart`). Il passaggio fra testo e striscia è un `AnimatedSwitcher` in dissolvenza (`Durations.medium2`, `Easing.standard`; niente con le animazioni ridotte).
 
-### 5.4 I gesti sul toro
+**Misure.** Tutta la larghezza della riga, alta 72 dp (con testo grande: `max(72, 2 × altezza della bandierina + 36)`), angoli come i campi. Dentro, 12 dp di margine a destra e a sinistra, così un'asta in cima o in fondo al brano resta afferrabile. Tre fasce: in alto la bandierina di A ("A 1:12,34", `labelMedium` grassetto), in basso quella di B ("1:31,00 B"), in mezzo la forma d'onda. Le due bandierine non possono sovrapporsi nemmeno con un passaggio di 1 s.
+
+**Strati**, tutti in un `CustomPainter` dentro un `RepaintBoundary`, più il cursore in un secondo painter mosso dal `Ticker`:
+
+| Strato | Disegno | Colore |
+| --- | --- | --- |
+| Fondo | Rettangolo arrotondato, bordo 1 dp | `outlineVariant`, bordo `outline` (come il toro) |
+| Tacche | In alto, alte 6 dp, ogni `tickInterval(finestra)`, sui multipli veri del brano (`tickTimes`) | `onSurfaceVariant` |
+| Forma d'onda | Simmetrica attorno al centro della fascia di mezzo; picchi da `TrackPeaks.heights(from, to, count)` con `count` = un valore ogni 2 dp, mai più dei fotogrammi da 10 ms della finestra | `onSurfaceVariant`; dentro A-B `primary` a loop acceso |
+| Aste A e B | Verticali, tutta l'altezza, 2,5 dp | `primary` |
+| Bandierine | Piena per la bandiera attiva, vuota per l'altra (sezione 5.2) | — |
+| Cursore | Verticale, sporge di 2 dp sopra e sotto: 3 dp sopra 6 dp, solo se è dentro la finestra | `onSurface` sopra `surface` |
+
+**Finestra.** `RingWindow.passage(A, B, durata)` di oggi: il passaggio più un quarto della sua lunghezza per parte (tra 0,5 e 10 s), senza uscire dal brano. In `RingWindow` si aggiungono `fractionOf(Duration)` (0..1, fuori si ferma ai bordi) e `timeAtFraction(double)`; `angleOf` diventa `fractionOf × 2π`. Mentre un'asta è afferrata, o le frecce lavorano, la finestra sta ferma; si riadatta quando A e B restano fermi per `PlayerController.settleAfter` (0,3 s), in `Durations.short4` con `Easing.standard` (`RingWindow.lerp` resta per questo), subito con le animazioni ridotte. È la logica di `_retarget` di oggi, spostata dal quadrante alla striscia.
+
+**Gesti.**
 
 | Gesto | Dove parte | Effetto |
 | --- | --- | --- |
-| Tocco | Sul toro, fuori dal centro e dalle impugnature | Sposta l'ascolto nel punto toccato della finestra mostrata. A loop acceso, fuori da A-B spegne il loop (regola di oggi), quindi la vista torna al brano intero |
-| Trascinare un'impugnatura | Entro 24 dp dal centro del suo disco (bersaglio da 48 dp) o dalla sua linea radiale; se due sono vicine, la più vicina. Il bersaglio largo serve soprattutto nella vista Passaggio, dove le maniglie sono lontane: un dito che manca di poco la maniglia non deve cambiare sezione | Sposta quell'estremo seguendo il dito (`moveEdge`, sezione 5.6), con un tick aptico (`HapticFeedback.selectionClick`) all'inizio. Limiti: quelli di sempre (A ≤ B − 1 s, B ≥ A + 1 s, dentro il brano) e la finestra mostrata. Il centro del quadrante intanto mostra il tempo dell'estremo |
-| Pressione lunga e scorrere | Sul toro, fuori dalle impugnature | Disegna un passaggio nuovo, come oggi; sotto 1 s vale come tocco. Lasciato il dito, il loop si accende e la vista va sul passaggio. Nella vista Passaggio disegna dentro la finestra |
-| Scorrere | Ovunque fuori dalle impugnature | Cambia sezione, come negli altri tab |
+| Trascinare | Entro 24 dp in orizzontale da un'asta, o sulla sua bandierina | Sposta quella bandiera con `moveEdge` (si ferma a 1 s dall'altra, ai bordi del brano e della finestra mostrata) e la rende attiva. Vince subito sullo scorrimento tra i tab (sezione 5.8) |
+| Tocco | Su una bandierina | La rende attiva (`focus`) |
+| Tocco | Altrove | Sposta l'ascolto lì; a loop acceso, fuori da A-B spegne il loop |
+| Scorrere | Fuori dalle aste | Cambia sezione |
 
-**Il trascinamento delle maniglie vince sullo scorrimento tra le sezioni** solo quando parte da un'impugnatura. Il `PageView` riconosce lo scorrimento orizzontale dopo pochi punti di movimento: un riconoscitore normale arriverebbe in parità. Questo invece si dichiara vincitore già al tocco, ma solo sulle impugnature; altrove non partecipa e tocco, pressione lunga e scorrimento funzionano come prima. Verificato sui sorgenti di Flutter 3.47.9: `isPointerAllowed`, `resolvePointer` e il vincitore anticipato (`eagerWinner`) dell'arena.
+Con 10 ms per picco, un passaggio di 1 s con i suoi margini (2 s) dà circa 200 valori su 350 dp: barre larghe circa 2 dp, che si vedono ma bastano.
+
+### 5.5 La seconda riga: Loop, frecce, Velocità
+
+`Row` con, nell'ordine e separati da `rowGap`: il Loop, ‹, ›, `Expanded(Velocità)`.
+
+- **Loop**: il `RowButton` di oggi (icone `repeat` / `repeat_on`, pieno mentre ripete, `Semantics(toggled:)`, almeno 48 dp). Spento senza le due bandiere.
+- **‹ e ›**: due `StepButton`. Lo `StepButton` riceve un `label` opzionale (un widget) al posto dell'icona; il metronomo non cambia. Le etichette sono `Icons.chevron_left` seguita dalla lettera della bandiera attiva ("‹ A") e la lettera seguita da `Icons.chevron_right` ("A ›"), lettera in `labelLarge`. Un tocco sposta la bandiera attiva di `fineStep` (10 ms); tenuto si ripete accelerando e dopo 2,4 s va di `coarseStep` (100 ms), come oggi. Spente se la bandiera attiva non è posata. Nomi per il lettore di schermo: "Inizio prima" / "Inizio dopo" con A attiva, "Fine prima" / "Fine dopo" con B (chiavi di oggi).
+- **Velocità**: il `LabeledField` di oggi con il suo foglio.
+
+Misure a 288 dp: 48 + 56 + 56 + 3 × 8 = 184 dp, ne restano 104 per la Velocità.
+
+La **terza riga** è il solo `LabeledField` Brano, largo quanto la riga, che apre il selettore come oggi.
+
+### 5.6 Il centro del quadrante
+
+| Stato | Contenuto |
+| --- | --- |
+| Senza brano | Come oggi: cartella e "Scegli un brano"; il tocco apre il selettore |
+| In apertura | Come oggi: la rotella |
+| Pronto | Dall'alto: titolo e autore (solo se il file ha almeno un tag), il tempo trascorso, e da fermo "Tocca per avviare" |
+| Una bandiera trascinata | Al posto del tempo trascorso quello della bandiera, al centesimo ("A 1:12,34"), in `headlineSmall`; torna quando il dito si alza |
+
+- **Niente icona play/pausa.** Il nome per il lettore di schermo resta "Riproduci" o "Pausa".
+- **Tempo trascorso**: `displaySmall` grassetto, `onSurface`, cifre tabulari (`FontFeature.tabularFigures()`), così non balla. Un gradino sotto il numero del metronomo (`displayMedium`). Senza la durata. Cambia una volta al secondo, come oggi.
+- **"Tocca per avviare"**: `bodySmall` in `onSurfaceVariant`, solo da fermo, come `metronomeHint`.
+- **Titolo e autore** (RF-PLY-19), widget nuovo `lib/features/player/marquee.dart`:
+  - Testo: titolo e autore separati da " · " (`PlayerController.hasTags` nuovo: vero se il file ha dato un titolo o un autore; senza titolo nei tag vale il nome del file). Una riga, `bodyMedium`, `onSurfaceVariant`, larga l'80% del diametro del centro.
+  - Se entra: fermo e centrato.
+  - Se non entra: parte 1 s dopo l'apertura del brano (o l'arrivo dei tag) e dopo ogni play; scorre verso sinistra a velocità costante finché si vede la fine (velocità: `max(30 dp/s, eccedenza / 3 s)`), resta 1 s, poi sparisce e ricompare fermo all'inizio (`Durations.medium2` per parte, `Easing.standard`). In tutto non più di 5 s (WCAG 2.2.2). Da fermo, i bordi sfumano con una `ShaderMask` (una maschera alfa: il suo colore non si vede).
+  - Con le animazioni ridotte non scorre mai: fermo, con i puntini in fondo.
+  - Un `AnimationController` solo durante la passata, in un `RepaintBoundary`; `ExcludeSemantics` (il titolo lo dice già il campo Brano).
+
+### 5.7 Il controller
+
+Modifiche a `PlayerController`:
+
+| Prima | Dopo | PR |
+| --- | --- | --- |
+| — | `bool get hasTags`: il file ha dato un titolo o un autore | 6 |
+| — | `void place(LoopEdge edge, Duration at)`: le regole della sezione 5.2. Con le due bandiere fa quello che fa `setLoop` | 7 |
+| — | `LoopEdge get activeEdge`: la bandiera che le frecce spostano. La cambiano `place`, `mark`, `moveEdge` e il nuovo `focus(LoopEdge)`; `setLoop` la mette su B. All'inizio e con un brano nuovo è A. Non si salva | 7 |
+| — | `LoopEdge? get armed`, `arm(LoopEdge)` (di nuovo sulla stessa: disarma), `disarm()`. `place`, `open`, `restore` e il cambio di tab (dal pannello) disarmano | 7 |
+| `mark(edge)`: A oltre B − 1 s toglie B; B prima di A + 1 s si ferma a A + 1 s; B senza A mette A a 0 e accende il loop | `mark(edge)` = `place(edge, punto ascoltato − 150 ms × velocità)`: stesse regole delle bandiere. B senza A resta da sola | 7 |
+| `nudge(edge, by)` | Uguale; le frecce la chiamano con `activeEdge` | 7 |
+| `moveEdge`, `setLoop`, `setLooping`, `seek` | Uguali | — |
+
+`activeEdge` e `armed` stanno nel controller, anche se riguardano solo lo schermo, perché li leggono quadrante, prima riga, seconda riga e striscia, che ascoltano già il controller. `PlayerSetup` non cambia: salva già A e B separati, anche uno solo.
+
+### 5.8 I trascinamenti e lo scorrimento tra i tab
+
+Tre posti dove un trascinamento deve vincere subito sul `PageView`: le bandiere negli angoli, le bandiere sul toro, le aste della striscia. Tutti usano il riconoscitore di oggi, che si dichiara vincitore già al tocco ma solo sul suo bersaglio; altrove non partecipa e tocco e scorrimento funzionano come prima (verificato sui sorgenti di Flutter 3.47.9: `isPointerAllowed`, `resolvePointer` e il vincitore anticipato dell'arena).
 
 ```dart
 /// Un trascinamento che vince subito, prima dello scorrimento tra le
-/// sezioni, quando il dito si posa su un'impugnatura del passaggio
-/// (RF-PLY-11); altrove non partecipa.
-class _GripDrag extends PanGestureRecognizer {
-  _GripDrag({required this.grips});
+/// sezioni, quando il dito si posa su una bandiera (RF-PLY-11, RF-PLY-17);
+/// altrove non partecipa.
+class FlagDrag extends PanGestureRecognizer {
+  FlagDrag({required this.flagAt});
 
-  /// L'estremo sotto [local] (coordinate del quadrante), o null.
-  final LoopEdge? Function(Offset local) grips;
+  /// La bandiera sotto [local] (coordinate del widget), o null.
+  final LoopEdge? Function(Offset local) flagAt;
 
   @override
-  bool isPointerAllowed(PointerDownEvent event) =>
-      grips(event.localPosition) != null && super.isPointerAllowed(event);
+  bool isPointerAllowed(PointerEvent event) =>
+      flagAt(event.localPosition) != null && super.isPointerAllowed(event);
 
   @override
   void addAllowedPointer(PointerDownEvent event) {
@@ -167,184 +272,68 @@ class _GripDrag extends PanGestureRecognizer {
 }
 ```
 
-Si monta con un `RawGestureDetector` (`GestureRecognizerFactoryWithHandlers<_GripDrag>`) grande quanto il quadrante, accanto al `GestureDetector` di tocco e pressione lunga, sotto il pulsante del centro nello `Stack`. `onStart` sceglie l'estremo, `onUpdate` chiama `moveEdge` con il tempo sotto il dito, `onEnd` e `onCancel` lasciano l'impugnatura. Il dito non fa il giro oltre ore 12: come nel disegno di oggi, un salto di più di mezzo giro si ferma al bordo della finestra (il suo inizio o la sua fine). Una funzione pubblica `gripCenter(LoopEdge, RingWindow, …, Size)` dà ai test dove toccare.
+È `_GripDrag` di `player_dial.dart`, reso pubblico in un file suo (`lib/features/player/flag_drag.dart`) per usarlo anche nella striscia. Nel quadrante resta un solo `RawGestureDetector` grande quanto il riquadro: `flagAt` riconosce sia gli angoli sia le bandiere sul toro, e `onStart` si ricorda da dove è partito il dito. I tocchi sugli angoli (armare) passano dal `GestureDetector` di oggi, che guarda prima se il tocco cade su un angolo. L'impostazione "Blocca i gesti" continua a fermare solo lo scorrimento tra i tab.
 
-### 5.5 Il centro del quadrante
+### 5.9 Accessibilità (RF-PLY-16)
 
-Come oggi: play o pausa, oppure "Scegli un brano". Mentre un'impugnatura è afferrata, la riga del tempo sotto l'icona diventa quella dell'estremo, "A 1:12,34" o "B 1:31,00", e torna "1:12 / 6:03" quando il dito si alza.
+- **Toro**: resta uno slider ("1:12 di 6:03"), aumenta e diminuisci di 10 s (sempre: non c'è più la vista Passaggio). Le azioni "Segna l'inizio qui" e "Segna la fine qui" restano.
+- **Bandiere negli angoli**: due nodi `Semantics` posizionati sui bersagli, pulsanti, con nome "Bandiera A, inizio del passaggio" / "Bandiera B, fine del passaggio". Il doppio tocco del lettore di schermo chiama `mark` (segna dove si ascolta), con `onTapHint` "Segna l'inizio qui" / "Segna la fine qui": per chi non vede, toccare l'anello in un punto preciso non è una strada. I nodi non hanno gesti propri: il dito passa al quadrante.
+- **Striscia**: due slider, "Inizio 1:12,34" e "Fine 1:31,00" (chiavi `playerStartAt` / `playerEndAt`), aumenta e diminuisci di 100 ms (`coarseStep`); i 10 ms restano alle frecce. Il disegno è `ExcludeSemantics`.
+- **Frecce**: nomi secondo la bandiera attiva (sezione 5.5).
+- **Senza trascinare**: le bandiere si posano con due tocchi e si ritoccano con le frecce (WCAG 2.5.7, oltre la 2.1 AA che seguiamo, ma costa poco).
+- **Bersagli** da 48 dp; il colore non è l'unico segno: lettere, bandiere piene o vuote, l'icona del Loop.
+- **Movimento**: la scritta che scorre rispetta la 2.2.2 (sezione 5.6).
 
-### 5.6 Il controller
+### 5.10 Azioni per assistenti
 
-Modifiche a `PlayerController`:
+Nessuna azione nuova né tolta. Cambia la descrizione di `player_mark` (PR 7): "Marks the start or the end of the loop at the point being heard, like the screen reader actions Mark the start here and Mark the end here (on the ring and on the flags); a reaction time of 150 ms times the speed is taken off. A point marked past the other one clears the other. Once both are marked the loop turns on and plays from the start. Fails if no track is open." Poi si rigenera `docs/llm-actions.json` e si allinea `docs/llm.md`.
 
-| Prima | Dopo | PR |
-| --- | --- | --- |
-| `fineStep` 100 ms, `coarseStep` 1 s | `fineStep` 10 ms, `coarseStep` 100 ms (lo `StepButton` passa a `coarseStep` dopo 2,4 s, come oggi) | 4 |
-| `edge`, `selectEdge(LoopEdge)` | Tolti: ogni estremo ha i suoi − e + | 4 |
-| `nudge(edge, by)` | `moveEdge(LoopEdge edge, Duration to)`: posizione assoluta, stessi limiti, stessa quiete di 0,3 s prima che il suono segua (ritoccando A riparte da A, ritoccando B riparte 2 s prima di B, mai prima di A). `nudge` diventa `moveEdge(edge, attuale + by)` | 4 |
-| `mark(edge)` | Uguale, senza `_edge`; lo usano solo le azioni del lettore di schermo e `player_mark` | 4 |
-| — | `TrackPeaks? get peaks`: i picchi del brano aperto, null senza brano. La lettura parte quando `open` è riuscito, con il controllo di generazione di oggi, e si annulla con un brano nuovo, un errore o `dispose`. Il controller **non** notifica a ogni pezzo: il quadrante ascolta `peaks` | 3 |
+### 5.11 La forma d'onda
 
-`TrackPeaks` (`lib/features/player/track_peaks.dart`, Dart puro, `ChangeNotifier`):
-
-```dart
-class TrackPeaks extends ChangeNotifier {
-  /// Ogni valore copre 10 ms di brano.
-  static const frame = Duration(milliseconds: 10);
-
-  /// Aggiunge i picchi letti dopo quelli già arrivati (0..32767, il campione
-  /// più forte in valore assoluto di quei 10 ms, su tutti i canali).
-  void add(Uint16List chunk);
-  void finish();           // letto tutto
-  void fail();             // non si può leggere: niente forma d'onda, niente messaggio
-  int get length;          // fotogrammi arrivati
-  bool get complete;
-  int get version;         // cresce a ogni add, per la cache del painter
-
-  /// Le altezze 0..1 di [count] spicchi uguali tra [from] e [to]: per ogni
-  /// spicchio il picco più alto, in decibel rispetto al picco più alto
-  /// arrivato finora, su 48 dB (0 dB = 1, −48 dB o meno = 0). NaN per gli
-  /// spicchi non ancora letti.
-  Float32List heights(Duration from, Duration to, int count);
-}
-```
-
-I valori stanno in un solo `Uint16List` che raddoppia quando serve (20 minuti = 120.000 valori, 240 KB). `heights` scorre i fotogrammi della finestra: anche 120.000 letture per frame durante un'animazione di 400 ms restano sotto il millisecondo; il painter tiene il risultato finché finestra, `count` e `version` non cambiano.
-
-### 5.7 La forma d'onda: Android e web
-
-L'interfaccia cambia (PR 3). In `TrackFiles`, `envelope(track, points)` lascia il posto a:
-
-```dart
-/// I picchi di [track], uno ogni 10 ms, a pezzi dall'inizio mentre il file
-/// si legge (RF-PLY-15). Lo stream finisce quando il brano è letto tutto, o
-/// con un errore se non si può; annullare l'iscrizione ferma la lettura.
-/// Sul web, oltre i limiti di RF-PLY-15, finisce subito con un errore.
-Stream<Uint16List> peaks(TrackRef track, {required Duration duration});
-```
-
-`FakeTrackFiles` riceve uno `StreamController` per i test (pezzi a comando, errore, chiusura).
-
-**Android.** File nuovo `android/.../TrackPeaks.kt`, sul modello di `TrackFiles.kt`, attaccato in `MainActivity.configureFlutterEngine` accanto agli altri. Un `EventChannel("low_end/track_peaks")`; gli argomenti di `listen` sono `{uri}`. Un solo brano alla volta: un `listen` nuovo chiude il precedente (l'`EventChannel` di Android chiama già `onCancel` sul vecchio). Attenzione all'ordine in Dart: il controller annulla l'iscrizione vecchia **prima** di aprire la nuova, perché un `cancel` arrivato dopo chiuderebbe quella nuova (sul lato Android `onCancel` ferma la lettura attiva, qualunque sia). Il lavoro va su un `Executors.newSingleThreadExecutor()` a priorità `THREAD_PRIORITY_BACKGROUND`, con un `AtomicBoolean` per l'annullamento:
-
-1. `MediaExtractor.setDataSource(context, uri, null)`, prima traccia con `KEY_MIME` che comincia per `audio/`, `selectTrack`.
-2. `MediaCodec.createDecoderByType(mime)`, `configure(format, null, null, 0)`, `start()`.
-3. Ciclo: `dequeueInputBuffer(10_000)` → `readSampleData` → `queueInputBuffer` con `sampleTime` (a fine file `BUFFER_FLAG_END_OF_STREAM`); `dequeueOutputBuffer(info, 10_000)`: a `INFO_OUTPUT_FORMAT_CHANGED` rileggi frequenza, canali e `KEY_PCM_ENCODING` (assente = 16 bit); il primo buffer d'uscita parte dal fotogramma `info.presentationTimeUs / 10_000`, poi si contano i campioni, e ci si riallinea a `presentationTimeUs` solo se un buffer salta più di 10 ms rispetto al conto (così la forma d'onda segue la linea del tempo del file anche se il decoder salta un pezzo): ogni `frequenza / 100` campioni per canale chiudi un fotogramma con il picco assoluto su tutti i canali (16 bit così com'è; float × 32767). `releaseOutputBuffer(index, false)`.
-4. Ogni 250 ms, e alla fine, manda i fotogrammi nuovi sul thread principale (`Handler(Looper.getMainLooper())`) come `ByteArray` di `UInt16` little-endian; alla fine `endOfStream()`. Codifiche diverse da 16 bit e float, o qualunque eccezione: `error("unreadable", …)`.
-5. Sempre `stop()`/`release()` di codec ed extractor in `finally`, anche annullando.
-
-In Dart (`system_track_files_io.dart`) i byte diventano `Uint16List` leggendo con `ByteData.getUint16(i * 2, Endian.little)`: il buffer del canale può non essere allineato a 2 byte, e `asUint16List` lancerebbe.
-
-**Web.** `WebTrackFiles` tiene in una mappa `uri → web.File` il file scelto (oggi non lo tiene), e lo toglie in `release`. `peaks`: se il file manca, o `webPeaksAllowed(size, duration)` è falso (oltre 40 MB o oltre 15 minuti; funzione pura, così si prova anche fuori dal browser), errore subito: niente forma d'onda, il resto funziona. Altrimenti `file.arrayBuffer()` e una funzione nuova in `web/flutter_bootstrap.js`, accanto a `lowEndDecodeFlac`:
-
-```js
-// I picchi di un file audio, uno ogni 10 ms (Uint16Array, 0..32767), con il
-// decodificatore del browser in un contesto offline a frequenza bassa: il
-// browser ricampiona decodificando, e 15 minuti stereo occupano circa 58 MB
-// invece di 320. Il ciclo cede la mano ogni mezzo milione di campioni, così
-// lo schermo non si ferma (RNF-FLU-01).
-window.lowEndPeaks = async function (data) {
-  const Offline = window.OfflineAudioContext || window.webkitOfflineAudioContext;
-  if (!Offline) throw new Error('no OfflineAudioContext');
-  let context;
-  try { context = new Offline(1, 1, 8000); } catch (e) { context = new Offline(1, 1, 22050); }
-  const audio = await context.decodeAudioData(data);
-  const frame = Math.round(audio.sampleRate / 100);
-  const out = new Uint16Array(Math.ceil(audio.length / frame));
-  let work = 0;
-  for (let c = 0; c < audio.numberOfChannels; c++) {
-    const f = audio.getChannelData(c);
-    for (let i = 0; i < out.length; i++) {
-      let peak = out[i];
-      const end = Math.min(f.length, (i + 1) * frame);
-      for (let j = i * frame; j < end; j++) {
-        const v = Math.min(32767, Math.round(Math.abs(f[j]) * 32767));
-        if (v > peak) peak = v;
-      }
-      out[i] = peak;
-      work += frame;
-      if (work > 500000) { work = 0; await new Promise((r) => setTimeout(r, 0)); }
-    }
-  }
-  return out;
-};
-```
-
-In Dart: `@JS('lowEndPeaks') external JSPromise<JSUint16Array> _peaks(JSArrayBuffer data);` come in `browser_flac_web.dart`; il risultato arriva in un solo pezzo. Va provato anche che `new Offline(1, 1, 8000)` funzioni su Safari dell'iPhone (se lancia, si passa a 22050: è già nel codice).
-
-I limiti vanno scritti in `docs/web.md`.
-
-### 5.8 Accessibilità (RF-PLY-16)
-
-- Il toro resta uno slider ("1:12 di 6:03"); aumenta e diminuisci spostano di 10 s nel brano intero e di 1 s nella vista Passaggio.
-- Sul toro due azioni personalizzate (`customSemanticsActions`): "Segna l'inizio qui" e "Segna la fine qui", che chiamano `mark`. È la strada senza trascinare per creare il passaggio; poi i − e + per ritoccarlo.
-- Il tempo di ogni gruppo si annuncia con il suo nome: "Inizio 1:12,34", "Fine 1:31,00" (o "Inizio non segnato", "Fine non segnata": due chiavi, perché in italiano e in francese cambia il genere). I − e + tengono i nomi di oggi: "Inizio prima", "Inizio dopo", "Fine prima", "Fine dopo".
-- Maniglie e forma d'onda sono disegno (`ExcludeSemantics`), come oggi il toro.
-
-### 5.9 Azioni per assistenti
-
-Nessuna azione nuova né tolta. Cambiano le descrizioni, poi si rigenera `docs/llm-actions.json` e si allinea `docs/llm.md`:
-- `player_mark` (PR 4): non c'è più il pulsante; "Marks the start or the end of the loop at the point being heard (the screen reader's Mark the start here / Mark the end here)…".
-- `player_loop_nudge` (PR 4): esempio "-0.01"; il minimo e il massimo restano ±10 s.
-- `open_section` (PR 3): l'accordatore non si mette in ascolto da solo nemmeno quando suona il Player (il codice lo fa già, la descrizione non lo dice).
+Già in `main` (PR #125 e #129): `TrackPeaks`, `TrackFiles.peaks`, `TrackPeaks.kt` con la cache, `lowEndPeaks` sul web, i limiti di 15 minuti e 40 MB. Non cambia nulla: la striscia legge gli stessi picchi con `heights`.
 
 ## 6. Passi
 
-### PR 3: ordine dei tab, cursore e forma d'onda
+### PR 6: il centro del quadrante
 
-Codici: RF-GEN-01, RF-PLY-03, RF-PLY-15, RNF-FLU-01, RNF-AVV-01.
+Codici: RF-PLY-02, RF-PLY-03 (solo il centro), RF-PLY-19. Piccola e indipendente: Luigi la vede subito.
 
-1. **Ordine.** `AppSection { metronome, drone, player, tuner }` in `lib/app/app_navigation.dart`. Cerca ogni uso di `AppSection.values`, `.index`, liste di sezioni scritte a mano (schede, rail in orizzontale, `_screens` di `home_shell.dart`) e i test che scorrono da un tab all'altro contando le pagine (`playback_flow_test`, `widget_test`, `regression_test`, `memory_test`, quelli in `test/review/`). La sezione si salva per nome: nessuna migrazione, ma aggiungi un test che una sezione salvata `tuner` riapre l'accordatore. Aggiorna l'ordine scritto in README, `docs/user-guide.md`, `docs/manuale-utente.md`, `docs/llm.md`.
-2. **Cursore.** `_PointPainter` diventa `_PlayheadPainter` (sezione 5.2).
-3. **Picchi, Dart.** `TrackPeaks`, la nuova firma di `TrackFiles.peaks`, `FakeTrackFiles`, `PlayerController.peaks` (sezioni 5.6 e 5.7).
-4. **Picchi, Android.** `TrackPeaks.kt` e il collegamento in `MainActivity`; `AndroidTrackFiles.peaks`.
-5. **Picchi, web.** `lowEndPeaks` in `flutter_bootstrap.js`, la mappa dei file e `WebTrackFiles.peaks`; i limiti in `docs/web.md`.
-6. **Disegno.** `RingWindow` (per ora solo `whole`), base, forma d'onda, tacche sul bordo esterno, dissolvenza (sezione 5.2). Il quadrante ascolta `player.peaks`.
-7. **Testi e azioni.** Descrizione di `open_section`, golden rigenerato.
-8. **Test** (sezione 8) e `requisiti.md` (Stato).
+1. `PlayerController.hasTags`.
+2. `_Hub` di `player_dial.dart`: niente icona, tempo trascorso senza durata, "Tocca per avviare" da fermo, tempo della bandiera trascinata (sezione 5.6).
+3. `marquee.dart`, con il suo test.
+4. Testi: `playerHubHint` (sezione 7).
+5. Test (sezione 8), `requisiti.md` (Stato).
 
-Da provare a fine PR, nella descrizione: un MP3 di 6 minuti e un M4A di 20 minuti sul S20 FE (tempo fino alla forma d'onda intera, schermo fluido mentre si riempie), un MP3 di 10 minuti sull'iPhone.
+### PR 7: bandiere, striscia e righe
 
-### PR 4: il passaggio sul toro
+Codici: RF-PLY-01, 08, 09, 10, 11, 12, 16, 17, 18.
 
-Codici: RF-PLY-09, 10, 11, 12, 16, 17, 18.
-
-1. **Controller.** `fineStep`, `coarseStep`, `moveEdge`, via `edge` e `selectEdge` (sezione 5.6).
-2. **Orologio al centesimo.** `clockText(time, hundredths: true)` → "1:12,34" (tronca, non arrotonda, come i decimi di oggi; i decimi non servono più e si tolgono se nessuno li usa).
-3. **Finestra.** `RingWindow.passage`, `tickInterval` esteso, `lerp`, l'animazione tra le viste (sezione 5.3).
-4. **Maniglie.** Disegno, `_GripDrag`, `gripCenter`, il tempo nel centro durante il trascinamento (sezioni 5.2, 5.4, 5.5).
-5. **Righe.** Riga dei messaggi, seconda riga senza l'errore, terza riga A / Loop / B (sezione 5.1).
-6. **Accessibilità.** Azioni personalizzate sul toro, nomi dei gruppi, passo del lettore secondo la vista (sezione 5.8).
-7. **Testi e azioni.** Le chiavi della sezione 7; descrizioni di `player_mark` e `player_loop_nudge`; golden; `docs/llm.md`; guide utente (il passaggio si sceglie sull'anello).
+1. **Controller**: `place`, `activeEdge`, `focus`, `armed`, `arm`, `disarm`, `mark` attraverso `place` (sezione 5.7).
+2. **Toro**: via la vista Passaggio, la cucitura e la pressione lunga (sezione 5.3).
+3. **Bandiere**: `flag_painter.dart`, `flag_drag.dart`, angoli, trascinamento, due tocchi, `holderCenter` (sezioni 5.2 e 5.8).
+4. **Righe**: prima riga con i messaggi nuovi, seconda con Loop, frecce e Velocità, terza con il solo Brano; `StepButton.label`; `Ticker` e posizione nel pannello (sezioni 5.1, 5.4, 5.5).
+5. **Striscia**: `passage_strip.dart`, `RingWindow.fractionOf` e `timeAtFraction` (sezione 5.4).
+6. **Accessibilità** (sezione 5.9).
+7. **Testi e azioni**: chiavi della sezione 7; descrizione di `player_mark`; golden; `docs/llm.md`; guide utente (`docs/user-guide.md` e `docs/manuale-utente.md`, il paragrafo "Loop per studiare un passaggio"); `guidePlayerLoop`.
 8. **Test** (sezione 8) e `requisiti.md`.
 
-Se la PR supera circa 1.500 righe cambiate, dividila: 4a controller, finestra e maniglie; 4b righe, accessibilità e testi.
+Se la PR supera circa 1.500 righe cambiate, dividila: **7a** passi 1-4 e 6-7 senza la striscia (la prima riga resta dei messaggi anche a bandiere posate, con il testo "Ritocca con ‹ e ›"); **7b** la striscia. Dopo la 7a l'app funziona già con bandiere e frecce.
 
-### CANCELLO 2: prova di Luigi sul telefono e sull'iPhone
+### CANCELLO 3: prova di Luigi sul telefono e sull'iPhone
 
-Sonnet si ferma qui e chiede a Luigi questa prova (circa 20 minuti). I risultati vanno nella colonna Stato di `requisiti.md`; la PR 5 parte solo dopo il suo via.
+Sonnet si ferma qui e chiede a Luigi questa prova (circa 20 minuti). I risultati vanno nella colonna Stato di `requisiti.md`.
 
-- Scegliere un passaggio sull'anello: si capisce dalla riga dei messaggi? Trascinare A e B è comodo? La vista Passaggio aiuta o disorienta?
-- I − e + da 10 ms: giusti, troppo fini, troppo grossi?
-- La forma d'onda corrisponde al suono? Prova: nella vista Passaggio metti A esattamente su un attacco netto e ascolta il giro. Se A cade sempre un po' prima o dopo, si misura lo scarto (sugli MP3 può arrivare a circa 50 ms, il ritardo dell'encoder) e si corregge.
-- Rimasti dal CANCELLO 1: velocità al 70% e al 50% in cuffia su un brano orchestrale e uno ritmico ("si studia bene", "accettabile", "no"; un "no" al 70% porta alla strada C della fase 2, non a un cambio di questo piano); stacco al giro del loop su Android; peso dell'APK arm64 contro quello prima del Player (al massimo 2,5 MB in più); M4A di 20 minuti senza blocchi.
+- Posare A e B: si capisce senza leggere? Meglio trascinare o due tocchi? Gli angoli sono comodi in verticale e in orizzontale?
+- La striscia: si legge? Trascinare le aste è comodo? Le frecce sulla bandiera attiva si capiscono, o meglio la variante V1 o V3 (sezione 3.3)?
+- Il centro: il tempo ha la misura giusta? La scritta che scorre piace o distrae?
+- La forma d'onda corrisponde al suono? Prova: metti A sulla striscia esattamente su un attacco netto e ascolta il giro. Se A cade sempre un po' prima o dopo, si misura lo scarto (sugli MP3 può arrivare a circa 50 ms, il ritardo dell'encoder) e si corregge.
+- Rimaste dal CANCELLO 2: velocità al 70% e al 50% in cuffia su un brano orchestrale e uno ritmico ("si studia bene", "accettabile", "no"); stacco al giro del loop su Android; peso dell'APK arm64 contro quello prima del Player (al massimo 2,5 MB in più); M4A di 20 minuti senza blocchi.
 - iPhone, web app: apertura dall'app File, forma d'onda di un MP3 di 10 minuti, velocità senza cambio di intonazione, stacco al giro (obiettivo sotto 80 ms), cosa succede a schermo bloccato.
-
-### PR 5: ricordare il brano, titolo e autore
-
-Codici: RF-PLY-13, RF-PLY-14, RF-PLY-07 (file sparito), RNF-AVV-01. È la PR 3 della revisione 1, con un'aggiunta:
-
-- **Android**: `canRead`, `tags`, `release` in `TrackFiles.kt` (permesso tra `persistedUriPermissions` e `openFileDescriptor(uri, "r")`; `MediaMetadataRetriever` per `METADATA_KEY_TITLE` e `METADATA_KEY_ARTIST`, sempre `release()`; `releasePersistableUriPermission` ignorando `SecurityException`).
-- **Web**: `readId3Tags(Uint8List)` in `track_tags.dart` sui primi 128 KB (ID3v2.3 e 2.4; con unsynchronisation si rinuncia; header esteso saltato; dimensioni syncsafe; TIT2 titolo, TPE1 autore; codifiche 0 Latin-1, 1 UTF-16 con BOM, 2 UTF-16BE, 3 UTF-8; vuoto = null).
-- **Ricordo**: `PlayerSetup` (uri, nome, dimensione, durata, velocità, A, B, loop acceso) come JSON nella chiave `player` di `AppSettings`, scritta solo fuori dal web e solo se è cambiata. `fromJson` ignora i campi sbagliati e risponde null senza uri: dati illeggibili non impediscono mai l'avvio.
-- **Riapertura pigra**: all'avvio solo i campi, niente canale né lettore. Arrivando sul tab, una volta `canRead`: se è falso, "Il file non è più disponibile." e il ricordo si cancella. Il file si apre al primo play, da A se il loop è acceso.
-- **Aggiunta: cache dei picchi.** Su Android `TrackPeaks.kt` salva i picchi finiti in `cacheDir/peaks/<sha1 dell'uri>-<dimensione>.u16`; con il file già in cache li manda in un solo pezzo. Il sistema può svuotare la cache: si rifà la lettura. Sul web niente cache (i brani non sopravvivono alla pagina).
-- **Test**: andata e ritorno di `PlayerSetup` e JSON rovinato; avvio con un brano ricordato che non chiama né `open` né il canale; `canRead` una volta sola; file sparito; brano nuovo che azzera loop e velocità; tag in ritardo ignorati; `track_tags_test` con tag costruiti nel test.
 
 ### Dopo questo piano, da approvare a parte
 
 - **Registra (fase 1b)**: microfono con il `MicInput` dell'accordatore, mono 48 kHz in RAM, WAV scritto in Dart, battuta d'attacco del metronomo, salvataggio con `ACTION_CREATE_DOCUMENT` o download, al massimo 10 minuti. Il campo Brano diventa un menu (Apri file…, Registra).
-- **Fase 2**: pausa e conteggio prima di ogni giro, velocità che sale a ogni giro, trasposizione, brani recenti con il loro passaggio, barra di avanzamento nella notifica, strada C (Signalsmith Stretch) se il CANCELLO 2 boccia il rallentamento.
+- **Fase 2**: pausa e conteggio prima di ogni giro, velocità che sale a ogni giro, trasposizione, brani recenti con il loro passaggio, barra di avanzamento nella notifica, strada C (Signalsmith Stretch) se il CANCELLO 3 boccia il rallentamento.
 - **Fase 3**: TAP sul brano e click agganciato (due motori: prima si misura quanto si allontanano in 30 s).
 
 ## 7. Testi
@@ -353,16 +342,17 @@ Ogni testo nei quattro `.arb` (inglese di riferimento), poi `flutter gen-l10n`. 
 
 | Chiave | en | it | es | fr | PR |
 | --- | --- | --- | --- | --- | --- |
-| `playerHintDraw` (nuova) | Hold on the ring and slide to choose a passage to repeat | Tieni premuto sull'anello e scorri per scegliere un passaggio da ripetere | Mantén pulsado el anillo y desliza para elegir un pasaje que repetir | Appuyez longuement sur l'anneau et glissez pour choisir un passage à répéter | 4 |
-| `playerHintGrips` (nuova) | Drag A and B on the ring to adjust the passage | Trascina A e B sull'anello per ritoccare il passaggio | Arrastra A y B en el anillo para ajustar el pasaje | Faites glisser A et B sur l'anneau pour ajuster le passage | 4 |
-| `playerMarkStart` (cambia) | Mark the start here | Segna l'inizio qui | Marcar el inicio aquí | Marquer le début ici | 4 |
-| `playerMarkEnd` (cambia) | Mark the end here | Segna la fine qui | Marcar el final aquí | Marquer la fin ici | 4 |
-| `playerStartAt` (nuova, `{time}`) | Start {time} | Inizio {time} | Inicio {time} | Début {time} | 4 |
-| `playerEndAt` (nuova, `{time}`) | End {time} | Fine {time} | Final {time} | Fin {time} | 4 |
-| `playerStartUnmarked` (nuova) | Start not marked | Inizio non segnato | Inicio sin marcar | Début non marqué | 4 |
-| `playerEndUnmarked` (nuova) | End not marked | Fine non segnata | Final sin marcar | Fin non marquée | 4 |
+| `playerHubHint` (nuova) | Tap to start | Tocca per avviare | Toca para empezar | Touchez pour démarrer | 6 |
+| `playerHintFlags` (nuova, al posto di `playerHintDraw`) | Drag A and B onto the ring to choose the passage to repeat | Porta A e B sull'anello per scegliere il passaggio da ripetere | Lleva A y B al anillo para elegir el pasaje que repetir | Placez A et B sur l'anneau pour choisir le passage à répéter | 7 |
+| `playerHintPlaceStart` (nuova) | Touch the ring where the passage starts | Tocca l'anello dove inizia il passaggio | Toca el anillo donde empieza el pasaje | Touchez l'anneau là où le passage commence | 7 |
+| `playerHintPlaceEnd` (nuova) | Touch the ring where the passage ends | Tocca l'anello dove finisce il passaggio | Toca el anillo donde termina el pasaje | Touchez l'anneau là où le passage se termine | 7 |
+| `playerHintNeedStart` (nuova) | Now bring A to where the passage starts | Ora porta A dove inizia il passaggio | Ahora lleva A adonde empieza el pasaje | Placez maintenant A là où le passage commence | 7 |
+| `playerHintNeedEnd` (nuova) | Now bring B to where the passage ends | Ora porta B dove finisce il passaggio | Ahora lleva B adonde termina el pasaje | Placez maintenant B là où le passage se termine | 7 |
+| `playerFlagStart` (nuova) | Flag A, start of the passage | Bandiera A, inizio del passaggio | Bandera A, inicio del pasaje | Drapeau A, début du passage | 7 |
+| `playerFlagEnd` (nuova) | Flag B, end of the passage | Bandiera B, fine del passaggio | Bandera B, final del pasaje | Drapeau B, fin du passage | 7 |
+| `guidePlayerLoop` (cambia) | In the Player, drag the flags A and B onto the circle to loop a passage. | In Ascolto porta le bandiere A e B sul cerchio per ripetere un passaggio. | En Escucha, lleva las banderas A y B al círculo para repetir un pasaje. | Dans Écoute, placez les drapeaux A et B sur le cercle pour répéter un passage. | 7 |
 
-Restano: `playerTab`, `playerTrack`, `playerChoose`, `playerPlay`, `playerPause`, `playerTimeOf`, `pausedForPlayer`, `playerUnreadable`, `playerMissing`, `playerSpeed`, `playerSpeedTitle`, `playerLoop`, `playerLoopStart`, `playerLoopEnd`, `playerStartEarlier`, `playerStartLater`, `playerEndEarlier`, `playerEndLater`. Si tolgono le chiavi che nessuno usa più. Spagnolo e francese restano da rileggere da un madrelingua, come il resto.
+Restano: `playerTrack`, `playerChoose`, `playerPlay`, `playerPause`, `playerTimeOf`, `playerSpeed`, `playerSpeedTitle`, `playerLoop`, `playerMarkStart`, `playerMarkEnd`, `playerStartAt`, `playerEndAt`, `playerStartEarlier`, `playerStartLater`, `playerEndEarlier`, `playerEndLater`, gli errori. Si tolgono `playerHintDraw`, `playerHintGrips`, `playerStartUnmarked`, `playerEndUnmarked` e ogni chiave che nessuno usa più. Spagnolo e francese restano da rileggere da un madrelingua, come il resto.
 
 ## 8. Test e verifica
 
@@ -370,19 +360,16 @@ Tutto gira senza telefono, con `SilentTrackOutput` e `FakeTrackFiles`.
 
 | Test | Cosa verifica | PR |
 | --- | --- | --- |
-| `widget_test`, `playback_flow_test`, `memory_test` | Ordine dei tab e dello scorrimento; sezione salvata per nome | 3 |
-| `track_peaks_test` (nuovo) | `add` a pezzi, `heights` (massimo per spicchio, scala in dB, NaN non letti, finestra parziale), `version`, `fail` | 3 |
-| `player_controller_test` | `peaks` parte dopo `open`, si annulla con un brano nuovo, un errore in ritardo di un brano vecchio è ignorato | 3 |
-| `player_ring_test` | `RingWindow` (intero, passaggio con margini ai bordi del brano, `angleOf` / `timeAt` andata e ritorno, `lerp`), `tickInterval` per ogni fascia, tacche sui multipli veri | 3, 4 |
-| `player_panel_test` | Quadrante con picchi nulli, parziali e pieni senza errori; cursore presente solo a brano pronto | 3 |
-| `web_parts_test` | `webPeaksAllowed` ai limiti di 40 MB e 15 minuti; fuori dal web nessuna parte del browser viene chiamata | 3 |
-| `player_loop_test` | `moveEdge` (limiti, quiete di 0,3 s, ripartenza da A o da B − 2 s), passi da 10 e 100 ms, `mark` senza `edge` | 4 |
-| `player_panel_test` | Trascinare da un'impugnatura sposta B **e non cambia sezione**; trascinare fuori dalle impugnature cambia sezione; pressione lunga e scorrere crea il passaggio e accende la vista Passaggio; tocco fuori dal passaggio spegne loop e vista; la finestra non si muove durante il trascinamento e si riadatta dopo; riga dei messaggi nei quattro stati; terza riga spenta senza passaggio | 4 |
-| `accessibility_test` | Azioni "segna qui" sul toro, nomi dei gruppi, bersagli da 48 dp, contrasto; il tab Player è già nella lista | 4 |
-| `layout_review_test`, `row_heights_test` | La terza riga a 288 dp e a testo 2× in quattro lingue | 4 |
-| `app_actions_test` | Golden rigenerato | 3, 4 |
+| `player_panel_test` | Centro: nessuna icona play, solo il tempo trascorso, "Tocca per avviare" solo da fermo, il tempo della bandiera durante il trascinamento | 6 |
+| `marquee_test` (nuovo) | Fermo se entra; senza tag niente scritta; se non entra, dopo il play si muove e dopo 5 s è fermo all'inizio (nessun ticker attivo); con le animazioni ridotte non si muove mai | 6 |
+| `player_loop_test` | `place`: A sola, B sola, tutte e due accendono il loop e ripartono da A; una posa oltre l'altra la riporta nell'angolo e spegne il loop; `mark` passa da `place` con i 150 ms × velocità; `activeEdge` dopo `place`, `moveEdge`, `focus`, `setLoop`, brano nuovo; `armed` e i modi di disarmare; `nudge` sulla bandiera attiva | 7 |
+| `player_ring_test` | `holderCenter` a 200, 280 e 380 dp: dentro il riquadro e, da 280 in su, fuori da `ringOuter` + 4 dp; `fractionOf` / `timeAtFraction` andata e ritorno; il toro resta il brano intero a loop acceso | 7 |
+| `player_panel_test` | Trascinare dall'angolo A al toro posa A **e non cambia sezione**; lasciato fuori dal toro non cambia nulla; tocco sull'angolo e poi sul toro posa; due tocchi sull'angolo disarmano; tocco sul toro senza bandiera armata sposta l'ascolto; trascinare una bandiera sul toro la sposta e si ferma a 1 s dall'altra; posate le due compare la striscia e spariscono i messaggi; trascinare un'asta della striscia sposta la bandiera e non cambia sezione; trascinare altrove sulla striscia cambia sezione; tocco su una bandierina cambia le frecce ("‹ A" ↔ "‹ B"); le frecce spostano di 10 ms; la terza riga ha il solo Brano; la pressione lunga sul toro non fa niente | 7 |
+| `accessibility_test` | Nodi delle bandiere (pulsante, nome, doppio tocco che segna), slider della striscia (nomi, passo di 100 ms), nomi delle frecce secondo la bandiera attiva, bersagli da 48 dp, contrasto | 7 |
+| `layout_review_test`, `row_heights_test` | Seconda riga a 288 dp e a testo 2× in quattro lingue; striscia a testo 2×; angoli in verticale e in orizzontale | 7 |
+| `app_actions_test` | Golden rigenerato | 7 |
 
-Verifica di ogni PR: CI verde (test, APK debug arm64, web `--wasm`); manifest unito senza `ACCESS_NETWORK_STATE`; quattro `.arb` completi; `requisiti.md` aggiornato; descrizione della PR con "Scelte fatte" e "Da provare sul telefono".
+Verifica di ogni PR: CI verde (test, APK debug arm64, web `--wasm`); quattro `.arb` completi; `requisiti.md` aggiornato; descrizione della PR con "Scelte fatte" e "Da provare sul telefono".
 
 Trappola già incontrata: in `testWidgets` un `Future` creato in `setUp` (zona reale) e atteso nel corpo del test può restare appeso; le catene vanno create dentro la chiamata.
 
@@ -390,24 +377,29 @@ Trappola già incontrata: in `testWidgets` un `Future` creato in `setUp` (zona r
 
 | Rischio | Probabilità | Cosa si fa |
 | --- | --- | --- |
-| La forma d'onda in ritardo sul suono negli MP3 (ritardo dell'encoder, fino a circa 50 ms) | Media | Misura al CANCELLO 2; se si vede, si sposta di quanto dice l'intestazione LAME/Xing |
-| Decodifica lenta su un telefono economico (20 minuti di M4A) | Media | Il brano suona subito e la forma si riempie mentre si legge; in PR 5 la cache evita di rifarla |
-| Memoria del browser sull'iPhone | Media | Limiti di 15 minuti e 40 MB, da rivedere con la misura del CANCELLO 2 |
-| Il trascinamento delle impugnature ruba lo scorrimento tra le sezioni | Bassa | Solo partendo da un'impugnatura; test dedicato |
-| Impugnature troppo vicine nel brano intero | Certa per passaggi brevi | Raggi diversi per A e B; la vista Passaggio le allontana |
-| Rallentamento di ExoPlayer "acquoso" sotto il 70% | Media | CANCELLO 2; altrimenti strada C in fase 2 |
+| Posa grossolana sul toro intero (brano di 6 minuti: circa 0,4 s per punto; di 20 minuti: oltre 1 s) | Certa | È voluto: il toro sceglie la zona, la striscia e le frecce la precisione. Durante il trascinamento il centro mostra il tempo |
+| Angoli stretti sotto i 280 dp | Media (telefoni piccoli, schermo diviso) | Il tocco dentro il toro va al toro; prova a 200, 280 e 380 dp |
+| La bandiera attiva non si capisce | Media | Lettera sulle frecce, bandierina piena; domanda del CANCELLO 3, con V1 e V3 pronte |
+| La striscia è meno precisa della vista Passaggio (circa 350 dp contro 960) | Certa | Frecce da 10 ms; la finestra si riadatta e ingrandisce i passaggi corti |
+| Un trascinamento sulla striscia ruba lo scorrimento tra i tab, o viceversa | Bassa | Vince subito solo dalle aste; test dedicato |
+| La scritta che scorre distrae | Media | Una passata di 5 s al massimo; domanda del CANCELLO 3 |
+| La forma d'onda in ritardo sul suono negli MP3 (fino a circa 50 ms) | Media | Misura al CANCELLO 3, più facile sulla striscia |
+| Rallentamento di ExoPlayer "acquoso" sotto il 70% | Media | CANCELLO 3; altrimenti strada C in fase 2 |
 | `setClip` ricarica la sorgente a ogni ritocco | Certa | Il suono segue solo dopo 0,3 s di quiete, come oggi |
 
 ## 10. Domande per Luigi
 
 Sonnet non aspetta le risposte: usa la scelta predefinita e la cambia se Luigi decide diversamente.
 
-1. **Vista Passaggio legata al Loop** (predefinito: sì, loop acceso = il giro è il passaggio), oppure un pulsante a parte per passare da brano intero a passaggio?
-2. **Passi dei − e +**: 10 ms al tocco e 100 ms tenuti (predefinito), oppure 20 e 200 ms?
-3. **Segnare "qui" mentre suona**: solo per lettore di schermo e assistenti (predefinito), oppure un pulsante "Segna qui" che a ogni tocco mette A, poi B, come un pedale da looper?
-4. Ancora aperte dalla revisione 1: avviare metronomo o Armonia mette in pausa il Player senza avviso (predefinito) o con "Riprendi"? Registrazione subito dopo il CANCELLO 2 o più avanti?
+1. **Frecce**: V2, sulla bandiera attiva (predefinito), V1 alla lettera (‹ anticipa A, › posticipa B) o V3 a quattro frecce? (sezione 3.3)
+2. **Bandiere sul toro trascinabili** anche dopo la posa (predefinito: sì), oppure si spostano solo dagli angoli e sulla striscia?
+3. **Il loop si accende da solo** quando si posa la seconda bandiera (predefinito: sì)?
+4. **Tempo al centro**: solo il trascorso in `displaySmall` (predefinito), come il metronomo in `displayMedium`, o più piccolo (`headlineMedium`)?
+5. **Togliere il passaggio** riportando le bandiere negli angoli: predefinito no (basta il Loop spento; un brano nuovo le azzera). Se sì: trascinando la bandiera sul suo angolo, più un'azione `player_loop_clear`.
+6. **Scritta che scorre**: una passata di al massimo 5 s a ogni apertura e play (predefinito), oppure sempre ferma con i puntini? Scorrere di continuo mentre suona non si può senza un modo di fermarla (WCAG 2.2.2).
+7. Ancora aperte dalle revisioni precedenti: avviare metronomo o Armonia mette in pausa il Player senza avviso (predefinito) o con "Riprendi"? Registrazione subito dopo il CANCELLO 3 o più avanti?
 
-Decise il 6/11 e non più aperte: nome (Ascolto), posizione (terzo tab), ritocchi più fini, forma d'onda e non spettrogramma.
+Decise e non più aperte: nome (Ascolto), posizione (terzo tab), forma d'onda e non spettrogramma, passi da 10 e 100 ms, toro sempre sul brano intero (6/11 sera).
 
 ## 11. Fatti verificati sui pacchetti
 
@@ -423,3 +415,5 @@ Valgono per il codice già unito e per chi lo tocca.
 - `just_audio_web` ignora l'evento `pause` dell'elemento: rischio con una chiamata sull'iPhone.
 - `MainActivity` estende `AudioServiceActivity`, che non è una `ComponentActivity`: niente `registerForActivityResult`, si usa `startActivityForResult`.
 - Flutter 3.47.9: un `OneSequenceGestureRecognizer` che chiama `resolvePointer(accepted)` dentro `addAllowedPointer` diventa il vincitore anticipato dell'arena quando questa si chiude, prima che il `PageView` superi la soglia dello scorrimento.
+- Flutter: `RenderBox.hitTest` scarta i punti fuori dalla sua misura, quindi un figlio di uno `Stack` dipinto fuori (`clipBehavior: Clip.none`) non riceve tocchi lì. Per questo le bandiere stanno dentro il riquadro del quadrante.
+- Flutter: un nodo `Semantics` senza gesti non ferma il dito; `onTapHint` cambia quello che il lettore di schermo dice per il doppio tocco.
