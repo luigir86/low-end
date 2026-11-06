@@ -11,13 +11,18 @@ import '../audio/click_output.dart';
 import '../audio/mic_input.dart';
 import '../audio/piano_output.dart';
 import '../audio/pitch.dart';
+import '../audio/just_audio_track_output.dart';
 import '../audio/soloud_engine.dart';
+import '../audio/system_track_files.dart';
 import '../audio/tone_output.dart';
+import '../audio/track_files.dart';
+import '../audio/track_output.dart';
 import '../audio/web_audio_engine.dart';
 import '../features/metronome/metronome_controller.dart';
 import '../features/harmony/drone_controller.dart';
 import '../features/harmony/harmony_names.dart'
     show chordSymbol, progressionName;
+import '../features/player/player_controller.dart';
 import '../features/tuner/tuner_controller.dart';
 import '../l10n/app_localizations.dart';
 import 'app_navigation.dart';
@@ -44,6 +49,8 @@ class LowEndApp extends StatefulWidget {
     this.pianoOutput,
     this.screenAwake,
     this.audioRoute,
+    this.trackOutput,
+    this.trackFiles,
   });
 
   /// Audio output for the drone; defaults to the device's speakers.
@@ -72,6 +79,14 @@ class LowEndApp extends StatefulWidget {
   /// Where the sound comes out, and when the headphones are unplugged;
   /// Android's audio manager by default, nothing with test outputs.
   final AudioRoute? audioRoute;
+
+  /// The Player's sound; the system's player by default, and a silent one
+  /// when a test gives its own tone or click output.
+  final TrackOutput? trackOutput;
+
+  /// The Player's files (the file chooser); the system's by default, and
+  /// finger-less ones when a test gives its own tone or click output.
+  final TrackFiles? trackFiles;
 
   @override
   State<LowEndApp> createState() => _LowEndAppState();
@@ -102,7 +117,17 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
           : FakeAudioRoute());
   StreamSubscription<void>? _unplugged;
   StreamSubscription<void>? _interrupted;
+  StreamSubscription<void>? _playerInterrupted;
   late final _tuner = TunerController(widget.micInput ?? RecordMicInput());
+  // The Player makes its system player at the first track, not before
+  // (RNF-AVV-01); the tests never touch the real one.
+  late final _player = PlayerController(
+    widget.trackOutput ??
+        (_testOutputs ? SilentTrackOutput() : JustAudioTrackOutput()),
+    widget.trackFiles ?? (_testOutputs ? FakeTrackFiles() : systemTrackFiles()),
+  );
+  bool get _testOutputs =>
+      widget.toneOutput != null || widget.clickOutput != null;
   late final BackgroundAudio _background =
       widget.backgroundAudio ?? MediaNotificationAudio();
   late final ScreenAwake _screenAwake =
@@ -115,6 +140,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
   late final _notification = NowPlayingNotification(
     drone: _drone,
     metronome: _metronome,
+    player: _player,
     background: _background,
     describe: () => _describePlaying(_notificationTexts()),
     playingTitle: () => _notificationTexts().backgroundPlaying,
@@ -123,6 +149,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
   late final _pauses = PauseRules(
     drone: _drone,
     metronome: _metronome,
+    player: _player,
     notification: _notification,
   );
 
@@ -133,6 +160,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     drone: _drone,
     metronome: _metronome,
     tuner: _tuner,
+    player: _player,
     navigation: _navigation,
     settings: _settings,
   );
@@ -173,8 +201,10 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     _navigation.sliding.addListener(_preparePiano);
     _drone.addListener(_onPlayingChanged);
     _metronome.addListener(_onPlayingChanged);
+    _player.addListener(_onPlayerChanged);
     // Coming to the tuner starts it only when nothing plays.
-    _tuner.autoStartAllowed = () => !_drone.isPlaying && !_metronome.isPlaying;
+    _tuner.autoStartAllowed = () =>
+        !_drone.isPlaying && !_metronome.isPlaying && !_player.isPlaying;
     _tuner.addListener(_onTunerChanged);
     _commands = _background.commands.listen(_notification.command);
     // Headphones pulled out: the sound stops before it reaches the speaker.
@@ -184,6 +214,10 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     // The iPhone's browser cut the sound (a call, the locked screen): the
     // app must not look as if it played on, unheard.
     _interrupted = _route.interrupted.listen(
+      (_) => _pauseFor(PauseReason.interrupted),
+    );
+    // A call, or another player, took the Player's sound.
+    _playerInterrupted = _player.interruptions.listen(
       (_) => _pauseFor(PauseReason.interrupted),
     );
     // If the app opens on the tuner (where it was left, or a link), start
@@ -311,6 +345,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
             PauseReason.tuner => l10n.pausedForTuner,
             PauseReason.unplugged => l10n.pausedUnplugged,
             PauseReason.interrupted => l10n.pausedInterrupted,
+            PauseReason.player => l10n.pausedForPlayer,
           }),
           persist: false,
           action: SnackBarAction(
@@ -324,12 +359,36 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
   /// The screen stays on while anything plays or the tuner listens.
   void _keepScreenOn() => _screenAwake.keepOn(
     _settings.keepScreenOn &&
-        (_drone.isPlaying || _metronome.isPlaying || _tuner.isListening),
+        (_drone.isPlaying ||
+            _metronome.isPlaying ||
+            _player.isPlaying ||
+            _tuner.isListening),
   );
 
   StreamSubscription<MediaCommand>? _commands;
 
+  /// The Player started: it plays alone, so the metronome and Harmony
+  /// pause, with a notice and a button to play them again (RF-PLY-04).
+  var _playerWasPlaying = false;
+
+  void _onPlayerChanged() {
+    final playing = _player.isPlaying;
+    if (playing && !_playerWasPlaying) {
+      _showPaused(_pauses.pauseFor(PauseReason.player));
+    }
+    _playerWasPlaying = playing;
+    _onPlayingChanged();
+  }
+
+  var _soundWasPlaying = false;
+
   void _onPlayingChanged() {
+    // The metronome or Harmony started: the Player gives way, with no
+    // notice (they are what the person just asked for). Only when one of
+    // them starts, not while the Player's own start is pausing them.
+    final sound = _drone.isPlaying || _metronome.isPlaying;
+    if (sound && !_soundWasPlaying && _player.isPlaying) _player.stop();
+    _soundWasPlaying = sound;
     _keepScreenOn();
     // In a web page the engine sleeps a while after the last sound.
     setWebAudioIdle(!_drone.isPlaying && !_metronome.isPlaying);
@@ -339,6 +398,10 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
   /// "Metronome 120 BPM · 4/4" and "Harmony A major", one per line: what is
   /// playing, for the notification.
   String _describePlaying(AppLocalizations l10n) {
+    // The Player plays alone: the track, and then who plays it.
+    if (_player.isPlaying) {
+      return '${_player.title ?? l10n.playerTab}\n${l10n.playerTab}';
+    }
     final parts = <String>[];
     if (_metronome.isPlaying) {
       parts.add(
@@ -417,16 +480,19 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     _drone.removeListener(_rememberDrone);
     _metronome.removeListener(_onPlayingChanged);
     _metronome.removeListener(_rememberMetronome);
+    _player.removeListener(_onPlayerChanged);
     _tuner.removeListener(_onTunerChanged);
     _commands?.cancel();
     _unplugged?.cancel();
     _interrupted?.cancel();
+    _playerInterrupted?.cancel();
     if (widget.audioRoute == null) _route.dispose();
     _background.show(MediaState.off, title: '');
     _screenAwake.keepOn(false);
     _drone.dispose();
     _metronome.dispose();
     _tuner.dispose();
+    _player.dispose();
     _navigation.dispose();
     if (widget.settings == null) _settings.dispose();
     super.dispose();
@@ -438,6 +504,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
       drone: _drone,
       metronome: _metronome,
       tuner: _tuner,
+      player: _player,
       navigation: _navigation,
       actions: _actions,
       settings: _settings,

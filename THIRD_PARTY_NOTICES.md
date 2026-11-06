@@ -11,6 +11,7 @@ Exact versions of every package are in [pubspec.lock](pubspec.lock). Keep this f
 | [Flutter](https://flutter.dev) (framework and engine) | 3.47 | The whole app | BSD-3-Clause |
 | [flutter_soloud](https://pub.dev/packages/flutter_soloud) | 5.2.1 | Audio engine: metronome, drone, piano | MIT |
 | [record](https://pub.dev/packages/record) (+ `record_android`) | 7.1.2 | Microphone for the tuner | BSD-3-Clause |
+| [just_audio](https://pub.dev/packages/just_audio) (+ `just_audio_web`, `just_audio_platform_interface`) | 0.10.6 | The Player: plays the person's own audio files (ExoPlayer on Android, the browser's audio element on the web) | MIT |
 | [audio_service](https://pub.dev/packages/audio_service) (+ `audio_session`, `rxdart`) | 0.18.19 | Playing with the screen off, media notification | MIT (`rxdart`: Apache-2.0) |
 | [shared_preferences](https://pub.dev/packages/shared_preferences) | 2.5.6 | Settings kept on the phone | BSD-3-Clause |
 | [wakelock_plus](https://pub.dev/packages/wakelock_plus) | 1.8.1 | Keep the screen on (optional) | BSD-3-Clause |
@@ -37,7 +38,7 @@ Everything else that `pubspec.lock` lists comes from the Dart and Flutter teams 
 
 ## Android libraries
 
-The Android build also contains AndroidX, Kotlin (`kotlin-stdlib`, `kotlinx-coroutines`), Okio, ReLinker, JSpecify and Guava's `listenablefuture`, all under **Apache-2.0**.
+The Android build also contains AndroidX, Kotlin (`kotlin-stdlib`, `kotlinx-coroutines`), Okio, ReLinker, JSpecify and Guava's `listenablefuture`, all under **Apache-2.0**. The Player adds **AndroidX Media3** (ExoPlayer, through `just_audio`), also **Apache-2.0**; its text is in `assets/licenses/Apache-2.0.txt` and in the licences page of the app. ExoPlayer declares the `ACCESS_NETWORK_STATE` permission to stream; the app removes it in its manifest (`tools:node="remove"`), see [docs/offline.md](docs/offline.md).
 
 ## Sounds and images
 

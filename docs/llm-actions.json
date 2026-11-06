@@ -1,7 +1,7 @@
 [
   {
     "name": "get_state",
-    "description": "Returns what the app is doing now, without changing anything: the section on screen (metronome, drone, tuner); the tuner (status idle, starting, listening, permissionDenied or failed, and the last note heard with its cents off); the Harmony section, called drone (playing, note, voicing, chord, progression, style, held tone, current step of a progression); the metronome (playing, tempo, time signature, subdivision, click on 2 and 4) and the settings (reference A, language, note and octave names, the tuner's instrument, in-tune zone and transposition, the circle, screen on, locked gestures). \"playing\" is true as soon as a start is asked, also while the sound waits for the other one's next bar line. Notes are always written with letters and octave (Bb4), whatever the note names setting. Loudness follows the phone's media volume.",
+    "description": "Returns what the app is doing now, without changing anything: the section on screen (metronome, drone, tuner, player); the tuner (status idle, starting, listening, permissionDenied or failed, and the last note heard with its cents off); the Harmony section, called drone (playing, note, voicing, chord, progression, style, held tone, current step of a progression); the metronome (playing, tempo, time signature, subdivision, click on 2 and 4); the Player (the track open with its name and length in seconds, playing, position in seconds, and the problem if the last file could not be opened: unreadable or missing); and the settings (reference A, language, note and octave names, the tuner's instrument, in-tune zone and transposition, the circle, screen on, locked gestures). \"playing\" is true as soon as a start is asked, also while the sound waits for the other one's next bar line. Notes are always written with letters and octave (Bb4), whatever the note names setting. Loudness follows the phone's media volume.",
     "input_schema": {
       "type": "object",
       "properties": {},
@@ -19,7 +19,8 @@
           "enum": [
             "tuner",
             "drone",
-            "metronome"
+            "metronome",
+            "player"
           ]
         }
       },
@@ -330,6 +331,51 @@
           "description": "An example song, a preset: sets its key, its progression, its tempo (the metronome goes to 4/4 at that tempo, 2/4 for I Got Rhythm, whose chords change every half bar) and its style on the piano (the held tone gives way to it), as touching it in the list of example songs does: walking for Mr. P.C., Tune Up, I Got Rhythm and Autumn Leaves, arpeggio for Blue Bossa, held for With or Without You, beat for the others. A note, progression, style or held tone given too is applied after it."
         }
       },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "player_open",
+    "description": "Opens the Player and the phone's file chooser, where the person picks an audio file (MP3, M4A, WAV, FLAC). Only the person can choose; the answer comes when the chooser closes. In the web app the chooser needs a touch on the page, so this action fails there.",
+    "input_schema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "player_play",
+    "description": "Opens the Player and plays the open track from where it is. If the metronome or Harmony is playing they are paused, with a notice and a Resume button. Fails if no track is open. In the web app a link may not start the sound without a touch on the page.",
+    "input_schema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "player_pause",
+    "description": "Pauses the Player; the position stays.",
+    "input_schema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "player_seek",
+    "description": "Moves the Player to a point of the track, in seconds, beyond the end meaning the end. Fails if no track is open.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "seconds": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Where to go, in seconds from the start of the track."
+        }
+      },
+      "required": [
+        "seconds"
+      ],
       "additionalProperties": false
     }
   },

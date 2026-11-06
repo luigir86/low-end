@@ -6,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/low_end_app.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/tone_output.dart';
+import 'package:low_end/audio/track_files.dart';
+import 'package:low_end/audio/track_output.dart';
 
 /// Checks the main screens against Flutter's accessibility guidelines: touch
 /// targets of at least 48 dp, a label on every tappable element, and text
@@ -31,7 +33,14 @@ Future<void> pumpApp(
   addTearDown(tester.view.reset);
   addTearDown(tester.platformDispatcher.clearAllTestValues);
   await tester.pumpWidget(
-    LowEndApp(toneOutput: SilentToneOutput(), micInput: mic ?? FakeMicInput()),
+    LowEndApp(
+      toneOutput: SilentToneOutput(),
+      micInput: mic ?? FakeMicInput(),
+      trackOutput: SilentTrackOutput(),
+      trackFiles: FakeTrackFiles(
+        next: const TrackRef(uri: 'content://song', name: 'Blue Bossa.mp3'),
+      ),
+    ),
   );
   await tester.pumpAndSettle();
   // The app opens on the metronome; these checks start from the tuner.
@@ -44,6 +53,10 @@ Future<void> pumpApp(
 final _harmonyTab = find.descendant(
   of: find.byType(NavigationBar),
   matching: find.text('Harmony'),
+);
+final _playerTab = find.descendant(
+  of: find.byType(NavigationBar),
+  matching: find.text('Player'),
 );
 final _metronomeTab = find.descendant(
   of: find.byType(NavigationBar),
@@ -84,6 +97,17 @@ void main() {
 
         await tester.tap(_metronomeTab);
         await tester.pumpAndSettle();
+        await expectAccessible(tester);
+
+        // The Player, empty and then with a track, playing and not.
+        await tester.tap(_playerTab);
+        await tester.pumpAndSettle();
+        await expectAccessible(tester);
+        await tester.tap(find.byKey(const Key('playerHub')));
+        await tester.pumpAndSettle();
+        await expectAccessible(tester);
+        await tester.tap(find.byKey(const Key('playerHub')));
+        await tester.pump(const Duration(milliseconds: 300));
         await expectAccessible(tester);
         handle.dispose();
       },
@@ -138,6 +162,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     expect(tester.takeException(), isNull);
     await tester.tap(_metronomeTab);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(tester.takeException(), isNull);
+    await tester.tap(_playerTab);
     await tester.pump(const Duration(milliseconds: 300));
     expect(tester.takeException(), isNull);
   });

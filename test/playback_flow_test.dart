@@ -17,11 +17,21 @@ import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/piano_output.dart';
 import 'package:low_end/audio/tone_output.dart';
+import 'package:low_end/audio/track_files.dart';
+import 'package:low_end/audio/track_output.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final _harmonyTab = find.descendant(
   of: find.byType(NavigationBar),
   matching: find.text('Harmony'),
+);
+final _playerTab = find.descendant(
+  of: find.byType(NavigationBar),
+  matching: find.text('Player'),
+);
+final _playerTabItem = find.ancestor(
+  of: find.text('Player'),
+  matching: find.byType(NavigationDestination),
 );
 final _metronomeTab = find.descendant(
   of: find.byType(NavigationBar),
@@ -52,7 +62,15 @@ class _RecordingAudio implements BackgroundAudio {
 
 /// Everything a test wants to look at once the app is open.
 class _App {
-  _App(this.tester, this.scope, this.tone, this.click, this.mic, this.audio);
+  _App(
+    this.tester,
+    this.scope,
+    this.tone,
+    this.click,
+    this.mic,
+    this.audio,
+    this.track,
+  );
 
   final WidgetTester tester;
   final AudioScope scope;
@@ -60,6 +78,7 @@ class _App {
   final SilentClickOutput click;
   final FakeMicInput mic;
   final _RecordingAudio audio;
+  final SilentTrackOutput track;
 
   /// Lets the sound changes (and the animations) run.
   Future<void> settle() async {
@@ -75,6 +94,7 @@ Future<_App> _open(
   AppSettings? settings,
   PianoOutput? piano,
   SilentClickOutput? click,
+  SilentTrackOutput? track,
   // These tests start from the metronome; the first launch opens on
   // Harmony (see memory_test.dart).
   AppSection opensOn = AppSection.metronome,
@@ -86,12 +106,15 @@ Future<_App> _open(
   final clickOut = click ?? SilentClickOutput();
   final mic = FakeMicInput();
   final audio = _RecordingAudio();
+  final trackOut = track ?? SilentTrackOutput();
   await tester.pumpWidget(
     LowEndApp(
       toneOutput: tone,
       clickOutput: clickOut,
       pianoOutput: piano,
       micInput: mic,
+      trackOutput: trackOut,
+      trackFiles: FakeTrackFiles(),
       backgroundAudio: audio,
       screenAwake: FakeScreenAwake(),
       settings: (settings ?? AppSettings())..rememberSection(opensOn),
@@ -99,7 +122,7 @@ Future<_App> _open(
   );
   await tester.pumpAndSettle();
   final scope = AudioScope.of(tester.element(find.byType(HomeShell)));
-  return _App(tester, scope, tone, clickOut, mic, audio);
+  return _App(tester, scope, tone, clickOut, mic, audio, trackOut);
 }
 
 void main() {
@@ -122,7 +145,7 @@ void main() {
       expect(app.click.bar, isNotNull);
       expect(app.tone.frequencies, isEmpty);
 
-      await tester.tap(find.bySemanticsLabel(RegExp('^Play')).last);
+      await tester.tap(find.bySemanticsLabel(RegExp('^Play(?!er)')).last);
       await app.settle();
       expect(app.tone.frequencies, isNotEmpty);
       expect(app.click.bar, isNotNull);
@@ -134,7 +157,7 @@ void main() {
       expect(app.click.bar, isNotNull);
 
       // And the other way round.
-      await tester.tap(find.bySemanticsLabel(RegExp('^Play')).last);
+      await tester.tap(find.bySemanticsLabel(RegExp('^Play(?!er)')).last);
       await app.settle();
       await tester.tap(_metronomeTab);
       await app.settle();
@@ -442,7 +465,7 @@ void main() {
       await tester.tap(_harmonyTab);
       await app.settle();
       expect(app.scope.navigation.section, AppSection.drone);
-      await tester.tap(find.bySemanticsLabel(RegExp('^Play')).last);
+      await tester.tap(find.bySemanticsLabel(RegExp('^Play(?!er)')).last);
       await app.settle();
       expect(app.tone.frequencies, isNotEmpty);
 
@@ -516,6 +539,137 @@ void main() {
       await tester.tap(find.text('Lock the gestures'));
       await app.settle();
       expect(settings.gesturesLocked, isFalse);
+    });
+  });
+  // RF-PLY-04, RF-PLY-05: the Player plays alone.
+  group('the Player plays alone', () {
+    const song = TrackRef(uri: 'content://song', name: 'Blue Bossa.mp3');
+
+    Future<_App> openWithTrack(WidgetTester tester) async {
+      final app = await _open(tester);
+      await app.scope.player.open(song);
+      await app.settle();
+      return app;
+    }
+
+    testWidgets('entering its tab stops nothing; its dial pauses the metronome '
+        'and Harmony, and Resume brings them back', (tester) async {
+      final app = await openWithTrack(tester);
+      await app.scope.metronome.start();
+      await app.scope.drone.start();
+      await app.settle();
+
+      await tester.tap(_playerTab);
+      await app.settle();
+      expect(app.scope.metronome.isPlaying, isTrue);
+      expect(app.scope.drone.isPlaying, isTrue);
+      expect(find.text('Paused while you listen'), findsNothing);
+
+      await tester.tap(find.byKey(const Key('playerHub')));
+      await app.settle();
+      expect(app.scope.player.isPlaying, isTrue);
+      expect(app.track.playing, isTrue);
+      expect(app.scope.metronome.isPlaying, isFalse);
+      expect(app.scope.drone.isPlaying, isFalse);
+      expect(find.text('Paused while you listen'), findsOneWidget);
+      // Its notification names the track and the Player.
+      expect(app.audio.state, MediaState.playing);
+      expect(app.audio.title, 'Blue Bossa');
+
+      // Resume plays the two again, and the Player gives way.
+      await tester.tap(find.text('Resume'));
+      await app.settle();
+      expect(app.scope.metronome.isPlaying, isTrue);
+      expect(app.scope.drone.isPlaying, isTrue);
+      expect(app.scope.player.isPlaying, isFalse);
+      expect(app.track.playing, isFalse);
+    });
+
+    for (final (name, start) in [
+      ('the metronome', (_App a) => a.scope.metronome.start()),
+      ('the harmony', (_App a) => a.scope.drone.start()),
+    ]) {
+      testWidgets('starting $name pauses it, with no notice', (tester) async {
+        final app = await openWithTrack(tester);
+        await app.scope.player.start();
+        await app.settle();
+        expect(app.track.playing, isTrue);
+
+        await start(app);
+        await app.settle();
+        expect(app.scope.player.isPlaying, isFalse);
+        expect(app.track.playing, isFalse);
+        expect(find.byType(SnackBar), findsNothing);
+      });
+    }
+
+    testWidgets('the tuner listening pauses it, and Resume plays it again', (
+      tester,
+    ) async {
+      final app = await openWithTrack(tester);
+      await app.scope.player.start();
+      await tester.tap(find.text('Tuner'));
+      await app.settle();
+      // Entering the tuner stops nothing.
+      expect(app.scope.player.isPlaying, isTrue);
+      expect(app.mic.isCapturing, isFalse);
+
+      await tester.tap(find.byKey(const Key('tunerHub')));
+      await app.settle();
+      expect(app.scope.player.isPlaying, isFalse);
+      expect(app.mic.isCapturing, isTrue);
+      expect(find.text('Paused while you tune'), findsOneWidget);
+
+      await tester.tap(find.text('Resume'));
+      await app.settle();
+      expect(app.scope.player.isPlaying, isTrue);
+    });
+
+    testWidgets('a call pauses it with a notice, and Resume plays it', (
+      tester,
+    ) async {
+      final app = await openWithTrack(tester);
+      await app.scope.player.start();
+      await app.settle();
+
+      app.track.interrupt();
+      await app.settle();
+      expect(app.scope.player.isPlaying, isFalse);
+      expect(find.text('Paused: the sound was interrupted'), findsOneWidget);
+      await tester.tap(find.text('Resume'));
+      await app.settle();
+      expect(app.scope.player.isPlaying, isTrue);
+    });
+
+    testWidgets('the notification pauses it and plays it again', (
+      tester,
+    ) async {
+      final app = await openWithTrack(tester);
+      await app.scope.player.start();
+      await app.settle();
+      app.audio.input.add(MediaCommand.pause);
+      await app.settle();
+      expect(app.scope.player.isPlaying, isFalse);
+      expect(app.audio.state, MediaState.paused);
+      app.audio.input.add(MediaCommand.play);
+      await app.settle();
+      expect(app.scope.player.isPlaying, isTrue);
+      expect(app.audio.state, MediaState.playing);
+    });
+
+    testWidgets('its tab has a dot while it plays', (tester) async {
+      final app = await openWithTrack(tester);
+      expect(
+        find.descendant(of: _playerTabItem, matching: find.byType(Badge)),
+        findsOneWidget,
+      );
+      Badge badge() => tester.widget<Badge>(
+        find.descendant(of: _playerTabItem, matching: find.byType(Badge)),
+      );
+      expect(badge().isLabelVisible, isFalse);
+      await app.scope.player.start();
+      await app.settle();
+      expect(badge().isLabelVisible, isTrue);
     });
   });
 }

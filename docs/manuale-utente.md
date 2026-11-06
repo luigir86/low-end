@@ -2,11 +2,11 @@
 
 *English: [user-guide.md](user-guide.md).* Che cosa fa ogni comando è scritto anche, con un codice ciascuno, nei [requisiti](specs/requisiti.md); dove questo manuale dice altro, valgono i requisiti.
 
-Low End è un metronomo, una sezione di armonia al pianoforte e un accordatore in un'unica app. L'ha realizzata un contrabbassista amatoriale pensando agli amici dell'orchestra, ma è pensata per ogni musicista. È gratuita, senza pubblicità, non raccoglie nulla e non ha bisogno di internet. Ha sempre lo stesso aspetto scuro, bronzo su ebano: non c'è un tema da scegliere.
+Low End è un metronomo, una sezione di armonia al pianoforte, un accordatore e un lettore per le tue registrazioni in un'unica app. L'ha realizzata un contrabbassista amatoriale pensando agli amici dell'orchestra, ma è pensata per ogni musicista. È gratuita, senza pubblicità, non raccoglie nulla e non ha bisogno di internet. Ha sempre lo stesso aspetto scuro, bronzo su ebano: non c'è un tema da scegliere.
 
-## Le tre sezioni
+## Le quattro sezioni
 
-Le schede in basso (a sinistra con il telefono in orizzontale) sono **Metronomo**, **Armonia** e **Accordatore**. L'app si riapre sulla sezione in cui l'hai lasciata (la prima volta su Armonia).
+Le schede in basso (a sinistra con il telefono in orizzontale) sono **Metronomo**, **Armonia**, **Accordatore** e **Ascolto**. L'app si riapre sulla sezione in cui l'hai lasciata (la prima volta su Armonia).
 
 - Una **scheda** porta solo alla sua sezione: non avvia né ferma mai nulla. **Ogni sezione avvia e ferma il proprio suono dal centro del suo cerchio.**
 - **Scorri** a destra o a sinistra per cambiare sezione. Con il telefono in orizzontale le schede passano in una colonna a sinistra e l'ingranaggio resta in alto a destra: **scorri verso l'alto o il basso** sul cerchio o sulle schede (non sulle righe a destra, che possono scorrere) per cambiare sezione. Dev'essere un gesto rapido: un trascinamento lento non fa nulla. La prima volta che giri il telefono in orizzontale un breve suggerimento lo ricorda.
@@ -51,6 +51,15 @@ Dodici tasti intorno a un cerchio (di norma nel cerchio delle quinte; nelle impo
 - L'accordatore smette di ascoltare quando lasci la sezione, apri le impostazioni o porti l'app in secondo piano.
 - Il suono è analizzato sul telefono e non viene mai registrato né inviato.
 - Se hai negato il microfono, consentilo nelle impostazioni del telefono in *App › Low End › Autorizzazioni*; l'app mostra un pulsante che apre quella pagina.
+
+## Ascolto
+
+Suona un brano tuo: la registrazione della prova, una parte mandata dal direttore, un brano che hai comprato. Lo scegli con il selettore di file del telefono; l'app non chiede permessi e non manda il file da nessuna parte. MP3, M4A, WAV e FLAC si aprono ovunque (Ogg e Opus anche su Android). I brani di un abbonamento in streaming non si possono aprire: non sono file.
+
+- **Scegliere un brano:** tocca il centro del cerchio (dice *Scegli un brano*) o il campo **Brano** sotto. Il brano si apre pronto, senza suonare.
+- **L'anello è l'orologio del brano:** un giro intero è la sua durata, da ore 12 in senso orario, con una tacca ogni minuto (ogni 10 secondi sotto i due minuti, ogni 5 minuti oltre i venti) e un punto dove stai ascoltando. **Tocca l'anello** per andare in quel punto. Il centro mostra il tempo (*1:12 / 6:03*) e fa partire e fermare il brano.
+- **L'Ascolto suona da solo.** Avviarlo mette in pausa metronomo e Armonia, con il pulsante *Riprendi*; avviare metronomo o Armonia mette in pausa l'Ascolto. Entrare nella scheda non ferma niente. L'accordatore in ascolto, una chiamata, le cuffie staccate e un'altra app che prende il suono lo mettono in pausa come le altre sezioni. Suona anche con lo schermo spento, con la notifica che mostra il titolo.
+- Se un file non si apre, o non c'è più, l'app lo dice sotto il campo e l'Ascolto resta vuoto.
 
 ## Impostazioni
 

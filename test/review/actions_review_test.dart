@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:low_end/audio/track_files.dart';
+import 'package:low_end/audio/track_output.dart';
+import 'package:low_end/features/player/player_controller.dart';
 import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/features/metronome/metronome_controller.dart';
 import 'package:low_end/actions/app_actions.dart';
@@ -34,6 +37,7 @@ void main() {
       drone: drone,
       metronome: MetronomeController(SilentClickOutput()),
       tuner: TunerController(mic),
+      player: PlayerController(SilentTrackOutput(), FakeTrackFiles()),
       navigation: navigation,
       settings: settings,
     );

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../audio/audio_scope.dart';
 import '../features/metronome/metronome_screen.dart';
 import '../features/harmony/drone_panel.dart';
+import '../features/player/player_panel.dart';
 import '../features/tuner/tuner_panel.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/dial.dart';
@@ -25,7 +26,12 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   /// One per [AppSection], in the same order.
-  static const _screens = [MetronomeScreen(), DronePanel(), TunerPanel()];
+  static const _screens = [
+    MetronomeScreen(),
+    DronePanel(),
+    TunerPanel(),
+    PlayerPanel(),
+  ];
 
   /// Swiping moves between the sections; a tap on a tab or an action link
   /// moves the page to match.
@@ -245,18 +251,34 @@ class _HomeShellState extends State<HomeShell> {
         final entries = [
           (
             section: AppSection.metronome,
-            glyph: SectionGlyph.metronome,
+            icon: const SectionIcon(SectionGlyph.metronome),
+            selectedIcon: const SectionIcon(
+              SectionGlyph.metronome,
+              filled: true,
+            ),
             label: l10n.metronomeTab,
           ),
           (
             section: AppSection.drone,
-            glyph: SectionGlyph.piano,
+            icon: const SectionIcon(SectionGlyph.piano),
+            selectedIcon: const SectionIcon(SectionGlyph.piano, filled: true),
             label: l10n.harmonyTab,
           ),
           (
             section: AppSection.tuner,
-            glyph: SectionGlyph.tuningFork,
+            icon: const SectionIcon(SectionGlyph.tuningFork),
+            selectedIcon: const SectionIcon(
+              SectionGlyph.tuningFork,
+              filled: true,
+            ),
             label: l10n.tunerTab,
+          ),
+          // The Player's tab has a Material icon: headphones.
+          (
+            section: AppSection.player,
+            icon: const Icon(Icons.headphones_outlined),
+            selectedIcon: const Icon(Icons.headphones),
+            label: l10n.playerTab,
           ),
         ];
         return Scaffold(
@@ -283,11 +305,11 @@ class _HomeShellState extends State<HomeShell> {
                                   NavigationRailDestination(
                                     icon: _TabIcon(
                                       section: e.section,
-                                      icon: SectionIcon(e.glyph),
+                                      icon: e.icon,
                                     ),
                                     selectedIcon: _TabIcon(
                                       section: e.section,
-                                      icon: SectionIcon(e.glyph, filled: true),
+                                      icon: e.selectedIcon,
                                     ),
                                     label: FittedBox(
                                       fit: BoxFit.scaleDown,
@@ -317,13 +339,10 @@ class _HomeShellState extends State<HomeShell> {
                   destinations: [
                     for (final e in entries)
                       NavigationDestination(
-                        icon: _TabIcon(
-                          section: e.section,
-                          icon: SectionIcon(e.glyph),
-                        ),
+                        icon: _TabIcon(section: e.section, icon: e.icon),
                         selectedIcon: _TabIcon(
                           section: e.section,
-                          icon: SectionIcon(e.glyph, filled: true),
+                          icon: e.selectedIcon,
                         ),
                         label: e.label,
                       ),
@@ -336,8 +355,8 @@ class _HomeShellState extends State<HomeShell> {
 }
 
 /// The icon of a tab, with a dot while its section plays: from the tuner or
-/// the other section, the click or the harmony going on is seen, not only
-/// heard. The tuner makes no sound, so its tab never has one.
+/// the other section, the click, the harmony or the track going on is seen,
+/// not only heard. The tuner makes no sound, so its tab never has one.
 class _TabIcon extends StatelessWidget {
   const _TabIcon({required this.section, required this.icon});
 
@@ -351,6 +370,7 @@ class _TabIcon extends StatelessWidget {
       AppSection.metronome => scope.metronome,
       AppSection.drone => scope.drone,
       AppSection.tuner => null,
+      AppSection.player => scope.player,
     };
     if (sound == null) return icon;
     // Only the icon listens: the bar is not built again on every change.
@@ -361,6 +381,7 @@ class _TabIcon extends StatelessWidget {
           AppSection.metronome => scope.metronome.isPlaying,
           AppSection.drone => scope.drone.isPlaying,
           AppSection.tuner => false,
+          AppSection.player => scope.player.isPlaying,
         };
         return Semantics(
           value: playing ? AppLocalizations.of(context).sectionPlaying : null,

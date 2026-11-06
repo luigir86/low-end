@@ -2,29 +2,32 @@ import '../audio/sound_section.dart';
 import 'background_audio.dart';
 
 /// Why the sound was paused, for the notice that says so.
-enum PauseReason { tuner, unplugged, interrupted }
+enum PauseReason { tuner, unplugged, interrupted, player }
 
 /// What a pause stopped, to play it again from the notice's button.
-typedef Paused = ({PauseReason why, bool drone, bool metronome});
+typedef Paused = ({PauseReason why, bool drone, bool metronome, bool player});
 
 /// The media notification that keeps the sound going with the screen off
-/// (see [BackgroundAudio]): there while a section plays, and after a pause
+/// (see [BackgroundAudio]): there while a section plays (the metronome,
+/// the Harmony or the Player), and after a pause
 /// from it (or from headphones pulled out), paused, to play again from
 /// there (RF-BG-01, RF-BG-02).
 class NowPlayingNotification {
   NowPlayingNotification({
     required this.drone,
     required this.metronome,
+    required this.player,
     required this.background,
     required this.describe,
     required this.playingTitle,
     required this.appTitle,
   });
 
-  final SoundSection drone, metronome;
+  final SoundSection drone, metronome, player;
   final BackgroundAudio background;
 
-  /// What plays, one section a line ("Metronome 120 BPM · 4/4").
+  /// What plays, one section a line ("Metronome 120 BPM · 4/4"); the
+  /// Player's two lines are the track's title and its artist.
   final String Function() describe;
 
   /// The title when nothing can be described, and the second line when
@@ -34,7 +37,7 @@ class NowPlayingNotification {
   var _shown = MediaState.off;
   var _pausedFromHere = false;
   var _stopping = false;
-  var _heldDrone = false, _heldMetronome = false;
+  var _heldDrone = false, _heldMetronome = false, _heldPlayer = false;
 
   /// What the notification says is playing, kept while it is paused.
   var _nowPlaying = '';
@@ -42,7 +45,8 @@ class NowPlayingNotification {
 
   MediaState get state => _shown;
 
-  bool get _anyPlaying => drone.isPlaying || metronome.isPlaying;
+  bool get _anyPlaying =>
+      drone.isPlaying || metronome.isPlaying || player.isPlaying;
 
   /// Brings the notification in line with what plays.
   void update() {
@@ -89,10 +93,12 @@ class NowPlayingNotification {
         if (!_pausedFromHere) return;
         if (_heldDrone) drone.start();
         if (_heldMetronome) metronome.start();
+        if (_heldPlayer) player.start();
       case MediaCommand.stop:
         _pausedFromHere = false;
         drone.stop();
         metronome.stop();
+        player.stop();
         // Nothing was playing when paused: the notification must go anyway.
         update();
     }
@@ -103,10 +109,12 @@ class NowPlayingNotification {
   void pause() {
     _heldDrone = drone.isPlaying;
     _heldMetronome = metronome.isPlaying;
+    _heldPlayer = player.isPlaying;
     _pausedFromHere = true;
     _stopping = true;
     drone.stop();
     metronome.stop();
+    player.stop();
     _stopping = false;
     // Shows the paused notification, whatever the stops showed.
     update();
@@ -117,29 +125,34 @@ class NowPlayingNotification {
 /// microphone would hear the click instead of the instrument, RF-ACC-08),
 /// the headphones are pulled out (it pauses as a music player does, the
 /// notification left paused), or the phone's browser cut the sound (a
-/// call, the locked screen).
+/// call, the locked screen). The Player starting pauses the other two, with
+/// a notice (RF-PLY-04); they starting stop the Player, with none.
 class PauseRules {
   PauseRules({
     required this.drone,
     required this.metronome,
+    required this.player,
     required this.notification,
   });
 
-  final SoundSection drone, metronome;
+  final SoundSection drone, metronome, player;
   final NowPlayingNotification notification;
 
   /// Pauses whatever sounds, for [why]; says what it stopped, to play it
-  /// again (see [resume]), or null if nothing was playing.
+  /// again (see [resume]), or null if nothing was playing. The Player
+  /// starting ([PauseReason.player]) leaves the Player alone.
   Paused? pauseFor(PauseReason why) {
     final d = drone.isPlaying, m = metronome.isPlaying;
-    if (!d && !m) return null;
+    final p = why != PauseReason.player && player.isPlaying;
+    if (!d && !m && !p) return null;
     if (why == PauseReason.unplugged) {
       notification.pause();
     } else {
       if (d) drone.stop();
       if (m) metronome.stop();
+      if (p) player.stop();
     }
-    return (why: why, drone: d, metronome: m);
+    return (why: why, drone: d, metronome: m, player: p);
   }
 
   /// The tuner started or stopped listening: listening, it pauses what
@@ -151,5 +164,6 @@ class PauseRules {
   void resume(Paused paused) {
     if (paused.drone && !drone.isPlaying) drone.start();
     if (paused.metronome && !metronome.isPlaying) metronome.start();
+    if (paused.player && !player.isPlaying) player.start();
   }
 }

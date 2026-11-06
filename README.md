@@ -11,7 +11,7 @@ Low End is a free, open-source practice app for musicians, built around **Harmon
 
 ## What it does
 
-The three tabs are **Metronome**, **Harmony** and **Tuner**, and the app opens on the section it was left on (Harmony the first time, on a progression ready to play: I–VI–IV–V in A, the chords of Stand by Me). The tabs only take you to a section, and so does swiping left and right (in landscape, up and down). Each section starts and stops its own sound from the middle of its dial.
+The four tabs are **Metronome**, **Harmony**, **Tuner** and **Player**, and the app opens on the section it was left on (Harmony the first time, on a progression ready to play: I–VI–IV–V in A, the chords of Stand by Me). The tabs only take you to a section, and so does swiping left and right (in landscape, up and down). Each section starts and stops its own sound from the middle of its dial.
 
 ### Harmony
 

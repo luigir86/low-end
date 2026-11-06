@@ -8,7 +8,7 @@ import 'package:low_end/audio/sound_section.dart';
 /// The rules between the sections (RF-ACC-08, RF-BG-01, RF-BG-02), without
 /// mounting the app: a section is a switch, the notification a list.
 void main() {
-  late _Section drone, metronome;
+  late _Section drone, metronome, player;
   late _Shown shown;
   late NowPlayingNotification notification;
   late PauseRules rules;
@@ -16,14 +16,17 @@ void main() {
   setUp(() {
     drone = _Section();
     metronome = _Section();
+    player = _Section();
     shown = _Shown();
     notification = NowPlayingNotification(
       drone: drone,
       metronome: metronome,
+      player: player,
       background: shown,
       describe: () => [
         if (metronome.isPlaying) 'Metronome 120 BPM · 4/4',
         if (drone.isPlaying) 'Harmony A major',
+        if (player.isPlaying) 'Song\nPlayer',
       ].join('\n'),
       playingTitle: () => 'Playing',
       appTitle: () => 'Low End',
@@ -31,9 +34,11 @@ void main() {
     void update() => notification.update();
     drone.onChange = update;
     metronome.onChange = update;
+    player.onChange = update;
     rules = PauseRules(
       drone: drone,
       metronome: metronome,
+      player: player,
       notification: notification,
     );
   });
@@ -150,6 +155,63 @@ void main() {
       final starts = drone.starts;
       rules.resume(paused);
       expect(drone.starts, starts);
+    });
+  });
+  // RF-PLY-04, RF-PLY-05: the Player is the third section.
+  group('the Player', () {
+    test('is in the notification, with the track and who plays it', () {
+      player.start();
+      expect(notification.state, MediaState.playing);
+      expect(shown.last, (MediaState.playing, 'Song', 'Player'));
+      notification.command(MediaCommand.pause);
+      expect(player.isPlaying, isFalse);
+      expect(notification.state, MediaState.paused);
+      notification.command(MediaCommand.play);
+      expect(player.isPlaying, isTrue);
+      notification.command(MediaCommand.stop);
+      expect(player.isPlaying, isFalse);
+      expect(notification.state, MediaState.off);
+    });
+
+    test('starting pauses the metronome and Harmony, not itself', () {
+      drone.start();
+      metronome.start();
+      player.start();
+      final paused = rules.pauseFor(PauseReason.player)!;
+      expect(paused.why, PauseReason.player);
+      expect(
+        (paused.drone, paused.metronome, paused.player),
+        (true, true, false),
+      );
+      expect(drone.isPlaying || metronome.isPlaying, isFalse);
+      expect(player.isPlaying, isTrue);
+      // The button of the notice plays them again.
+      rules.resume(paused);
+      expect(drone.isPlaying && metronome.isPlaying, isTrue);
+    });
+
+    test('with nothing else playing, starting pauses nothing', () {
+      player.start();
+      expect(rules.pauseFor(PauseReason.player), isNull);
+      expect(player.isPlaying, isTrue);
+    });
+
+    test('the tuner listening, a call and headphones pause it too', () {
+      player.start();
+      var paused = rules.tunerChanged(listening: true)!;
+      expect(paused.player, isTrue);
+      expect(player.isPlaying, isFalse);
+      rules.resume(paused);
+      expect(player.isPlaying, isTrue);
+      paused = rules.pauseFor(PauseReason.interrupted)!;
+      expect(player.isPlaying, isFalse);
+      expect(notification.state, MediaState.off);
+      rules.resume(paused);
+      rules.pauseFor(PauseReason.unplugged);
+      expect(player.isPlaying, isFalse);
+      expect(notification.state, MediaState.paused);
+      notification.command(MediaCommand.play);
+      expect(player.isPlaying, isTrue);
     });
   });
 }

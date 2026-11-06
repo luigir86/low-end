@@ -21,6 +21,9 @@ dependencies:
   audio_service: ^0.18.19
   wakelock_plus: ^1.8.1
   url_launcher: ^6.3.3
+  just_audio: ^0.10.6
+  audio_session: ^0.2.4
+  web: ^1.1.0
 
 # The Xiph libraries (Ogg, Vorbis, Opus, libFLAC) are left out of the audio
 # engine: the piano's FLAC files are decoded by miniaudio's own decoder,
@@ -45,6 +48,7 @@ flutter:
     - assets/bass/
     - assets/fonts/OFL-Edwin.txt
     - assets/fonts/OFL-NotoMusic.txt
+    - assets/licenses/Apache-2.0.txt
 
   # Edwin is the app font; Noto Music supplies the quarter note (♩) it lacks.
   fonts:

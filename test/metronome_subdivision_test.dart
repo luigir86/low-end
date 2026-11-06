@@ -2,6 +2,9 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:low_end/audio/track_files.dart';
+import 'package:low_end/audio/track_output.dart';
+import 'package:low_end/features/player/player_controller.dart';
 import 'package:low_end/actions/app_actions.dart';
 import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/home_shell.dart';
@@ -159,6 +162,7 @@ void main() {
       drone: DroneController(SilentToneOutput()),
       metronome: metronome,
       tuner: TunerController(FakeMicInput()),
+      player: PlayerController(SilentTrackOutput(), FakeTrackFiles()),
       navigation: AppNavigation(),
       settings: AppSettings(),
     );

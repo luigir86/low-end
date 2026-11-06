@@ -14,6 +14,8 @@ Checked on 16 October 2026, on the release build made from this code. Repeat the
    aapt2 dump permissions build/app/outputs/flutter-apk/app-release.apk
    ```
 
+   With the Player (ExoPlayer, which `just_audio` brings), the merged manifest would also hold `ACCESS_NETWORK_STATE`, which the library declares to stream; `android/app/src/main/AndroidManifest.xml` removes it with `tools:node="remove"`. Check the merged manifest after every dependency change: `find build/app -path '*merged_manifest*' -name AndroidManifest.xml`. The Player opens files chosen with the system's chooser (`content://`), never an address on the network.
+
    The only permissions are `RECORD_AUDIO` (tuner), `WAKE_LOCK`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK` and `POST_NOTIFICATIONS` (playing with the screen off), and the app's own `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`, which AndroidX adds to protect its internal receivers. There is no network permission.
 
 2. **Debug and profile builds.** `android/app/src/debug/AndroidManifest.xml` and `android/app/src/profile/AndroidManifest.xml` add `INTERNET`, because Flutter's tools (hot reload, the debugger, `--trace-startup`) talk to the running app through it. Those files are used only by `flutter run` and never by `flutter build apk --release` or `appbundle`; the release manifest above shows it.

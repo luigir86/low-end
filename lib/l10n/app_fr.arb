@@ -180,5 +180,14 @@
   "transpositionTitle": "Instrument transpositeur",
   "transpositionSubtitle": "Pour les instruments en Si♭, Mi♭ et Fa, l’accordeur chromatique indique la note écrite",
   "transpositionConcert": "Son réel",
-  "transpositionKey": "en {key}"
+  "transpositionKey": "en {key}",
+  "playerTab": "Écoute",
+  "playerTrack": "Morceau",
+  "playerChoose": "Choisissez un morceau",
+  "playerPlay": "Lire",
+  "playerPause": "Pause",
+  "playerTimeOf": "{position} sur {duration}",
+  "pausedForPlayer": "En pause pendant que vous écoutez",
+  "playerUnreadable": "Ce fichier ne peut pas être ouvert.",
+  "playerMissing": "Le fichier n’est plus disponible."
 }
