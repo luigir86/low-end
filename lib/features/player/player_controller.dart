@@ -52,23 +52,23 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   Duration? _loopStart;
   Duration? _loopEnd;
   var _looping = false;
-  var _edge = LoopEdge.start;
   Timer? _settle;
 
   /// The slowest and the fastest the track plays, in percent.
   static const minSpeed = 50;
   static const maxSpeed = 125;
 
-  /// What the person's reaction takes off the point where "Set A" or "Set B"
-  /// is pressed, in real time (at half speed the track has gone half as far).
+  /// What the person's reaction takes off the point where an end is marked
+  /// ("Mark the start here" of a screen reader, the assistants' `player_mark`),
+  /// in real time (at half speed the track has gone half as far).
   static const reaction = Duration(milliseconds: 150);
 
   /// The shortest loop.
   static const minLoop = Duration(seconds: 1);
 
-  /// The step of the − and + under the dial: a touch and a hold.
-  static const fineStep = Duration(milliseconds: 100);
-  static const coarseStep = Duration(seconds: 1);
+  /// The step of the − and + under the dial: a touch and a hold (RF-PLY-10).
+  static const fineStep = Duration(milliseconds: 10);
+  static const coarseStep = Duration(milliseconds: 100);
 
   /// How long the ends must be left alone before the sound follows.
   static const settleAfter = Duration(milliseconds: 300);
@@ -131,9 +131,6 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   /// True when the track repeats from B to A.
   bool get looping => _looping && hasLoop;
 
-  /// The end that the − and + move.
-  LoopEdge get edge => _edge;
-
   /// The peaks of the open track (RF-PLY-15); null before it is ready.
   TrackPeaks? get peaks => _peaks;
 
@@ -169,7 +166,6 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     _settle?.cancel();
     _loopStart = _loopEnd = null;
     _looping = false;
-    _edge = LoopEdge.start;
     if (_speed != 100) {
       _speed = 100;
       unawaited(_output.setSpeed(1));
@@ -278,16 +274,9 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     notifyListeners();
   }
 
-  /// Chooses the end that the − and + move.
-  void selectEdge(LoopEdge edge) {
-    if (_edge == edge) return;
-    _edge = edge;
-    notifyListeners();
-  }
-
-  /// "Set A" and "Set B": marks the start or the end of the loop where the
-  /// track is heard, less the person's reaction. Marking B turns the loop on
-  /// and plays from A.
+  /// Marks the start or the end of the loop where the track is heard, less
+  /// the person's reaction (RF-PLY-09). Marking B turns the loop on and plays
+  /// from A.
   Future<void> mark(LoopEdge edge) async {
     if (_status != PlayerStatus.ready) return;
     final lag = Duration(
@@ -305,7 +294,6 @@ class PlayerController extends ChangeNotifier implements SoundSection {
           _loopEnd = null;
           _looping = false;
         }
-        _edge = LoopEdge.start;
         notifyListeners();
         // A loop that was on is told its new A, or that it is off.
         if (wasLooping) await _queue(() => _applyLoop());
@@ -316,31 +304,29 @@ class PlayerController extends ChangeNotifier implements SoundSection {
         final end = t < start + minLoop ? start + minLoop : t;
         _loopEnd = end > _duration ? _duration : end;
         _looping = true;
-        _edge = LoopEdge.end;
         _settle?.cancel();
         notifyListeners();
         await _queue(() => _applyLoop(jumpTo: _playing ? start : null));
     }
   }
 
-  /// Moves an end of the loop by [by] (negative: earlier). Each end stops at
-  /// its limit and does not push the other: A between the start of the
-  /// track and one [minLoop] before B, B between one [minLoop] after A and
-  /// the end. The number changes at once; the sound follows when the person
-  /// has stopped touching for [settleAfter].
-  void nudge(LoopEdge edge, Duration by) {
+  /// Moves an end of the loop to the time [to] (RF-PLY-10, RF-PLY-11). Each
+  /// end stops at its limit and does not push the other: A between the start
+  /// of the track and one [minLoop] before B, B between one [minLoop] after A
+  /// and the end. The number changes at once; the sound follows when the
+  /// person has stopped touching for [settleAfter].
+  void moveEdge(LoopEdge edge, Duration to) {
     final start = _loopStart, end = _loopEnd;
     if (_status != PlayerStatus.ready) return;
     switch (edge) {
       case LoopEdge.start:
         if (start == null) return;
         final top = (end ?? _duration) - minLoop;
-        _loopStart = _clampTo(start + by, Duration.zero, top);
+        _loopStart = _clampTo(to, Duration.zero, top);
       case LoopEdge.end:
         if (end == null || start == null) return;
-        _loopEnd = _clampTo(end + by, start + minLoop, _duration);
+        _loopEnd = _clampTo(to, start + minLoop, _duration);
     }
-    _edge = edge;
     notifyListeners();
     _settle?.cancel();
     if (!looping) return;
@@ -352,6 +338,13 @@ class PlayerController extends ChangeNotifier implements SoundSection {
           : (edge == LoopEdge.start ? a : (b - preroll < a ? a : b - preroll));
       unawaited(_queue(() => _applyLoop(jumpTo: jump)));
     });
+  }
+
+  /// Moves an end of the loop by [by] (negative: earlier), as [moveEdge].
+  void nudge(LoopEdge edge, Duration by) {
+    final at = edge == LoopEdge.start ? _loopStart : _loopEnd;
+    if (at == null) return;
+    moveEdge(edge, at + by);
   }
 
   Duration _clampTo(Duration t, Duration low, Duration high) {

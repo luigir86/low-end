@@ -6,6 +6,7 @@ import 'dart:ui' show PictureRecorder;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:low_end/features/player/player_controller.dart';
 import 'package:low_end/features/player/player_dial.dart';
 import 'package:low_end/features/player/ring_wave.dart';
 import 'package:low_end/features/player/ring_window.dart';
@@ -14,10 +15,12 @@ import 'package:low_end/widgets/dial.dart';
 
 void main() {
   group('the ticks', () {
+    RingWindow whole(Duration d) => RingWindow.whole(d);
+
     test('every minute for a usual track', () {
       const six = Duration(minutes: 6, seconds: 3);
       expect(tickInterval(six), const Duration(minutes: 1));
-      expect(tickTimes(six), [
+      expect(tickTimes(whole(six)), [
         for (var m = 1; m <= 6; m++) Duration(minutes: m),
       ]);
     });
@@ -25,7 +28,7 @@ void main() {
     test('every ten seconds under two minutes', () {
       const short = Duration(seconds: 65);
       expect(tickInterval(short), const Duration(seconds: 10));
-      expect(tickTimes(short).length, 6);
+      expect(tickTimes(whole(short)).length, 6);
       expect(
         tickInterval(const Duration(minutes: 2)),
         const Duration(minutes: 1),
@@ -35,64 +38,60 @@ void main() {
     test('every five minutes over twenty', () {
       const long = Duration(minutes: 52);
       expect(tickInterval(long), const Duration(minutes: 5));
-      expect(tickTimes(long).length, 10);
+      expect(tickTimes(whole(long)).length, 10);
       expect(
         tickInterval(const Duration(minutes: 20)),
         const Duration(minutes: 1),
       );
     });
 
+    test('closer together in a short window', () {
+      expect(
+        tickInterval(const Duration(seconds: 4)),
+        const Duration(milliseconds: 500),
+      );
+      expect(
+        tickInterval(const Duration(seconds: 5)),
+        const Duration(seconds: 1),
+      );
+      expect(
+        tickInterval(const Duration(seconds: 19)),
+        const Duration(seconds: 1),
+      );
+      expect(
+        tickInterval(const Duration(seconds: 20)),
+        const Duration(seconds: 5),
+      );
+      expect(
+        tickInterval(const Duration(seconds: 59)),
+        const Duration(seconds: 5),
+      );
+      expect(
+        tickInterval(const Duration(seconds: 60)),
+        const Duration(seconds: 10),
+      );
+    });
+
     test('no tick at the start, nor at the very end', () {
-      expect(tickTimes(const Duration(minutes: 3)), [
+      expect(tickTimes(whole(const Duration(minutes: 3))), [
         const Duration(minutes: 1),
         const Duration(minutes: 2),
       ]);
-      expect(tickTimes(const Duration(seconds: 5)), isEmpty);
-    });
-  });
-
-  group('angle and time', () {
-    const six = Duration(minutes: 6);
-
-    test('a whole turn is the track, clockwise from 12 o\'clock', () {
-      expect(ringAngle(Duration.zero, six), 0);
-      expect(
-        ringAngle(const Duration(minutes: 3), six),
-        closeTo(math.pi, 1e-9),
-      );
-      expect(
-        ringAngle(const Duration(seconds: 90), six),
-        closeTo(math.pi / 2, 1e-9),
-      );
-      expect(ringAngle(six, six), closeTo(2 * math.pi, 1e-9));
-      // Beyond the end stays at the end.
-      expect(
-        ringAngle(const Duration(minutes: 9), six),
-        closeTo(2 * math.pi, 1e-9),
-      );
-      expect(ringAngle(const Duration(seconds: 1), Duration.zero), 0);
+      expect(tickTimes(whole(const Duration(seconds: 5))), [
+        for (var s = 1; s < 5; s++) Duration(seconds: s),
+      ]);
+      expect(tickTimes(whole(Duration.zero)), isEmpty);
     });
 
-    test('the time at an angle is the other way round', () {
-      for (final seconds in [0, 17, 90, 180, 359]) {
-        final t = Duration(seconds: seconds);
-        expect(timeAtAngle(ringAngle(t, six), six), t);
-      }
-    });
-
-    test('a touch at 3 o\'clock is a quarter of the track', () {
-      const size = Size(300, 300);
-      // Right of the centre: a quarter turn.
-      final angle = touchAngle(const Offset(280, 150), size);
-      expect(angle, closeTo(math.pi / 2, 1e-9));
-      expect(timeAtAngle(angle, six), const Duration(seconds: 90));
-      // Above: the start. Left: three quarters. Below: half.
-      expect(touchAngle(const Offset(150, 10), size), closeTo(0, 1e-9));
-      expect(
-        touchAngle(const Offset(20, 150), size),
-        closeTo(3 * math.pi / 2, 1e-9),
-      );
-      expect(touchAngle(const Offset(150, 290), size), closeTo(math.pi, 1e-9));
+    test('in a window they fall on the true multiples of the track', () {
+      // 1:07 to 1:15 is 8 s: a tick every second, at 1:08, 1:09…
+      const window = RingWindow(Duration(seconds: 67), Duration(seconds: 75));
+      expect(tickTimes(window), [
+        for (var s = 68; s < 75; s++) Duration(seconds: s),
+      ]);
+      // A window that starts on a tick leaves that one to the seam.
+      const aligned = RingWindow(Duration(seconds: 60), Duration(seconds: 70));
+      expect(tickTimes(aligned).first, const Duration(seconds: 61));
     });
   });
 
@@ -142,6 +141,154 @@ void main() {
         RingWindow.whole(Duration.zero).angleOf(const Duration(seconds: 1)),
         0,
       );
+    });
+
+    test('a touch at 3 o\'clock is a quarter of the window', () {
+      const size = Size(300, 300);
+      final whole = RingWindow.whole(track);
+      // Right of the centre: a quarter turn.
+      final angle = touchAngle(const Offset(280, 150), size);
+      expect(angle, closeTo(math.pi / 2, 1e-9));
+      expect(whole.timeAt(angle), const Duration(seconds: 90));
+      // Above: the start. Left: three quarters. Below: half.
+      expect(touchAngle(const Offset(150, 10), size), closeTo(0, 1e-9));
+      expect(
+        touchAngle(const Offset(20, 150), size),
+        closeTo(3 * math.pi / 2, 1e-9),
+      );
+      expect(touchAngle(const Offset(150, 290), size), closeTo(math.pi, 1e-9));
+    });
+
+    group('the passage', () {
+      test('has a quarter of its length as margin on each side', () {
+        // 20 s: a margin of 5 s.
+        final window = RingWindow.passage(
+          const Duration(seconds: 60),
+          const Duration(seconds: 80),
+          track,
+        );
+        expect(
+          window,
+          const RingWindow(Duration(seconds: 55), Duration(seconds: 85)),
+        );
+      });
+
+      test('the margin is at least half a second and at most ten', () {
+        final short = RingWindow.passage(
+          const Duration(seconds: 60),
+          const Duration(seconds: 61),
+          track,
+        );
+        expect(short.from, const Duration(milliseconds: 59500));
+        expect(short.to, const Duration(milliseconds: 61500));
+        final long = RingWindow.passage(
+          const Duration(seconds: 30),
+          const Duration(seconds: 150),
+          track,
+        );
+        expect(long.from, const Duration(seconds: 20));
+        expect(long.to, const Duration(seconds: 160));
+      });
+
+      test('never goes beyond the track', () {
+        final early = RingWindow.passage(
+          const Duration(seconds: 2),
+          const Duration(seconds: 12),
+          track,
+        );
+        expect(early.from, Duration.zero);
+        final late = RingWindow.passage(
+          const Duration(seconds: 350),
+          const Duration(seconds: 359),
+          track,
+        );
+        expect(late.to, track);
+      });
+
+      test('comes out the same with the ends the wrong way round', () {
+        expect(
+          RingWindow.passage(
+            const Duration(seconds: 80),
+            const Duration(seconds: 60),
+            track,
+          ),
+          RingWindow.passage(
+            const Duration(seconds: 60),
+            const Duration(seconds: 80),
+            track,
+          ),
+        );
+      });
+    });
+
+    test('lerp goes from one window to the other', () {
+      final whole = RingWindow.whole(track);
+      final passage = RingWindow.passage(
+        const Duration(seconds: 60),
+        const Duration(seconds: 80),
+        track,
+      );
+      expect(whole.lerp(passage, 0), whole);
+      expect(whole.lerp(passage, 1), passage);
+      final half = whole.lerp(passage, 0.5);
+      expect(half.from, const Duration(seconds: 27, milliseconds: 500));
+      expect(half.to, const Duration(seconds: 222, milliseconds: 500));
+    });
+  });
+
+  group('the grips', () {
+    const size = Size(300, 300);
+    const track = Duration(minutes: 6);
+    final window = RingWindow.passage(
+      const Duration(minutes: 1),
+      const Duration(minutes: 2),
+      track,
+    );
+    const a = Duration(minutes: 1), b = Duration(minutes: 2);
+
+    test('A sits inside the ring and B outside, so both are in reach', () {
+      final dial = DialGeometry(size);
+      final inA =
+          (gripCenter(LoopEdge.start, window, a, size) - dial.center).distance;
+      final inB =
+          (gripCenter(LoopEdge.end, window, b, size) - dial.center).distance;
+      expect(inA, closeTo(dial.ringInner + dial.ringWidth * 0.25, 1e-6));
+      expect(inB, closeTo(dial.ringInner + dial.ringWidth * 0.75, 1e-6));
+    });
+
+    test('a touch on a disc takes that grip, one far away takes none', () {
+      final onA = gripCenter(LoopEdge.start, window, a, size);
+      expect(gripAt(onA, size, window, start: a, end: b), LoopEdge.start);
+      final onB = gripCenter(LoopEdge.end, window, b, size);
+      expect(gripAt(onB, size, window, start: a, end: b), LoopEdge.end);
+      expect(
+        gripAt(onA + const Offset(0, 20), size, window, start: a, end: b),
+        isNotNull,
+      );
+      expect(
+        gripAt(const Offset(150, 20), size, window, start: a, end: b),
+        // 12 o'clock, 45° from A: out of reach.
+        isNull,
+      );
+      // The middle of the dial is nobody's.
+      expect(
+        gripAt(const Offset(150, 150), size, window, start: a, end: b),
+        isNull,
+      );
+    });
+
+    test('where there is no end marked there is no grip', () {
+      final onA = gripCenter(LoopEdge.start, window, a, size);
+      expect(gripAt(onA, size, window), isNull);
+      expect(gripAt(onA, size, window, end: b), isNull);
+    });
+
+    test('of two grips at the same time, the nearer disc wins', () {
+      final same = RingWindow.passage(a, a + const Duration(seconds: 1), track);
+      final inner = gripCenter(LoopEdge.start, same, a, size);
+      final outer = gripCenter(LoopEdge.end, same, a, size);
+      expect(gripAt(inner, size, same, start: a, end: a), LoopEdge.start);
+      expect(gripAt(outer, size, same, start: a, end: a), LoopEdge.end);
     });
   });
 

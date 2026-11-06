@@ -65,14 +65,13 @@ void main() {
     });
   });
 
-  group('Set A and Set B (RF-PLY-09)', () {
+  group('marking the ends (RF-PLY-09)', () {
     test('A is where the track is heard, less the reaction', () async {
       await listenAt(10);
       await player.mark(LoopEdge.start);
       expect(player.loopStart, _s(9.85));
       expect(player.loopEnd, isNull);
       expect(player.looping, isFalse);
-      expect(player.edge, LoopEdge.start);
     });
 
     test('the reaction is in real time: at half speed it is half as '
@@ -96,7 +95,6 @@ void main() {
       expect(player.loopStart, Duration.zero);
       expect(player.loopEnd, _s(29.85));
       expect(player.looping, isTrue);
-      expect(player.edge, LoopEdge.end);
       expect(output.loop, (Duration.zero, _s(29.85)));
       expect(player.position, Duration.zero);
     });
@@ -217,7 +215,6 @@ void main() {
       await player.open(_other);
       expect(player.hasLoop, isFalse);
       expect(player.looping, isFalse);
-      expect(player.edge, LoopEdge.start);
       expect(output.loop, isNull);
     });
 
@@ -235,13 +232,35 @@ void main() {
   });
 
   group('the ends moved by touches (RF-PLY-10)', () {
-    test('a touch moves the number at once, to the tenth', () async {
+    test('a touch moves the number at once, by a hundredth', () async {
       await player.setLoop(_s(10), _s(20));
+      expect(PlayerController.fineStep, const Duration(milliseconds: 10));
+      expect(PlayerController.coarseStep, const Duration(milliseconds: 100));
       player.nudge(LoopEdge.start, PlayerController.fineStep);
-      expect(player.loopStart, _s(10.1));
+      expect(player.loopStart, _s(10.01));
       player.nudge(LoopEdge.end, -PlayerController.fineStep);
-      expect(player.loopEnd, _s(19.9));
-      expect(player.edge, LoopEdge.end);
+      expect(player.loopEnd, _s(19.99));
+    });
+
+    test('moveEdge puts an end at a time, within the same limits', () async {
+      await player.setLoop(_s(10), _s(20));
+      player.moveEdge(LoopEdge.start, _s(12.34));
+      expect(player.loopStart, _s(12.34));
+      player.moveEdge(LoopEdge.end, _s(15));
+      expect(player.loopEnd, _s(15));
+      // A stops one second before B, B one second after A.
+      player.moveEdge(LoopEdge.start, _s(40));
+      expect(player.loopStart, _s(14));
+      player.moveEdge(LoopEdge.end, _s(1));
+      expect(player.loopEnd, _s(15));
+      player.moveEdge(LoopEdge.start, _s(-3));
+      expect(player.loopStart, Duration.zero);
+    });
+
+    test('moveEdge with an end not marked does nothing', () async {
+      player.moveEdge(LoopEdge.start, _s(5));
+      expect(player.loopStart, isNull);
+      expect(player.loopEnd, isNull);
     });
 
     test('each end stops at its limit and does not push the other', () async {
@@ -288,9 +307,9 @@ void main() {
       }
       expect(output.loops, isEmpty);
       await tester.pump(PlayerController.settleAfter);
-      expect(output.loops, [(_s(10.3), _s(20))]);
+      expect(output.loops, [(_s(10.03), _s(20))]);
       // A moved: it plays again from A.
-      expect(player.position, _s(10.3));
+      expect(player.position, _s(10.03));
     });
 
     testWidgets('B moved: it plays again two seconds before B', (tester) async {
@@ -298,8 +317,8 @@ void main() {
       await player.start();
       player.nudge(LoopEdge.end, -PlayerController.fineStep);
       await tester.pump(PlayerController.settleAfter);
-      expect(output.loops.last, (_s(10), _s(19.9)));
-      expect(player.position, _s(17.9));
+      expect(output.loops.last, (_s(10), _s(19.99)));
+      expect(player.position, _s(17.99));
     });
 
     testWidgets('B moved near A: it plays again from A', (tester) async {

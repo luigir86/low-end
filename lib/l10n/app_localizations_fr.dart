@@ -671,16 +671,34 @@ class AppLocalizationsFr extends AppLocalizations {
   String get playerLoop => 'Boucle';
 
   @override
-  String get playerLoopStart => 'Début';
+  String get playerMarkStart => 'Marquer le début ici';
 
   @override
-  String get playerLoopEnd => 'Fin';
+  String get playerMarkEnd => 'Marquer la fin ici';
 
   @override
-  String get playerMarkStart => 'A ici';
+  String get playerHintDraw =>
+      'Appuyez longuement sur l\'anneau et glissez pour choisir un passage à répéter';
 
   @override
-  String get playerMarkEnd => 'B ici';
+  String get playerHintGrips =>
+      'Faites glisser A et B sur l\'anneau pour ajuster le passage';
+
+  @override
+  String playerStartAt(String time) {
+    return 'Début $time';
+  }
+
+  @override
+  String playerEndAt(String time) {
+    return 'Fin $time';
+  }
+
+  @override
+  String get playerStartUnmarked => 'Début non marqué';
+
+  @override
+  String get playerEndUnmarked => 'Fin non marquée';
 
   @override
   String get playerStartEarlier => 'Début plus tôt';
