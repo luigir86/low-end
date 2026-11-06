@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io' show Platform;
 import 'dart:typed_data';
 
@@ -14,6 +15,7 @@ TrackFiles systemTrackFiles() => AndroidTrackFiles();
 /// asks for no permission, and keeps the right to read the chosen file.
 class AndroidTrackFiles implements TrackFiles {
   static const _channel = MethodChannel('low_end/track_files');
+  static const _peaks = EventChannel('low_end/track_peaks');
 
   static bool get _supported => !kIsWeb && Platform.isAndroid;
 
@@ -34,7 +36,37 @@ class AndroidTrackFiles implements TrackFiles {
   Future<TrackTags> tags(TrackRef track) async => (title: null, artist: null);
 
   @override
-  Future<Float32List?> envelope(TrackRef track, int points) async => null;
+  Stream<Uint16List> peaks(TrackRef track, {required Duration duration}) {
+    if (!_supported) return const Stream.empty();
+    StreamSubscription<Object?>? source;
+    late final StreamController<Uint16List> out;
+    out = StreamController<Uint16List>(
+      onListen: () {
+        source = _peaks
+            .receiveBroadcastStream({'uri': track.uri})
+            .listen(
+              (data) {
+                if (data is Uint8List) out.add(_unpack(data));
+              },
+              onError: out.addError,
+              onDone: out.close,
+            );
+      },
+      // Cancelling tells the Kotlin side to stop reading.
+      onCancel: () => source?.cancel(),
+    );
+    return out.stream;
+  }
+
+  /// 16-bit little-endian pairs of bytes to values: read one by one, because
+  /// the buffer of the channel may not be aligned to two bytes.
+  static Uint16List _unpack(Uint8List bytes) {
+    final data = ByteData.sublistView(bytes);
+    return Uint16List.fromList([
+      for (var i = 0; i + 1 < bytes.length; i += 2)
+        data.getUint16(i, Endian.little),
+    ]);
+  }
 
   @override
   Future<void> release(TrackRef track) async {}

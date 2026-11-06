@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 
 import '../../audio/sound_section.dart';
 import '../../audio/track_files.dart';
 import '../../audio/track_output.dart';
+import 'track_peaks.dart';
 
 /// Where the Player stands with its track.
 enum PlayerStatus {
@@ -78,6 +80,12 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   /// Chains what is asked of the output's loop, so that it is told in order.
   Future<void>? _loopWork;
 
+  /// The loudness of the open track, filling up as the file is read; null
+  /// without a track. Not reported to the listeners as it fills: the dial
+  /// listens to it.
+  TrackPeaks? _peaks;
+  StreamSubscription<Uint16List>? _peaksReading;
+
   /// Counts the tracks opened: what an earlier one answers late is ignored.
   var _generation = 0;
 
@@ -126,6 +134,9 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   /// The end that the − and + move.
   LoopEdge get edge => _edge;
 
+  /// The peaks of the open track (RF-PLY-15); null before it is ready.
+  TrackPeaks? get peaks => _peaks;
+
   /// A call, or another player, took the sound: the app pauses the Player
   /// like the other sections (see PauseReason.interrupted).
   Stream<void> get interruptions => _interruptions.stream;
@@ -143,6 +154,9 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   Future<void> open(TrackRef track) async {
     final generation = ++_generation;
     final old = _track;
+    // The reading of the last track stops before the system is asked for
+    // another: a cancel arriving after would close the new one.
+    _stopReadingPeaks();
     if (_playing) {
       _playing = false;
       unawaited(_output.pause());
@@ -166,6 +180,7 @@ class PlayerController extends ChangeNotifier implements SoundSection {
       if (generation != _generation || _disposed) return;
       _duration = duration;
       _status = PlayerStatus.ready;
+      _readPeaks(track, duration);
       // A start asked while the track opened plays as soon as it is ready.
       if (_playing) await _output.play();
     } on TrackOpenException catch (error) {
@@ -177,6 +192,31 @@ class PlayerController extends ChangeNotifier implements SoundSection {
       _fail(TrackProblem.unreadable);
     }
     if (!_disposed) notifyListeners();
+  }
+
+  /// Starts reading the peaks of [track]. A track with no wave (too long for
+  /// a web page, a codec the system cannot decode) says nothing: it plays
+  /// all the same.
+  void _readPeaks(TrackRef track, Duration duration) {
+    final peaks = TrackPeaks();
+    _peaks = peaks;
+    _peaksReading = _files
+        .peaks(track, duration: duration)
+        .listen(
+          peaks.add,
+          onDone: peaks.finish,
+          onError: (Object error) {
+            debugPrint('No wave for this track: $error');
+            peaks.fail();
+          },
+          cancelOnError: true,
+        );
+  }
+
+  void _stopReadingPeaks() {
+    _peaksReading?.cancel();
+    _peaksReading = null;
+    _peaks = null;
   }
 
   void _fail(TrackProblem problem) {
@@ -394,6 +434,7 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   void dispose() {
     _disposed = true;
     _settle?.cancel();
+    _stopReadingPeaks();
     _events.cancel();
     _interruptions.close();
     final track = _track;

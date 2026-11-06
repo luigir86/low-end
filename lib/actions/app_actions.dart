@@ -123,13 +123,13 @@ class AppActions {
           'Shows a section of the app (also when the gestures are locked). '
           'Nothing is started or stopped, except by the tuner: leaving it '
           'turns the microphone off, and arriving at it starts listening '
-          'only if neither the metronome nor Harmony is playing and it was '
-          'not paused with tuner_stop (the sound is never stopped by '
+          'only if neither the metronome, Harmony nor the Player is playing '
+          'and it was not paused with tuner_stop (the sound is never stopped by '
           'arriving; use tuner_start for that).',
       parameters: {
         'section': {
           'type': 'string',
-          'enum': ['tuner', 'drone', 'metronome', 'player'],
+          'enum': ['metronome', 'drone', 'player', 'tuner'],
         },
       },
       required: ['section'],

@@ -26,6 +26,7 @@ The files are then kept on the phone: from the second opening it starts fast and
 | "Open settings" after a no to the microphone | Yes | No: the message says where to allow it |
 | Keeps the screen on | Yes | Yes, from iOS 18.4 for an app on the Home Screen |
 | Player: choosing a file | Android's file chooser, the right to read the file is kept | The browser's file chooser, from a touch only (`player_open` fails); the track lasts as long as the page |
+| Player: wave in the ring | Decoded on a background thread, filling the ring as the file is read | Decoded by the browser (`OfflineAudioContext` at 8 kHz, `lowEndPeaks` in `web/flutter_bootstrap.js`), only for tracks up to 15 minutes and 40 MB; longer ones play with no wave |
 | Player with the screen locked or a call | Plays on with the notification; a call or another player pauses it | The page's audio element: it may play on where the engine's sound stops (not yet tried on an iPhone), and a call may pause it without the app being told, so the middle can say Pause while nothing sounds: two touches play it again |
 | First opening | Instant | A few seconds (3.5 to 4 MB), then fast |
 | Action links | `lowend://action/...` | `https://luigir86.github.io/low-end/#/action/...` |

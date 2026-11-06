@@ -29,8 +29,8 @@ class _HomeShellState extends State<HomeShell> {
   static const _screens = [
     MetronomeScreen(),
     DronePanel(),
-    TunerPanel(),
     PlayerPanel(),
+    TunerPanel(),
   ];
 
   /// Swiping moves between the sections; a tap on a tab or an action link
@@ -264,6 +264,13 @@ class _HomeShellState extends State<HomeShell> {
             selectedIcon: const SectionIcon(SectionGlyph.piano, filled: true),
             label: l10n.harmonyTab,
           ),
+          // The Player's tab has a Material icon: headphones.
+          (
+            section: AppSection.player,
+            icon: const Icon(Icons.headphones_outlined),
+            selectedIcon: const Icon(Icons.headphones),
+            label: l10n.playerTab,
+          ),
           (
             section: AppSection.tuner,
             icon: const SectionIcon(SectionGlyph.tuningFork),
@@ -272,13 +279,6 @@ class _HomeShellState extends State<HomeShell> {
               filled: true,
             ),
             label: l10n.tunerTab,
-          ),
-          // The Player's tab has a Material icon: headphones.
-          (
-            section: AppSection.player,
-            icon: const Icon(Icons.headphones_outlined),
-            selectedIcon: const Icon(Icons.headphones),
-            label: l10n.playerTab,
           ),
         ];
         return Scaffold(
@@ -369,8 +369,8 @@ class _TabIcon extends StatelessWidget {
     final sound = switch (section) {
       AppSection.metronome => scope.metronome,
       AppSection.drone => scope.drone,
-      AppSection.tuner => null,
       AppSection.player => scope.player,
+      AppSection.tuner => null,
     };
     if (sound == null) return icon;
     // Only the icon listens: the bar is not built again on every change.
@@ -380,8 +380,8 @@ class _TabIcon extends StatelessWidget {
         final playing = switch (section) {
           AppSection.metronome => scope.metronome.isPlaying,
           AppSection.drone => scope.drone.isPlaying,
-          AppSection.tuner => false,
           AppSection.player => scope.player.isPlaying,
+          AppSection.tuner => false,
         };
         return Semantics(
           value: playing ? AppLocalizations.of(context).sectionPlaying : null,

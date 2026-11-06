@@ -81,6 +81,39 @@ window.lowEndDecodeFlac = function (bytes) {
   });
 };
 
+// The peaks of an audio file (an ArrayBuffer), one every 10 ms, for the wave
+// of the Player (Uint16Array, 0..32767), with the browser's own decoder in an
+// offline context at a low sample rate: the browser resamples while
+// decoding, and 15 minutes of stereo take some 58 MB instead of 320. The loop
+// gives way every half a million samples, so that the screen does not stop
+// (RNF-FLU-01). Fails if the browser cannot decode the file; the app then
+// draws no wave (lib/audio/system_track_files_web.dart).
+window.lowEndPeaks = async function (data) {
+  const Offline = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  if (!Offline) throw new Error('no OfflineAudioContext');
+  let context;
+  try { context = new Offline(1, 1, 8000); } catch (e) { context = new Offline(1, 1, 22050); }
+  const audio = await context.decodeAudioData(data);
+  const frame = Math.round(audio.sampleRate / 100);
+  const out = new Uint16Array(Math.ceil(audio.length / frame));
+  let work = 0;
+  for (let c = 0; c < audio.numberOfChannels; c++) {
+    const f = audio.getChannelData(c);
+    for (let i = 0; i < out.length; i++) {
+      let peak = out[i];
+      const end = Math.min(f.length, (i + 1) * frame);
+      for (let j = i * frame; j < end; j++) {
+        const v = Math.min(32767, Math.round(Math.abs(f[j]) * 32767));
+        if (v > peak) peak = v;
+      }
+      out[i] = peak;
+      work += frame;
+      if (work > 500000) { work = 0; await new Promise((r) => setTimeout(r, 0)); }
+    }
+  }
+  return out;
+};
+
 // The audio engine (flutter_soloud, in WebAssembly) is loaded once the app
 // is on screen, not before: it is not needed for the first frame, and
 // loading it earlier slowed the first screen down. The app waits for the

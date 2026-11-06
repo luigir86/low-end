@@ -131,10 +131,13 @@ void main() {
     expect(scope.navigation.section, AppSection.drone);
     await tester.fling(find.byType(PageView), const Offset(-400, 0), 1000);
     await tester.pumpAndSettle();
+    expect(scope.navigation.section, AppSection.player);
+    await tester.fling(find.byType(PageView), const Offset(-400, 0), 1000);
+    await tester.pumpAndSettle();
     expect(scope.navigation.section, AppSection.tuner);
     await tester.fling(find.byType(PageView), const Offset(400, 0), 1000);
     await tester.pumpAndSettle();
-    expect(scope.navigation.section, AppSection.drone);
+    expect(scope.navigation.section, AppSection.player);
   });
 
   group('in landscape', () {
@@ -188,7 +191,7 @@ void main() {
         const Offset(0, -150),
       );
       await tester.pumpAndSettle();
-      expect(scope.navigation.section, AppSection.tuner);
+      expect(scope.navigation.section, AppSection.player);
       // Down goes back; past the first or last, nothing happens.
       await tester.dragFrom(
         tester.getCenter(_railTab('Harmony')),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'track_output.dart';
@@ -21,9 +22,13 @@ abstract interface class TrackFiles {
   /// The title and the artist in the tags of [track].
   Future<TrackTags> tags(TrackRef track);
 
-  /// The loudness of [track] over [points] equal slices of its length, each
-  /// from 0 to 1; null when it cannot be worked out.
-  Future<Float32List?> envelope(TrackRef track, int points);
+  /// The peaks of [track], one every 10 ms, in pieces from the start while
+  /// the file is read (RF-PLY-15): each value is the strongest sample of
+  /// those 10 ms, 0 to 32767. The stream ends when the whole track has been
+  /// read, or with an error if it cannot be (in a web page, beyond the
+  /// limits of web_peaks_limits.dart, at once). Cancelling the subscription
+  /// stops the reading.
+  Stream<Uint16List> peaks(TrackRef track, {required Duration duration});
 
   /// Lets go of what was kept for [track]: the permission to read it
   /// (Android) or its blob (web).
@@ -40,6 +45,14 @@ class FakeTrackFiles implements TrackFiles {
   var picks = 0;
   final released = <TrackRef>[];
 
+  /// The tracks [peaks] was asked for, and the stream given for each: a test
+  /// adds pieces, closes it or makes it fail.
+  final peaksAsked = <TrackRef>[];
+  final peakStreams = <StreamController<Uint16List>>[];
+
+  /// How many of those streams have been cancelled by their listener.
+  var peaksCancelled = 0;
+
   @override
   Future<TrackRef?> pick() async {
     picks++;
@@ -53,7 +66,14 @@ class FakeTrackFiles implements TrackFiles {
   Future<TrackTags> tags(TrackRef track) async => (title: null, artist: null);
 
   @override
-  Future<Float32List?> envelope(TrackRef track, int points) async => null;
+  Stream<Uint16List> peaks(TrackRef track, {required Duration duration}) {
+    peaksAsked.add(track);
+    final stream = StreamController<Uint16List>(
+      onCancel: () => peaksCancelled++,
+    );
+    peakStreams.add(stream);
+    return stream.stream;
+  }
 
   @override
   Future<void> release(TrackRef track) async => released.add(track);

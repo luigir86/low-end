@@ -4,8 +4,14 @@ import 'dart:typed_data';
 
 import 'package:web/web.dart' as web;
 
+import 'package:flutter/foundation.dart';
+
 import 'track_files.dart';
 import 'track_output.dart';
+import 'web_peaks_limits.dart';
+
+@JS('lowEndPeaks')
+external JSFunction? get _peaksFunction;
 
 /// See system_track_files.dart.
 TrackFiles systemTrackFiles() => WebTrackFiles();
@@ -14,6 +20,9 @@ TrackFiles systemTrackFiles() => WebTrackFiles();
 /// address the audio element plays; it lasts as long as the page.
 class WebTrackFiles implements TrackFiles {
   Completer<TrackRef?>? _pending;
+
+  /// The files chosen, by their blob address: the wave is read from them.
+  final _files = <String, web.File>{};
 
   /// The audio formats offered; the browser may still list others.
   static const _accept = 'audio/*,.mp3,.m4a,.aac,.wav,.flac';
@@ -37,6 +46,7 @@ class WebTrackFiles implements TrackFiles {
         return;
       }
       final uri = web.URL.createObjectURL(file);
+      _files[uri] = file;
       _finish(done, TrackRef(uri: uri, name: file.name, size: file.size));
     }).toJS;
     input.addEventListener(
@@ -59,11 +69,35 @@ class WebTrackFiles implements TrackFiles {
   @override
   Future<TrackTags> tags(TrackRef track) async => (title: null, artist: null);
 
+  /// The browser decodes the whole file (web/flutter_bootstrap.js), so only
+  /// a file within the limits of web_peaks_limits.dart is tried, and the
+  /// peaks come in one piece. An error means no wave, never a message.
   @override
-  Future<Float32List?> envelope(TrackRef track, int points) async => null;
+  Stream<Uint16List> peaks(
+    TrackRef track, {
+    required Duration duration,
+  }) async* {
+    final file = _files[track.uri];
+    final read = _peaksFunction;
+    if (file == null ||
+        read == null ||
+        !webPeaksAllowed(size: file.size, duration: duration)) {
+      throw StateError('no wave for this track');
+    }
+    try {
+      final data = (await file.arrayBuffer().toDart);
+      final promise = read.callAsFunction(null, data) as JSPromise;
+      final peaks = (await promise.toDart) as JSUint16Array;
+      yield peaks.toDart;
+    } catch (error) {
+      debugPrint('The browser could not read the wave of a track: $error');
+      rethrow;
+    }
+  }
 
   @override
   Future<void> release(TrackRef track) async {
+    _files.remove(track.uri);
     web.URL.revokeObjectURL(track.uri);
   }
 }

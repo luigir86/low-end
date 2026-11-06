@@ -6,7 +6,7 @@ Low End è un metronomo, una sezione di armonia al pianoforte, un accordatore e 
 
 ## Le quattro sezioni
 
-Le schede in basso (a sinistra con il telefono in orizzontale) sono **Metronomo**, **Armonia**, **Accordatore** e **Ascolto**. L'app si riapre sulla sezione in cui l'hai lasciata (la prima volta su Armonia).
+Le schede in basso (a sinistra con il telefono in orizzontale) sono **Metronomo**, **Armonia**, **Ascolto** e **Accordatore**. L'app si riapre sulla sezione in cui l'hai lasciata (la prima volta su Armonia).
 
 - Una **scheda** porta solo alla sua sezione: non avvia né ferma mai nulla. **Ogni sezione avvia e ferma il proprio suono dal centro del suo cerchio.**
 - **Scorri** a destra o a sinistra per cambiare sezione. Con il telefono in orizzontale le schede passano in una colonna a sinistra e l'ingranaggio resta in alto a destra: **scorri verso l'alto o il basso** sul cerchio o sulle schede (non sulle righe a destra, che possono scorrere) per cambiare sezione. Dev'essere un gesto rapido: un trascinamento lento non fa nulla. La prima volta che giri il telefono in orizzontale un breve suggerimento lo ricorda.
