@@ -56,6 +56,8 @@ class SettingsPage extends StatelessWidget {
                     // whatever the app is showing.
                     const Choice(value: 'en', title: 'English'),
                     const Choice(value: 'it', title: 'Italiano'),
+                    const Choice(value: 'es', title: 'Español'),
+                    const Choice(value: 'fr', title: 'Français'),
                   ],
                   onSelected: (code) =>
                       settings.setLanguage(code.isEmpty ? null : code),

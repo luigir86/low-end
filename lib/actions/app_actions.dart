@@ -85,7 +85,7 @@ class AppActions {
   static const _note = {
     'type': 'string',
     'description':
-        'Note name in English (A, Bb, F#) or Italian (La, Sib, Fa#). The '
+        'Note name in English (A, Bb, F#) or solfège (La, Sib, Fa#, Ré). The '
         'drone always plays it in octave 3 (A3 = 220 Hz with A4 at 440), so '
         'an octave number, if given, is ignored.',
   };
@@ -232,16 +232,19 @@ class AppActions {
         },
         'language': {
           'type': 'string',
-          'enum': ['system', 'en', 'it'],
+          'enum': ['system', 'en', 'it', 'es', 'fr'],
           'description': 'App language; "system" follows the phone.',
         },
         'note_names': {
           'type': 'string',
           'enum': ['auto', 'solfege', 'letters'],
           'description':
-              '"solfege" is Do Re Mi, "letters" is C D E, "auto" follows the '
-              'app language. The octave numbers are set apart, with '
-              'octave_numbering.',
+              '"solfege" is Do Re Mi (Do Ré Mi in French), "letters" is C D E, '
+              '"auto" is Do Re Mi in Italian, Spanish and French and C D E '
+              'otherwise. Chord words follow the note names: English with '
+              'C D E ("C major"), the app language with Do Re Mi ("Do mayor", '
+              'Italian when the app is in English). The octave numbers are '
+              'set apart, with octave_numbering.',
         },
         'octave_numbering': {
           'type': 'string',
@@ -541,8 +544,10 @@ class AppActions {
         final language = args['language'];
         final code = switch (language) {
           null || 'system' => null,
-          'en' || 'it' => language as String,
-          _ => throw ActionError('"language" must be system, en or it.'),
+          'en' || 'it' || 'es' || 'fr' => language as String,
+          _ => throw ActionError(
+            '"language" must be system, en, it, es or fr.',
+          ),
         };
         final naming = args['note_names'] == null
             ? null
@@ -822,6 +827,7 @@ const _letters = {'c': 0, 'd': 2, 'e': 4, 'f': 5, 'g': 7, 'a': 9, 'b': 11};
 const _solfege = {
   'do': 0,
   're': 2,
+  'ré': 2,
   'mi': 4,
   'fa': 5,
   'sol': 7,
@@ -829,12 +835,12 @@ const _solfege = {
   'si': 11,
 };
 
-/// Reads a note name in English or Italian, with an optional sharp or flat
+/// Reads a note name in English or solfège (Italian, Spanish or French), with an optional sharp or flat
 /// and octave: "A", "Bb2", "F♯", "La", "Sib1", "do#". The octave is null when
 /// not given.
 ({int pitchClass, int? octave})? parseNote(String text) {
   final match = RegExp(
-    r'^\s*(do|re|mi|fa|sol|la|si|[a-g])\s*(#|♯|b|♭)?\s*(-?\d)?\s*$',
+    r'^\s*(do|ré|re|mi|fa|sol|la|si|[a-g])\s*(#|♯|b|♭)?\s*(-?\d)?\s*$',
     caseSensitive: false,
   ).firstMatch(text);
   if (match == null) return null;

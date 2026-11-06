@@ -63,7 +63,7 @@ void main() {
 
     test('ignores unknown saved strings and numbers', () async {
       SharedPreferences.setMockInitialValues({
-        'language': 'fr',
+        'language': 'de',
         'note_names': 'klingon',
         'reference_pitch': 446.0,
       });

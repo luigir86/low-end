@@ -10,7 +10,7 @@ store/
   graphics/phone/<locale>/*.png   phone screenshots (1156 × 2312), four per language
 ```
 
-Default language of the listing: English (United States), with Italian (Italy) as a translation.
+Default language of the listing: English (United States), with Italian (Italy), Spanish (Spain, es-ES) and French (France, fr-FR) as translations. Spanish and French were written by Claude: have a musician who speaks each language read them before publishing.
 
 ## Build the bundle
 

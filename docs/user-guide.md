@@ -58,7 +58,7 @@ The gear at the top opens the settings, in three groups:
 
 | Group | Setting | Choices |
 | --- | --- | --- |
-| General | Language | Same as the phone, English, Italian |
+| General | Language | Same as the phone, English, Italian, Spanish, French |
 | General | Note names | Follow the language, Do Re Mi, C D E |
 | General | Keep the screen on | While something plays or the tuner listens (on by default) |
 | General | Lock the gestures | Turns off the swipes between sections |

@@ -62,6 +62,13 @@ const _configs = [
   ),
   _Config('en_640x360_x2', scale: 2, size: Size(640, 360)),
   _Config('en_1280x800_x1', size: Size(1280, 800)),
+  // French is the longest of the languages, Spanish close to it: the
+  // narrowest phone, with large text, and a landscape one.
+  _Config('fr_320x568_x2', lang: 'fr', scale: 2, size: Size(320, 568)),
+  _Config('fr_360x640_x2', lang: 'fr', scale: 2),
+  _Config('fr_640x360_x1.5', lang: 'fr', scale: 1.5, size: Size(640, 360)),
+  _Config('es_320x568_x2', lang: 'es', scale: 2, size: Size(320, 568)),
+  _Config('es_360x640_x2', lang: 'es', scale: 2),
 ];
 
 class _H {

@@ -152,7 +152,7 @@ class AppSettings extends ChangeNotifier {
   static Future<AppSettings> load() async =>
       AppSettings._(await SharedPreferences.getInstance());
 
-  static const supportedLanguages = ['en', 'it'];
+  static const supportedLanguages = ['en', 'it', 'es', 'fr'];
   static const _languageKey = 'language';
   static const _namingKey = 'note_names';
   static const _a4Key = 'reference_pitch';
@@ -197,7 +197,7 @@ class AppSettings extends ChangeNotifier {
     });
   }
 
-  /// 'en' or 'it', or null to follow the phone.
+  /// One of [supportedLanguages], or null to follow the phone.
   String? get languageCode => _languageCode;
   NoteNaming get naming => _naming;
 
@@ -208,12 +208,20 @@ class AppSettings extends ChangeNotifier {
   Locale? get locale => _languageCode == null ? null : Locale(_languageCode!);
 
   /// The note names to use when the app shows [appLocale].
+  /// Do Re Mi takes the words of the app's language when it has a solfège of
+  /// its own (Do mayor, Do majeur), Italian ones otherwise; by itself, the
+  /// app uses Do Re Mi where musicians read it (Italian, Spanish, French).
   NoteNames noteNames(Locale appLocale) => switch (_naming) {
-    NoteNaming.solfege => NoteNames.solfege,
+    NoteNaming.solfege => NoteNames.solfegeFor(appLocale.languageCode),
     NoteNaming.letters => NoteNames.letters,
     NoteNaming.auto =>
-      appLocale.languageCode == 'it' ? NoteNames.solfege : NoteNames.letters,
+      solfegeLanguages.contains(appLocale.languageCode)
+          ? NoteNames.solfegeFor(appLocale.languageCode)
+          : NoteNames.letters,
   };
+
+  /// The languages whose musicians read Do Re Mi.
+  static const solfegeLanguages = ['it', 'es', 'fr'];
 
   void setLanguage(String? code) {
     assert(code == null || supportedLanguages.contains(code));

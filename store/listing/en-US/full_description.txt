@@ -25,7 +25,7 @@ MADE FOR PLAYING
 • Swipe left and right to change section; for rehearsals, lock the gestures in the settings.
 • Keeps playing with the screen off, with a notification that says what is sounding. The screen can stay on while you play.
 • Unplug the headphones and the sound stops, instead of carrying on from the phone's speaker.
-• A dark look in bronze and ebony, easy on the eyes on stage; English and Italian; note names as C D E or Do Re Mi.
+• A dark look in bronze and ebony, easy on the eyes on stage; in four languages; note names as C D E or Do Re Mi.
 • Built to be accessible: screen-reader labels, enlargeable text, and colours that are never the only cue.
 
 PRIVATE AND OPEN

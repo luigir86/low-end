@@ -1,0 +1,37 @@
+Low End vous donne un groupe avec qui travailler. Choisissez une tonalité et une progression et un vrai piano à queue la joue pour vous, en rythme avec un métronome, pendant que vous jouez par-dessus : gammes, improvisation, votre partie d’un morceau, ou simplement l’oreille. De la pop au blues et aux standards de jazz, avec une contrebasse en walking. Un accordeur chromatique la complète. Créée par un contrebassiste amateur en pensant aux amis de l’orchestre, elle est utile à tous ceux qui jouent. Elle est gratuite, sans publicité, sans compte et fonctionne entièrement hors ligne.
+
+HARMONIE : VOTRE PIANISTE
+• Douze tonalités sur un cercle : touchez une note et elle sonne sur un vrai piano à queue, enregistré en stéréo, en rythme avec le métronome.
+• Neuf progressions sur lesquelles jouer, en sections pop et rock, blues et jazz : I–VI–IV–V, I–V–VI–IV, la cadence andalouse, le blues de douze mesures (majeur et mineur), II–V–I (majeur et mineur), I–VI–II–V et le cycle des quintes d’Autumn Leaves. Un accord par mesure, en phrases de 4, 8 ou 12 mesures, dans toutes les tonalités, avec les chiffres romains sur les notes.
+• Des morceaux d’exemple (Stand by Me, Sweet Home Chicago, Blue Bossa, Autumn Leaves et d’autres) règlent la tonalité, la progression, le tempo et le style du piano d’un seul geste.
+• Quatre façons de jouer : accords tenus sur la mesure, frappés à chaque temps, arpégés, ou une walking bass : une ligne de jazz sur une contrebasse en pizzicato, avec le piano qui accompagne légèrement au-dessus.
+• Ou un seul accord tenu (neuf types, de majeur à sus4), la note seule, ou un son tenu à la place du piano.
+• Lancez l’harmonie pendant que le clic tourne et elle entre à la mesure suivante, avec un décompte sur le cercle.
+• Changez de morceau, de progression ou de style pendant qu’il joue : l’ancien s’éteint et le nouveau entre sur le « un » de la mesure suivante, comme dans un groupe.
+
+MÉTRONOME
+• Tempo de 30 à 250 BPM : saisissez-le avec le crayon, maintenez − ou + pour le faire défiler, ou utilisez TAP.
+• Mesures 1/1, 2/4, 3/4, 4/4, 5/4, 6/8, 7/8, 9/8 et 12/8, avec les temps groupés comme vous les comptez.
+• Un anneau qui s’allume temps par temps et un clic court et sec qui reste stable. Subdivisions en croches, triolets, doubles croches et swing, ou un clic sur 2 et 4 seulement.
+
+ACCORDEUR
+• Chromatique, avec un stroboscope rond et la note au centre : jouez n’importe quelle note et elle apparaît, sans choisir la corde avant. Ou choisissez les cordes de guitare, violon, alto, violoncelle, ukulélé ou basse.
+• Entend aussi bien les graves que les aigus, de 28 à 2800 Hz.
+• Pour les instruments en Si♭, Mi♭ et Fa, il peut indiquer la note écrite.
+• La de référence : chaque hertz de 415 à 445 (415, 432, 440 et 442 d’un seul geste). Le son est analysé sur le téléphone et jamais enregistré.
+• Si le métronome ou l’harmonie joue, touchez le cercle de l’accordeur et ils se mettent en pause, avec un bouton Reprendre.
+
+FAITE POUR JOUER
+• Glissez à gauche et à droite pour changer de section ; pour les répétitions, verrouillez les gestes dans les paramètres.
+• Continue de jouer écran éteint, avec une notification qui dit ce qui sonne.
+• Débranchez les écouteurs et le son s’arrête, au lieu de continuer sur le haut-parleur du téléphone.
+• Un look sombre en bronze et ébène ; en français, anglais, italien et espagnol ; noms des notes Do Ré Mi ou C D E.
+• Conçue pour être accessible : libellés pour les lecteurs d’écran, texte agrandissable et couleurs qui ne sont jamais le seul indice.
+
+PRIVÉE ET OUVERTE
+• Pas de compte, pas de publicité, pas de pistage, pas besoin de connexion internet.
+• Le micro n’est utilisé que lorsque l’accordeur est à l’écran.
+• Logiciel libre et open source sous licence MIT : https://github.com/luigir86/low-end
+• Sons : Salamander Grand Piano d’Alexander Holm, contrebasse Meatbass de Karoryfer Lecolds (domaine public).
+
+Des questions ou des idées ? Écrivez à ribaluigi@gmail.com ou ouvrez une issue sur GitHub.

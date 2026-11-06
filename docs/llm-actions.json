@@ -55,7 +55,7 @@
       "properties": {
         "note": {
           "type": "string",
-          "description": "Note name in English (A, Bb, F#) or Italian (La, Sib, Fa#). The drone always plays it in octave 3 (A3 = 220 Hz with A4 at 440), so an octave number, if given, is ignored."
+          "description": "Note name in English (A, Bb, F#) or solfège (La, Sib, Fa#, Ré). The drone always plays it in octave 3 (A3 = 220 Hz with A4 at 440), so an octave number, if given, is ignored."
         },
         "voicing": {
           "type": "string",
@@ -254,7 +254,7 @@
       "properties": {
         "note": {
           "type": "string",
-          "description": "Note name in English (A, Bb, F#) or Italian (La, Sib, Fa#). The drone always plays it in octave 3 (A3 = 220 Hz with A4 at 440), so an octave number, if given, is ignored."
+          "description": "Note name in English (A, Bb, F#) or solfège (La, Sib, Fa#, Ré). The drone always plays it in octave 3 (A3 = 220 Hz with A4 at 440), so an octave number, if given, is ignored."
         },
         "voicing": {
           "type": "string",
@@ -373,7 +373,9 @@
           "enum": [
             "system",
             "en",
-            "it"
+            "it",
+            "es",
+            "fr"
           ],
           "description": "App language; \"system\" follows the phone."
         },
@@ -384,7 +386,7 @@
             "solfege",
             "letters"
           ],
-          "description": "\"solfege\" is Do Re Mi, \"letters\" is C D E, \"auto\" follows the app language. The octave numbers are set apart, with octave_numbering."
+          "description": "\"solfege\" is Do Re Mi (Do Ré Mi in French), \"letters\" is C D E, \"auto\" is Do Re Mi in Italian, Spanish and French and C D E otherwise. Chord words follow the note names: English with C D E (\"C major\"), the app language with Do Re Mi (\"Do mayor\", Italian when the app is in English). The octave numbers are set apart, with octave_numbering."
         },
         "octave_numbering": {
           "type": "string",
