@@ -6,6 +6,7 @@ import 'package:web/web.dart' as web;
 
 import 'package:flutter/foundation.dart';
 
+import '../features/player/track_tags.dart';
 import 'track_files.dart';
 import 'track_output.dart';
 import 'web_peaks_limits.dart';
@@ -66,8 +67,21 @@ class WebTrackFiles implements TrackFiles {
   @override
   Future<bool> canRead(TrackRef track) async => false;
 
+  /// The ID3v2 tag at the start of an MP3 (the browser tells no more): the
+  /// first 128 KB of the file are read.
   @override
-  Future<TrackTags> tags(TrackRef track) async => (title: null, artist: null);
+  Future<TrackTags> tags(TrackRef track) async {
+    const none = (title: null, artist: null);
+    final file = _files[track.uri];
+    if (file == null) return none;
+    try {
+      final head = await file.slice(0, 128 * 1024).arrayBuffer().toDart;
+      return readId3Tags(head.toDart.asUint8List());
+    } on Object catch (error) {
+      debugPrint('The tags of a track could not be read: $error');
+      return none;
+    }
+  }
 
   /// The browser decodes the whole file (web/flutter_bootstrap.js), so only
   /// a file within the limits of web_peaks_limits.dart is tried, and the

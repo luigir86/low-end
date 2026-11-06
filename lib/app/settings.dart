@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,6 +9,7 @@ import '../features/metronome/metronome_controller.dart';
 import '../features/metronome/subdivision.dart';
 import '../features/metronome/time_signature.dart';
 import '../features/harmony/drone_controller.dart';
+import '../features/player/player_setup.dart';
 import '../features/tuner/tuner_tuning.dart';
 import 'app_navigation.dart';
 
@@ -87,6 +89,7 @@ class AppSettings extends ChangeNotifier {
         AppSection.values.asNameMap()[_read<String>(prefs, _sectionKey)] ??
         AppSection.drone;
     _drone = _readDrone(prefs);
+    _readPlayer(prefs);
   }
 
   /// The harmony as it was left, or null if nothing was kept (the first
@@ -176,6 +179,7 @@ class AppSettings extends ChangeNotifier {
   static const _transpositionKey = 'tuner_transposition';
   static const _sectionKey = 'section';
   static const _droneKey = 'harmony';
+  static const _playerKey = 'player';
 
   final SharedPreferences? _prefs;
   String? _languageCode;
@@ -449,5 +453,41 @@ class AppSettings extends ChangeNotifier {
     if (json == _droneJson) return;
     _droneJson = json;
     _save(_prefs?.setString(_droneKey, json));
+  }
+
+  PlayerSetup? _player;
+  String? _playerJson;
+
+  /// The Player's track, speed and passage as they were left, or null with
+  /// none (or in a web page, where a file does not outlive the page).
+  PlayerSetup? get player => _player;
+
+  void _readPlayer(SharedPreferences prefs) {
+    if (kIsWeb) return;
+    final text = _read<String>(prefs, _playerKey);
+    if (text == null) return;
+    try {
+      _player = PlayerSetup.fromJson(jsonDecode(text));
+    } on FormatException {
+      _player = null;
+    }
+    // Unreadable: it is cleared by the next write.
+    _playerJson = _player == null ? null : text;
+  }
+
+  /// Keeps what the Player holds for the next launch, or clears it when
+  /// there is no track; written only when it changed, and never in a web
+  /// page. Nothing listens to it.
+  void rememberPlayer(PlayerSetup? setup) {
+    if (kIsWeb) return;
+    _player = setup;
+    final json = setup == null ? null : jsonEncode(setup.toJson());
+    if (json == _playerJson) return;
+    _playerJson = json;
+    _save(
+      json == null
+          ? _prefs?.remove(_playerKey)
+          : _prefs?.setString(_playerKey, json),
+    );
   }
 }

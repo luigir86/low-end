@@ -12,6 +12,8 @@ import android.os.Process
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.security.MessageDigest
 import java.nio.ByteOrder
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
@@ -46,7 +48,9 @@ object TrackPeaks {
         val app = context.applicationContext
         EventChannel(messenger, "low_end/track_peaks").setStreamHandler(object : EventChannel.StreamHandler {
             override fun onListen(arguments: Any?, events: EventChannel.EventSink) {
-                val uri = (arguments as? Map<*, *>)?.get("uri") as? String
+                val args = arguments as? Map<*, *>
+                val uri = args?.get("uri") as? String
+                val size = (args?.get("size") as? Number)?.toLong()
                 if (uri == null) {
                     events.error("unreadable", "No address given.", null)
                     return
@@ -54,7 +58,7 @@ object TrackPeaks {
                 stopCurrent?.set(true)
                 val stop = AtomicBoolean(false)
                 stopCurrent = stop
-                worker.execute { read(app, Uri.parse(uri), events, stop) }
+                worker.execute { read(app, Uri.parse(uri), cacheFile(app, uri, size), events, stop) }
             }
 
             override fun onCancel(arguments: Any?) {
@@ -64,7 +68,31 @@ object TrackPeaks {
         })
     }
 
-    private fun read(context: Context, uri: Uri, events: EventChannel.EventSink, stop: AtomicBoolean) {
+    // Finished peaks are kept in the cache folder, which the system may empty
+    // at any time: then the file is read again. The key is the address and
+    // the size of the file; with no size nothing is kept.
+    private fun cacheFile(context: Context, uri: String, size: Long?): File? {
+        if (size == null) return null
+        val hash = MessageDigest.getInstance("SHA-1").digest(uri.toByteArray())
+            .joinToString("") { "%02x".format(it) }
+        return File(File(context.cacheDir, "peaks"), "$hash-$size.u16")
+    }
+
+    private fun read(context: Context, uri: Uri, cache: File?, events: EventChannel.EventSink, stop: AtomicBoolean) {
+        if (cache != null && cache.isFile && cache.length() > 0 && cache.length() % 2 == 0L) {
+            try {
+                val data = cache.readBytes()
+                main.post {
+                    if (!stop.get()) {
+                        events.success(data)
+                        events.endOfStream()
+                    }
+                }
+                return
+            } catch (e: Exception) {
+                // Unreadable: read the file again.
+            }
+        }
         var extractor: MediaExtractor? = null
         var codec: MediaCodec? = null
         try {
@@ -94,6 +122,7 @@ object TrackPeaks {
             var encoding = AudioFormat.ENCODING_PCM_16BIT
 
             val out = ByteArrayOutputStream()
+            val all = ByteArrayOutputStream()   // everything, to keep in the cache
             var nextFrame = 0L      // the frame being filled
             var inFrame = 0         // samples (per channel) already in it
             var framePeak = 0       // its strongest sample so far
@@ -192,13 +221,14 @@ object TrackPeaks {
                 }
                 val now = System.currentTimeMillis()
                 if (now - lastSend >= SEND_EVERY_MS) {
-                    send(events, stop, out)
+                    send(events, stop, out, all)
                     lastSend = now
                 }
             }
             if (stop.get()) return
             if (inFrame > 0) emit(framePeak)
-            send(events, stop, out)
+            send(events, stop, out, all)
+            keep(cache, all)
             main.post { if (!stop.get()) events.endOfStream() }
         } catch (e: Exception) {
             fail(events, stop, e.message ?: e.javaClass.simpleName)
@@ -210,11 +240,25 @@ object TrackPeaks {
     }
 
     // Sends what has been read since the last time.
-    private fun send(events: EventChannel.EventSink, stop: AtomicBoolean, out: ByteArrayOutputStream) {
+    private fun send(events: EventChannel.EventSink, stop: AtomicBoolean, out: ByteArrayOutputStream, all: ByteArrayOutputStream) {
         if (out.size() == 0) return
         val data = out.toByteArray()
         out.reset()
+        all.write(data)
         main.post { if (!stop.get()) events.success(data) }
+    }
+
+    // Writes the whole of the peaks, whole or not at all.
+    private fun keep(cache: File?, all: ByteArrayOutputStream) {
+        if (cache == null || all.size() == 0) return
+        try {
+            cache.parentFile?.mkdirs()
+            val temporary = File(cache.parentFile, cache.name + ".tmp")
+            temporary.writeBytes(all.toByteArray())
+            if (!temporary.renameTo(cache)) temporary.delete()
+        } catch (e: Exception) {
+            // The cache is only a help.
+        }
     }
 
     private fun fail(events: EventChannel.EventSink, stop: AtomicBoolean, message: String) {

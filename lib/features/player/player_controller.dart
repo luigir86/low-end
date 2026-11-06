@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../../audio/sound_section.dart';
 import '../../audio/track_files.dart';
 import '../../audio/track_output.dart';
+import 'player_setup.dart';
 import 'track_peaks.dart';
 
 /// Where the Player stands with its track.
@@ -89,6 +90,19 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   /// Counts the tracks opened: what an earlier one answers late is ignored.
   var _generation = 0;
 
+  /// False for a track remembered from the last launch, until it is first
+  /// played (or moved): nothing is asked of the system's player before then
+  /// (RF-PLY-13, RNF-AVV-01).
+  var _loaded = false;
+  Future<bool>? _loading;
+
+  /// True once the file of a remembered track has been looked at.
+  var _activated = true;
+
+  /// The title and the artist in the tags of the file (RF-PLY-14).
+  String? _title;
+  String? _artist;
+
   /// The track chosen, until it is replaced or fails.
   TrackRef? get track => _track;
 
@@ -105,15 +119,34 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   /// Why the last track could not be opened; null once another is chosen.
   TrackProblem? get problem => _problem;
 
-  /// What stands for the track on screen and in the notification: the name
-  /// of the file, without its extension.
-  String? get title => _track?.baseName;
+  /// What stands for the track on screen and in the notification: the title
+  /// in its tags, else the name of the file without its extension.
+  String? get title => _track == null ? null : (_title ?? _track!.baseName);
+
+  /// The artist in the tags of the file, if it has one.
+  String? get artist => _track == null ? null : _artist;
+
+  /// What is kept for the next launch; null with no track.
+  PlayerSetup? get setup {
+    final track = _track;
+    if (track == null || _status != PlayerStatus.ready) return null;
+    return PlayerSetup(
+      track: track,
+      duration: _duration,
+      speed: _speed,
+      loopStart: _loopStart,
+      loopEnd: _loopEnd,
+      looping: _looping && hasLoop,
+      title: _title,
+      artist: _artist,
+    );
+  }
 
   /// Where the track is, in the whole track. Read when needed (a screen
   /// asks every frame while it plays): the controller does not notify as it
   /// goes.
   Duration get position {
-    if (_status != PlayerStatus.ready) return Duration.zero;
+    if (_status != PlayerStatus.ready || !_loaded) return Duration.zero;
     final at = _output.position;
     return at > _duration ? _duration : at;
   }
@@ -166,6 +199,9 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     _settle?.cancel();
     _loopStart = _loopEnd = null;
     _looping = false;
+    _loaded = false;
+    _title = _artist = null;
+    _activated = true;
     if (_speed != 100) {
       _speed = 100;
       unawaited(_output.setSpeed(1));
@@ -176,7 +212,9 @@ class PlayerController extends ChangeNotifier implements SoundSection {
       if (generation != _generation || _disposed) return;
       _duration = duration;
       _status = PlayerStatus.ready;
+      _loaded = true;
       _readPeaks(track, duration);
+      unawaited(_readTags(track, generation));
       // A start asked while the track opened plays as soon as it is ready.
       if (_playing) await _output.play();
     } on TrackOpenException catch (error) {
@@ -215,9 +253,108 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     _peaks = null;
   }
 
+  /// Brings back the track of the last launch, with its speed and passage
+  /// (RF-PLY-13). Nothing is asked of the system: the file is looked at when
+  /// the tab is reached ([activate]) and opened at the first play.
+  void restore(PlayerSetup setup) {
+    if (_track != null || _disposed) return;
+    _generation++;
+    _track = setup.track;
+    _duration = setup.duration;
+    _status = PlayerStatus.ready;
+    _loaded = false;
+    _activated = false;
+    _speed = setup.speed;
+    _loopStart = setup.loopStart;
+    _loopEnd = setup.loopEnd;
+    _looping = setup.looping;
+    _title = setup.title;
+    _artist = setup.artist;
+    notifyListeners();
+  }
+
+  /// The tab of the Player is on screen: a remembered track is looked at once
+  /// (can it still be read?), and its wave and tags are read. A file that
+  /// is gone says so, and the memory of it is cleared.
+  Future<void> activate() async {
+    final track = _track;
+    if (_activated || track == null || _disposed) return;
+    _activated = true;
+    final generation = _generation;
+    bool readable;
+    try {
+      readable = await _files.canRead(track);
+    } on Object catch (error) {
+      debugPrint('The remembered track could not be looked at: $error');
+      readable = false;
+    }
+    if (generation != _generation || _disposed) return;
+    if (!readable) {
+      _fail(TrackProblem.missing);
+      notifyListeners();
+      return;
+    }
+    if (_peaks == null) _readPeaks(track, _duration);
+    unawaited(_readTags(track, generation));
+  }
+
+  Future<void> _readTags(TrackRef track, int generation) async {
+    try {
+      final tags = await _files.tags(track);
+      if (generation != _generation || _disposed) return;
+      String? clean(String? text) {
+        final trimmed = text?.trim();
+        return trimmed == null || trimmed.isEmpty ? null : trimmed;
+      }
+
+      // A file with no tag keeps what was remembered of it.
+      final title = clean(tags.title) ?? _title;
+      final artist = clean(tags.artist) ?? _artist;
+      if (title == _title && artist == _artist) return;
+      _title = title;
+      _artist = artist;
+      notifyListeners();
+    } on Object catch (error) {
+      debugPrint('The tags of the track could not be read: $error');
+    }
+  }
+
+  /// Opens a remembered track in the system's player, at [at], with its speed
+  /// and passage; false if it cannot be (the Player is then empty and says
+  /// why).
+  Future<bool> _load(Duration at) =>
+      _loading ??= _openRemembered(at).whenComplete(() => _loading = null);
+
+  Future<bool> _openRemembered(Duration at) async {
+    final track = _track;
+    if (track == null) return false;
+    final generation = _generation;
+    try {
+      final duration = await _output.open(track, at: at);
+      if (generation != _generation || _disposed) return false;
+      _duration = duration;
+      _loaded = true;
+      if (_speed != 100) await _output.setSpeed(_speed / 100);
+      if (looping) await _output.setLoop(_loopStart, _loopEnd);
+      return true;
+    } on TrackOpenException catch (error) {
+      if (generation != _generation || _disposed) return false;
+      _fail(error.problem);
+    } on Object catch (error) {
+      debugPrint('The remembered track could not be opened: $error');
+      if (generation != _generation || _disposed) return false;
+      _fail(TrackProblem.unreadable);
+    }
+    notifyListeners();
+    return false;
+  }
+
   void _fail(TrackProblem problem) {
     final failed = _track;
     if (failed != null) unawaited(_files.release(failed));
+    _stopReadingPeaks();
+    _loaded = false;
+    _title = _artist = null;
     _track = null;
     _duration = Duration.zero;
     _status = PlayerStatus.empty;
@@ -234,7 +371,13 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     if (_track == null || _playing) return;
     _playing = true;
     notifyListeners();
-    if (_status == PlayerStatus.ready) await _output.play();
+    if (_status != PlayerStatus.ready) return;
+    if (!_loaded) {
+      // A remembered track opens now, at A if the loop is on.
+      final at = looping ? _loopStart! : Duration.zero;
+      if (!await _load(at) || !_playing) return;
+    }
+    await _output.play();
   }
 
   /// Pauses; the position stays.
@@ -253,6 +396,7 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   Future<void> seek(Duration to) async {
     if (_status != PlayerStatus.ready) return;
     final clamped = _within(to);
+    if (!_loaded && !await _load(clamped)) return;
     if (looping && (clamped < _loopStart! || clamped >= _loopEnd!)) {
       _looping = false;
       _settle?.cancel();
@@ -270,7 +414,7 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     final clamped = percent.clamp(minSpeed, maxSpeed);
     if (clamped == _speed) return;
     _speed = clamped;
-    unawaited(_output.setSpeed(clamped / 100));
+    if (_loaded) unawaited(_output.setSpeed(clamped / 100));
     notifyListeners();
   }
 
@@ -395,7 +539,8 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   /// where it was (or at [jumpTo]; or at A if it is outside the loop): the
   /// output may be anywhere after the change.
   Future<void> _applyLoop({Duration? jumpTo}) async {
-    if (_disposed) return;
+    // A remembered track not opened yet is told the loop when it opens.
+    if (_disposed || !_loaded) return;
     final on = looping;
     final a = _loopStart, b = _loopEnd;
     var to = jumpTo ?? _output.position;
@@ -430,8 +575,7 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     _stopReadingPeaks();
     _events.cancel();
     _interruptions.close();
-    final track = _track;
-    if (track != null) unawaited(_files.release(track));
+    // The right to read the file is kept: the track is remembered.
     unawaited(_output.close());
     super.dispose();
   }

@@ -195,6 +195,11 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
         ..setVoicing(DroneVoicing.progression);
     }
     _drone.addListener(_rememberDrone);
+    // The Player's track, speed and passage come back too; nothing is asked
+    // of the system until the tab is reached.
+    final track = _settings.player;
+    if (track != null) _player.restore(track);
+    _player.addListener(_rememberPlayer);
     _tuner.highestHz = _settings.tuning.highestHz;
     _settings.addListener(_onSettingsChanged);
     _navigation.addListener(_onNavigationChanged);
@@ -229,6 +234,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     // for a touch (see SoLoudPianoOutput.prepare).
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_navigation.tunerVisible) _tuner.resume();
+      if (_navigation.section == AppSection.player) _player.activate();
       _prepareAtLaunch = Timer(LowEndApp.prepareAfterLaunch, _preparePiano);
       if (_startsEngineAhead) {
         _engineAhead = Timer(_engineAheadAfter, _startEngineWhenStill);
@@ -250,6 +256,13 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
 
   void _rememberDrone() => _settings.rememberDrone(_drone.setup);
 
+  void _rememberPlayer() {
+    // While a new track opens the old one is gone and the new one not yet
+    // there: nothing is written until it is known which stays.
+    if (_player.status == PlayerStatus.opening) return;
+    _settings.rememberPlayer(_player.setup);
+  }
+
   void _onSettingsChanged() {
     _keepScreenOn();
     // The notification names the notes in the player's way.
@@ -270,6 +283,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
   /// itself: the click must not come back unasked, out of time with the band.
   void _onNavigationChanged() {
     _navigation.tunerVisible ? _tuner.resume() : _tuner.stop();
+    if (_navigation.section == AppSection.player) _player.activate();
     _settings.rememberSection(_navigation.section);
     _preparePiano();
     _keepScreenOn();
@@ -400,7 +414,8 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
   String _describePlaying(AppLocalizations l10n) {
     // The Player plays alone: the track, and then who plays it.
     if (_player.isPlaying) {
-      return '${_player.title ?? l10n.playerTab}\n${l10n.playerTab}';
+      return '${_player.title ?? l10n.playerTab}\n'
+          '${_player.artist ?? l10n.playerTab}';
     }
     final parts = <String>[];
     if (_metronome.isPlaying) {
@@ -481,6 +496,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     _metronome.removeListener(_onPlayingChanged);
     _metronome.removeListener(_rememberMetronome);
     _player.removeListener(_onPlayerChanged);
+    _player.removeListener(_rememberPlayer);
     _tuner.removeListener(_onTunerChanged);
     _commands?.cancel();
     _unplugged?.cancel();

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io' show Platform;
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:flutter/services.dart';
 
 import 'track_files.dart';
@@ -27,13 +27,35 @@ class AndroidTrackFiles implements TrackFiles {
     return TrackRef.fromJson(picked);
   }
 
-  // The next steps of the Player fill these in; until then they answer
-  // "unknown": not readable again, no tags, no loudness.
+  /// Whether the right to read the file was kept and the file is still
+  /// there: after a restart the track is looked at before it is trusted.
   @override
-  Future<bool> canRead(TrackRef track) async => false;
+  Future<bool> canRead(TrackRef track) async {
+    if (!_supported) return false;
+    try {
+      return await _channel.invokeMethod<bool>('canRead', {'uri': track.uri}) ??
+          false;
+    } on PlatformException catch (error) {
+      debugPrint('Could not tell if a track can be read: $error');
+      return false;
+    }
+  }
 
+  /// The tags the system reads (MediaMetadataRetriever): any format it plays.
   @override
-  Future<TrackTags> tags(TrackRef track) async => (title: null, artist: null);
+  Future<TrackTags> tags(TrackRef track) async {
+    const none = (title: null, artist: null);
+    if (!_supported) return none;
+    try {
+      final tags = await _channel.invokeMapMethod<String, String?>('tags', {
+        'uri': track.uri,
+      });
+      return (title: tags?['title'], artist: tags?['artist']);
+    } on PlatformException catch (error) {
+      debugPrint('Could not read the tags of a track: $error');
+      return none;
+    }
+  }
 
   @override
   Stream<Uint16List> peaks(TrackRef track, {required Duration duration}) {
@@ -43,7 +65,7 @@ class AndroidTrackFiles implements TrackFiles {
     out = StreamController<Uint16List>(
       onListen: () {
         source = _peaks
-            .receiveBroadcastStream({'uri': track.uri})
+            .receiveBroadcastStream({'uri': track.uri, 'size': track.size})
             .listen(
               (data) {
                 if (data is Uint8List) out.add(_unpack(data));
@@ -68,6 +90,15 @@ class AndroidTrackFiles implements TrackFiles {
     ]);
   }
 
+  /// Gives back the right to read the file, which the system limits in
+  /// number: done when the track is replaced or cannot be read.
   @override
-  Future<void> release(TrackRef track) async {}
+  Future<void> release(TrackRef track) async {
+    if (!_supported) return;
+    try {
+      await _channel.invokeMethod<void>('release', {'uri': track.uri});
+    } on PlatformException catch (error) {
+      debugPrint('Could not let go of a track: $error');
+    }
+  }
 }

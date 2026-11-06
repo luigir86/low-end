@@ -59,11 +59,27 @@ class FakeTrackFiles implements TrackFiles {
     return next;
   }
 
-  @override
-  Future<bool> canRead(TrackRef track) async => true;
+  /// What [canRead] answers, and the tracks it was asked about.
+  var readable = true;
+  final canReadAsked = <TrackRef>[];
+
+  /// The tags of every track, or what [tagsFor] says; the tracks asked.
+  TrackTags tagsAnswer = (title: null, artist: null);
+  Future<TrackTags> Function(TrackRef track)? tagsFor;
+  final tagsAsked = <TrackRef>[];
 
   @override
-  Future<TrackTags> tags(TrackRef track) async => (title: null, artist: null);
+  Future<bool> canRead(TrackRef track) async {
+    canReadAsked.add(track);
+    return readable;
+  }
+
+  @override
+  Future<TrackTags> tags(TrackRef track) {
+    tagsAsked.add(track);
+    final custom = tagsFor;
+    return custom != null ? custom(track) : Future.value(tagsAnswer);
+  }
 
   @override
   Stream<Uint16List> peaks(TrackRef track, {required Duration duration}) {
