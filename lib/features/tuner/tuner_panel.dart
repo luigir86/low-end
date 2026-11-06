@@ -78,6 +78,7 @@ class _TunerPanelState extends State<TunerPanel> {
         settings,
         scope.drone,
         scope.metronome,
+        scope.player,
       ]),
       builder: (context, _) {
         final names = settings.noteNames(Localizations.localeOf(context));
@@ -102,7 +103,10 @@ class _TunerPanelState extends State<TunerPanel> {
             held: _tuner.held,
             tolerance: settings.inTuneCents,
             listening: _tuner.isListening,
-            soundPlaying: scope.drone.isPlaying || scope.metronome.isPlaying,
+            soundPlaying:
+                scope.drone.isPlaying ||
+                scope.metronome.isPlaying ||
+                scope.player.isPlaying,
             names: names,
             numbering: settings.octaveNumbering,
             transposition: transposition,

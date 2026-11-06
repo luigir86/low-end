@@ -1187,6 +1187,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'in {key}'**
   String transpositionKey(String key);
+
+  /// Name of the tab where the person plays a track of their own to study it. Short: it has to fit under an icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Player'**
+  String get playerTab;
+
+  /// No description provided for @playerTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Track'**
+  String get playerTrack;
+
+  /// No description provided for @playerChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a track'**
+  String get playerChoose;
+
+  /// No description provided for @playerPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get playerPlay;
+
+  /// No description provided for @playerPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get playerPause;
+
+  /// The time of the listening point in a track, read by screen readers: 1:12 of 6:03.
+  ///
+  /// In en, this message translates to:
+  /// **'{position} of {duration}'**
+  String playerTimeOf(String position, String duration);
+
+  /// Notice shown when the metronome and Harmony were paused because the Player started; it has a Resume button.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused while you listen'**
+  String get pausedForPlayer;
+
+  /// No description provided for @playerUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'This file can\'t be opened.'**
+  String get playerUnreadable;
+
+  /// No description provided for @playerMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'The file is no longer available.'**
+  String get playerMissing;
 }
 
 class _AppLocalizationsDelegate

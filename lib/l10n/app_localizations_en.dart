@@ -624,4 +624,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String transpositionKey(String key) {
     return 'in $key';
   }
+
+  @override
+  String get playerTab => 'Player';
+
+  @override
+  String get playerTrack => 'Track';
+
+  @override
+  String get playerChoose => 'Choose a track';
+
+  @override
+  String get playerPlay => 'Play';
+
+  @override
+  String get playerPause => 'Pause';
+
+  @override
+  String playerTimeOf(String position, String duration) {
+    return '$position of $duration';
+  }
+
+  @override
+  String get pausedForPlayer => 'Paused while you listen';
+
+  @override
+  String get playerUnreadable => 'This file can\'t be opened.';
+
+  @override
+  String get playerMissing => 'The file is no longer available.';
 }

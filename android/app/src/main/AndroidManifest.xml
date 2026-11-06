@@ -8,6 +8,10 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- The Player's system player (ExoPlayer) declares this permission for
+         streaming; the app plays files only, and promises no network
+         (PRIVACY.md, docs/offline.md). -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
     <!-- No backup to the cloud: the settings stay on this phone only, as
          PRIVACY.md promises. -->
     <application

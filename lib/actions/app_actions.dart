@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 import '../app/app_navigation.dart';
 import '../app/settings.dart';
 import '../audio/pitch.dart';
@@ -7,6 +9,7 @@ import '../features/metronome/metronome_controller.dart';
 import '../features/metronome/subdivision.dart';
 import '../features/metronome/time_signature.dart';
 import '../features/harmony/drone_controller.dart';
+import '../features/player/player_controller.dart';
 import '../features/songs/example_song.dart';
 import '../features/harmony/harmony.dart';
 import '../features/tuner/tuner_controller.dart';
@@ -72,6 +75,7 @@ class AppActions {
     required this.drone,
     required this.metronome,
     required this.tuner,
+    required this.player,
     required this.navigation,
     required this.settings,
   });
@@ -79,6 +83,7 @@ class AppActions {
   final DroneController drone;
   final MetronomeController metronome;
   final TunerController tuner;
+  final PlayerController player;
   final AppNavigation navigation;
   final AppSettings settings;
 
@@ -95,12 +100,15 @@ class AppActions {
       name: 'get_state',
       description:
           'Returns what the app is doing now, without changing anything: the '
-          'section on screen (metronome, drone, tuner); the tuner (status '
+          'section on screen (metronome, drone, tuner, player); the tuner (status '
           'idle, starting, listening, permissionDenied or failed, and the '
           'last note heard with its cents off); the Harmony section, called '
           'drone (playing, note, voicing, chord, progression, style, held tone, '
           'current step of a progression); the metronome (playing, '
-          'tempo, time signature, subdivision, click on 2 and 4) and the '
+          'tempo, time signature, subdivision, click on 2 and 4); the '
+          'Player (the track open with its name and length in seconds, '
+          'playing, position in seconds, and the problem if the last file '
+          'could not be opened: unreadable or missing); and the '
           'settings (reference A, language, note and octave names, the '
           "tuner's instrument, in-tune zone and transposition, the circle, "
           'screen on, locked gestures). '
@@ -121,7 +129,7 @@ class AppActions {
       parameters: {
         'section': {
           'type': 'string',
-          'enum': ['tuner', 'drone', 'metronome'],
+          'enum': ['tuner', 'drone', 'metronome', 'player'],
         },
       },
       required: ['section'],
@@ -196,6 +204,41 @@ class AppActions {
           'Changes the Harmony settings (give any of them) without starting, '
           'stopping or changing section.',
       parameters: _droneParameters,
+    ),
+    const AppAction(
+      name: 'player_open',
+      description:
+          "Opens the Player and the phone's file chooser, where the person "
+          'picks an audio file (MP3, M4A, WAV, FLAC). Only the person can '
+          'choose; the answer comes when the chooser closes. In the web app '
+          'the chooser needs a touch on the page, so this action fails '
+          'there.',
+    ),
+    const AppAction(
+      name: 'player_play',
+      description:
+          'Opens the Player and plays the open track from where it is. If '
+          'the metronome or Harmony is playing they are paused, with a '
+          'notice and a Resume button. Fails if no track is open. In the web '
+          'app a link may not start the sound without a touch on the page.',
+    ),
+    const AppAction(
+      name: 'player_pause',
+      description: 'Pauses the Player; the position stays.',
+    ),
+    const AppAction(
+      name: 'player_seek',
+      description:
+          'Moves the Player to a point of the track, in seconds, beyond the '
+          'end meaning the end. Fails if no track is open.',
+      parameters: {
+        'seconds': {
+          'type': 'number',
+          'minimum': 0,
+          'description': 'Where to go, in seconds from the start of the track.',
+        },
+      },
+      required: ['seconds'],
     ),
     AppAction(
       name: 'set_reference_pitch',
@@ -506,6 +549,33 @@ class AppActions {
         // Like the Pause button: the tuner stays paused when its tab or the
         // app comes back.
         await tuner.pause();
+      case 'player_open':
+        if (kIsWeb) {
+          throw ActionError(
+            'In the web app the file chooser opens only from a touch on the '
+            'page: ask the person to touch the Player.',
+          );
+        }
+        navigation.open(AppSection.player);
+        await player.pick();
+      case 'player_play':
+        if (player.track == null) {
+          throw ActionError(
+            'No track is open: use player_open, or ask the person to choose '
+            'one in the Player.',
+          );
+        }
+        navigation.open(AppSection.player);
+        await player.start();
+      case 'player_pause':
+        await player.stop();
+      case 'player_seek':
+        final seconds = _number(args['seconds'], 'seconds');
+        if (seconds < 0) throw ActionError('"seconds" must be 0 or more.');
+        if (player.status != PlayerStatus.ready) {
+          throw ActionError('No track is open and ready to play.');
+        }
+        await player.seek(Duration(milliseconds: (seconds * 1000).round()));
       case 'drone_play':
         final change = _droneChange(args);
         // Each sound plays from its own section; on the tuner it would
@@ -749,6 +819,19 @@ class AppActions {
             ? drone.step
             : null,
         'audio_failed': drone.audioFailed,
+      },
+      'player': {
+        'track': player.track == null
+            ? null
+            : {
+                'name': player.track!.name,
+                'duration_s': player.status == PlayerStatus.ready
+                    ? _round(player.duration.inMilliseconds / 1000)
+                    : null,
+              },
+        'playing': player.isPlaying,
+        'position_s': _round(player.position.inMilliseconds / 1000),
+        'problem': player.problem?.name,
       },
       'metronome': {
         'playing': metronome.isPlaying,

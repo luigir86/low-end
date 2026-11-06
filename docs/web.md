@@ -4,7 +4,7 @@ Low End also runs in a browser, from the same code as the Android app. On an iPh
 
 **https://luigir86.github.io/low-end/**
 
-The Android app stays the main one: the web app has the same three sections, but an iPhone does not let a web page do everything an app can (see *Limits*).
+The Android app stays the main one: the web app has the same four sections, but an iPhone does not let a web page do everything an app can (see *Limits*).
 
 ## Installing it
 
@@ -25,6 +25,8 @@ The files are then kept on the phone: from the second opening it starts fast and
 | Microphone permission | Asked once | iOS may ask again, even at every opening |
 | "Open settings" after a no to the microphone | Yes | No: the message says where to allow it |
 | Keeps the screen on | Yes | Yes, from iOS 18.4 for an app on the Home Screen |
+| Player: choosing a file | Android's file chooser, the right to read the file is kept | The browser's file chooser, from a touch only (`player_open` fails); the track lasts as long as the page |
+| Player with the screen locked or a call | Plays on with the notification; a call or another player pauses it | The page's audio element: it may play on where the engine's sound stops (not yet tried on an iPhone), and a call may pause it without the app being told, so the middle can say Pause while nothing sounds: two touches play it again |
 | First opening | Instant | A few seconds (3.5 to 4 MB), then fast |
 | Action links | `lowend://action/...` | `https://luigir86.github.io/low-end/#/action/...` |
 

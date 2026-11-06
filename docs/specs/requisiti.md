@@ -6,7 +6,7 @@ Stato: **✓** realizzato e coperto da test automatici · **◐** realizzato, ve
 
 ## 1. Scopo e destinatari
 
-Low End è un'app gratuita e open source per **tutti i musicisti** (nata da un contrabbassista per gli amici dell'orchestra, ma la scheda dello store non parla di basso): un'**Armonia** che suona accordi e giri al pianoforte per suonarci sopra, un **Metronomo** che va a tempo con l'Armonia, un **Accordatore** cromatico. Android prima di tutto; per l'iPhone una web app (PWA) dallo stesso codice. Niente server, niente account, niente rete.
+Low End è un'app gratuita e open source per **tutti i musicisti** (nata da un contrabbassista per gli amici dell'orchestra, ma la scheda dello store non parla di basso): un'**Armonia** che suona accordi e giri al pianoforte per suonarci sopra, un **Metronomo** che va a tempo con l'Armonia, un **Accordatore** cromatico e un **Player** che suona un brano proprio rallentandolo e ripetendone un passaggio. Android prima di tutto; per l'iPhone una web app (PWA) dallo stesso codice. Niente server, niente account, niente rete.
 
 Fuori dallo scopo, per decisione presa: libreria PDF e conversione in MusicXML/MIDI (rimandate), timbri diversi dal pianoforte, account o cloud, gamification, registrazione, donazioni (né nell'app né su GitHub), tema chiaro, bilanciamento dei volumi tra le sezioni.
 
@@ -16,7 +16,7 @@ Fuori dallo scopo, per decisione presa: libreria PDF e conversione in MusicXML/M
 
 | Codice | Requisito | Stato | Test |
 | --- | --- | --- | --- |
-| RF-GEN-01 | Tre sezioni, nell'ordine Metronomo, Armonia, Accordatore. Le schede e lo scorrimento laterale (in orizzontale: verticale, su quadrante o barra) **solo navigano**: non avviano né fermano suoni. | ✓ | `playback_flow_test`, `widget_test` |
+| RF-GEN-01 | Quattro sezioni, nell'ordine Metronomo, Armonia, Accordatore, Player. Le schede e lo scorrimento laterale (in orizzontale: verticale, su quadrante o barra) **solo navigano**: non avviano né fermano suoni. | ✓ | `playback_flow_test`, `widget_test` |
 | RF-GEN-02 | Ogni sezione avvia e ferma il proprio suono dal centro del proprio quadrante. | ✓ | `playback_flow_test` |
 | RF-GEN-03 | L'app si riapre sulla sezione in cui era stata lasciata; alla prima installazione sull'Armonia. | ✓ | `memory_test` |
 | RF-GEN-04 | Mentre una sezione suona, la sua scheda mostra un punto che pulsa. | ✓ | `regression_test` |
@@ -121,11 +121,28 @@ Fuori dallo scopo, per decisione presa: libreria PDF e conversione in MusicXML/M
 | RF-WEB-04 | Il tasto silenzioso dell'iPhone non zittisce il click (sessione audio "playback"). | ○ | mai provato su iPhone |
 | RF-WEB-05 | Le funzioni che solo Android ha (notifica, cuffie staccate, percorso audio) hanno un sostituto o mancano in modo dichiarato in `docs/web.md`. | ✓ | `web_parts_test` |
 
+### 2.10 Player (RF-PLY)
+
+Quarto tab (deciso il 6/11): un brano proprio, scelto con il selettore di sistema, suonato dal quadrante. Stato ○ finché la PR che lo realizza non è unita.
+
+| Codice | Requisito | Stato | Test |
+| --- | --- | --- | --- |
+| RF-PLY-01 | Si sceglie un file audio con il selettore di sistema, senza permessi (Android `ACTION_OPEN_DOCUMENT`, web `<input type="file">`). Formati: quelli che legge il sistema (MP3, M4A/AAC, WAV, FLAC ovunque; Ogg/Opus su Android). I brani dei servizi in abbonamento non si aprono. | ○ | `player_controller_test` con file finti; telefono |
+| RF-PLY-02 | Il centro del quadrante avvia e mette in pausa. Senza brano il centro mostra "Scegli un brano" e il tocco apre il selettore. | ○ | `player_panel_test` |
+| RF-PLY-03 | Il toro è l'orologio del brano: il giro è la durata, da ore 12 in senso orario. Tacche ogni minuto (ogni 10 s sotto i 2 minuti, ogni 5 minuti oltre i 20), punto di ascolto che avanza, trascorso e durata al centro (m:ss). Toccare il toro sposta l'ascolto. | ○ | `player_ring_test`, `player_panel_test` |
+| RF-PLY-04 | Il Player suona da solo. Avviarlo mette in pausa Metronomo e Armonia con l'avviso "In pausa mentre ascolti" e "Riprendi"; avviare Metronomo o Armonia mette in pausa il Player, senza avviso. Entrare nel tab non ferma niente. Accordatore in ascolto, cuffie staccate, una chiamata o un altro lettore lo mettono in pausa come le altre sezioni. | ○ | `playback_rules_test`, `playback_flow_test` |
+| RF-PLY-05 | Notifica e schermo spento: titolo (o nome del file) e autore, play e pausa. | ○ | `playback_rules_test`; telefono |
+| RF-PLY-06 | A fine brano, senza loop, si ferma e torna all'inizio. | ○ | `player_controller_test` |
+| RF-PLY-07 | Errori chiari: "Questo file non si può aprire" (formato o protezione), "Il file non è più disponibile" (spostato o permesso perso). Il Player torna vuoto, l'app non si blocca. | ○ | `player_controller_test` |
+| RF-PLY-16 | Accessibilità: tutto si fa senza trascinare. Il toro si annuncia come cursore ("1:12 di 6:03") con aumenta e diminuisci di 10 s; il tempo non si annuncia da solo a ogni secondo. | ○ | `accessibility_test` |
+
+Azioni per assistenti (RF-LLM): `player_open`, `player_play`, `player_pause`, `player_seek`; `get_state` con il blocco `player`; `open_section` accetta `player`. Verifica: `app_actions_test` (golden).
+
 ## 3. Requisiti non funzionali
 
 | Codice | Requisito | Misura o criterio | Stato |
 | --- | --- | --- | --- |
-| RNF-AVV-01 | **Avvio velocissimo** su Android: niente di pesante prima del primo frame; motore audio al primo suono, microfono dopo il primo frame. | `startup_test`; `timeToFirstFrameMicros` da misurare con `--trace-startup` | ✓ test, ○ misura sul telefono mai registrata |
+| RNF-AVV-01 | **Avvio velocissimo** su Android: niente di pesante prima del primo frame; motore audio al primo suono, microfono dopo il primo frame. Il Player non crea il lettore e non legge file all'avvio (RF-PLY). | `startup_test`; `timeToFirstFrameMicros` da misurare con `--trace-startup` | ✓ test, ○ misura sul telefono mai registrata |
 | RNF-AVV-02 | Avvio della web app: primo frame con meno di 3 MB scaricati; avvio dalla cache sotto 2 s. | banco `perf-web` (27/10: 1,8 s in cache) | ◐ |
 | RNF-LAT-01 | **Dal tocco al suono** (deciso il 4/11), Android e web, su un telefono come il S20 FE: sempre **sotto 1 s**, obiettivo **0,5 s**, walking compreso. Vale per il primo suono; un cambio mentre suona segue RF-ARM-15 e RF-MET-08, dove aspettare il battito giusto è voluto. | Android mai misurato; web walking 0,7 s (PR #87) | ◐ |
 | RNF-LAT-02 | La **fluidità conta più della velocità** (deciso il 4/11): meglio un'attesa visibile e un ingresso a tempo che un suono rapido ma brusco. | ascolto | ○ |
@@ -137,7 +154,7 @@ Fuori dallo scopo, per decisione presa: libreria PDF e conversione in MusicXML/M
 | RNF-UX-02 | Ogni testo visibile in inglese (riferimento), italiano, spagnolo e francese; niente testi o colori scritti nel codice. | `.arb`, `style_test` | ✓ |
 | RNF-UX-03 | Layout senza overflow da 320×568 al tablet, in orizzontale, testo fino a 2×, in italiano e inglese, e in francese e spagnolo (le lingue più lunghe) sui telefoni più stretti. | `review/layout_review_test`, `dial_alignment_test` | ✓ |
 | RNF-ACC-01 | **WCAG 2.1 AA** (volontario, Legge Stanca): etichette per lettori di schermo, bersagli di tocco, contrasto ≥ 3:1 sui controlli e 4,5:1 sul testo, colore mai unico segnale, animazioni ridotte rispettate. | `accessibility_test` | ✓ |
-| RNF-PRIV-01 | **Nessuna rete**: niente codice di rete in `lib/`, nessun permesso `INTERNET` in release, nessun dato raccolto. | `docs/offline.md`, `PRIVACY.md` | ✓ |
+| RNF-PRIV-01 | **Nessuna rete**: niente codice di rete in `lib/`, nessun permesso `INTERNET` né `ACCESS_NETWORK_STATE` in release (il secondo lo porta ExoPlayer e si toglie nel manifest), nessun dato raccolto. | `docs/offline.md`, `PRIVACY.md` | ✓ |
 | RNF-OSS-01 | **Open source MIT**; ogni componente e campione con licenza compatibile e citata (Salamander pubblico dominio, Meatbass CC0, Edwin e Noto Music OFL). | `THIRD_PARTY_NOTICES.md`, audit del 24/10 | ✓ |
 | RNF-LLM-01 | **LLM first**: nessuna funzione solo da dita (vedi RF-LLM-01); la documentazione per assistenti aggiornata con il codice. | `app_actions_test` | ✓ |
 | RNF-TEST-01 | Tutto si prova senza telefono: ogni cosa esterna dietro un'interfaccia con un gemello muto o finto. | ~430 test, CI su ogni PR | ✓ |

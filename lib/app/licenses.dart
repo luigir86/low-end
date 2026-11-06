@@ -12,6 +12,11 @@ void registerAssetLicenses() {
     yield LicenseEntryWithLineBreaks([
       'Noto Music',
     ], await rootBundle.loadString('assets/fonts/OFL-NotoMusic.txt'));
+    // The Player's system player on Android, which the just_audio package
+    // brings with it (its own licence is listed with the packages).
+    yield LicenseEntryWithLineBreaks([
+      'AndroidX Media3 (ExoPlayer)',
+    ], await rootBundle.loadString('assets/licenses/Apache-2.0.txt'));
     yield const LicenseEntryWithLineBreaks(
       ['Salamander Grand Piano V3'],
       'Piano recordings by Alexander Holm, released into the public domain '

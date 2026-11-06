@@ -2,11 +2,11 @@
 
 *Italiano: [manuale-utente.md](manuale-utente.md).* What every control does is also written, with a code each, in [the requirements](specs/requisiti.md) (in Italian); where this guide says something else, the requirements are right.
 
-Low End is a metronome, a piano harmony section and a tuner in one app. It was made by an amateur double bass player with the friends from the orchestra in mind, and it is meant for every musician. It is free, shows no ads, collects nothing and needs no internet. It always has the same dark look, bronze on ebony; there is no theme to choose.
+Low End is a metronome, a piano harmony section, a tuner and a player for your own recordings in one app. It was made by an amateur double bass player with the friends from the orchestra in mind, and it is meant for every musician. It is free, shows no ads, collects nothing and needs no internet. It always has the same dark look, bronze on ebony; there is no theme to choose.
 
-## The three sections
+## The four sections
 
-The tabs at the bottom (on the left when the phone is sideways) are **Metronome**, **Harmony** and **Tuner**. The app opens on the section you left it on (on Harmony the first time).
+The tabs at the bottom (on the left when the phone is sideways) are **Metronome**, **Harmony**, **Tuner** and **Player**. The app opens on the section you left it on (on Harmony the first time).
 
 - A **tab** only takes you to its section: it never starts or stops anything. **Each section starts and stops its own sound from the middle of its dial.**
 - **Swipe** left or right to change section. With the phone turned sideways the tabs move to a column on the left and the settings gear stays top right: **swipe up or down** over the dial or the tabs (not over the rows on the right, which may scroll) to change section. It has to be a quick flick: a slow drag does nothing. The first time you turn the phone sideways a short hint says so.
@@ -51,6 +51,15 @@ Twelve keys round a dial (by default in the circle of fifths; you can ask for se
 - The tuner stops listening when you leave the section, open the settings or send the app to the background.
 - The sound is analysed on the phone and never recorded or sent anywhere.
 - If you said no to the microphone, allow it in the phone settings under *Apps › Low End › Permissions*; the app shows a button that opens that page.
+
+## Player
+
+Plays a track of your own: a recording of the rehearsal, a part sent by the conductor, a song you bought. Pick it with the phone's file chooser; the app asks for no permission and sends the file nowhere. MP3, M4A, WAV and FLAC play everywhere (Ogg and Opus on Android too). Tracks from a streaming subscription cannot be opened: they are not files.
+
+- **Choosing a track:** touch the middle of the dial (it says *Choose a track*) or the **Track** field under it. The track opens ready, not playing.
+- **The ring is the clock of the track:** a whole turn is its length, from 12 o'clock clockwise, with a tick every minute (every 10 seconds under two minutes, every 5 minutes over twenty) and a point where you are listening. **Touch the ring** to go to that point. The middle shows the time (*1:12 / 6:03*) and plays and pauses.
+- **The Player plays alone.** Starting it pauses the metronome and Harmony, with a *Resume* button; starting the metronome or Harmony pauses the Player. Entering its tab stops nothing. The tuner listening, a call, headphones pulled out and another app taking the sound pause it as they do the other sections. It also plays with the screen off, with the media notification showing the title.
+- If a file cannot be opened, or is no longer there, the app says so under the field and the Player stays empty.
 
 ## Settings
 

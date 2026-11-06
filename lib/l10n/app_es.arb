@@ -180,5 +180,14 @@
   "transpositionTitle": "Instrumento transpositor",
   "transpositionSubtitle": "Para instrumentos en Si♭, Mi♭ y Fa, el afinador cromático indica la nota escrita",
   "transpositionConcert": "Sonido real",
-  "transpositionKey": "en {key}"
+  "transpositionKey": "en {key}",
+  "playerTab": "Escucha",
+  "playerTrack": "Pista",
+  "playerChoose": "Elige una pista",
+  "playerPlay": "Reproducir",
+  "playerPause": "Pausa",
+  "playerTimeOf": "{position} de {duration}",
+  "pausedForPlayer": "En pausa mientras escuchas",
+  "playerUnreadable": "No se puede abrir este archivo.",
+  "playerMissing": "El archivo ya no está disponible."
 }

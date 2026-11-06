@@ -8,7 +8,7 @@ The actions live in [`lib/actions/app_actions.dart`](../lib/actions/app_actions.
 
 The rules below are a summary for assistants; the full behaviour, one code per rule, is in [the requirements](specs/requisiti.md) (in Italian), and where the two differ the requirements are right.
 
-Three sections: **Metronome**, **Harmony** (Armonia) and **Tuner**. Harmony keeps its original names in the actions: `drone_play`, `drone_stop`, `drone_set` and the section id `drone`. Know these rules before calling anything:
+Four sections: **Metronome**, **Harmony** (Armonia), **Tuner** and **Player**. Harmony keeps its original names in the actions: `drone_play`, `drone_stop`, `drone_set` and the section id `drone`. Know these rules before calling anything:
 
 - **Each sound has its own switch.** The metronome, Harmony and the tuner are started and stopped on their own, from their own section (the middle of the dial). The tabs and the swipes only move between sections.
 - **A start action opens its section.** `metronome_start` shows the metronome, `drone_play` shows Harmony, `tuner_start` shows the tuner. Stop actions (`metronome_stop`, `drone_stop`, `tuner_stop`) and all the `*_set` actions stay on the current section.
@@ -18,6 +18,7 @@ Three sections: **Metronome**, **Harmony** (Armonia) and **Tuner**. Harmony keep
   - `tuner_start` always listens. If the metronome or Harmony is playing, it is **paused** (not forgotten): the player sees a notice with a "Resume" button, as when touching the tuner's dial. Nothing resumes by itself, and no action resumes it either: call `metronome_start` / `drone_play` again (which also leaves the tuner).
   - `tuner_stop` pauses the tuner like the Pause button: it stays paused, also when coming back to the section, until `tuner_start` or a touch on the dial.
   - `metronome_start` and `drone_play` leave the tuner, so its microphone turns off.
+- **The Player plays alone.** `player_play` plays the track open, and pauses the metronome and Harmony if they play (the player sees a notice with a "Resume" button); `metronome_start`, `drone_play` and `tuner_start` pause the Player, without a notice. Only the person can choose the file: `player_open` opens the phone's file chooser and the answer comes when it closes. In the web app the chooser needs a touch on the page, so `player_open` fails there, and a link may not start the sound without a touch.
 - **Locking the gestures** ("Blocca i gesti" in the settings) only disables swiping between sections. Actions, including `open_section`, still work.
 - Loudness follows the phone's media volume; there is no volume or balance action. The piano (walking bass included) is in equal temperament; the held tone (style `tone`) is in pure intervals, so that it does not beat and can be tuned against.
 - The app is always dark (bronze theme); there is no theme setting.
@@ -26,10 +27,14 @@ Three sections: **Metronome**, **Harmony** (Armonia) and **Tuner**. Harmony keep
 
 | Action | Arguments | What it does |
 |---|---|---|
-| `get_state` | none | Changes nothing. Returns the section on screen, the tuner (status `idle`, `starting`, `listening`, `permissionDenied` or `failed`; the last reading with target note, played note, `written` note for a transposing instrument, frequency, cents, `in_tune`), Harmony (`playing`, note, `frequency_hz`, voicing, chord, progression, style, `held_tone`, `flat`, `progression_step`, `audio_failed`), the metronome (`playing`, `bpm`, `time_signature`, `subdivision`, `backbeat`) and the settings (reference A, language, note names, transposition, `octave_numbering`, `tuner_instrument`, `in_tune_cents`, `circle_layout`, `keep_screen_on`, `lock_gestures`). With an instrument chosen, the target is its nearest string |
-| `open_section` | `section`: `tuner`, `drone` (Harmony) or `metronome` | Shows the section. Starts and stops nothing, except the tuner's microphone as described above |
+| `get_state` | none | Changes nothing. Returns the section on screen, the tuner (status `idle`, `starting`, `listening`, `permissionDenied` or `failed`; the last reading with target note, played note, `written` note for a transposing instrument, frequency, cents, `in_tune`), Harmony (`playing`, note, `frequency_hz`, voicing, chord, progression, style, `held_tone`, `flat`, `progression_step`, `audio_failed`), the metronome (`playing`, `bpm`, `time_signature`, `subdivision`, `backbeat`), the Player (`track`: its `name` and `duration_s`, or null; `playing`; `position_s`; `problem`: `unreadable` or `missing` when the last file could not be opened) and the settings (reference A, language, note names, transposition, `octave_numbering`, `tuner_instrument`, `in_tune_cents`, `circle_layout`, `keep_screen_on`, `lock_gestures`). With an instrument chosen, the target is its nearest string |
+| `open_section` | `section`: `tuner`, `drone` (Harmony), `metronome` or `player` | Shows the section. Starts and stops nothing, except the tuner's microphone as described above |
 | `tuner_start` | none | Opens the tuner and listens; pauses the metronome and Harmony if they play. The answer says `listening`, or `permissionDenied` / `failed` |
 | `tuner_stop` | none | Pauses the tuner and turns the microphone off, until `tuner_start` |
+| `player_open` | none | Shows the Player and opens the phone's file chooser; the person picks an audio file (MP3, M4A, WAV, FLAC) and the track opens, not playing. Fails in the web app |
+| `player_play` | none | Shows the Player and plays the open track from where it is; pauses the metronome and Harmony if they play. Fails if no track is open |
+| `player_pause` | none | Pauses the Player; the position stays |
+| `player_seek` | `seconds` (required, 0 or more) | Moves to a point of the track; beyond the end means the end. Fails if no track is open |
 | `drone_play` | all optional: `song`, `note`, `voicing`, `chord`, `progression`, `style`, `held_tone`, `flat` | Opens Harmony, applies the arguments and plays the piano if it was not playing (if it was, only the arguments change). See below for the values |
 | `drone_stop` | none | Stops Harmony, also during the countdown |
 | `drone_set` | same as `drone_play` | Changes Harmony without starting, stopping or changing section |

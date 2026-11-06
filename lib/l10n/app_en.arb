@@ -412,5 +412,27 @@
         "type": "String"
       }
     }
-  }
+  },
+  "playerTab": "Player",
+  "@playerTab": {
+    "description": "Name of the tab where the person plays a track of their own to study it. Short: it has to fit under an icon."
+  },
+  "playerTrack": "Track",
+  "playerChoose": "Choose a track",
+  "playerPlay": "Play",
+  "playerPause": "Pause",
+  "playerTimeOf": "{position} of {duration}",
+  "@playerTimeOf": {
+    "description": "The time of the listening point in a track, read by screen readers: 1:12 of 6:03.",
+    "placeholders": {
+      "position": {"type": "String"},
+      "duration": {"type": "String"}
+    }
+  },
+  "pausedForPlayer": "Paused while you listen",
+  "@pausedForPlayer": {
+    "description": "Notice shown when the metronome and Harmony were paused because the Player started; it has a Resume button."
+  },
+  "playerUnreadable": "This file can't be opened.",
+  "playerMissing": "The file is no longer available."
 }

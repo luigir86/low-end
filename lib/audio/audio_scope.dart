@@ -4,11 +4,12 @@ import '../actions/app_actions.dart';
 import '../app/app_navigation.dart';
 import '../app/settings.dart';
 import '../features/metronome/metronome_controller.dart';
+import '../features/player/player_controller.dart';
 import '../features/harmony/drone_controller.dart';
 import '../features/tuner/tuner_controller.dart';
 
 /// Makes the app's sound sources, the tuner listening to the microphone,
-/// the navigation, the action layer and the settings available to every
+/// the Player, the navigation, the action layer and the settings available to every
 /// screen.
 class AudioScope extends InheritedWidget {
   const AudioScope({
@@ -16,6 +17,7 @@ class AudioScope extends InheritedWidget {
     required this.drone,
     required this.metronome,
     required this.tuner,
+    required this.player,
     required this.navigation,
     required this.actions,
     required this.settings,
@@ -25,6 +27,7 @@ class AudioScope extends InheritedWidget {
   final DroneController drone;
   final MetronomeController metronome;
   final TunerController tuner;
+  final PlayerController player;
   final AppNavigation navigation;
   final AppActions actions;
   final AppSettings settings;
@@ -40,6 +43,7 @@ class AudioScope extends InheritedWidget {
       drone != oldWidget.drone ||
       metronome != oldWidget.metronome ||
       tuner != oldWidget.tuner ||
+      player != oldWidget.player ||
       navigation != oldWidget.navigation ||
       actions != oldWidget.actions ||
       settings != oldWidget.settings;

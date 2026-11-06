@@ -66,6 +66,15 @@ jobs:
       # is compiled once instead of once per processor type. The .aab for the
       # Play Store is built on the PC and still holds every type.
       - run: flutter build apk --debug --target-platform android-arm64
+      # The Player's system player (ExoPlayer) declares ACCESS_NETWORK_STATE;
+      # the app's manifest removes it (RNF-PRIV-01, docs/offline.md). INTERNET
+      # is allowed here: the debug manifest adds it for the tools.
+      - name: The merged manifest holds no ACCESS_NETWORK_STATE
+        run: |
+          files=$(find build/app -path '*merged_manifest*' -name AndroidManifest.xml)
+          echo "$files"
+          test -n "$files"
+          ! grep -l ACCESS_NETWORK_STATE $files
 
   # The same for the web app (docs/web.md); web.yml publishes it.
   web:

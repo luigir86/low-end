@@ -1,6 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:low_end/audio/track_files.dart';
+import 'package:low_end/audio/track_output.dart';
+import 'package:low_end/features/player/player_controller.dart';
 import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/features/metronome/metronome_controller.dart';
 import 'package:low_end/actions/app_actions.dart';
@@ -31,16 +34,25 @@ void main() {
   late FakeMicInput mic;
   late AppSettings settings;
   late AppActions actions;
+  late SilentTrackOutput track;
+  late FakeTrackFiles files;
+  late AppNavigation navigation;
 
   setUp(() {
     output = SilentToneOutput();
     mic = FakeMicInput();
     settings = AppSettings();
+    track = SilentTrackOutput();
+    files = FakeTrackFiles(
+      next: const TrackRef(uri: 'content://song', name: 'Blue Bossa.mp3'),
+    );
+    navigation = AppNavigation();
     actions = AppActions(
       drone: DroneController(output),
       metronome: MetronomeController(SilentClickOutput()),
       tuner: TunerController(mic),
-      navigation: AppNavigation(),
+      player: PlayerController(track, files),
+      navigation: navigation,
       settings: settings,
     );
   });
@@ -295,6 +307,89 @@ void main() {
     );
     expect(AppActions.parseLink(Uri.parse('/tuner_stop'))?.$1, 'tuner_stop');
     expect(AppActions.parseLink(Uri.parse('/settings')), isNull);
+  });
+
+  group('the Player', () {
+    Map<String, Object?> player(Map<String, Object?> result) =>
+        (result['state']! as Map)['player']! as Map<String, Object?>;
+
+    test('is in the state: no track, then the one open', () async {
+      var state = player(await actions.call('get_state'));
+      expect(state, {
+        'track': null,
+        'playing': false,
+        'position_s': 0.0,
+        'problem': null,
+      });
+      await actions.call('player_open');
+      state = player(await actions.call('get_state'));
+      expect(state['track'], {'name': 'Blue Bossa.mp3', 'duration_s': 360.0});
+      expect(state['playing'], false);
+    });
+
+    test('player_open shows the Player and opens the chooser', () async {
+      final result = await actions.call('player_open');
+      expect(result['ok'], isTrue);
+      expect(files.picks, 1);
+      expect(navigation.section, AppSection.player);
+      expect(player(result)['track'], isNotNull);
+    });
+
+    test('a file that cannot be opened is in the state', () async {
+      track.failWith = TrackOpenException(TrackProblem.missing);
+      final result = await actions.call('player_open');
+      expect(result['ok'], isTrue);
+      expect(player(result)['problem'], 'missing');
+      expect(player(result)['track'], isNull);
+    });
+
+    test('plays, pauses and moves, only with a track', () async {
+      var result = await actions.call('player_play');
+      expect(result['ok'], isFalse);
+      expect('${result['error']}', contains('player_open'));
+      result = await actions.call('player_seek', {'seconds': 10});
+      expect(result['ok'], isFalse);
+
+      await actions.call('player_open');
+      navigation.open(AppSection.metronome);
+      result = await actions.call('player_play');
+      expect(result['ok'], isTrue);
+      // A start opens its own section.
+      expect(navigation.section, AppSection.player);
+      expect(player(result)['playing'], isTrue);
+      expect(track.playing, isTrue);
+
+      result = await actions.call('player_seek', {'seconds': 72.5});
+      expect(player(result)['position_s'], 72.5);
+      result = await actions.call('player_seek', {'seconds': 9999});
+      expect(player(result)['position_s'], 360.0);
+
+      result = await actions.call('player_pause');
+      expect(player(result)['playing'], isFalse);
+      expect(track.playing, isFalse);
+      expect(player(result)['position_s'], 360.0);
+    });
+
+    test('player_seek checks its argument', () async {
+      await actions.call('player_open');
+      for (final bad in [-1, 'soon', null]) {
+        final result = await actions.call('player_seek', {'seconds': bad});
+        expect(result['ok'], isFalse, reason: '$bad');
+      }
+      expect((await actions.call('player_seek'))['ok'], isFalse);
+    });
+
+    test('open_section shows it; a link seeks with a number', () async {
+      var result = await actions.call('open_section', {'section': 'player'});
+      expect(result['ok'], isTrue);
+      expect(navigation.section, AppSection.player);
+      expect((result['state']! as Map)['section'], 'player');
+      final (name, args) = AppActions.parseLink(
+        Uri.parse('lowend://action/player_seek?seconds=12'),
+      )!;
+      expect(name, 'player_seek');
+      expect(args, {'seconds': 12});
+    });
   });
 
   testWidgets('a link sent to the running app starts the drone', (

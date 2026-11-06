@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 /// The sections of the app, one per tab, in tab order.
-enum AppSection { metronome, drone, tuner }
+enum AppSection { metronome, drone, tuner, player }
 
 /// Which section is on screen. Kept outside the widgets so that taps and
 /// actions from an assistant (see `lib/actions/`) move the app the same way.

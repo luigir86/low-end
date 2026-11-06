@@ -1,6 +1,6 @@
 # Low End (Flutter, Android)
 
-A free metronome, piano harmony ("Armonia", `drone` in the code) and tuner for musicians. No backend, no network, no tracking. Architecture: `docs/architecture.md`; actions for assistants: `docs/llm.md`.
+A free metronome, piano harmony ("Armonia", `drone` in the code), tuner and track player for musicians. No backend, no network, no tracking. Architecture: `docs/architecture.md`; actions for assistants: `docs/llm.md`.
 
 ## Commands
 
@@ -16,13 +16,14 @@ flutter build web --wasm --release --no-web-resources-cdn   # the web app for iP
 
 ## Structure
 
-- `lib/app/` shell, settings, theme (always dark, bronze), guide; `lib/features/{metronome,tuner,harmony,songs}/` controllers + screens; `lib/audio/` sound and microphone behind interfaces with silent/fake twins for tests; `lib/actions/app_actions.dart` the action layer; `lib/l10n/` English (reference), Italian, Spanish and French.
+- `lib/app/` shell, settings, theme (always dark, bronze), guide; `lib/features/{metronome,tuner,harmony,songs,player}/` controllers + screens; `lib/audio/` sound and microphone behind interfaces with silent/fake twins for tests; `lib/actions/app_actions.dart` the action layer; `lib/l10n/` English (reference), Italian, Spanish and French.
 - State is plain `ChangeNotifier` controllers passed by `AudioScope`; no state-management package.
 
 ## Product rules (keep them true)
 
-- Three sections; tabs only navigate. Each section starts/stops its own sound from the centre of its dial. No balance setting.
+- Four sections (metronome, Harmony, tuner, Player); tabs only navigate. Each section starts/stops its own sound from the centre of its dial. No balance setting.
 - Entering the tuner stops nothing; touching the tuner dial (or `tuner_start`) pauses the metronome and Harmony with a "Resume" snackbar.
+- The Player plays alone: starting it pauses the metronome and Harmony with a "Resume" snackbar; starting either of them pauses the Player; touching the tuner dial pauses it too.
 - Harmony started while the click plays enters on the metronome's bar line with a countdown (and vice versa).
 - "Lock gestures" only disables swiping between sections.
 - The web app (`web/`, docs/web.md) is the same code: anything Android-only (MethodChannel, `dart:io`, `Isolate.run`) needs a web path too; check it with the web build.

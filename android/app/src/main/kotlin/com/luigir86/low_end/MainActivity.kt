@@ -23,9 +23,18 @@ class MainActivity : AudioServiceActivity() {
         volumeControlStream = AudioManager.STREAM_MUSIC
     }
 
+    // The Player's file chooser answers here; the plugins get the rest.
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        TrackFiles.onActivityResult(requestCode, resultCode, data)
+        @Suppress("DEPRECATION")
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         AudioRoute.attach(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
+        TrackFiles.attach(this, flutterEngine.dartExecutor.binaryMessenger)
         // Android 13+ shows the notification only if the user allows it.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "low_end/notifications")
             .setMethodCallHandler { call, result ->
