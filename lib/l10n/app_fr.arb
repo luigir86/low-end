@@ -208,7 +208,6 @@
   "playerHintPlaceEnd": "Touchez l'anneau là où le passage se termine",
   "playerHintNeedStart": "Placez maintenant A là où le passage commence",
   "playerHintNeedEnd": "Placez maintenant B là où le passage se termine",
-  "playerHintTune": "Ajustez avec ‹ et ›",
   "playerFlagStart": "Drapeau A, début du passage",
   "playerFlagEnd": "Drapeau B, fin du passage"
 }

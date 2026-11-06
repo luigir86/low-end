@@ -7,7 +7,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart' show kLongPressTimeout;
-import 'package:flutter/semantics.dart' show SemanticsAction;
+import 'package:flutter/semantics.dart' show SemanticsAction, SemanticsNode;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/home_shell.dart';
@@ -21,6 +21,7 @@ import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/audio/track_files.dart';
 import 'package:low_end/audio/track_output.dart';
 import 'package:low_end/features/player/player_controller.dart';
+import 'package:low_end/features/player/passage_strip.dart';
 import 'package:low_end/features/player/player_dial.dart';
 import 'package:low_end/features/player/player_panel.dart';
 import 'package:low_end/features/player/ring_wave.dart';
@@ -479,7 +480,167 @@ void main() {
       await tester.tapAt(corner(tester, LoopEdge.start));
       await tester.tapAt(onRing(tester, a));
       await screen.settle();
-      expect(message(tester), 'Fine-tune with ‹ and ›');
+      // Both flags are on the ring: the strip is the first row now.
+      expect(find.byKey(PlayerPanel.messageKey), findsNothing);
+      expect(find.byKey(PassageStrip.stripKey), findsOneWidget);
+    });
+
+    testWidgets('with both flags placed the strip takes the place of the '
+        'messages, and gives it back when one goes home', (tester) async {
+      final screen = await track(tester);
+      expect(find.byKey(PassageStrip.stripKey), findsNothing);
+      await screen.player.place(LoopEdge.start, a);
+      await screen.settle();
+      expect(find.byKey(PassageStrip.stripKey), findsNothing);
+      await screen.player.place(LoopEdge.end, b);
+      await screen.settle();
+      expect(find.byKey(PassageStrip.stripKey), findsOneWidget);
+      expect(find.byKey(PlayerPanel.messageKey), findsNothing);
+      // A flag placed too near the other sends it back: no passage.
+      await screen.player.place(LoopEdge.end, a);
+      await screen.settle();
+      expect(find.byKey(PassageStrip.stripKey), findsNothing);
+      expect(find.byKey(PlayerPanel.messageKey), findsOneWidget);
+    });
+
+    testWidgets('dragging a pole of the strip moves that flag, without '
+        'changing section', (tester) async {
+      final screen = await track(tester);
+      await screen.player.setLoop(a, b);
+      await screen.settle();
+      final strip = tester.getRect(find.byKey(PassageStrip.stripKey));
+      // The window is the passage with a quarter of its length each side:
+      // A at a fifth of the way and B at four fifths of the inner width.
+      final inner = strip.width - 2 * PassageStrip.margin;
+      final startX =
+          strip.left +
+          PassageStrip.margin +
+          inner *
+              RingWindow.passage(
+                a,
+                b,
+                const Duration(minutes: 6),
+              ).fractionOf(a);
+      final from = Offset(startX, strip.center.dy);
+      final gesture = await tester.startGesture(from);
+      await tester.pump();
+      for (var i = 1; i <= 6; i++) {
+        await gesture.moveTo(from + Offset(i * 8.0, 0));
+        await tester.pump(const Duration(milliseconds: 20));
+      }
+      await gesture.up();
+      await screen.settle();
+      expect(screen.scope.navigation.section, AppSection.player);
+      expect(screen.player.loopStart! > a, isTrue);
+      expect(screen.player.loopEnd, b);
+      expect(screen.player.activeEdge, LoopEdge.start);
+    });
+
+    testWidgets('a touch on a pole makes that flag the active one', (
+      tester,
+    ) async {
+      final screen = await track(tester);
+      await screen.player.setLoop(a, b);
+      await screen.settle();
+      expect(screen.player.activeEdge, LoopEdge.end);
+      final strip = tester.getRect(find.byKey(PassageStrip.stripKey));
+      final inner = strip.width - 2 * PassageStrip.margin;
+      await tester.tapAt(
+        Offset(
+          strip.left +
+              PassageStrip.margin +
+              inner *
+                  RingWindow.passage(
+                    a,
+                    b,
+                    const Duration(minutes: 6),
+                  ).fractionOf(a),
+          strip.center.dy,
+        ),
+      );
+      await screen.settle();
+      expect(screen.player.activeEdge, LoopEdge.start);
+      expect(screen.player.loopStart, a);
+    });
+
+    testWidgets('a touch elsewhere on the strip moves the listening point, '
+        'and outside the passage turns the loop off', (tester) async {
+      final screen = await track(tester);
+      await screen.player.setLoop(a, b);
+      await screen.settle();
+      final strip = tester.getRect(find.byKey(PassageStrip.stripKey));
+      final inner = strip.width - 2 * PassageStrip.margin;
+      await tester.tapAt(
+        Offset(strip.left + PassageStrip.margin + inner * 0.5, strip.center.dy),
+      );
+      await screen.settle();
+      expect(screen.player.position.inMilliseconds, closeTo(90000, 2000));
+      expect(screen.player.looping, isTrue);
+      await tester.tapAt(
+        Offset(strip.left + PassageStrip.margin + 2, strip.center.dy),
+      );
+      await screen.settle();
+      expect(screen.player.looping, isFalse);
+    });
+
+    testWidgets('the strip holds at a narrow phone and at twice the text', (
+      tester,
+    ) async {
+      final screen = await _open(tester, size: const Size(840, 1800));
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await screen.player.open(_song);
+      await screen.settle();
+      await screen.player.setLoop(a, b);
+      await screen.settle();
+      expect(find.byKey(PassageStrip.stripKey), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      final strip = tester.getRect(find.byKey(PassageStrip.stripKey));
+      expect(strip.height, greaterThanOrEqualTo(PassageStrip.height));
+      expect(strip.width, lessThanOrEqualTo(420));
+    });
+
+    testWidgets('a swipe on the strip away from the poles changes section', (
+      tester,
+    ) async {
+      final screen = await track(tester);
+      await screen.player.setLoop(a, b);
+      await screen.settle();
+      final strip = tester.getRect(find.byKey(PassageStrip.stripKey));
+      await tester.flingFrom(
+        Offset(strip.left + strip.width * 0.5, strip.center.dy),
+        const Offset(400, 0),
+        1000,
+      );
+      await tester.pumpAndSettle();
+      expect(screen.scope.navigation.section, AppSection.drone);
+      expect(screen.player.loopStart, a);
+    });
+
+    testWidgets('the strip has a slider for each flag, a tenth of a second '
+        'a step', (tester) async {
+      final screen = await track(tester);
+      await screen.player.setLoop(a, b);
+      await screen.settle();
+      final handle = tester.ensureSemantics();
+      expect(find.bySemanticsLabel('Start 1:00.00'), findsOneWidget);
+      expect(find.bySemanticsLabel('End 2:00.00'), findsOneWidget);
+      // ignore: deprecated_member_use
+      final owner = tester.binding.pipelineOwner.semanticsOwner!;
+      SemanticsNode? node;
+      void visit(SemanticsNode n) {
+        if (n.label == 'End 2:00.00') node = n;
+        n.visitChildren((c) {
+          visit(c);
+          return true;
+        });
+      }
+
+      visit(owner.rootSemanticsNode!);
+      owner.performAction(node!.id, SemanticsAction.increase);
+      await tester.pump();
+      expect(screen.player.loopEnd, b + const Duration(milliseconds: 100));
+      handle.dispose();
     });
 
     testWidgets('a file that fails is said in the same line, as an error', (

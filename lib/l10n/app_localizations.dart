@@ -1350,12 +1350,6 @@ abstract class AppLocalizations {
   /// **'Now bring B to where the passage ends'**
   String get playerHintNeedEnd;
 
-  /// Hint under the Player dial once both flags A and B are on the ring: the arrows next to the loop switch move the active one.
-  ///
-  /// In en, this message translates to:
-  /// **'Fine-tune with ‹ and ›'**
-  String get playerHintTune;
-
   /// Screen reader name of flag A in the corner of the Player dial; activating it marks the start of the passage where the track is heard.
   ///
   /// In en, this message translates to:

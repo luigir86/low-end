@@ -726,9 +726,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Placez maintenant B là où le passage se termine';
 
   @override
-  String get playerHintTune => 'Ajustez avec ‹ et ›';
-
-  @override
   String get playerFlagStart => 'Drapeau A, début du passage';
 
   @override

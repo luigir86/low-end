@@ -208,7 +208,6 @@
   "playerHintPlaceEnd": "Tocca l'anello dove finisce il passaggio",
   "playerHintNeedStart": "Ora porta A dove inizia il passaggio",
   "playerHintNeedEnd": "Ora porta B dove finisce il passaggio",
-  "playerHintTune": "Ritocca con ‹ e ›",
   "playerFlagStart": "Bandiera A, inizio del passaggio",
   "playerFlagEnd": "Bandiera B, fine del passaggio"
 }

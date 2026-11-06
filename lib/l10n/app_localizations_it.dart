@@ -720,9 +720,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get playerHintNeedEnd => 'Ora porta B dove finisce il passaggio';
 
   @override
-  String get playerHintTune => 'Ritocca con ‹ e ›';
-
-  @override
   String get playerFlagStart => 'Bandiera A, inizio del passaggio';
 
   @override

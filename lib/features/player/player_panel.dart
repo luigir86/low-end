@@ -9,6 +9,7 @@ import '../../widgets/number_sheet.dart';
 import '../../widgets/row_controls.dart';
 import '../../widgets/step_button.dart';
 import 'player_controller.dart';
+import 'passage_strip.dart';
 import 'player_dial.dart';
 
 /// The Player: plays a track of the person's own, chosen with the system's
@@ -43,7 +44,7 @@ class PlayerPanel extends StatelessWidget {
       builder: (context, _) {
         return DialLayout(
           dial: PlayerDial(player: player),
-          header: _MessageRow(player: player),
+          header: _FirstRow(player: player),
           upper: _ControlRow(player: player),
           lower: LabeledField(
             key: trackFieldKey,
@@ -78,11 +79,38 @@ class PlayerPanel extends StatelessWidget {
   }
 }
 
-/// The first row, under the dial: a word on what is wrong with the file, or
+/// The first row, under the dial: the strip of the passage once both flags are
+/// on the ring, else the line of messages (RF-PLY-17, RF-PLY-18); a fault of
+/// the file always takes the line.
+class _FirstRow extends StatelessWidget {
+  const _FirstRow({required this.player});
+
+  final PlayerController player;
+
+  @override
+  Widget build(BuildContext context) {
+    final strip =
+        player.status == PlayerStatus.ready &&
+        player.hasLoop &&
+        player.problem == null;
+    return AnimatedSwitcher(
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : Durations.medium2,
+      switchInCurve: Easing.standard,
+      switchOutCurve: Easing.standard,
+      child: strip
+          ? PassageStrip(key: const ValueKey('strip'), player: player)
+          : _MessageRow(key: const ValueKey('message'), player: player),
+    );
+  }
+}
+
+/// The line of messages, under the dial: a word on what is wrong with the file, or
 /// else how to choose the passage that repeats and, once there is one, how to
 /// adjust it (RF-PLY-18). Nothing without a track.
 class _MessageRow extends StatelessWidget {
-  const _MessageRow({required this.player});
+  const _MessageRow({super.key, required this.player});
 
   final PlayerController player;
 
@@ -95,7 +123,6 @@ class _MessageRow extends StatelessWidget {
           : l10n.playerHintPlaceEnd;
     }
     final a = player.loopStart != null, b = player.loopEnd != null;
-    if (a && b) return l10n.playerHintTune;
     if (a) return l10n.playerHintNeedEnd;
     if (b) return l10n.playerHintNeedStart;
     return l10n.playerHintFlags;
