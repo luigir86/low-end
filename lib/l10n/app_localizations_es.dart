@@ -678,14 +678,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get playerMarkEnd => 'Marcar el final aquí';
 
   @override
-  String get playerHintDraw =>
-      'Mantén pulsado el anillo y desliza para elegir un pasaje que repetir';
-
-  @override
-  String get playerHintGrips =>
-      'Arrastra A y B en el anillo para ajustar el pasaje';
-
-  @override
   String playerStartAt(String time) {
     return 'Inicio $time';
   }
@@ -694,12 +686,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String playerEndAt(String time) {
     return 'Final $time';
   }
-
-  @override
-  String get playerStartUnmarked => 'Inicio sin marcar';
-
-  @override
-  String get playerEndUnmarked => 'Final sin marcar';
 
   @override
   String get playerStartEarlier => 'Inicio antes';
@@ -715,5 +701,30 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get guidePlayerLoop =>
-      'En Escucha, mantén pulsado el círculo y desliza para dibujar un bucle.';
+      'En Escucha, lleva las banderas A y B al círculo para repetir un pasaje.';
+
+  @override
+  String get playerHintFlags =>
+      'Lleva A y B al anillo para elegir el pasaje que repetir';
+
+  @override
+  String get playerHintPlaceStart => 'Toca el anillo donde empieza el pasaje';
+
+  @override
+  String get playerHintPlaceEnd => 'Toca el anillo donde termina el pasaje';
+
+  @override
+  String get playerHintNeedStart => 'Ahora lleva A adonde empieza el pasaje';
+
+  @override
+  String get playerHintNeedEnd => 'Ahora lleva B adonde termina el pasaje';
+
+  @override
+  String get playerHintTune => 'Ajusta con ‹ y ›';
+
+  @override
+  String get playerFlagStart => 'Bandera A, inicio del pasaje';
+
+  @override
+  String get playerFlagEnd => 'Bandera B, final del pasaje';
 }

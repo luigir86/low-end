@@ -279,10 +279,10 @@ class AppActions {
       description:
           'Marks the start or the end of the loop at the point being heard, '
           'like the screen reader actions Mark the start here and Mark the '
-          'end here on the Player\'s ring (there is no button for it); a '
-          'reaction time of 150 ms times the speed is taken off. Marking the '
-          'end turns the loop on and plays from its start. Fails if no track '
-          'is open.',
+          'end here (on the ring and on the flags A and B); a reaction time '
+          'of 150 ms times the speed is taken off. A point marked past the '
+          'other one clears the other. Once both are marked the loop turns '
+          'on and plays from the start. Fails if no track is open.',
       parameters: {
         'edge': {
           'type': 'string',

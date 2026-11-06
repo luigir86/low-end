@@ -673,14 +673,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerMarkEnd => 'Mark the end here';
 
   @override
-  String get playerHintDraw =>
-      'Hold on the ring and slide to choose a passage to repeat';
-
-  @override
-  String get playerHintGrips =>
-      'Drag A and B on the ring to adjust the passage';
-
-  @override
   String playerStartAt(String time) {
     return 'Start $time';
   }
@@ -689,12 +681,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String playerEndAt(String time) {
     return 'End $time';
   }
-
-  @override
-  String get playerStartUnmarked => 'Start not marked';
-
-  @override
-  String get playerEndUnmarked => 'End not marked';
 
   @override
   String get playerStartEarlier => 'Start earlier';
@@ -710,5 +696,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guidePlayerLoop =>
-      'In the Player, hold the circle and slide to draw a loop.';
+      'In the Player, drag the flags A and B onto the circle to loop a passage.';
+
+  @override
+  String get playerHintFlags =>
+      'Drag A and B onto the ring to choose the passage to repeat';
+
+  @override
+  String get playerHintPlaceStart => 'Touch the ring where the passage starts';
+
+  @override
+  String get playerHintPlaceEnd => 'Touch the ring where the passage ends';
+
+  @override
+  String get playerHintNeedStart => 'Now bring A to where the passage starts';
+
+  @override
+  String get playerHintNeedEnd => 'Now bring B to where the passage ends';
+
+  @override
+  String get playerHintTune => 'Fine-tune with ‹ and ›';
+
+  @override
+  String get playerFlagStart => 'Flag A, start of the passage';
+
+  @override
+  String get playerFlagEnd => 'Flag B, end of the passage';
 }

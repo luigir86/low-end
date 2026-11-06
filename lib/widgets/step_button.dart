@@ -15,13 +15,17 @@ import 'row_controls.dart';
 class StepButton extends StatefulWidget {
   const StepButton({
     super.key,
-    required this.icon,
+    this.icon,
+    this.label,
     required this.tooltip,
     required this.onStep,
     required this.onHold,
-  });
+  }) : assert(icon != null || label != null);
 
-  final IconData icon;
+  /// What is drawn in the chip: an icon, or, to say more than an icon can,
+  /// any [label] (the Player's ‹ A and B ›).
+  final IconData? icon;
+  final Widget? label;
 
   /// What a screen reader says: there is no tooltip, since holding the
   /// chip is how the tempo runs.
@@ -114,7 +118,7 @@ class _StepButtonState extends State<StepButton> {
           _holding = false;
         },
         child: RowButton(
-          label: Icon(widget.icon, size: 24),
+          label: widget.label ?? Icon(widget.icon, size: 24),
           // A tap steps by one; the end of a hold has already stepped.
           onPressed: onStep == null
               ? null

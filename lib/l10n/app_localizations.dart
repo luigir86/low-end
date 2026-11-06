@@ -1278,18 +1278,6 @@ abstract class AppLocalizations {
   /// **'Mark the end here'**
   String get playerMarkEnd;
 
-  /// Hint under the Player's dial while no passage is marked: how to choose the passage that repeats. The ring is the circle round the middle of the dial.
-  ///
-  /// In en, this message translates to:
-  /// **'Hold on the ring and slide to choose a passage to repeat'**
-  String get playerHintDraw;
-
-  /// Hint under the Player's dial once a passage is marked: the letters A and B on the ring can be dragged.
-  ///
-  /// In en, this message translates to:
-  /// **'Drag A and B on the ring to adjust the passage'**
-  String get playerHintGrips;
-
   /// Screen reader name of the time of the loop's start (point A), e.g. Start 1:12.34.
   ///
   /// In en, this message translates to:
@@ -1301,18 +1289,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'End {time}'**
   String playerEndAt(String time);
-
-  /// Screen reader name of the loop's start (point A) while it is not marked.
-  ///
-  /// In en, this message translates to:
-  /// **'Start not marked'**
-  String get playerStartUnmarked;
-
-  /// Screen reader name of the loop's end (point B) while it is not marked.
-  ///
-  /// In en, this message translates to:
-  /// **'End not marked'**
-  String get playerEndUnmarked;
 
   /// Screen reader name of the − button when the start of the loop is chosen: it moves point A earlier.
   ///
@@ -1341,8 +1317,56 @@ abstract class AppLocalizations {
   /// A line of the first-launch guide. The name of the Player tab (Ascolto in Italian) must match playerTab.
   ///
   /// In en, this message translates to:
-  /// **'In the Player, hold the circle and slide to draw a loop.'**
+  /// **'In the Player, drag the flags A and B onto the circle to loop a passage.'**
   String get guidePlayerLoop;
+
+  /// Hint under the Player dial while no flag is on the ring: how to choose the passage that repeats. The flags A and B wait in the lower corners of the dial; the ring is the circle round its middle.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag A and B onto the ring to choose the passage to repeat'**
+  String get playerHintFlags;
+
+  /// Hint under the Player dial after flag A was touched in its corner: the next touch on the ring puts it there.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch the ring where the passage starts'**
+  String get playerHintPlaceStart;
+
+  /// Hint under the Player dial after flag B was touched in its corner: the next touch on the ring puts it there.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch the ring where the passage ends'**
+  String get playerHintPlaceEnd;
+
+  /// Hint under the Player dial when only flag B is on the ring: flag A is still to be placed.
+  ///
+  /// In en, this message translates to:
+  /// **'Now bring A to where the passage starts'**
+  String get playerHintNeedStart;
+
+  /// Hint under the Player dial when only flag A is on the ring: flag B is still to be placed.
+  ///
+  /// In en, this message translates to:
+  /// **'Now bring B to where the passage ends'**
+  String get playerHintNeedEnd;
+
+  /// Hint under the Player dial once both flags A and B are on the ring: the arrows next to the loop switch move the active one.
+  ///
+  /// In en, this message translates to:
+  /// **'Fine-tune with ‹ and ›'**
+  String get playerHintTune;
+
+  /// Screen reader name of flag A in the corner of the Player dial; activating it marks the start of the passage where the track is heard.
+  ///
+  /// In en, this message translates to:
+  /// **'Flag A, start of the passage'**
+  String get playerFlagStart;
+
+  /// Screen reader name of flag B in the corner of the Player dial; activating it marks the end of the passage where the track is heard.
+  ///
+  /// In en, this message translates to:
+  /// **'Flag B, end of the passage'**
+  String get playerFlagEnd;
 }
 
 class _AppLocalizationsDelegate

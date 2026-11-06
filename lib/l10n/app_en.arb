@@ -181,11 +181,17 @@
   },
   "audioUnavailable": "Sound could not start on this device.",
   "audioDownloadFailed": "The sounds could not be downloaded. Check the connection and touch again.",
-  "@audioDownloadFailed": {"description": "Web app: the sound failed to start, almost always because a download failed."},
+  "@audioDownloadFailed": {
+    "description": "Web app: the sound failed to start, almost always because a download failed."
+  },
   "soundsPreparing": "Getting the sounds ready…",
-  "@soundsPreparing": {"description": "Harmony hub, between the touch and the first chord heard."},
+  "@soundsPreparing": {
+    "description": "Harmony hub, between the touch and the first chord heard."
+  },
   "soundsDownloadingSlowly": "Downloading the sounds: the connection is slow. Please wait.",
-  "@soundsDownloadingSlowly": {"description": "Web app: the first chord has been on its way for more than 5 seconds."},
+  "@soundsDownloadingSlowly": {
+    "description": "Web app: the first chord has been on its way for more than 5 seconds."
+  },
   "startListening": "Listen",
   "stopListening": "Pause",
   "tunerWillPause": "Listening pauses what is playing",
@@ -232,7 +238,9 @@
   "@styleButton": {
     "description": "The button of the Harmony row that shows the style playing and opens the menu of the styles.",
     "placeholders": {
-      "style": {"type": "String"}
+      "style": {
+        "type": "String"
+      }
     }
   },
   "styleHeld": "Chord every bar",
@@ -246,8 +254,12 @@
   "@styleTempo": {
     "description": "The tempo is written like ♩ = 120.",
     "placeholders": {
-      "tempo": {"type": "String"},
-      "signature": {"type": "String"}
+      "tempo": {
+        "type": "String"
+      },
+      "signature": {
+        "type": "String"
+      }
     }
   },
   "beatUnitQuarter": "quarter note",
@@ -426,8 +438,12 @@
   "@playerTimeOf": {
     "description": "The time of the listening point in a track, read by screen readers: 1:12 of 6:03.",
     "placeholders": {
-      "position": {"type": "String"},
-      "duration": {"type": "String"}
+      "position": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
     }
   },
   "pausedForPlayer": "Paused while you listen",
@@ -456,14 +472,6 @@
   "@playerMarkEnd": {
     "description": "Screen reader action on the ring of the Player: marks the end of the loop (point B) at the point being heard and turns the loop on."
   },
-  "playerHintDraw": "Hold on the ring and slide to choose a passage to repeat",
-  "@playerHintDraw": {
-    "description": "Hint under the Player's dial while no passage is marked: how to choose the passage that repeats. The ring is the circle round the middle of the dial."
-  },
-  "playerHintGrips": "Drag A and B on the ring to adjust the passage",
-  "@playerHintGrips": {
-    "description": "Hint under the Player's dial once a passage is marked: the letters A and B on the ring can be dragged."
-  },
   "playerStartAt": "Start {time}",
   "@playerStartAt": {
     "description": "Screen reader name of the time of the loop's start (point A), e.g. Start 1:12.34.",
@@ -482,14 +490,6 @@
       }
     }
   },
-  "playerStartUnmarked": "Start not marked",
-  "@playerStartUnmarked": {
-    "description": "Screen reader name of the loop's start (point A) while it is not marked."
-  },
-  "playerEndUnmarked": "End not marked",
-  "@playerEndUnmarked": {
-    "description": "Screen reader name of the loop's end (point B) while it is not marked."
-  },
   "playerStartEarlier": "Start earlier",
   "@playerStartEarlier": {
     "description": "Screen reader name of the − button when the start of the loop is chosen: it moves point A earlier."
@@ -506,8 +506,40 @@
   "@playerEndLater": {
     "description": "Screen reader name of the + button when the end of the loop is chosen: it moves point B later."
   },
-  "guidePlayerLoop": "In the Player, hold the circle and slide to draw a loop.",
+  "guidePlayerLoop": "In the Player, drag the flags A and B onto the circle to loop a passage.",
   "@guidePlayerLoop": {
     "description": "A line of the first-launch guide. The name of the Player tab (Ascolto in Italian) must match playerTab."
+  },
+  "playerHintFlags": "Drag A and B onto the ring to choose the passage to repeat",
+  "@playerHintFlags": {
+    "description": "Hint under the Player dial while no flag is on the ring: how to choose the passage that repeats. The flags A and B wait in the lower corners of the dial; the ring is the circle round its middle."
+  },
+  "playerHintPlaceStart": "Touch the ring where the passage starts",
+  "@playerHintPlaceStart": {
+    "description": "Hint under the Player dial after flag A was touched in its corner: the next touch on the ring puts it there."
+  },
+  "playerHintPlaceEnd": "Touch the ring where the passage ends",
+  "@playerHintPlaceEnd": {
+    "description": "Hint under the Player dial after flag B was touched in its corner: the next touch on the ring puts it there."
+  },
+  "playerHintNeedStart": "Now bring A to where the passage starts",
+  "@playerHintNeedStart": {
+    "description": "Hint under the Player dial when only flag B is on the ring: flag A is still to be placed."
+  },
+  "playerHintNeedEnd": "Now bring B to where the passage ends",
+  "@playerHintNeedEnd": {
+    "description": "Hint under the Player dial when only flag A is on the ring: flag B is still to be placed."
+  },
+  "playerHintTune": "Fine-tune with ‹ and ›",
+  "@playerHintTune": {
+    "description": "Hint under the Player dial once both flags A and B are on the ring: the arrows next to the loop switch move the active one."
+  },
+  "playerFlagStart": "Flag A, start of the passage",
+  "@playerFlagStart": {
+    "description": "Screen reader name of flag A in the corner of the Player dial; activating it marks the start of the passage where the track is heard."
+  },
+  "playerFlagEnd": "Flag B, end of the passage",
+  "@playerFlagEnd": {
+    "description": "Screen reader name of flag B in the corner of the Player dial; activating it marks the end of the passage where the track is heard."
   }
 }

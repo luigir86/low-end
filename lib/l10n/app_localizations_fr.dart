@@ -680,14 +680,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get playerMarkEnd => 'Marquer la fin ici';
 
   @override
-  String get playerHintDraw =>
-      'Appuyez longuement sur l\'anneau et glissez pour choisir un passage à répéter';
-
-  @override
-  String get playerHintGrips =>
-      'Faites glisser A et B sur l\'anneau pour ajuster le passage';
-
-  @override
   String playerStartAt(String time) {
     return 'Début $time';
   }
@@ -696,12 +688,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String playerEndAt(String time) {
     return 'Fin $time';
   }
-
-  @override
-  String get playerStartUnmarked => 'Début non marqué';
-
-  @override
-  String get playerEndUnmarked => 'Fin non marquée';
 
   @override
   String get playerStartEarlier => 'Début plus tôt';
@@ -717,5 +703,34 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get guidePlayerLoop =>
-      'Dans Écoute, maintenez le cercle et faites glisser pour dessiner une boucle.';
+      'Dans Écoute, placez les drapeaux A et B sur le cercle pour répéter un passage.';
+
+  @override
+  String get playerHintFlags =>
+      'Placez A et B sur l\'anneau pour choisir le passage à répéter';
+
+  @override
+  String get playerHintPlaceStart =>
+      'Touchez l\'anneau là où le passage commence';
+
+  @override
+  String get playerHintPlaceEnd =>
+      'Touchez l\'anneau là où le passage se termine';
+
+  @override
+  String get playerHintNeedStart =>
+      'Placez maintenant A là où le passage commence';
+
+  @override
+  String get playerHintNeedEnd =>
+      'Placez maintenant B là où le passage se termine';
+
+  @override
+  String get playerHintTune => 'Ajustez avec ‹ et ›';
+
+  @override
+  String get playerFlagStart => 'Drapeau A, début du passage';
+
+  @override
+  String get playerFlagEnd => 'Drapeau B, fin du passage';
 }

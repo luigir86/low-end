@@ -88,33 +88,46 @@ void main() {
       expect(player.loopStart, Duration.zero);
     });
 
-    test('B turns the loop on; with no A the loop starts at the beginning, '
-        'and a track that plays goes back to A', () async {
+    test('B alone stays alone: no loop until A is placed too', () async {
       await listenAt(30, playing: true);
       await player.mark(LoopEdge.end);
-      expect(player.loopStart, Duration.zero);
+      expect(player.loopStart, isNull);
       expect(player.loopEnd, _s(29.85));
-      expect(player.looping, isTrue);
-      expect(output.loop, (Duration.zero, _s(29.85)));
-      expect(player.position, Duration.zero);
+      expect(player.looping, isFalse);
+      expect(output.loop, isNull);
+      expect(player.position, _s(30));
     });
 
-    test('B is at least a second after A', () async {
+    test('with both placed the loop turns on, and a track that plays goes '
+        'back to A', () async {
+      await player.place(LoopEdge.end, _s(40));
+      await listenAt(30, playing: true);
+      await player.mark(LoopEdge.start);
+      expect(player.loopStart, _s(29.85));
+      expect(player.loopEnd, _s(40));
+      expect(player.looping, isTrue);
+      expect(output.loop, (_s(29.85), _s(40)));
+      expect(player.position, _s(29.85));
+    });
+
+    test('B less than a second after A sends A back to its corner', () async {
       await listenAt(10);
       await player.mark(LoopEdge.start);
       await listenAt(10.5);
       await player.mark(LoopEdge.end);
-      expect(player.loopStart, _s(9.85));
-      expect(player.loopEnd, _s(10.85));
+      expect(player.loopStart, isNull);
+      expect(player.loopEnd, _s(10.35));
+      expect(player.looping, isFalse);
     });
 
     test('B stays within the track', () async {
-      await listenAt(359.5);
-      await player.mark(LoopEdge.start);
-      await player.mark(LoopEdge.end);
-      // A keeps a second for the loop.
-      expect(player.loopStart, _s(359));
+      await player.place(LoopEdge.end, _s(400));
       expect(player.loopEnd, output.length);
+    });
+
+    test('A keeps a second for the loop', () async {
+      await player.place(LoopEdge.start, _s(400));
+      expect(player.loopStart, output.length - const Duration(seconds: 1));
     });
 
     test('A that leaves less than a second to B clears B and turns the '
@@ -134,6 +147,84 @@ void main() {
       await player.mark(LoopEdge.start);
       expect(output.loop, (_s(14.85), _s(20)));
       expect(player.position, _s(15));
+    });
+  });
+
+  group('the flags (RF-PLY-08)', () {
+    test('A is the active one at first, and with each new track', () async {
+      expect(player.activeEdge, LoopEdge.start);
+      await player.place(LoopEdge.end, _s(30));
+      expect(player.activeEdge, LoopEdge.end);
+      await player.open(const TrackRef(uri: 'content://b', name: 'B.wav'));
+      expect(player.activeEdge, LoopEdge.start);
+    });
+
+    test('the one placed, moved or touched becomes the active one', () async {
+      await player.place(LoopEdge.start, _s(10));
+      expect(player.activeEdge, LoopEdge.start);
+      await player.place(LoopEdge.end, _s(20));
+      expect(player.activeEdge, LoopEdge.end);
+      player.focus(LoopEdge.start);
+      expect(player.activeEdge, LoopEdge.start);
+      player.moveEdge(LoopEdge.end, _s(25));
+      expect(player.activeEdge, LoopEdge.end);
+      await player.setLoop(_s(5), _s(8));
+      expect(player.activeEdge, LoopEdge.end);
+    });
+
+    test('placing A past B sends B back, and the loop turns off', () async {
+      await player.place(LoopEdge.start, _s(10));
+      await player.place(LoopEdge.end, _s(20));
+      expect(player.looping, isTrue);
+      await player.place(LoopEdge.start, _s(19.5));
+      expect(player.loopStart, _s(19.5));
+      expect(player.loopEnd, isNull);
+      expect(player.looping, isFalse);
+      expect(output.loop, isNull);
+    });
+
+    test('placing B before A sends A back', () async {
+      await player.place(LoopEdge.start, _s(10));
+      await player.place(LoopEdge.end, _s(10.5));
+      expect(player.loopStart, isNull);
+      expect(player.loopEnd, _s(10.5));
+      expect(player.looping, isFalse);
+    });
+
+    test('a flag is armed by a touch and disarmed by the same, or by the '
+        'other taking its place', () async {
+      expect(player.armed, isNull);
+      player.arm(LoopEdge.start);
+      expect(player.armed, LoopEdge.start);
+      player.arm(LoopEdge.end);
+      expect(player.armed, LoopEdge.end);
+      player.arm(LoopEdge.end);
+      expect(player.armed, isNull);
+    });
+
+    test('placing, a new track and disarm all disarm', () async {
+      player.arm(LoopEdge.start);
+      await player.place(LoopEdge.start, _s(10));
+      expect(player.armed, isNull);
+      player.arm(LoopEdge.end);
+      player.disarm();
+      expect(player.armed, isNull);
+      player.arm(LoopEdge.end);
+      await player.open(const TrackRef(uri: 'content://b', name: 'B.wav'));
+      expect(player.armed, isNull);
+    });
+
+    test('nothing is armed without a track', () async {
+      final empty = PlayerController(SilentTrackOutput(), FakeTrackFiles());
+      empty.arm(LoopEdge.start);
+      expect(empty.armed, isNull);
+      empty.dispose();
+    });
+
+    test('the arrows move the active flag, B alone too', () async {
+      await player.place(LoopEdge.end, _s(30));
+      player.nudge(LoopEdge.end, const Duration(milliseconds: 10));
+      expect(player.loopEnd, _s(30.01));
     });
   });
 

@@ -54,6 +54,8 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   Duration? _loopEnd;
   var _looping = false;
   Timer? _settle;
+  var _active = LoopEdge.start;
+  LoopEdge? _armed;
 
   /// The slowest and the fastest the track plays, in percent.
   static const minSpeed = 50;
@@ -202,6 +204,8 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     _problem = null;
     _settle?.cancel();
     _loopStart = _loopEnd = null;
+    _active = LoopEdge.start;
+    _armed = null;
     _looping = false;
     _loaded = false;
     _title = _artist = null;
@@ -272,6 +276,8 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     _loopStart = setup.loopStart;
     _loopEnd = setup.loopEnd;
     _looping = setup.looping;
+    _active = LoopEdge.start;
+    _armed = null;
     _title = setup.title;
     _artist = setup.artist;
     notifyListeners();
@@ -365,6 +371,8 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     _playing = false;
     _problem = problem;
     _loopStart = _loopEnd = null;
+    _active = LoopEdge.start;
+    _armed = null;
     _looping = false;
   }
 
@@ -423,38 +431,46 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   }
 
   /// Marks the start or the end of the loop where the track is heard, less
-  /// the person's reaction (RF-PLY-09). Marking B turns the loop on and plays
-  /// from A.
-  Future<void> mark(LoopEdge edge) async {
-    if (_status != PlayerStatus.ready) return;
+  /// the person's reaction (RF-PLY-09), as [place] does.
+  Future<void> mark(LoopEdge edge) {
     final lag = Duration(
       microseconds: (reaction.inMicroseconds * _speed / 100).round(),
     );
-    final t = _within(position - lag);
-    final longest = _duration - minLoop;
+    return place(edge, position - lag);
+  }
+
+  /// Puts the flag of [edge] at [at], within the track (RF-PLY-08): by
+  /// dragging it onto the ring, by two touches or by "Mark here". If the
+  /// other flag no longer keeps its place (A past B − [minLoop], or B before
+  /// A + [minLoop]) it goes back to its corner and the loop turns off. With
+  /// both flags placed the loop turns on, and if the track plays it restarts
+  /// from A. The flag placed becomes the active one.
+  Future<void> place(LoopEdge edge, Duration at) async {
+    if (_status != PlayerStatus.ready || _duration < minLoop) return;
+    _armed = null;
+    final wasLooping = looping;
+    final t = _within(at);
     switch (edge) {
       case LoopEdge.start:
-        if (longest.isNegative) return;
-        final wasLooping = looping;
-        _loopStart = t > longest ? longest : t;
+        final a = t > _duration - minLoop ? _duration - minLoop : t;
+        _loopStart = a;
         final end = _loopEnd;
-        if (end != null && end - _loopStart! < minLoop) {
-          _loopEnd = null;
-          _looping = false;
-        }
-        notifyListeners();
-        // A loop that was on is told its new A, or that it is off.
-        if (wasLooping) await _queue(() => _applyLoop());
+        if (end != null && end - a < minLoop) _loopEnd = null;
       case LoopEdge.end:
-        final start = _loopStart ?? Duration.zero;
-        if (start + minLoop > _duration) return;
-        _loopStart = start;
-        final end = t < start + minLoop ? start + minLoop : t;
-        _loopEnd = end > _duration ? _duration : end;
-        _looping = true;
-        _settle?.cancel();
-        notifyListeners();
-        await _queue(() => _applyLoop(jumpTo: _playing ? start : null));
+        final b = t;
+        _loopEnd = b;
+        final start = _loopStart;
+        if (start != null && b - start < minLoop) _loopStart = null;
+    }
+    _active = edge;
+    _looping = hasLoop;
+    _settle?.cancel();
+    notifyListeners();
+    if (_looping) {
+      await _queue(() => _applyLoop(jumpTo: _playing ? _loopStart : null));
+    } else if (wasLooping) {
+      // A loop that was on is told that it is off.
+      await _queue(() => _applyLoop());
     }
   }
 
@@ -472,9 +488,14 @@ class PlayerController extends ChangeNotifier implements SoundSection {
         final top = (end ?? _duration) - minLoop;
         _loopStart = _clampTo(to, Duration.zero, top);
       case LoopEdge.end:
-        if (end == null || start == null) return;
-        _loopEnd = _clampTo(to, start + minLoop, _duration);
+        if (end == null) return;
+        _loopEnd = _clampTo(
+          to,
+          start == null ? Duration.zero : start + minLoop,
+          _duration,
+        );
     }
+    _active = edge;
     notifyListeners();
     _settle?.cancel();
     if (!looping) return;
@@ -515,9 +536,38 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     _loopStart = start;
     _loopEnd = end;
     _looping = true;
+    _active = LoopEdge.end;
+    _armed = null;
     _settle?.cancel();
     notifyListeners();
     await _queue(() => _applyLoop(jumpTo: _playing ? start : null));
+  }
+
+  /// The flag that ‹ and › move: the last one placed, dragged or touched.
+  /// A at first and with each new track; it is not kept.
+  LoopEdge get activeEdge => _active;
+
+  /// Makes [edge] the flag that ‹ and › move.
+  void focus(LoopEdge edge) {
+    if (_active == edge) return;
+    _active = edge;
+    notifyListeners();
+  }
+
+  /// The flag in its corner that waits for a touch on the ring, or null.
+  LoopEdge? get armed => _armed;
+
+  /// Arms the flag of [edge]; touched again, disarms it (RF-PLY-08).
+  void arm(LoopEdge edge) {
+    if (_status != PlayerStatus.ready) return;
+    _armed = _armed == edge ? null : edge;
+    notifyListeners();
+  }
+
+  void disarm() {
+    if (_armed == null) return;
+    _armed = null;
+    notifyListeners();
   }
 
   /// Turns the repeat on, if both ends are marked, or off. Turning it on

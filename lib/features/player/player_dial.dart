@@ -1,8 +1,7 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show ValueListenable;
-import 'package:flutter/gestures.dart';
+import 'package:flutter/gestures.dart' show kTouchSlop;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/semantics.dart' show CustomSemanticsAction;
@@ -11,6 +10,8 @@ import 'package:flutter/services.dart' show HapticFeedback;
 import '../../l10n/app_localizations.dart';
 import '../../widgets/dial.dart';
 import 'clock_text.dart';
+import 'flag_drag.dart';
+import 'flag_painter.dart';
 import 'marquee.dart';
 import 'player_controller.dart';
 import 'ring_wave.dart';
@@ -22,22 +23,49 @@ double touchAngle(Offset offset, Size size) {
   return math.atan2(d.dx, -d.dy) % (2 * math.pi);
 }
 
-/// How far from a grip (the disc with the letter, or the line it sits on) a
-/// finger may land and still take it: a 48 dp target (RF-PLY-11).
+/// How far from a flag (its pennant, or its pole) a finger may land and
+/// still take it: a 48 dp target (RF-PLY-08).
 const gripReach = 24.0;
 
-/// Where the disc of the grip of [edge] sits on a dial of [size], when the
-/// end is at [time] of [window]. A is on the inner part of the ring and B on
-/// the outer, so that the two stay in reach even when they are close.
+/// How far beyond the ring a finger may be and still put a flag on it.
+const _bandMargin = 24.0;
+
+/// How far above the finger a flag dragged outside the ring is drawn, so that
+/// the finger does not cover it.
+const _liftAbove = 40.0;
+
+/// The pennant of a flag on the ring, in logical pixels, for a ring [width]
+/// thick: 0.4 of it wide and 0.3 high, at least as big as a letter.
+Size pennantSize(double width) =>
+    Size(math.max(20, width * 0.4), math.max(16, width * 0.3));
+
+/// Where the pennant of the flag of [edge] sits on a dial of [size], when the
+/// flag is at [time] of [window]: A on the inner part of the ring and B on the
+/// outer, so that the two stay in reach when close, and each pennant moved
+/// along the ring by half its width towards the passage.
 Offset gripCenter(LoopEdge edge, RingWindow window, Duration time, Size size) {
   final dial = DialGeometry(size);
   final angle = window.angleOf(time);
-  final r =
-      dial.ringInner + dial.ringWidth * (edge == LoopEdge.start ? 0.25 : 0.75);
-  return dial.center + Offset(math.sin(angle), -math.cos(angle)) * r;
+  final start = edge == LoopEdge.start;
+  final r = dial.ringInner + dial.ringWidth * (start ? 0.25 : 0.75);
+  final pole = dial.center + Offset(math.sin(angle), -math.cos(angle)) * r;
+  final half = pennantSize(dial.ringWidth).width / 2;
+  // Clockwise tangent at the angle; the start's pennant goes with the clock,
+  // the end's against it.
+  final tangent = Offset(math.cos(angle), math.sin(angle));
+  return pole + tangent * (start ? half : -half);
 }
 
-/// The end whose grip is under a touch at [at] on a dial of [size], or null.
+/// Where the flag of [edge] waits, in a lower corner of a dial of [size]: a
+/// 48 dp target touching the sides of the square, on the lower diagonals
+/// (A on the left, B on the right).
+Offset holderCenter(LoopEdge edge, Size size) {
+  final dial = DialGeometry(size);
+  final d = dial.radius - gripReach;
+  return dial.center + Offset(edge == LoopEdge.start ? -d : d, d);
+}
+
+/// The flag on the ring under a touch at [at] on a dial of [size], or null.
 /// Of two in reach, the nearer one.
 LoopEdge? gripAt(
   Offset at,
@@ -54,7 +82,7 @@ LoopEdge? gripAt(
     final angle = window.angleOf(time);
     final dir = Offset(math.sin(angle), -math.cos(angle));
     final from = dial.center + dir * dial.ringInner;
-    // The distance to the radial line: the touch along it, kept on it.
+    // The distance to the pole: the touch along it, kept on it.
     final along = ((at - from).dx * dir.dx + (at - from).dy * dir.dy).clamp(
       0.0,
       dial.ringWidth,
@@ -72,31 +100,13 @@ LoopEdge? gripAt(
   return best;
 }
 
-/// A drag that wins at once, before the swipe between the sections, when the
-/// finger lands on a grip of the passage (RF-PLY-11); anywhere else it does
-/// not take part, and the touch, the long press and the swipe work as ever.
-class _GripDrag extends PanGestureRecognizer {
-  _GripDrag({required this.grips});
-
-  /// The end under [local] (a point of the dial), or null.
-  final LoopEdge? Function(Offset local) grips;
-
-  @override
-  bool isPointerAllowed(PointerEvent event) =>
-      grips(event.localPosition) != null && super.isPointerAllowed(event);
-
-  @override
-  void addAllowedPointer(PointerDownEvent event) {
-    super.addAllowedPointer(event);
-    resolvePointer(event.pointer, GestureDisposition.accepted);
-  }
-}
-
 /// The Player's dial: the ring is the clock of the track (a whole turn is
 /// its length, from 12 o'clock clockwise), with a tick every minute and a
 /// point where it is listened to; the middle plays and pauses, or, with no
 /// track, opens the file chooser. Touching the ring moves the listening
-/// point (RF-PLY-02, RF-PLY-03).
+/// point. The passage that repeats is chosen with the flags A and B that wait
+/// in the lower corners: drag one onto the ring, or touch it and then the
+/// ring (RF-PLY-08).
 class PlayerDial extends StatefulWidget {
   const PlayerDial({super.key, required this.player});
 
@@ -109,14 +119,12 @@ class PlayerDial extends StatefulWidget {
   /// screen reader's increase or decrease.
   static const readerStep = Duration(seconds: 10);
 
-  /// The same in the view of a passage, where a turn is a few seconds.
-  static const passageStep = Duration(seconds: 1);
-
   @override
   State<PlayerDial> createState() => _PlayerDialState();
 }
 
-class _PlayerDialState extends State<PlayerDial> with TickerProviderStateMixin {
+class _PlayerDialState extends State<PlayerDial>
+    with SingleTickerProviderStateMixin {
   late final Ticker _ticker = createTicker((_) => _read());
 
   /// Where the track is, read every frame while it plays.
@@ -126,44 +134,30 @@ class _PlayerDialState extends State<PlayerDial> with TickerProviderStateMixin {
   /// second only.
   final _seconds = ValueNotifier<int>(0);
 
-  /// The loop being drawn by a long press and a slide: where the finger
-  /// went down and where it is now, in the track; null when not drawing.
-  (Duration, Duration)? _drawing;
-
   /// The size of the dial, for the gestures.
   var _size = Size.zero;
 
-  /// The end whose grip is held, the distance in time from the finger to the
-  /// end at the moment it was taken, and the time under the finger last.
-  LoopEdge? _grabbed;
+  /// The flag under the finger, if one is dragged: where the finger went down
+  /// (a corner or the ring), where the finger is, and, on the ring, the time
+  /// under it. A flag taken from the ring keeps its distance in time from the
+  /// finger.
+  LoopEdge? _carried;
+  var _fromRing = false;
+  var _moved = false;
+  var _downAt = Offset.zero;
+  var _finger = Offset.zero;
+  Duration? _carriedAt;
   var _gripOffset = Duration.zero;
   var _fingerAt = Duration.zero;
-
-  /// The window on its way from [_from] to [_to] (RF-PLY-17): [_morph] runs
-  /// from 0 to 1 along [_curve].
-  late final AnimationController _morph = AnimationController(vsync: this)
-    ..value = 1;
-  late RingWindow _from, _to;
-  var _curve = Easing.standard;
-
-  /// True while the ring shows the passage and not the whole track.
-  var _passageView = false;
-
-  /// Waits for A and B to be left alone before the passage view fits them.
-  Timer? _quiet;
+  var _wasOnRing = false;
 
   /// True when the phone asks for no animation.
   var _reduce = false;
-
-  RingWindow get _window =>
-      _from.lerp(_to, _curve.transform(_morph.value.clamp(0.0, 1.0)));
 
   @override
   void initState() {
     super.initState();
     widget.player.addListener(_sync);
-    _to = _from = _wanted();
-    _passageView = _inPassage;
     _read();
   }
 
@@ -179,9 +173,7 @@ class _PlayerDialState extends State<PlayerDial> with TickerProviderStateMixin {
   @override
   void dispose() {
     widget.player.removeListener(_sync);
-    _quiet?.cancel();
     _ticker.dispose();
-    _morph.dispose();
     _position.dispose();
     _seconds.dispose();
     super.dispose();
@@ -202,87 +194,18 @@ class _PlayerDialState extends State<PlayerDial> with TickerProviderStateMixin {
     } else if (!turning && _ticker.isActive) {
       _ticker.stop();
     }
-    _retarget();
   }
 
-  bool get _inPassage {
+  RingWindow get _window {
     final player = widget.player;
-    return player.status == PlayerStatus.ready && player.looping;
+    return RingWindow.whole(
+      player.status == PlayerStatus.ready ? player.duration : Duration.zero,
+    );
   }
 
-  /// The window that the player's state asks for: the passage while the loop
-  /// is on, else the whole track.
-  RingWindow _wanted() {
-    final player = widget.player;
-    if (player.status != PlayerStatus.ready) {
-      return RingWindow.whole(Duration.zero);
-    }
-    if (player.looping) {
-      return RingWindow.passage(
-        player.loopStart!,
-        player.loopEnd!,
-        player.duration,
-      );
-    }
-    return RingWindow.whole(player.duration);
-  }
-
-  /// Takes the ring to the window that the player asks for. Entering or
-  /// leaving the passage view is animated at once; a passage whose ends were
-  /// touched fits them only after [PlayerController.settleAfter] of quiet and
-  /// with no grip held, so that the ring stays still under the finger.
-  void _retarget() {
-    if (!mounted) return;
-    final wanted = _wanted();
-    final passage = _inPassage;
-    if (wanted == _to && passage == _passageView) {
-      _quiet?.cancel();
-      return;
-    }
-    if (passage == _passageView && passage) {
-      if (_grabbed != null) return;
-      _quiet?.cancel();
-      _quiet = Timer(PlayerController.settleAfter, () {
-        if (!mounted || _grabbed != null) return;
-        final again = _wanted();
-        if (_inPassage) _go(again, Durations.short4, Easing.standard);
-      });
-      return;
-    }
-    _quiet?.cancel();
-    _passageView = passage;
-    if (passage || widget.player.status != PlayerStatus.ready) {
-      _go(
-        wanted,
-        Durations.medium4,
-        passage ? Easing.emphasizedDecelerate : Easing.emphasizedAccelerate,
-      );
-    } else {
-      _go(wanted, Durations.medium4, Easing.emphasizedAccelerate);
-    }
-  }
-
-  void _go(RingWindow to, Duration time, Curve curve) {
-    final first = _to.length <= Duration.zero || to.length <= Duration.zero;
-    if (_reduce || first) {
-      _morph.stop();
-      setState(() {
-        _from = _to = to;
-        _morph.value = 1;
-      });
-      return;
-    }
-    _from = _window;
-    _to = to;
-    _curve = curve;
-    _morph
-      ..duration = time
-      ..forward(from: 0);
-  }
-
-  /// The time under a touch at [at], in the window shown. While drawing, the
-  /// touch cannot go round past 12 o'clock: it stops at the start or the end
-  /// of the window.
+  /// The time under a touch at [at]. While a flag is dragged, the touch
+  /// cannot go round past 12 o'clock: it stops at the start or the end of the
+  /// track.
   Duration _timeAt(Offset at, {Duration? last}) {
     final window = _window;
     final t = window.timeAt(touchAngle(at, _size));
@@ -299,80 +222,140 @@ class _PlayerDialState extends State<PlayerDial> with TickerProviderStateMixin {
     return (at - g.center).distance < g.hub;
   }
 
-  void _drawStart(LongPressStartDetails details) {
-    if (_inHub(details.localPosition)) return;
-    HapticFeedback.mediumImpact();
-    final from = _timeAt(details.localPosition);
-    setState(() => _drawing = (from, from));
+  /// True where a flag may be put: from the hub's edge to a little beyond
+  /// the ring.
+  bool _inBand(Offset at) {
+    final g = DialGeometry(_size);
+    final d = (at - g.center).distance;
+    return d >= g.hub && d <= g.ringOuter + _bandMargin;
   }
 
-  void _drawMove(LongPressMoveUpdateDetails details) {
-    final drawing = _drawing;
-    if (drawing == null) return;
-    final to = _timeAt(details.localPosition, last: drawing.$2);
-    setState(() => _drawing = (drawing.$1, to));
-  }
-
-  void _drawEnd() {
-    final drawing = _drawing;
-    if (drawing == null) return;
-    setState(() => _drawing = null);
-    final (from, to) = drawing;
-    final player = widget.player;
-    // A slide under the shortest loop is a touch.
-    if ((to - from).abs() < PlayerController.minLoop) {
-      player.seek(from);
-    } else {
-      player.setLoop(from, to);
-    }
-  }
-
-  /// The grip under a point of the dial, if the passage has one there.
-  LoopEdge? _gripAt(Offset at) {
+  /// The flag under a point of the dial: on the ring first, else one waiting
+  /// in its corner (a corner inside the ring belongs to the ring).
+  LoopEdge? _flagAt(Offset at) {
     final player = widget.player;
     if (player.status != PlayerStatus.ready || _size.isEmpty) return null;
-    return gripAt(
+    final onRing = gripAt(
       at,
       _size,
       _window,
       start: player.loopStart,
       end: player.loopEnd,
     );
+    if (onRing != null) return onRing;
+    return _holderAt(at);
   }
 
-  void _gripStart(DragStartDetails details) {
-    final edge = _gripAt(details.localPosition);
+  LoopEdge? _holderAt(Offset at) {
+    final dial = DialGeometry(_size);
+    if ((at - dial.center).distance <= dial.ringOuter) return null;
+    for (final edge in LoopEdge.values) {
+      if ((at - holderCenter(edge, _size)).distance <= gripReach) return edge;
+    }
+    return null;
+  }
+
+  void _flagDown(DragDownDetails details) {
+    final edge = _flagAt(details.localPosition);
+    _carried = edge;
+    _moved = false;
     if (edge == null) return;
     final player = widget.player;
-    final end = edge == LoopEdge.start ? player.loopStart : player.loopEnd;
-    if (end == null) return;
-    HapticFeedback.selectionClick();
-    _fingerAt = _timeAt(details.localPosition);
-    _gripOffset = end - _fingerAt;
-    setState(() => _grabbed = edge);
-  }
-
-  void _gripMove(DragUpdateDetails details) {
-    final edge = _grabbed;
-    if (edge == null) return;
-    final window = _window;
-    _fingerAt = _timeAt(details.localPosition, last: _fingerAt);
-    final to = _fingerAt + _gripOffset;
-    widget.player.moveEdge(
-      edge,
-      to < window.from ? window.from : (to > window.to ? window.to : to),
+    final onRing = gripAt(
+      details.localPosition,
+      _size,
+      _window,
+      start: player.loopStart,
+      end: player.loopEnd,
     );
+    _fromRing = onRing != null;
+    _downAt = _finger = details.localPosition;
+    _carriedAt = null;
+    _wasOnRing = _fromRing;
+    if (_fromRing) {
+      final end = edge == LoopEdge.start ? player.loopStart : player.loopEnd;
+      _fingerAt = _timeAt(details.localPosition);
+      _gripOffset = (end ?? _fingerAt) - _fingerAt;
+    }
   }
 
-  void _gripEnd() {
-    if (_grabbed == null) return;
-    setState(() => _grabbed = null);
-    _retarget();
+  void _flagMove(DragUpdateDetails details) {
+    final edge = _carried;
+    if (edge == null) return;
+    // A touch that wanders a little is still a touch.
+    if (!_moved) {
+      if ((details.localPosition - _downAt).distance < kTouchSlop) return;
+      _moved = true;
+      HapticFeedback.selectionClick();
+    }
+    _finger = details.localPosition;
+    if (_fromRing) {
+      final window = _window;
+      _fingerAt = _timeAt(details.localPosition, last: _fingerAt);
+      final to = _fingerAt + _gripOffset;
+      // Stops at the ends of the track, and at a second from the other flag
+      // (the player decides).
+      widget.player.moveEdge(
+        edge,
+        to < window.from ? window.from : (to > window.to ? window.to : to),
+      );
+      setState(() {});
+      return;
+    }
+    final onRing = _inBand(details.localPosition);
+    if (onRing) {
+      _carriedAt = _timeAt(details.localPosition, last: _carriedAt);
+    } else {
+      _carriedAt = null;
+    }
+    if (onRing != _wasOnRing) HapticFeedback.selectionClick();
+    _wasOnRing = onRing;
+    setState(() {});
+  }
+
+  void _flagEnd() {
+    final edge = _carried;
+    if (edge == null) return;
+    final moved = _moved, at = _carriedAt, fromRing = _fromRing;
+    setState(() {
+      _carried = null;
+      _carriedAt = null;
+      _moved = false;
+    });
+    final player = widget.player;
+    if (!moved) {
+      // Touched, not dragged (the touch recogniser lost the pointer to the
+      // drag): a corner arms its flag, a flag on the ring becomes the one the
+      // arrows move.
+      if (fromRing) {
+        player.focus(edge);
+      } else {
+        player.arm(edge);
+      }
+      return;
+    }
+    if (!fromRing && at != null) player.place(edge, at);
   }
 
   void _seekBy(Duration by) {
     final player = widget.player;
     player.seek(player.position + by);
+  }
+
+  void _tap(Offset at) {
+    final player = widget.player;
+    if (player.status != PlayerStatus.ready || _size.isEmpty) return;
+    // The middle is the button's.
+    if (_inHub(at)) return;
+    final dial = DialGeometry(_size);
+    if ((at - dial.center).distance > dial.radius) return;
+    final armed = player.armed;
+    final time = _timeAt(at);
+    if (armed != null) {
+      player.place(armed, time);
+    } else {
+      player.seek(time);
+    }
   }
 
   @override
@@ -385,18 +368,13 @@ class _PlayerDialState extends State<PlayerDial> with TickerProviderStateMixin {
     final duration = player.duration;
     final position = player.position;
     final decimal = l10n.localeName == 'en' ? '.' : ',';
-    // The stretch to draw: the loop, or the one being slid out.
-    var arcStart = player.loopStart, arcEnd = player.loopEnd;
-    final drawing = _drawing;
-    final loopOn = drawing != null || player.looping;
+    final window = _window;
     final peaks = player.peaks;
-    if (drawing != null) {
-      arcStart = drawing.$1 < drawing.$2 ? drawing.$1 : drawing.$2;
-      arcEnd = drawing.$1 < drawing.$2 ? drawing.$2 : drawing.$1;
-    }
-    // A screen reader moves by 10 s round the track, by a second round a
-    // passage.
-    final step = _passageView ? PlayerDial.passageStep : PlayerDial.readerStep;
+    final carried = _carried != null && _moved ? _carried : null;
+    // The flag dragged to the ring hides the other when it would be pushed
+    // out of its place: it is drawn as a trace and goes back to its corner.
+    final stretch = (player.loopStart, player.loopEnd);
+    final loopOn = player.looping;
     // "1:12 of 6:03", for screen readers; kept within the track.
     String timeOf(Duration at) {
       final inside = at.isNegative
@@ -408,98 +386,89 @@ class _PlayerDialState extends State<PlayerDial> with TickerProviderStateMixin {
       );
     }
 
+    // The time the middle shows for the flag held.
+    Duration? heldAt;
+    if (carried != null) {
+      heldAt = _fromRing
+          ? (carried == LoopEdge.start ? player.loopStart : player.loopEnd)
+          : _carriedAt;
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         _size = constraints.biggest;
         return Stack(
           fit: StackFit.expand,
           children: [
-            AnimatedBuilder(
-              animation: _morph,
-              builder: (context, _) {
-                final window = _window;
-                return Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    // Drawn again only when the window changes.
-                    RepaintBoundary(
-                      child: ExcludeSemantics(
-                        child: CustomPaint(
-                          painter: _RingPainter(
-                            window: window,
-                            seam: _passageView,
-                            fill: theme.colorScheme.outlineVariant,
-                            edge: theme.colorScheme.outline,
-                            tick: theme.colorScheme.onSurfaceVariant,
-                          ),
+            // Drawn again only when the track changes.
+            RepaintBoundary(
+              child: ExcludeSemantics(
+                child: CustomPaint(
+                  painter: _RingPainter(
+                    window: window,
+                    fill: theme.colorScheme.outlineVariant,
+                    edge: theme.colorScheme.outline,
+                    tick: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ),
+            // The wave fills in as the file is read (RF-PLY-15); a track
+            // with none (too long for a web page) has none.
+            if (ready && peaks != null)
+              RepaintBoundary(
+                child: ExcludeSemantics(
+                  child: ListenableBuilder(
+                    listenable: peaks,
+                    builder: (context, _) => AnimatedOpacity(
+                      opacity: peaks.length > 0 ? 1 : 0,
+                      duration: _reduce ? Duration.zero : Durations.medium1,
+                      curve: Easing.standard,
+                      child: CustomPaint(
+                        painter: RingWave(
+                          peaks: peaks,
+                          window: window,
+                          color: theme.colorScheme.onSurfaceVariant,
+                          passage: loopOn ? (stretch.$1!, stretch.$2!) : null,
+                          passageColor: theme.colorScheme.primary,
                         ),
                       ),
                     ),
-                    // The wave fills in as the file is read (RF-PLY-15); a
-                    // track with none (too long for a web page) has none.
-                    if (ready && peaks != null)
-                      RepaintBoundary(
-                        child: ExcludeSemantics(
-                          child: ListenableBuilder(
-                            listenable: peaks,
-                            builder: (context, _) => AnimatedOpacity(
-                              opacity: peaks.length > 0 ? 1 : 0,
-                              duration: _reduce
-                                  ? Duration.zero
-                                  : Durations.medium1,
-                              curve: Easing.standard,
-                              child: CustomPaint(
-                                painter: RingWave(
-                                  peaks: peaks,
-                                  window: window,
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                  gap: _passageView ? _seamGap : 0,
-                                  passage:
-                                      loopOn &&
-                                          arcStart != null &&
-                                          arcEnd != null
-                                      ? (arcStart, arcEnd)
-                                      : null,
-                                  passageColor: theme.colorScheme.primary,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    if (ready)
-                      RepaintBoundary(
-                        child: ExcludeSemantics(
-                          child: CustomPaint(
-                            painter: _GripsPainter(
-                              window: window,
-                              start: arcStart,
-                              end: arcEnd,
-                              color: theme.colorScheme.primary,
-                              onColor: theme.colorScheme.onPrimary,
-                              edge: theme.colorScheme.surface,
-                              style: theme.textTheme.labelLarge,
-                            ),
-                          ),
-                        ),
-                      ),
-                    if (ready)
-                      RepaintBoundary(
-                        child: ExcludeSemantics(
-                          child: CustomPaint(
-                            painter: _PlayheadPainter(
-                              position: _position,
-                              window: window,
-                              color: theme.colorScheme.onSurface,
-                              outline: theme.colorScheme.surface,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                );
-              },
-            ),
+                  ),
+                ),
+              ),
+            if (ready)
+              RepaintBoundary(
+                child: ExcludeSemantics(
+                  child: CustomPaint(
+                    painter: _FlagsPainter(
+                      window: window,
+                      start: _shown(LoopEdge.start, player, carried),
+                      end: _shown(LoopEdge.end, player, carried),
+                      returning: _returning(player, carried),
+                      carried: carried,
+                      fromRing: _fromRing,
+                      carriedAt: _carriedAt,
+                      finger: _finger,
+                      armed: player.armed,
+                      colors: FlagColors.of(theme),
+                    ),
+                  ),
+                ),
+              ),
+            if (ready)
+              RepaintBoundary(
+                child: ExcludeSemantics(
+                  child: CustomPaint(
+                    painter: _PlayheadPainter(
+                      position: _position,
+                      window: window,
+                      color: theme.colorScheme.onSurface,
+                      outline: theme.colorScheme.surface,
+                    ),
+                  ),
+                ),
+              ),
             // The ring, as a slider for screen readers; a touch on it moves
             // the listening point. The middle is a button above it.
             Semantics(
@@ -510,10 +479,14 @@ class _PlayerDialState extends State<PlayerDial> with TickerProviderStateMixin {
               // every second: the time must not be announced by itself
               // (RF-PLY-16).
               value: ready ? timeOf(position) : null,
-              increasedValue: ready ? timeOf(position + step) : null,
-              decreasedValue: ready ? timeOf(position - step) : null,
-              onIncrease: ready ? () => _seekBy(step) : null,
-              onDecrease: ready ? () => _seekBy(-step) : null,
+              increasedValue: ready
+                  ? timeOf(position + PlayerDial.readerStep)
+                  : null,
+              decreasedValue: ready
+                  ? timeOf(position - PlayerDial.readerStep)
+                  : null,
+              onIncrease: ready ? () => _seekBy(PlayerDial.readerStep) : null,
+              onDecrease: ready ? () => _seekBy(-PlayerDial.readerStep) : null,
               // The way to choose a passage without dragging (RF-PLY-16).
               customSemanticsActions: ready
                   ? {
@@ -523,19 +496,19 @@ class _PlayerDialState extends State<PlayerDial> with TickerProviderStateMixin {
                           player.mark(LoopEdge.end),
                     }
                   : null,
-              // A grip is dragged at once; anywhere else this does not take
+              // A flag is dragged at once; anywhere else this does not take
               // part, so that a swipe still changes section.
               child: RawGestureDetector(
                 behavior: HitTestBehavior.opaque,
                 excludeFromSemantics: true,
                 gestures: {
-                  _GripDrag: GestureRecognizerFactoryWithHandlers<_GripDrag>(
-                    () => _GripDrag(grips: _gripAt),
+                  FlagDrag: GestureRecognizerFactoryWithHandlers<FlagDrag>(
+                    () => FlagDrag(flagAt: _flagAt),
                     (drag) => drag
-                      ..onStart = _gripStart
-                      ..onUpdate = _gripMove
-                      ..onEnd = ((_) => _gripEnd())
-                      ..onCancel = _gripEnd,
+                      ..onDown = _flagDown
+                      ..onUpdate = _flagMove
+                      ..onEnd = ((_) => _flagEnd())
+                      ..onCancel = _flagEnd,
                   ),
                 },
                 child: GestureDetector(
@@ -545,35 +518,47 @@ class _PlayerDialState extends State<PlayerDial> with TickerProviderStateMixin {
                   // "tap" on it would do nothing.
                   excludeFromSemantics: true,
                   onTapUp: ready
-                      ? (details) {
-                          // The middle is the button's.
-                          if (_inHub(details.localPosition)) return;
-                          player.seek(_timeAt(details.localPosition));
-                        }
-                      : null,
-                  // Hold and slide to draw a loop (RF-PLY-11): no drag, so
-                  // that swiping between sections stays free.
-                  onLongPressStart: ready ? _drawStart : null,
-                  onLongPressMoveUpdate: ready ? _drawMove : null,
-                  onLongPressEnd: ready ? (_) => _drawEnd() : null,
-                  onLongPressCancel: ready
-                      ? () => setState(() => _drawing = null)
+                      ? (details) => _tap(details.localPosition)
                       : null,
                 ),
               ),
             ),
+            // The flags in the corners, for a screen reader: a button each,
+            // whose activation marks the flag where the track is heard
+            // (RF-PLY-16). They take no touch of their own.
+            if (ready)
+              for (final edge in LoopEdge.values)
+                Positioned.fromRect(
+                  rect: Rect.fromCenter(
+                    center: holderCenter(edge, _size),
+                    width: gripReach * 2,
+                    height: gripReach * 2,
+                  ),
+                  child: Semantics(
+                    button: true,
+                    label: edge == LoopEdge.start
+                        ? l10n.playerFlagStart
+                        : l10n.playerFlagEnd,
+                    onTapHint: edge == LoopEdge.start
+                        ? l10n.playerMarkStart
+                        : l10n.playerMarkEnd,
+                    onTap: () => player.mark(edge),
+                    child: const SizedBox.expand(),
+                  ),
+                ),
             Center(
               child: FractionallySizedBox(
                 widthFactor: DialGeometry.hubFraction,
                 heightFactor: DialGeometry.hubFraction,
                 // Round to the touch as well: the corners of its square
-                // would take the grips that sit on the diagonals.
+                // would take the flags that sit on the diagonals.
                 child: ClipOval(
                   child: _Hub(
                     player: widget.player,
                     seconds: _seconds,
                     decimal: decimal,
-                    grabbed: _grabbed,
+                    heldEdge: carried,
+                    heldAt: heldAt,
                   ),
                 ),
               ),
@@ -583,11 +568,29 @@ class _PlayerDialState extends State<PlayerDial> with TickerProviderStateMixin {
       },
     );
   }
-}
 
-/// The room the wave leaves free on each side of the seam at 12 o'clock in
-/// the view of a passage, in radians (1°).
-const _seamGap = math.pi / 180;
+  /// Where the flag of [edge] is on the ring now, or null if it waits in its
+  /// corner: the player's, or, for the one carried from a corner, the time
+  /// under the finger while it is over the ring.
+  Duration? _shown(LoopEdge edge, PlayerController player, LoopEdge? carried) {
+    if (carried == edge && !_fromRing) return _carriedAt;
+    return edge == LoopEdge.start ? player.loopStart : player.loopEnd;
+  }
+
+  /// The flag that would go back to its corner if the one carried were
+  /// dropped where it is (RF-PLY-08, rule 2), or null.
+  LoopEdge? _returning(PlayerController player, LoopEdge? carried) {
+    final at = _carriedAt;
+    if (carried == null || _fromRing || at == null) return null;
+    final minimum = PlayerController.minLoop;
+    if (carried == LoopEdge.start) {
+      final end = player.loopEnd;
+      return end != null && end - at < minimum ? LoopEdge.end : null;
+    }
+    final start = player.loopStart;
+    return start != null && at - start < minimum ? LoopEdge.start : null;
+  }
+}
 
 /// How wide the title and artist are, of the middle's diameter (RF-PLY-19).
 const _marqueeFraction = 0.8;
@@ -599,15 +602,18 @@ class _Hub extends StatelessWidget {
     required this.player,
     required this.seconds,
     required this.decimal,
-    required this.grabbed,
+    required this.heldEdge,
+    required this.heldAt,
   });
 
   final PlayerController player;
   final ValueListenable<int> seconds;
   final String decimal;
 
-  /// The end whose grip is held: the middle then shows its time.
-  final LoopEdge? grabbed;
+  /// The flag held and the time it is at on the ring: the middle then shows
+  /// it, to the hundredth. Null while no flag is over the ring.
+  final LoopEdge? heldEdge;
+  final Duration? heldAt;
 
   @override
   Widget build(BuildContext context) {
@@ -650,10 +656,10 @@ class _Hub extends StatelessWidget {
                 playing: player.isPlaying,
               ),
             ),
-          if (grabbed != null)
-            // The time of the end being dragged, to the hundredth.
+          if (heldEdge != null && heldAt != null)
+            // The time of the flag being dragged, to the hundredth.
             Text(
-              '${grabbed == LoopEdge.start ? 'A' : 'B'} ${clockText((grabbed == LoopEdge.start ? player.loopStart : player.loopEnd) ?? Duration.zero, hundredths: true, decimalSeparator: decimal)}',
+              '${heldEdge == LoopEdge.start ? 'A' : 'B'} ${clockText(heldAt!, hundredths: true, decimalSeparator: decimal)}',
               style: theme.textTheme.headlineSmall,
             )
           else
@@ -723,19 +729,16 @@ class _Hub extends StatelessWidget {
 }
 
 /// The ring and its ticks: a whole ring, off, until a track is open. The
-/// ticks sit on the outer edge, clear of the wave (RF-PLY-03). In the view of
-/// a passage a [seam] marks 12 o'clock, where the turn starts again.
+/// ticks sit on the outer edge, clear of the wave (RF-PLY-03).
 class _RingPainter extends CustomPainter {
   _RingPainter({
     required this.window,
-    required this.seam,
     required this.fill,
     required this.edge,
     required this.tick,
   });
 
   final RingWindow window;
-  final bool seam;
   final Color fill;
   final Color edge;
   final Color tick;
@@ -764,105 +767,122 @@ class _RingPainter extends CustomPainter {
         paint,
       );
     }
-    if (seam) {
-      canvas.drawLine(
-        dial.center + const Offset(0, -1) * dial.ringInner,
-        dial.center + const Offset(0, -1) * dial.ringOuter,
-        Paint()
-          ..color = edge
-          ..strokeWidth = 2,
-      );
-    }
   }
 
   @override
   bool shouldRepaint(_RingPainter old) =>
       old.window != window ||
-      old.seam != seam ||
       old.fill != fill ||
       old.edge != edge ||
       old.tick != tick;
 }
 
-/// The grips of the passage: a line across the ring at A and at B, with a
-/// disc and the letter to take it by (RF-PLY-11). A sits on the inner part of
-/// the ring and B on the outer, so that both stay in reach when they are
-/// close. The colour is not the only sign: there are the letters.
-class _GripsPainter extends CustomPainter {
-  _GripsPainter({
+/// The flags A and B (RF-PLY-08): each waits in its corner, solid, until it is
+/// on the ring, where its corner shows a trace; the one touched in its corner
+/// has a halo; the one dragged follows the finger, over the ring or, outside
+/// it, lifted above the finger. A flag about to go back to its corner is a
+/// trace on the ring.
+class _FlagsPainter extends CustomPainter {
+  _FlagsPainter({
     required this.window,
     required this.start,
     required this.end,
-    required this.color,
-    required this.onColor,
-    required this.edge,
-    required this.style,
+    required this.returning,
+    required this.carried,
+    required this.fromRing,
+    required this.carriedAt,
+    required this.finger,
+    required this.armed,
+    required this.colors,
   });
 
   final RingWindow window;
+
+  /// The time of each flag on the ring, or null while it is in its corner.
   final Duration? start;
   final Duration? end;
-  final Color color;
-  final Color onColor;
-  final Color edge;
-  final TextStyle? style;
+
+  /// The flag that goes back to its corner if the carried one is dropped.
+  final LoopEdge? returning;
+
+  /// The flag under the finger; whether it came from the ring; the time
+  /// under the finger over the ring, else null; and the finger itself.
+  final LoopEdge? carried;
+  final bool fromRing;
+  final Duration? carriedAt;
+  final Offset finger;
+  final LoopEdge? armed;
+  final FlagColors colors;
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (window.length <= Duration.zero) return;
     final dial = DialGeometry(size);
-    for (final (letter, edgeOf, time) in [
-      ('A', LoopEdge.start, start),
-      ('B', LoopEdge.end, end),
-    ]) {
-      if (time == null) continue;
-      final angle = window.angleOf(time);
-      final dir = Offset(math.sin(angle), -math.cos(angle));
-      canvas.drawLine(
-        dial.center + dir * dial.ringInner,
-        dial.center + dir * dial.ringOuter,
-        Paint()
-          ..color = color
-          ..strokeWidth = 2
-          ..strokeCap = StrokeCap.round,
+    for (final edge in LoopEdge.values) {
+      final startEdge = edge == LoopEdge.start;
+      final time = startEdge ? start : end;
+      // The corner: ready, or a trace while the flag is on the ring or in
+      // the hand; a flag that goes back is ready again.
+      final away = (time != null && returning != edge) || carried == edge;
+      paintCornerFlag(
+        canvas,
+        holderCenter(edge, size),
+        startEdge,
+        away
+            ? FlagLook.trace
+            : (armed == edge ? FlagLook.armed : FlagLook.solid),
+        colors,
       );
-      final at = gripCenter(edgeOf, window, time, size);
-      final radius = dial.ringWidth * 0.2;
-      canvas
-        ..drawCircle(at, radius, Paint()..color = color)
-        ..drawCircle(
-          at,
-          radius,
-          Paint()
-            ..color = edge
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 1.5,
+      if (time != null && window.length > Duration.zero) {
+        final pole = window.angleOf(time);
+        final dir = Offset(math.sin(pole), -math.cos(pole));
+        final look = returning == edge ? FlagLook.trace : FlagLook.solid;
+        paintPole(
+          canvas,
+          dial.center + dir * dial.ringInner,
+          dial.center + dir * dial.ringOuter,
+          look,
+          colors,
         );
-      final text = TextPainter(
-        text: TextSpan(
-          text: letter,
-          style: (style ?? const TextStyle()).copyWith(
-            color: onColor,
-            fontWeight: FontWeight.w700,
-            fontSize: dial.ringWidth * 0.26,
-            height: 1,
+        final box = pennantSize(dial.ringWidth);
+        paintPennant(
+          canvas,
+          Rect.fromCenter(
+            center: gripCenter(edge, window, time, size),
+            width: box.width,
+            height: box.height,
           ),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      text.paint(canvas, at - Offset(text.width, text.height) / 2);
-      text.dispose();
+          startEdge ? 'A' : 'B',
+          look,
+          colors,
+        );
+      }
+    }
+    // Dragged outside the ring, lifted above the finger so that the finger
+    // does not cover it.
+    final held = carried;
+    if (held != null && !fromRing && carriedAt == null) {
+      paintCornerFlag(
+        canvas,
+        finger - const Offset(0, _liftAbove),
+        held == LoopEdge.start,
+        FlagLook.solid,
+        colors,
+      );
     }
   }
 
   @override
-  bool shouldRepaint(_GripsPainter old) =>
+  bool shouldRepaint(_FlagsPainter old) =>
       old.window != window ||
       old.start != start ||
       old.end != end ||
-      old.color != color ||
-      old.onColor != onColor ||
-      old.edge != edge;
+      old.returning != returning ||
+      old.carried != carried ||
+      old.fromRing != fromRing ||
+      old.carriedAt != carriedAt ||
+      old.finger != finger ||
+      old.armed != armed ||
+      old.colors != colors;
 }
 
 /// The playhead: a line across the whole ring where the track is heard, like
