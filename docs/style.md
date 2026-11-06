@@ -18,7 +18,7 @@ Font: Edwin (Noto Music for ♩ ♫ ♬), which has only a regular and a bold we
 
 | Role | sp | Text style | Used for |
 | --- | --- | --- | --- |
-| display | 45 | `displayMedium` | The value in the middle of a dial: the tempo, the note on the tuner, the note on the harmony. The octave beside a note is 0.4 of it. |
+| display | 45 | `displayMedium` | The value in the middle of a dial: the tempo, the note on the tuner, the note on the harmony. The octave beside the tuner's note is 0.4 of it; Harmony shows the name alone (its octave never changes). |
 | headline | 24 | `headlineSmall` | The verdict on the tuner ("Flat −20 cents"). |
 | title | 22 | `titleLarge`, weight 700 | A value on a control: the time signature, TAP. |
 | body | 16 | `titleMedium`, `bodyLarge` | The chord on the harmony dial, the notes on the keys, the chord menu, dialog titles. |

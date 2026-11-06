@@ -30,7 +30,7 @@ Fuori dallo scopo, per decisione presa: libreria PDF e conversione in MusicXML/M
 | --- | --- | --- | --- |
 | RF-ARM-01 | Dodici tasti di nota attorno al quadrante, per quinte o per semitoni (impostazione). Tocco: suona; tocco su un'altra: cambia; ritocco o centro: ferma. | ✓ | `drone_controller_test` |
 | RF-ARM-02 | Do♯ e Fa♯ si possono scrivere Re♭ e Sol♭ (pressione lunga); il suono non cambia. | ✓ | `songs_and_degrees_test`, `accessibility_test` |
-| RF-ARM-03 | La fondamentale suona sempre nell'ottava 3 (La3 = 220 Hz); niente scelta dell'ottava. Le altre note dell'accordo stanno strette sopra, come le suona una mano. | ✓ | `piano_test` |
+| RF-ARM-03 | La fondamentale suona sempre nell'ottava 3 (La3 = 220 Hz); niente scelta dell'ottava, e per questo il quadrante scrive il solo nome, senza numero d'ottava (l'accordatore lo tiene: lì distingue corde e registri; deciso il 6/11). Le altre note dell'accordo stanno strette sopra, come le suona una mano. | ✓ | `piano_test` |
 | RF-ARM-04 | Modo **Accordo**: la nota da sola o uno di nove accordi (maggiore, minore, 7, 7♭9, maj7, m7, m7♭5, diminuito, sus4). Il menu ricorda l'ultima scelta tra nota sola e accordo. | ✓ | `drone_controller_test`, `minor_dominant_test` |
 | RF-ARM-05 | Modo **Giro**: un accordo per battuta, giri di 4, 8 o 12 battute nella tonalità della nota toccata; nove giri in tre sezioni (pop/rock, blues, jazz), dal più facile. | ✓ | `progression_test` |
 | RF-ARM-06 | Durante un giro il quadrante mostra la tonalità, i gradi in numeri romani e l'accordo che suona; le note fuori dall'accordo si attenuano. L'accordo mostrato cambia quando lo si **sente**, non quando lo si calcola. | ✓ | `songs_and_degrees_test`, `progression_test` |
