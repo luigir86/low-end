@@ -319,6 +319,8 @@ void main() {
         'track': null,
         'playing': false,
         'position_s': 0.0,
+        'speed_percent': 100,
+        'loop': null,
         'problem': null,
       });
       await actions.call('player_open');
@@ -377,6 +379,92 @@ void main() {
         expect(result['ok'], isFalse, reason: '$bad');
       }
       expect((await actions.call('player_seek'))['ok'], isFalse);
+    });
+
+    test('speed: a whole number from 50 to 125, with a track', () async {
+      var result = await actions.call('player_speed', {'percent': 80});
+      expect(result['ok'], isFalse);
+      await actions.call('player_open');
+      result = await actions.call('player_speed', {'percent': 80});
+      expect(player(result)['speed_percent'], 80);
+      expect(track.speed, 0.8);
+      for (final bad in [49, 126, 80.5, 'slow', null]) {
+        result = await actions.call('player_speed', {'percent': bad});
+        expect(result['ok'], isFalse, reason: '$bad');
+      }
+      expect(player(await actions.call('get_state'))['speed_percent'], 80);
+    });
+
+    test('loop: set, off, on again, and the points are in the state', () async {
+      await actions.call('player_open');
+      var result = await actions.call('player_loop');
+      expect(result['ok'], isFalse, reason: 'no points marked');
+      result = await actions.call('player_loop', {'start': 10});
+      expect(result['ok'], isFalse, reason: 'both or neither');
+      result = await actions.call('player_loop', {'start': 10, 'end': 10.5});
+      expect(result['ok'], isFalse, reason: 'at least a second');
+
+      result = await actions.call('player_loop', {'start': 30, 'end': 20});
+      expect(player(result)['loop'], {
+        'start_s': 20.0,
+        'end_s': 30.0,
+        'on': true,
+      });
+      expect(track.loop, isNotNull);
+
+      result = await actions.call('player_loop_off');
+      expect(player(result)['loop'], {
+        'start_s': 20.0,
+        'end_s': 30.0,
+        'on': false,
+      });
+      expect(track.loop, isNull);
+
+      result = await actions.call('player_loop');
+      expect(player(result)['loop'], {
+        'start_s': 20.0,
+        'end_s': 30.0,
+        'on': true,
+      });
+
+      // A point outside the loop turns it off.
+      result = await actions.call('player_seek', {'seconds': 100});
+      expect((player(result)['loop']! as Map)['on'], false);
+    });
+
+    test('mark and nudge move the points', () async {
+      await actions.call('player_open');
+      await actions.call('player_seek', {'seconds': 10});
+      var result = await actions.call('player_mark', {'edge': 'start'});
+      expect(player(result)['loop'], {
+        'start_s': 9.9,
+        'end_s': null,
+        'on': false,
+      });
+      result = await actions.call('player_loop_nudge', {
+        'edge': 'end',
+        'seconds': 1,
+      });
+      expect(result['ok'], isFalse, reason: 'B is not marked');
+      await actions.call('player_seek', {'seconds': 20});
+      result = await actions.call('player_mark', {'edge': 'end'});
+      expect((player(result)['loop']! as Map)['on'], true);
+      result = await actions.call('player_loop_nudge', {
+        'edge': 'start',
+        'seconds': -0.1,
+      });
+      expect((player(result)['loop']! as Map)['start_s'], 9.8);
+      for (final bad in [
+        {'edge': 'middle', 'seconds': 1},
+        {'edge': 'start', 'seconds': 11},
+        {'edge': 'start'},
+        {'seconds': 1},
+      ]) {
+        result = await actions.call('player_loop_nudge', bad);
+        expect(result['ok'], isFalse, reason: '$bad');
+      }
+      result = await actions.call('player_mark', {'edge': 'both'});
+      expect(result['ok'], isFalse);
     });
 
     test('open_section shows it; a link seeks with a number', () async {

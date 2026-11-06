@@ -8,6 +8,7 @@ import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/audio/track_files.dart';
 import 'package:low_end/audio/track_output.dart';
+import 'package:low_end/features/player/player_panel.dart';
 
 /// Checks the main screens against Flutter's accessibility guidelines: touch
 /// targets of at least 48 dp, a label on every tappable element, and text
@@ -108,6 +109,13 @@ void main() {
         await expectAccessible(tester);
         await tester.tap(find.byKey(const Key('playerHub')));
         await tester.pump(const Duration(milliseconds: 300));
+        await expectAccessible(tester);
+        // A loop marked: the arc, the letters, the ends and the switch.
+        await tester.tap(find.byKey(PlayerPanel.markStartKey));
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.tap(find.byKey(PlayerPanel.markEndKey));
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(find.text('B 0:01.0'), findsOneWidget);
         await expectAccessible(tester);
         handle.dispose();
       },

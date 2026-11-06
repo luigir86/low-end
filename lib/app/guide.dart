@@ -41,6 +41,7 @@ class _Guide extends StatelessWidget {
             tip(Icons.touch_app_outlined, l10n.guideRing),
             tip(Icons.swipe, l10n.guideSwipe),
             tip(Icons.pin_outlined, l10n.guideTempo),
+            tip(Icons.repeat, l10n.guidePlayerLoop),
             tip(Icons.volume_up_outlined, l10n.guideVolume),
             const SizedBox(height: 12),
             FilledButton(

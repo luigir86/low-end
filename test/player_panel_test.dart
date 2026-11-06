@@ -3,6 +3,7 @@
 // outputs.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart' show kLongPressTimeout;
 import 'package:flutter/semantics.dart' show SemanticsAction;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/app_navigation.dart';
@@ -248,5 +249,205 @@ void main() {
     await screen.player.open(_song);
     await screen.settle();
     expect(tester.takeException(), isNull);
+  });
+
+  group('speed and loop (RF-PLY-08 to RF-PLY-12)', () {
+    Finder pressable(Key key) => find.descendant(
+      of: find.byKey(key),
+      matching: find.byWidgetPredicate(
+        (w) => w is OutlinedButton || w is FilledButton,
+      ),
+    );
+
+    bool enabled(WidgetTester tester, Key key) {
+      final button = tester.widget<ButtonStyleButton>(pressable(key).first);
+      return button.onPressed != null;
+    }
+
+    Offset ring(WidgetTester tester, double dx, double dy) {
+      final dial = tester.getRect(find.byKey(DialLayout.dialKey));
+      return dial.center + Offset(dial.width * dx, dial.height * dy);
+    }
+
+    testWidgets('with no track the controls are off', (tester) async {
+      final screen = await _open(tester);
+      expect(enabled(tester, PlayerPanel.markStartKey), isFalse);
+      expect(enabled(tester, PlayerPanel.markEndKey), isFalse);
+      expect(enabled(tester, PlayerPanel.loopSwitchKey), isFalse);
+      expect(enabled(tester, PlayerPanel.stepBackKey), isFalse);
+      expect(find.text('A –'), findsOneWidget);
+      expect(find.text('B –'), findsOneWidget);
+      await tester.tap(find.byKey(PlayerPanel.speedFieldKey));
+      await screen.settle();
+      expect(find.text('Listening speed'), findsNothing);
+    });
+
+    testWidgets('Set A and Set B mark the loop and turn it on', (tester) async {
+      final screen = await _open(tester);
+      await screen.player.open(_song);
+      await screen.settle();
+      await screen.player.seek(const Duration(seconds: 10));
+
+      await tester.tap(find.byKey(PlayerPanel.markStartKey));
+      await screen.settle();
+      expect(find.text('A 0:09.8'), findsOneWidget);
+      expect(enabled(tester, PlayerPanel.stepBackKey), isTrue);
+      // The loop switch needs both ends.
+      expect(enabled(tester, PlayerPanel.loopSwitchKey), isFalse);
+
+      await screen.player.seek(const Duration(seconds: 20));
+      await tester.tap(find.byKey(PlayerPanel.markEndKey));
+      await screen.settle();
+      expect(find.text('B 0:19.8'), findsOneWidget);
+      expect(screen.player.looping, isTrue);
+      expect(screen.output.loop, isNotNull);
+      expect(enabled(tester, PlayerPanel.loopSwitchKey), isTrue);
+
+      // The switch turns the repeat off and back on, the ends stay.
+      await tester.tap(find.byKey(PlayerPanel.loopSwitchKey));
+      await screen.settle();
+      expect(screen.player.looping, isFalse);
+      expect(find.text('A 0:09.8'), findsOneWidget);
+      await tester.tap(find.byKey(PlayerPanel.loopSwitchKey));
+      await screen.settle();
+      expect(screen.player.looping, isTrue);
+    });
+
+    testWidgets('the segments choose the end that − and + move', (
+      tester,
+    ) async {
+      final screen = await _open(tester);
+      await screen.player.open(_song);
+      await screen.settle();
+      await screen.player.setLoop(
+        const Duration(seconds: 10),
+        const Duration(seconds: 20),
+      );
+      await screen.settle();
+      expect(screen.player.edge, LoopEdge.start);
+
+      await tester.tap(find.byKey(PlayerPanel.stepBackKey));
+      await screen.settle();
+      expect(screen.player.loopStart, const Duration(milliseconds: 9900));
+
+      await tester.tap(find.text('B 0:20.0'));
+      await screen.settle();
+      expect(screen.player.edge, LoopEdge.end);
+      await tester.tap(find.byKey(PlayerPanel.stepForwardKey));
+      await screen.settle();
+      expect(screen.player.loopStart, const Duration(milliseconds: 9900));
+      expect(screen.player.loopEnd, const Duration(milliseconds: 20100));
+    });
+
+    testWidgets('holding + keeps moving the end', (tester) async {
+      final screen = await _open(tester);
+      await screen.player.open(_song);
+      await screen.settle();
+      await screen.player.setLoop(
+        const Duration(seconds: 10),
+        const Duration(seconds: 20),
+      );
+      screen.player.selectEdge(LoopEdge.end);
+      await tester.pump();
+      final hold = await tester.startGesture(
+        tester.getCenter(find.byKey(PlayerPanel.stepForwardKey)),
+      );
+      await tester.pump(const Duration(milliseconds: 1500));
+      await hold.up();
+      await screen.settle();
+      expect(
+        screen.player.loopEnd! > const Duration(milliseconds: 20300),
+        isTrue,
+      );
+    });
+
+    testWidgets('the speed field asks for a speed in a sheet', (tester) async {
+      final screen = await _open(tester);
+      await screen.player.open(_song);
+      await screen.settle();
+      expect(
+        find.descendant(
+          of: find.byKey(PlayerPanel.speedFieldKey),
+          matching: find.text('100%'),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(PlayerPanel.speedFieldKey));
+      await screen.settle();
+      expect(find.text('Listening speed'), findsOneWidget);
+      await tester.tap(find.text('70%'));
+      await screen.settle();
+      expect(screen.player.speed, 70);
+      expect(screen.output.speed, 0.7);
+      expect(
+        find.descendant(
+          of: find.byKey(PlayerPanel.speedFieldKey),
+          matching: find.text('70%'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('holding the ring and sliding draws a loop', (tester) async {
+      final screen = await _open(tester);
+      await screen.player.open(_song);
+      await screen.settle();
+      // From 3 o'clock (a quarter: 1:30) to 6 o'clock (half: 3:00).
+      final slide = await tester.startGesture(ring(tester, 0.4, 0));
+      await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
+      await slide.moveTo(ring(tester, 0.3, 0.3));
+      await tester.pump();
+      await slide.moveTo(ring(tester, 0, 0.4));
+      await tester.pump();
+      await slide.up();
+      await screen.settle();
+      expect(screen.player.looping, isTrue);
+      expect(screen.player.loopStart, const Duration(seconds: 90));
+      expect(screen.player.loopEnd, const Duration(minutes: 3));
+      expect(find.text('A 1:30.0'), findsOneWidget);
+      expect(find.text('B 3:00.0'), findsOneWidget);
+    });
+
+    testWidgets('a slide shorter than a second is a touch', (tester) async {
+      final screen = await _open(tester);
+      await screen.player.open(_song);
+      await screen.settle();
+      final slide = await tester.startGesture(ring(tester, 0.4, 0));
+      await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
+      await slide.up();
+      await screen.settle();
+      expect(screen.player.hasLoop, isFalse);
+      expect(screen.player.position, const Duration(seconds: 90));
+    });
+
+    testWidgets('a touch on the ring outside the loop turns it off', (
+      tester,
+    ) async {
+      final screen = await _open(tester);
+      await screen.player.open(_song);
+      await screen.settle();
+      await screen.player.setLoop(
+        const Duration(seconds: 10),
+        const Duration(seconds: 20),
+      );
+      await tester.tapAt(ring(tester, 0.4, 0));
+      await screen.settle();
+      expect(screen.player.looping, isFalse);
+      expect(screen.player.loopStart, const Duration(seconds: 10));
+      expect(screen.player.position, const Duration(seconds: 90));
+    });
+
+    testWidgets('swiping between sections still works over the ring', (
+      tester,
+    ) async {
+      final screen = await _open(tester);
+      await screen.player.open(_song);
+      await screen.settle();
+      expect(screen.scope.navigation.section, AppSection.player);
+      await tester.flingFrom(ring(tester, 0, -0.4), const Offset(400, 0), 1000);
+      await tester.pumpAndSettle();
+      expect(screen.scope.navigation.section, AppSection.tuner);
+      expect(screen.player.hasLoop, isFalse);
+    });
   });
 }

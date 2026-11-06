@@ -189,5 +189,17 @@
   "playerTimeOf": "{position} sur {duration}",
   "pausedForPlayer": "En pause pendant que vous écoutez",
   "playerUnreadable": "Ce fichier ne peut pas être ouvert.",
-  "playerMissing": "Le fichier n’est plus disponible."
+  "playerMissing": "Le fichier n’est plus disponible.",
+  "playerSpeed": "Vitesse",
+  "playerSpeedTitle": "Vitesse d’écoute",
+  "playerLoop": "Boucle",
+  "playerLoopStart": "Début",
+  "playerLoopEnd": "Fin",
+  "playerMarkStart": "A ici",
+  "playerMarkEnd": "B ici",
+  "playerStartEarlier": "Début plus tôt",
+  "playerStartLater": "Début plus tard",
+  "playerEndEarlier": "Fin plus tôt",
+  "playerEndLater": "Fin plus tard",
+  "guidePlayerLoop": "Dans Écoute, maintenez le cercle et faites glisser pour dessiner une boucle."
 }

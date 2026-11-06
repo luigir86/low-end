@@ -189,5 +189,17 @@
   "playerTimeOf": "{position} di {duration}",
   "pausedForPlayer": "In pausa mentre ascolti",
   "playerUnreadable": "Questo file non si può aprire.",
-  "playerMissing": "Il file non è più disponibile."
+  "playerMissing": "Il file non è più disponibile.",
+  "playerSpeed": "Velocità",
+  "playerSpeedTitle": "Velocità di ascolto",
+  "playerLoop": "Loop",
+  "playerLoopStart": "Inizio",
+  "playerLoopEnd": "Fine",
+  "playerMarkStart": "A qui",
+  "playerMarkEnd": "B qui",
+  "playerStartEarlier": "Inizio prima",
+  "playerStartLater": "Inizio dopo",
+  "playerEndEarlier": "Fine prima",
+  "playerEndLater": "Fine dopo",
+  "guidePlayerLoop": "In Ascolto tieni premuto il cerchio e scorri per disegnare un loop."
 }

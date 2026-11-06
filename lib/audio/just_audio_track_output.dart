@@ -12,7 +12,13 @@ import 'track_output.dart';
 ///
 /// The player is made at the first [open], never before (RNF-AVV-01).
 class JustAudioTrackOutput implements TrackOutput {
-  JustAudioTrackOutput();
+  /// With [useClipLoop] the loop is a clip of the track repeated by the
+  /// system player (gapless on Android). Without it the whole track plays
+  /// and a timer jumps back at the end of the stretch: in a browser the clip
+  /// would be checked only every 250 ms or so (just_audio_web).
+  JustAudioTrackOutput({this.useClipLoop = !kIsWeb});
+
+  final bool useClipLoop;
 
   AudioPlayer? _player;
   StreamSubscription<PlayerState>? _state;
@@ -23,6 +29,19 @@ class JustAudioTrackOutput implements TrackOutput {
   /// closed is ignored.
   var _generation = 0;
   var _speed = 1.0;
+
+  /// The stretch that repeats, in the whole track.
+  (Duration, Duration)? _loop;
+
+  /// Where the clip begins in the whole track (the player counts from it).
+  var _clipStart = Duration.zero;
+  var _clipLooping = false;
+  var _playing = false;
+  Timer? _loopWatch;
+
+  /// How far before the end of the stretch the timer jumps back: the timer
+  /// ticks every 16 ms, and the jump itself takes a moment.
+  static const _loopLead = Duration(milliseconds: 15);
 
   AudioPlayer _create() {
     final player = AudioPlayer(
@@ -40,6 +59,13 @@ class JustAudioTrackOutput implements TrackOutput {
       if (state.processingState == ProcessingState.completed) {
         if (ended) return;
         ended = true;
+        final loop = _loop;
+        if (loop != null && !useClipLoop) {
+          // A loop up to the very end of the track.
+          ended = false;
+          unawaited(player.seek(loop.$1));
+          return;
+        }
         unawaited(_finish(player));
       } else {
         ended = false;
@@ -50,6 +76,8 @@ class JustAudioTrackOutput implements TrackOutput {
   }
 
   Future<void> _finish(AudioPlayer player) async {
+    _playing = false;
+    _watchLoop();
     await player.pause();
     await player.seek(Duration.zero);
     _events.add(TrackEvent.ended);
@@ -69,7 +97,15 @@ class JustAudioTrackOutput implements TrackOutput {
   Future<Duration> open(TrackRef track, {Duration at = Duration.zero}) async {
     final player = _player ??= _create();
     final Duration? duration;
+    _loop = null;
+    _clipStart = Duration.zero;
+    _playing = false;
+    _watchLoop();
     try {
+      if (_clipLooping) {
+        _clipLooping = false;
+        await player.setLoopMode(LoopMode.off);
+      }
       duration = await player.setAudioSource(
         ProgressiveAudioSource(
           Uri.parse(track.uri),
@@ -112,17 +148,67 @@ class JustAudioTrackOutput implements TrackOutput {
     // The future of play() ends only when the playing stops: awaiting it
     // would hold the controller.
     final player = _player;
+    _playing = true;
+    _watchLoop();
     if (player != null) unawaited(player.play());
   }
 
   @override
-  Future<void> pause() async => _player?.pause();
+  Future<void> pause() async {
+    _playing = false;
+    _watchLoop();
+    await _player?.pause();
+  }
 
   @override
-  Duration get position => _player?.position ?? Duration.zero;
+  Duration get position {
+    final player = _player;
+    return player == null ? Duration.zero : _clipStart + player.position;
+  }
 
   @override
-  Future<void> seek(Duration position) async => _player?.seek(position);
+  Future<void> seek(Duration position) async {
+    final inside = position - _clipStart;
+    await _player?.seek(inside.isNegative ? Duration.zero : inside);
+  }
+
+  @override
+  Future<void> setLoop(Duration? start, Duration? end) async {
+    final loop = start != null && end != null ? (start, end) : null;
+    _loop = loop;
+    final player = _player;
+    if (player == null) return;
+    if (useClipLoop) {
+      // The clip reloads the source and the player counts from its start:
+      // the controller always seeks to where it wants to be afterwards.
+      await player.setClip(start: loop?.$1, end: loop?.$2);
+      _clipStart = loop?.$1 ?? Duration.zero;
+      _clipLooping = loop != null;
+      await player.setLoopMode(loop == null ? LoopMode.off : LoopMode.one);
+    } else {
+      _watchLoop();
+    }
+  }
+
+  /// Without clips, a timer ticks while a loop plays and jumps back to its
+  /// start at its end.
+  void _watchLoop() {
+    final loop = _loop;
+    final watching = !useClipLoop && loop != null && _playing;
+    if (!watching) {
+      _loopWatch?.cancel();
+      _loopWatch = null;
+      return;
+    }
+    _loopWatch ??= Timer.periodic(const Duration(milliseconds: 16), (_) {
+      final stretch = _loop;
+      final player = _player;
+      if (stretch == null || player == null) return;
+      if (player.position >= stretch.$2 - _loopLead) {
+        unawaited(player.seek(stretch.$1));
+      }
+    });
+  }
 
   @override
   Future<void> setSpeed(double speed) async {
@@ -136,6 +222,9 @@ class JustAudioTrackOutput implements TrackOutput {
   @override
   Future<void> close() async {
     _generation++;
+    _loop = null;
+    _loopWatch?.cancel();
+    _loopWatch = null;
     await _state?.cancel();
     await _interruptions?.cancel();
     final player = _player;

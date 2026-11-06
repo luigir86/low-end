@@ -83,6 +83,10 @@ class _PlayerDialState extends State<PlayerDial>
   /// second only.
   final _seconds = ValueNotifier<int>(0);
 
+  /// The loop being drawn by a long press and a slide: where the finger
+  /// went down and where it is now, in the track; null when not drawing.
+  (Duration, Duration)? _drawing;
+
   @override
   void initState() {
     super.initState();
@@ -125,6 +129,52 @@ class _PlayerDialState extends State<PlayerDial>
     }
   }
 
+  /// The time at a touch on the ring. While drawing, the touch cannot go
+  /// round past 12 o'clock: it stops at the start or the end of the track.
+  Duration _timeAt(Offset at, Size size, {Duration? last}) {
+    final duration = widget.player.duration;
+    final t = timeAtAngle(touchAngle(at, size), duration);
+    if (last == null) return t;
+    final half = duration ~/ 2;
+    if ((t - last).abs() > half) {
+      return last > half ? duration : Duration.zero;
+    }
+    return t;
+  }
+
+  bool _inHub(Offset at, Size size) {
+    final g = DialGeometry(size);
+    return (at - g.center).distance < g.hub;
+  }
+
+  void _drawStart(LongPressStartDetails details, Size size) {
+    if (_inHub(details.localPosition, size)) return;
+    HapticFeedback.mediumImpact();
+    final from = _timeAt(details.localPosition, size);
+    setState(() => _drawing = (from, from));
+  }
+
+  void _drawMove(LongPressMoveUpdateDetails details, Size size) {
+    final drawing = _drawing;
+    if (drawing == null) return;
+    final to = _timeAt(details.localPosition, size, last: drawing.$2);
+    setState(() => _drawing = (drawing.$1, to));
+  }
+
+  void _drawEnd() {
+    final drawing = _drawing;
+    if (drawing == null) return;
+    setState(() => _drawing = null);
+    final (from, to) = drawing;
+    final player = widget.player;
+    // A slide under the shortest loop is a touch.
+    if ((to - from).abs() < PlayerController.minLoop) {
+      player.seek(from);
+    } else {
+      player.setLoop(from, to);
+    }
+  }
+
   void _seekBy(Duration by) {
     final player = widget.player;
     player.seek(player.position + by);
@@ -139,6 +189,13 @@ class _PlayerDialState extends State<PlayerDial>
     final duration = player.duration;
     final position = player.position;
     final decimal = l10n.localeName == 'en' ? '.' : ',';
+    // The stretch to draw: the loop, or the one being slid out.
+    var arcStart = player.loopStart, arcEnd = player.loopEnd;
+    final drawing = _drawing;
+    if (drawing != null) {
+      arcStart = drawing.$1 < drawing.$2 ? drawing.$1 : drawing.$2;
+      arcEnd = drawing.$1 < drawing.$2 ? drawing.$2 : drawing.$1;
+    }
     // "1:12 of 6:03", for screen readers; kept within the track.
     String timeOf(Duration at) {
       final inside = at.isNegative
@@ -165,6 +222,13 @@ class _PlayerDialState extends State<PlayerDial>
                     fill: theme.colorScheme.outlineVariant,
                     edge: theme.colorScheme.outline,
                     tick: theme.colorScheme.onSurfaceVariant,
+                    loopStart: arcStart,
+                    loopEnd: arcEnd,
+                    loopOn: drawing != null || player.looping,
+                    arc: theme.colorScheme.primary,
+                    letter: theme.colorScheme.onSurface,
+                    letterOutline: theme.colorScheme.surface,
+                    letterStyle: theme.textTheme.labelLarge,
                   ),
                 ),
               ),
@@ -221,6 +285,14 @@ class _PlayerDialState extends State<PlayerDial>
                           ),
                         );
                       }
+                    : null,
+                // Hold and slide to draw a loop (RF-PLY-11): no drag, so that
+                // swiping between sections stays free.
+                onLongPressStart: ready ? (d) => _drawStart(d, size) : null,
+                onLongPressMoveUpdate: ready ? (d) => _drawMove(d, size) : null,
+                onLongPressEnd: ready ? (_) => _drawEnd() : null,
+                onLongPressCancel: ready
+                    ? () => setState(() => _drawing = null)
                     : null,
               ),
             ),
@@ -343,12 +415,30 @@ class _RingPainter extends CustomPainter {
     required this.fill,
     required this.edge,
     required this.tick,
+    required this.loopStart,
+    required this.loopEnd,
+    required this.loopOn,
+    required this.arc,
+    required this.letter,
+    required this.letterOutline,
+    required this.letterStyle,
   });
 
   final Duration duration;
   final Color fill;
   final Color edge;
   final Color tick;
+
+  /// The stretch A to B, drawn on the outer part of the ring: filled when
+  /// the loop is on, only its outline when the points are marked but the
+  /// loop is off.
+  final Duration? loopStart;
+  final Duration? loopEnd;
+  final bool loopOn;
+  final Color arc;
+  final Color letter;
+  final Color letterOutline;
+  final TextStyle? letterStyle;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -361,6 +451,7 @@ class _RingPainter extends CustomPainter {
       border: edge,
     );
     if (duration <= Duration.zero) return;
+    _paintLoop(canvas, dial);
     final paint = Paint()
       ..color = tick
       ..strokeWidth = 2
@@ -376,12 +467,75 @@ class _RingPainter extends CustomPainter {
     }
   }
 
+  void _paintLoop(Canvas canvas, DialGeometry dial) {
+    final a = loopStart, b = loopEnd;
+    if (a != null && b != null) {
+      final from = ringAngle(a, duration);
+      final sweep = math.max(ringAngle(b, duration) - from, 0.02);
+      final inner = dial.ringInner + dial.ringWidth * 0.5;
+      if (loopOn) {
+        dial.paintSegment(
+          canvas,
+          startAngle: from,
+          sweep: sweep,
+          color: arc,
+          inner: inner,
+        );
+      } else {
+        dial.paintSegment(
+          canvas,
+          startAngle: from,
+          sweep: sweep,
+          color: arc,
+          inner: inner,
+          stroke: 2,
+        );
+      }
+    }
+    if (a != null) _paintLetter(canvas, dial, 'A', ringAngle(a, duration));
+    if (b != null) _paintLetter(canvas, dial, 'B', ringAngle(b, duration));
+  }
+
+  /// A letter by the end it names, on the inner part of the ring.
+  void _paintLetter(Canvas canvas, DialGeometry dial, String text, double at) {
+    final base = (letterStyle ?? const TextStyle()).copyWith(
+      fontWeight: FontWeight.w700,
+      fontSize: dial.ringWidth * 0.42,
+    );
+    final dir = Offset(math.sin(at), -math.cos(at));
+    final where = dial.center + dir * (dial.ringInner + dial.ringWidth * 0.3);
+    for (final outline in [true, false]) {
+      final painter = TextPainter(
+        text: TextSpan(
+          text: text,
+          style: outline
+              ? base.copyWith(
+                  foreground: Paint()
+                    ..style = PaintingStyle.stroke
+                    ..strokeWidth = 3
+                    ..color = letterOutline,
+                )
+              : base.copyWith(color: letter),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      painter.paint(canvas, where - Offset(painter.width, painter.height) / 2);
+      painter.dispose();
+    }
+  }
+
   @override
   bool shouldRepaint(_RingPainter old) =>
       old.duration != duration ||
       old.fill != fill ||
       old.edge != edge ||
-      old.tick != tick;
+      old.tick != tick ||
+      old.loopStart != loopStart ||
+      old.loopEnd != loopEnd ||
+      old.loopOn != loopOn ||
+      old.arc != arc ||
+      old.letter != letter ||
+      old.letterOutline != letterOutline;
 }
 
 /// The point where the track is listened to.
