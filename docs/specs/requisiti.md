@@ -134,9 +134,14 @@ Quarto tab (deciso il 6/11): un brano proprio, scelto con il selettore di sistem
 | RF-PLY-05 | Notifica e schermo spento: titolo (o nome del file) e autore, play e pausa. | ○ | `playback_rules_test`; telefono |
 | RF-PLY-06 | A fine brano, senza loop, si ferma e torna all'inizio. | ○ | `player_controller_test` |
 | RF-PLY-07 | Errori chiari: "Questo file non si può aprire" (formato o protezione), "Il file non è più disponibile" (spostato o permesso perso). Il Player torna vuoto, l'app non si blocca. | ○ | `player_controller_test` |
-| RF-PLY-16 | Accessibilità: tutto si fa senza trascinare. Il toro si annuncia come cursore ("1:12 di 6:03") con aumenta e diminuisci di 10 s; il tempo non si annuncia da solo a ogni secondo. | ○ | `accessibility_test` |
+| RF-PLY-08 | Velocità dal 50 al 125% senza cambiare intonazione: campo Velocità con il foglio numerico (scorciatoie 50, 60, 70, 75, 80, 90, 100, 110, 125). Si applica subito. | ○ | `player_controller_test`; ascolto al CANCELLO 1 |
+| RF-PLY-09 | "A qui" / "B qui" segnano il punto ascoltato meno 150 ms × velocità. "B qui" accende il loop e riparte da A. Limiti: 0 ≤ A < B ≤ durata, B − A ≥ 1 s; un estremo si ferma al limite, non spinge l'altro. | ○ | `player_controller_test` |
+| RF-PLY-10 | Ritocchi: "Inizio" e "Fine" scelgono l'estremo; − e + lo spostano di 0,1 s, tenuti si ripetono accelerando e dopo 2,4 s vanno di 1 s. Mentre suona, il suono segue quando il dito si ferma per 0,3 s (come RF-MET-08): ritoccando A riparte da A, ritoccando B riparte 2 s prima di B. | ○ | `player_controller_test`, `player_panel_test` |
+| RF-PLY-11 | Arco sul toro: pressione lunga e trascinare disegna un nuovo loop (sotto 1 s vale come tocco). Toccare fuori dall'arco a loop acceso spegne il loop, tiene A e B, e sposta l'ascolto. | ○ | `player_panel_test` |
+| RF-PLY-12 | Interruttore Loop: acceso, arrivato a B riparte da A; spento, A e B restano segnati. Stacco al giro: obiettivo sotto 30 ms su Android e sotto 80 ms sul web. | ○ | `player_controller_test`; misura al CANCELLO 1 |
+| RF-PLY-16 | Accessibilità: tutto si fa senza trascinare (anche il loop: A qui, B qui, − e +). Il toro si annuncia come cursore ("1:12 di 6:03") con aumenta e diminuisci di 10 s; il tempo non si annuncia da solo a ogni secondo. | ○ | `accessibility_test` |
 
-Azioni per assistenti (RF-LLM): `player_open`, `player_play`, `player_pause`, `player_seek`; `get_state` con il blocco `player`; `open_section` accetta `player`. Verifica: `app_actions_test` (golden).
+Azioni per assistenti (RF-LLM): `player_open`, `player_play`, `player_pause`, `player_seek`, `player_speed`, `player_loop`, `player_mark`, `player_loop_nudge`, `player_loop_off`; `get_state` con il blocco `player` (anche velocità e loop); `open_section` accetta `player`. Verifica: `app_actions_test` (golden).
 
 ## 3. Requisiti non funzionali
 
@@ -149,7 +154,7 @@ Azioni per assistenti (RF-LLM): `player_open`, `player_play`, `player_pause`, `p
 | RNF-LAT-03 | La luce del battito con il suono, entro 30 ms (proposta, da confermare dopo le misure). | costanti +20 ms altoparlante, +160 ms BT mai misurate | ○ |
 | RNF-FLU-01 | **Fluidità**: lo schermo non si blocca più di 100 ms per un'azione del musicista (cambio sezione, accordo, brano, tempo), né su Android né nel web; il suono non si interrompe mentre si prepara quello nuovo. | brano: corretto dalla PR #98; tempo e stile nel web ancora a rischio | ○ |
 | RNF-MEM-01 | Memoria contenuta su telefoni economici (proposta, da confermare dopo le misure: < 150 MB di picco suonando un walking di 12 battute). | mai misurata | ? |
-| RNF-DIM-01 | App leggera: pochi pacchetti, codec inutili esclusi; dimensione dell'APK per architettura da tenere sotto controllo (oggi 13 MB di campioni). | `pubspec.yaml` | ◐ |
+| RNF-DIM-01 | App leggera: pochi pacchetti, codec inutili esclusi; dimensione dell'APK per architettura da tenere sotto controllo (oggi 13 MB di campioni). Con il Player (ExoPlayer) al massimo 2,5 MB più grande di prima, da misurare al CANCELLO 1. | `pubspec.yaml` | ◐ |
 | RNF-UX-01 | **UI/UX** prima di tutto, in stile Material 3 e Android standard (durate e curve M3, pulsanti standard, menu uniformi); identità del marchio: bronzo su ebano, sempre scuro, quadrante, strobo, font Edwin. | `style_test`, `theme_test`, `choice_menu_test`, `row_heights_test` | ✓ |
 | RNF-UX-02 | Ogni testo visibile in inglese (riferimento), italiano, spagnolo e francese; niente testi o colori scritti nel codice. | `.arb`, `style_test` | ✓ |
 | RNF-UX-03 | Layout senza overflow da 320×568 al tablet, in orizzontale, testo fino a 2×, in italiano e inglese, e in francese e spagnolo (le lingue più lunghe) sui telefoni più stretti. | `review/layout_review_test`, `dial_alignment_test` | ✓ |
