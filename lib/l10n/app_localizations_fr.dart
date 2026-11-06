@@ -642,6 +642,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get playerChoose => 'Choisissez un morceau';
 
   @override
+  String get playerHubHint => 'Touchez pour démarrer';
+
+  @override
   String get playerPlay => 'Lire';
 
   @override

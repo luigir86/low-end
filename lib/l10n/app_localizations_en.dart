@@ -635,6 +635,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerChoose => 'Choose a track';
 
   @override
+  String get playerHubHint => 'Tap to start';
+
+  @override
   String get playerPlay => 'Play';
 
   @override

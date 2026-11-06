@@ -126,6 +126,10 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   /// The artist in the tags of the file, if it has one.
   String? get artist => _track == null ? null : _artist;
 
+  /// True if the file gave a title or an artist: the middle of the dial then
+  /// shows them, going by once if they are long (RF-PLY-19).
+  bool get hasTags => _track != null && (_title != null || _artist != null);
+
   /// What is kept for the next launch; null with no track.
   PlayerSetup? get setup {
     final track = _track;

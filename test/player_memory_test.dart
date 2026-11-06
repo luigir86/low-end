@@ -144,7 +144,7 @@ void main() {
       final player = app.scope.player;
       expect(player.status, PlayerStatus.ready);
       expect(find.text('Blue Bossa (Dorham)'), findsWidgets);
-      expect(find.text('0:00 / 5:00'), findsOneWidget);
+      expect(find.text('0:00'), findsOneWidget);
       expect(find.text('80%'), findsOneWidget);
       expect(find.text('A 1:00.00'), findsOneWidget);
       expect(find.text('B 1:30.00'), findsOneWidget);

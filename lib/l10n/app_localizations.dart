@@ -1206,6 +1206,12 @@ abstract class AppLocalizations {
   /// **'Choose a track'**
   String get playerChoose;
 
+  /// No description provided for @playerHubHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to start'**
+  String get playerHubHint;
+
   /// No description provided for @playerPlay.
   ///
   /// In en, this message translates to:

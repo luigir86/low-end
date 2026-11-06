@@ -184,6 +184,7 @@
   "playerTab": "Ascolto",
   "playerTrack": "Brano",
   "playerChoose": "Scegli un brano",
+  "playerHubHint": "Tocca per avviare",
   "playerPlay": "Riproduci",
   "playerPause": "Pausa",
   "playerTimeOf": "{position} di {duration}",

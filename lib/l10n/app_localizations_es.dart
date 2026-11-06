@@ -640,6 +640,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get playerChoose => 'Elige una pista';
 
   @override
+  String get playerHubHint => 'Toca para empezar';
+
+  @override
   String get playerPlay => 'Reproducir';
 
   @override
