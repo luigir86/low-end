@@ -434,5 +434,53 @@
     "description": "Notice shown when the metronome and Harmony were paused because the Player started; it has a Resume button."
   },
   "playerUnreadable": "This file can't be opened.",
-  "playerMissing": "The file is no longer available."
+  "playerMissing": "The file is no longer available.",
+  "playerSpeed": "Speed",
+  "@playerSpeed": {
+    "description": "Label of the field that sets how fast the track plays (50% to 125%), the pitch unchanged. Short."
+  },
+  "playerSpeedTitle": "Listening speed",
+  "@playerSpeedTitle": {
+    "description": "Title of the sheet where the person types the listening speed in percent."
+  },
+  "playerLoop": "Loop",
+  "@playerLoop": {
+    "description": "Name of the switch that repeats the stretch between the points A and B of the track. Short."
+  },
+  "playerLoopStart": "Start",
+  "@playerLoopStart": {
+    "description": "Name of the point A, where the loop starts; one segment of a two-way choice with the point B (End). Short."
+  },
+  "playerLoopEnd": "End",
+  "@playerLoopEnd": {
+    "description": "Name of the point B, where the loop ends and starts again; the other segment of the choice with Start. Short."
+  },
+  "playerMarkStart": "Set A",
+  "@playerMarkStart": {
+    "description": "Button that marks the start of the loop (point A) at the point being heard. Short: it shares the row with three more buttons."
+  },
+  "playerMarkEnd": "Set B",
+  "@playerMarkEnd": {
+    "description": "Button that marks the end of the loop (point B) at the point being heard and turns the loop on. Short."
+  },
+  "playerStartEarlier": "Start earlier",
+  "@playerStartEarlier": {
+    "description": "Screen reader name of the − button when the start of the loop is chosen: it moves point A earlier."
+  },
+  "playerStartLater": "Start later",
+  "@playerStartLater": {
+    "description": "Screen reader name of the + button when the start of the loop is chosen: it moves point A later."
+  },
+  "playerEndEarlier": "End earlier",
+  "@playerEndEarlier": {
+    "description": "Screen reader name of the − button when the end of the loop is chosen: it moves point B earlier."
+  },
+  "playerEndLater": "End later",
+  "@playerEndLater": {
+    "description": "Screen reader name of the + button when the end of the loop is chosen: it moves point B later."
+  },
+  "guidePlayerLoop": "In the Player, hold the circle and slide to draw a loop.",
+  "@guidePlayerLoop": {
+    "description": "A line of the first-launch guide. The name of the Player tab (Ascolto in Italian) must match playerTab."
+  }
 }

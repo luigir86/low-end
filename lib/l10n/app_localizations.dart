@@ -1241,6 +1241,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The file is no longer available.'**
   String get playerMissing;
+
+  /// Label of the field that sets how fast the track plays (50% to 125%), the pitch unchanged. Short.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed'**
+  String get playerSpeed;
+
+  /// Title of the sheet where the person types the listening speed in percent.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening speed'**
+  String get playerSpeedTitle;
+
+  /// Name of the switch that repeats the stretch between the points A and B of the track. Short.
+  ///
+  /// In en, this message translates to:
+  /// **'Loop'**
+  String get playerLoop;
+
+  /// Name of the point A, where the loop starts; one segment of a two-way choice with the point B (End). Short.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get playerLoopStart;
+
+  /// Name of the point B, where the loop ends and starts again; the other segment of the choice with Start. Short.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get playerLoopEnd;
+
+  /// Button that marks the start of the loop (point A) at the point being heard. Short: it shares the row with three more buttons.
+  ///
+  /// In en, this message translates to:
+  /// **'Set A'**
+  String get playerMarkStart;
+
+  /// Button that marks the end of the loop (point B) at the point being heard and turns the loop on. Short.
+  ///
+  /// In en, this message translates to:
+  /// **'Set B'**
+  String get playerMarkEnd;
+
+  /// Screen reader name of the − button when the start of the loop is chosen: it moves point A earlier.
+  ///
+  /// In en, this message translates to:
+  /// **'Start earlier'**
+  String get playerStartEarlier;
+
+  /// Screen reader name of the + button when the start of the loop is chosen: it moves point A later.
+  ///
+  /// In en, this message translates to:
+  /// **'Start later'**
+  String get playerStartLater;
+
+  /// Screen reader name of the − button when the end of the loop is chosen: it moves point B earlier.
+  ///
+  /// In en, this message translates to:
+  /// **'End earlier'**
+  String get playerEndEarlier;
+
+  /// Screen reader name of the + button when the end of the loop is chosen: it moves point B later.
+  ///
+  /// In en, this message translates to:
+  /// **'End later'**
+  String get playerEndLater;
+
+  /// A line of the first-launch guide. The name of the Player tab (Ascolto in Italian) must match playerTab.
+  ///
+  /// In en, this message translates to:
+  /// **'In the Player, hold the circle and slide to draw a loop.'**
+  String get guidePlayerLoop;
 }
 
 class _AppLocalizationsDelegate

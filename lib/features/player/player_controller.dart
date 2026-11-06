@@ -18,6 +18,10 @@ enum PlayerStatus {
   ready,
 }
 
+/// An end of the loop: the point A where it starts, or the point B where it
+/// ends and begins again.
+enum LoopEdge { start, end }
+
 /// The Player: plays one track of the person's own, chosen with the system's
 /// file chooser. The sound and the files are outside, behind
 /// [TrackOutput] and [TrackFiles], so that it is tested without a phone.
@@ -40,6 +44,39 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   var _playing = false;
   TrackProblem? _problem;
   var _disposed = false;
+
+  /// The speed in percent, and the stretch A to B that may repeat.
+  var _speed = 100;
+  Duration? _loopStart;
+  Duration? _loopEnd;
+  var _looping = false;
+  var _edge = LoopEdge.start;
+  Timer? _settle;
+
+  /// The slowest and the fastest the track plays, in percent.
+  static const minSpeed = 50;
+  static const maxSpeed = 125;
+
+  /// What the person's reaction takes off the point where "Set A" or "Set B"
+  /// is pressed, in real time (at half speed the track has gone half as far).
+  static const reaction = Duration(milliseconds: 150);
+
+  /// The shortest loop.
+  static const minLoop = Duration(seconds: 1);
+
+  /// The step of the − and + under the dial: a touch and a hold.
+  static const fineStep = Duration(milliseconds: 100);
+  static const coarseStep = Duration(seconds: 1);
+
+  /// How long the ends must be left alone before the sound follows.
+  static const settleAfter = Duration(milliseconds: 300);
+
+  /// After the end B is moved, the track restarts this long before it, to
+  /// hear how the loop closes.
+  static const preroll = Duration(seconds: 2);
+
+  /// Chains what is asked of the output's loop, so that it is told in order.
+  Future<void>? _loopWork;
 
   /// Counts the tracks opened: what an earlier one answers late is ignored.
   var _generation = 0;
@@ -73,6 +110,22 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     return at > _duration ? _duration : at;
   }
 
+  /// The speed in percent, 50 to 125; the pitch does not change.
+  int get speed => _speed;
+
+  /// The ends of the loop, or null while not marked.
+  Duration? get loopStart => _loopStart;
+  Duration? get loopEnd => _loopEnd;
+
+  /// True when both ends are marked.
+  bool get hasLoop => _loopStart != null && _loopEnd != null;
+
+  /// True when the track repeats from B to A.
+  bool get looping => _looping && hasLoop;
+
+  /// The end that the − and + move.
+  LoopEdge get edge => _edge;
+
   /// A call, or another player, took the sound: the app pauses the Player
   /// like the other sections (see PauseReason.interrupted).
   Stream<void> get interruptions => _interruptions.stream;
@@ -99,6 +152,14 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     _duration = Duration.zero;
     _status = PlayerStatus.opening;
     _problem = null;
+    _settle?.cancel();
+    _loopStart = _loopEnd = null;
+    _looping = false;
+    _edge = LoopEdge.start;
+    if (_speed != 100) {
+      _speed = 100;
+      unawaited(_output.setSpeed(1));
+    }
     notifyListeners();
     try {
       final duration = await _output.open(track);
@@ -126,6 +187,8 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     _status = PlayerStatus.empty;
     _playing = false;
     _problem = problem;
+    _loopStart = _loopEnd = null;
+    _looping = false;
   }
 
   /// Plays the track from where it is. Without a track it does nothing: the
@@ -149,13 +212,163 @@ class PlayerController extends ChangeNotifier implements SoundSection {
 
   Future<void> toggle() => _playing ? stop() : start();
 
-  /// Moves the listening point to [to], within the track.
+  /// Moves the listening point to [to], within the track. A point outside
+  /// the loop turns it off (A and B stay marked).
   Future<void> seek(Duration to) async {
     if (_status != PlayerStatus.ready) return;
-    final clamped = to.isNegative
-        ? Duration.zero
-        : (to > _duration ? _duration : to);
+    final clamped = _within(to);
+    if (looping && (clamped < _loopStart! || clamped >= _loopEnd!)) {
+      _looping = false;
+      _settle?.cancel();
+      await _queue(() => _output.setLoop(null, null));
+    }
     await _output.seek(clamped);
+    if (!_disposed) notifyListeners();
+  }
+
+  Duration _within(Duration t) =>
+      t.isNegative ? Duration.zero : (t > _duration ? _duration : t);
+
+  /// Sets the speed, [minSpeed] to [maxSpeed] percent, at once.
+  void setSpeed(int percent) {
+    final clamped = percent.clamp(minSpeed, maxSpeed);
+    if (clamped == _speed) return;
+    _speed = clamped;
+    unawaited(_output.setSpeed(clamped / 100));
+    notifyListeners();
+  }
+
+  /// Chooses the end that the − and + move.
+  void selectEdge(LoopEdge edge) {
+    if (_edge == edge) return;
+    _edge = edge;
+    notifyListeners();
+  }
+
+  /// "Set A" and "Set B": marks the start or the end of the loop where the
+  /// track is heard, less the person's reaction. Marking B turns the loop on
+  /// and plays from A.
+  Future<void> mark(LoopEdge edge) async {
+    if (_status != PlayerStatus.ready) return;
+    final lag = Duration(
+      microseconds: (reaction.inMicroseconds * _speed / 100).round(),
+    );
+    final t = _within(position - lag);
+    final longest = _duration - minLoop;
+    switch (edge) {
+      case LoopEdge.start:
+        if (longest.isNegative) return;
+        final wasLooping = looping;
+        _loopStart = t > longest ? longest : t;
+        final end = _loopEnd;
+        if (end != null && end - _loopStart! < minLoop) {
+          _loopEnd = null;
+          _looping = false;
+        }
+        _edge = LoopEdge.start;
+        notifyListeners();
+        // A loop that was on is told its new A, or that it is off.
+        if (wasLooping) await _queue(() => _applyLoop());
+      case LoopEdge.end:
+        final start = _loopStart ?? Duration.zero;
+        if (start + minLoop > _duration) return;
+        _loopStart = start;
+        final end = t < start + minLoop ? start + minLoop : t;
+        _loopEnd = end > _duration ? _duration : end;
+        _looping = true;
+        _edge = LoopEdge.end;
+        _settle?.cancel();
+        notifyListeners();
+        await _queue(() => _applyLoop(jumpTo: _playing ? start : null));
+    }
+  }
+
+  /// Moves an end of the loop by [by] (negative: earlier). Each end stops at
+  /// its limit and does not push the other: A between the start of the
+  /// track and one [minLoop] before B, B between one [minLoop] after A and
+  /// the end. The number changes at once; the sound follows when the person
+  /// has stopped touching for [settleAfter].
+  void nudge(LoopEdge edge, Duration by) {
+    final start = _loopStart, end = _loopEnd;
+    if (_status != PlayerStatus.ready) return;
+    switch (edge) {
+      case LoopEdge.start:
+        if (start == null) return;
+        final top = (end ?? _duration) - minLoop;
+        _loopStart = _clampTo(start + by, Duration.zero, top);
+      case LoopEdge.end:
+        if (end == null || start == null) return;
+        _loopEnd = _clampTo(end + by, start + minLoop, _duration);
+    }
+    _edge = edge;
+    notifyListeners();
+    _settle?.cancel();
+    if (!looping) return;
+    _settle = Timer(settleAfter, () {
+      if (_disposed || !looping) return;
+      final a = _loopStart!, b = _loopEnd!;
+      final jump = !_playing
+          ? null
+          : (edge == LoopEdge.start ? a : (b - preroll < a ? a : b - preroll));
+      unawaited(_queue(() => _applyLoop(jumpTo: jump)));
+    });
+  }
+
+  Duration _clampTo(Duration t, Duration low, Duration high) {
+    if (high < low) return low;
+    return t < low ? low : (t > high ? high : t);
+  }
+
+  /// Sets the loop between [a] and [b] (put in order, within the track, at
+  /// least [minLoop] long) and turns it on; if the track plays, it restarts
+  /// from A.
+  Future<void> setLoop(Duration a, Duration b) async {
+    if (_status != PlayerStatus.ready || _duration < minLoop) return;
+    var start = _within(a < b ? a : b);
+    var end = _within(a < b ? b : a);
+    if (end - start < minLoop) end = start + minLoop;
+    if (end > _duration) {
+      end = _duration;
+      start = end - minLoop;
+    }
+    _loopStart = start;
+    _loopEnd = end;
+    _looping = true;
+    _settle?.cancel();
+    notifyListeners();
+    await _queue(() => _applyLoop(jumpTo: _playing ? start : null));
+  }
+
+  /// Turns the repeat on, if both ends are marked, or off. Turning it on
+  /// with the track outside the stretch goes to A.
+  Future<void> setLooping(bool on) async {
+    if (_status != PlayerStatus.ready) return;
+    if (on && !hasLoop) return;
+    if (_looping == on) return;
+    _looping = on;
+    _settle?.cancel();
+    notifyListeners();
+    await _queue(() => _applyLoop());
+  }
+
+  Future<void> _queue(Future<void> Function() work) =>
+      _loopWork = (_loopWork ?? Future<void>.value())
+          .then((_) => work())
+          .catchError((Object error) {
+            debugPrint('The loop could not be set: $error');
+          });
+
+  /// Tells the output the loop as it stands now, then puts the track back
+  /// where it was (or at [jumpTo]; or at A if it is outside the loop): the
+  /// output may be anywhere after the change.
+  Future<void> _applyLoop({Duration? jumpTo}) async {
+    if (_disposed) return;
+    final on = looping;
+    final a = _loopStart, b = _loopEnd;
+    var to = jumpTo ?? _output.position;
+    if (on && (to < a! || to >= b!)) to = a;
+    await _output.setLoop(on ? a : null, on ? b : null);
+    await _output.seek(to);
     if (!_disposed) notifyListeners();
   }
 
@@ -180,6 +393,7 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   @override
   void dispose() {
     _disposed = true;
+    _settle?.cancel();
     _events.cancel();
     _interruptions.close();
     final track = _track;

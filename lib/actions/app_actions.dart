@@ -230,7 +230,9 @@ class AppActions {
       name: 'player_seek',
       description:
           'Moves the Player to a point of the track, in seconds, beyond the '
-          'end meaning the end. Fails if no track is open.',
+          'end meaning the end. With the loop on, a point outside it turns '
+          'the loop off; its start and end stay marked. Fails if no track is '
+          'open.',
       parameters: {
         'seconds': {
           'type': 'number',
@@ -239,6 +241,79 @@ class AppActions {
         },
       },
       required: ['seconds'],
+    ),
+    AppAction(
+      name: 'player_speed',
+      description: "Sets the Player's speed without changing the pitch.",
+      parameters: {
+        'percent': {
+          'type': 'integer',
+          'minimum': PlayerController.minSpeed,
+          'maximum': PlayerController.maxSpeed,
+          'description': 'The speed in percent: 100 is the track as it is.',
+        },
+      },
+      required: ['percent'],
+    ),
+    const AppAction(
+      name: 'player_loop',
+      description:
+          'Repeats the track between start and end, at least 1 s apart. '
+          'Without arguments, turns the loop back on between the points '
+          'already marked. Fails if no track is open.',
+      parameters: {
+        'start': {
+          'type': 'number',
+          'minimum': 0,
+          'description': 'Where the loop starts, in seconds.',
+        },
+        'end': {
+          'type': 'number',
+          'minimum': 0,
+          'description': 'Where the loop ends and starts again, in seconds.',
+        },
+      },
+    ),
+    const AppAction(
+      name: 'player_mark',
+      description:
+          'Marks the start or the end of the loop at the point being heard, '
+          'like the Set A and Set B buttons; a reaction time of 150 ms times '
+          'the speed is taken off. Marking the end turns the loop on and '
+          'plays from its start. Fails if no track is open.',
+      parameters: {
+        'edge': {
+          'type': 'string',
+          'enum': ['start', 'end'],
+          'description': 'Which point to mark.',
+        },
+      },
+      required: ['edge'],
+    ),
+    const AppAction(
+      name: 'player_loop_nudge',
+      description:
+          'Moves the start or the end of the loop by some seconds, e.g. -0.1. '
+          'Each point stops at its limit: the ends of the track, or 1 s from '
+          'the other point. Fails if that point is not marked.',
+      parameters: {
+        'edge': {
+          'type': 'string',
+          'enum': ['start', 'end'],
+          'description': 'Which point to move.',
+        },
+        'seconds': {
+          'type': 'number',
+          'minimum': -10,
+          'maximum': 10,
+          'description': 'How far, in seconds; negative moves it earlier.',
+        },
+      },
+      required: ['edge', 'seconds'],
+    ),
+    const AppAction(
+      name: 'player_loop_off',
+      description: 'Turns the loop off; its start and end stay marked.',
     ),
     AppAction(
       name: 'set_reference_pitch',
@@ -576,6 +651,60 @@ class AppActions {
           throw ActionError('No track is open and ready to play.');
         }
         await player.seek(Duration(milliseconds: (seconds * 1000).round()));
+      case 'player_speed':
+        final percent = _number(args['percent'], 'percent');
+        if (percent != percent.roundToDouble() ||
+            percent < PlayerController.minSpeed ||
+            percent > PlayerController.maxSpeed) {
+          throw ActionError(
+            '"percent" must be a whole number from '
+            '${PlayerController.minSpeed} to ${PlayerController.maxSpeed}.',
+          );
+        }
+        _requireTrack();
+        player.setSpeed(percent.round());
+      case 'player_loop':
+        _requireTrack();
+        final start = args['start'], end = args['end'];
+        if ((start == null) != (end == null)) {
+          throw ActionError('Give both "start" and "end", or neither.');
+        }
+        if (start == null) {
+          if (!player.hasLoop) {
+            throw ActionError(
+              'No loop is marked: give "start" and "end", or use '
+              'player_mark.',
+            );
+          }
+          await player.setLooping(true);
+        } else {
+          final a = _number(start, 'start'), b = _number(end, 'end');
+          if (a < 0 || b < 0) throw ActionError('Times must be 0 or more.');
+          if ((b - a).abs() < PlayerController.minLoop.inMilliseconds / 1000) {
+            throw ActionError('The loop must be at least 1 s long.');
+          }
+          await player.setLoop(
+            Duration(milliseconds: (a * 1000).round()),
+            Duration(milliseconds: (b * 1000).round()),
+          );
+        }
+      case 'player_mark':
+        _requireTrack();
+        await player.mark(_enum(LoopEdge.values, args['edge']));
+      case 'player_loop_nudge':
+        _requireTrack();
+        final edge = _enum(LoopEdge.values, args['edge']);
+        final seconds = _number(args['seconds'], 'seconds');
+        if (seconds < -10 || seconds > 10) {
+          throw ActionError('"seconds" must be from -10 to 10.');
+        }
+        if ((edge == LoopEdge.start ? player.loopStart : player.loopEnd) ==
+            null) {
+          throw ActionError('That point of the loop is not marked.');
+        }
+        player.nudge(edge, Duration(milliseconds: (seconds * 1000).round()));
+      case 'player_loop_off':
+        await player.setLooping(false);
       case 'drone_play':
         final change = _droneChange(args);
         // Each sound plays from its own section; on the tuner it would
@@ -831,6 +960,18 @@ class AppActions {
               },
         'playing': player.isPlaying,
         'position_s': _round(player.position.inMilliseconds / 1000),
+        'speed_percent': player.speed,
+        'loop': player.loopStart == null && player.loopEnd == null
+            ? null
+            : {
+                'start_s': player.loopStart == null
+                    ? null
+                    : _round(player.loopStart!.inMilliseconds / 1000),
+                'end_s': player.loopEnd == null
+                    ? null
+                    : _round(player.loopEnd!.inMilliseconds / 1000),
+                'on': player.looping,
+              },
         'problem': player.problem?.name,
       },
       'metronome': {
@@ -867,6 +1008,13 @@ class AppActions {
           },
       },
     );
+  }
+
+  /// The loop and the speed need a track that is ready.
+  void _requireTrack() {
+    if (player.status != PlayerStatus.ready) {
+      throw ActionError('No track is open and ready to play.');
+    }
   }
 
   static double _round(double v) => (v * 10).round() / 10;

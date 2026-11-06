@@ -658,4 +658,41 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get playerMissing => 'El archivo ya no está disponible.';
+
+  @override
+  String get playerSpeed => 'Velocidad';
+
+  @override
+  String get playerSpeedTitle => 'Velocidad de escucha';
+
+  @override
+  String get playerLoop => 'Bucle';
+
+  @override
+  String get playerLoopStart => 'Inicio';
+
+  @override
+  String get playerLoopEnd => 'Fin';
+
+  @override
+  String get playerMarkStart => 'A aquí';
+
+  @override
+  String get playerMarkEnd => 'B aquí';
+
+  @override
+  String get playerStartEarlier => 'Inicio antes';
+
+  @override
+  String get playerStartLater => 'Inicio después';
+
+  @override
+  String get playerEndEarlier => 'Fin antes';
+
+  @override
+  String get playerEndLater => 'Fin después';
+
+  @override
+  String get guidePlayerLoop =>
+      'En Escucha, mantén pulsado el círculo y desliza para dibujar un bucle.';
 }

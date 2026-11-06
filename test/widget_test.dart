@@ -823,8 +823,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Gestures and shortcuts'), findsOneWidget);
     expect(settings.seenGuide, isTrue);
-    // One page, four tips, closed by Got it.
-    expect(find.byType(ListTile), findsNWidgets(4));
+    // One page, five tips, closed by Got it.
+    expect(find.byType(ListTile), findsNWidgets(5));
     await tester.ensureVisible(find.text('Got it'));
     await tester.tap(find.text('Got it'));
     await tester.pumpAndSettle();

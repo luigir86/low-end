@@ -660,4 +660,41 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get playerMissing => 'Le fichier n’est plus disponible.';
+
+  @override
+  String get playerSpeed => 'Vitesse';
+
+  @override
+  String get playerSpeedTitle => 'Vitesse d’écoute';
+
+  @override
+  String get playerLoop => 'Boucle';
+
+  @override
+  String get playerLoopStart => 'Début';
+
+  @override
+  String get playerLoopEnd => 'Fin';
+
+  @override
+  String get playerMarkStart => 'A ici';
+
+  @override
+  String get playerMarkEnd => 'B ici';
+
+  @override
+  String get playerStartEarlier => 'Début plus tôt';
+
+  @override
+  String get playerStartLater => 'Début plus tard';
+
+  @override
+  String get playerEndEarlier => 'Fin plus tôt';
+
+  @override
+  String get playerEndLater => 'Fin plus tard';
+
+  @override
+  String get guidePlayerLoop =>
+      'Dans Écoute, maintenez le cercle et faites glisser pour dessiner une boucle.';
 }

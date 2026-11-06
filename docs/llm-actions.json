@@ -363,7 +363,7 @@
   },
   {
     "name": "player_seek",
-    "description": "Moves the Player to a point of the track, in seconds, beyond the end meaning the end. Fails if no track is open.",
+    "description": "Moves the Player to a point of the track, in seconds, beyond the end meaning the end. With the loop on, a point outside it turns the loop off; its start and end stay marked. Fails if no track is open.",
     "input_schema": {
       "type": "object",
       "properties": {
@@ -376,6 +376,103 @@
       "required": [
         "seconds"
       ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "player_speed",
+    "description": "Sets the Player's speed without changing the pitch.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "percent": {
+          "type": "integer",
+          "minimum": 50,
+          "maximum": 125,
+          "description": "The speed in percent: 100 is the track as it is."
+        }
+      },
+      "required": [
+        "percent"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "player_loop",
+    "description": "Repeats the track between start and end, at least 1 s apart. Without arguments, turns the loop back on between the points already marked. Fails if no track is open.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "start": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Where the loop starts, in seconds."
+        },
+        "end": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Where the loop ends and starts again, in seconds."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "player_mark",
+    "description": "Marks the start or the end of the loop at the point being heard, like the Set A and Set B buttons; a reaction time of 150 ms times the speed is taken off. Marking the end turns the loop on and plays from its start. Fails if no track is open.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "edge": {
+          "type": "string",
+          "enum": [
+            "start",
+            "end"
+          ],
+          "description": "Which point to mark."
+        }
+      },
+      "required": [
+        "edge"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "player_loop_nudge",
+    "description": "Moves the start or the end of the loop by some seconds, e.g. -0.1. Each point stops at its limit: the ends of the track, or 1 s from the other point. Fails if that point is not marked.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "edge": {
+          "type": "string",
+          "enum": [
+            "start",
+            "end"
+          ],
+          "description": "Which point to move."
+        },
+        "seconds": {
+          "type": "number",
+          "minimum": -10,
+          "maximum": 10,
+          "description": "How far, in seconds; negative moves it earlier."
+        }
+      },
+      "required": [
+        "edge",
+        "seconds"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "player_loop_off",
+    "description": "Turns the loop off; its start and end stay marked.",
+    "input_schema": {
+      "type": "object",
+      "properties": {},
       "additionalProperties": false
     }
   },

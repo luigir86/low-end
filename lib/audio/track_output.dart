@@ -92,6 +92,11 @@ abstract interface class TrackOutput {
 
   Future<void> seek(Duration position);
 
+  /// Repeats the stretch from [start] to [end] (both in the whole track)
+  /// until told otherwise; both null takes the loop away. The position is
+  /// kept when it is inside the stretch, else the track goes to [start].
+  Future<void> setLoop(Duration? start, Duration? end);
+
   /// The sound, speed: 0.5 to 1.25, the pitch unchanged.
   Future<void> setSpeed(double speed);
 
@@ -115,6 +120,9 @@ class SilentTrackOutput implements TrackOutput {
 
   /// The track last opened; null before the first, and after [close].
   TrackRef? opened;
+
+  /// The stretch that repeats, or null.
+  (Duration, Duration)? loop;
   var openCount = 0;
   var playing = false;
   var speed = 1.0;
@@ -136,6 +144,7 @@ class SilentTrackOutput implements TrackOutput {
     }
     opened = track;
     playing = false;
+    loop = null;
     _position = at;
     return length;
   }
@@ -156,16 +165,36 @@ class SilentTrackOutput implements TrackOutput {
   }
 
   @override
+  Future<void> setLoop(Duration? start, Duration? end) async {
+    loop = start != null && end != null ? (start, end) : null;
+    final stretch = loop;
+    if (stretch != null &&
+        (_position < stretch.$1 || _position >= stretch.$2)) {
+      _position = stretch.$1;
+    }
+  }
+
+  @override
   Future<void> setSpeed(double speed) async => this.speed = speed;
 
   @override
   Stream<TrackEvent> get events => _events.stream;
 
   /// Lets [time] of the listener's time go by: the track moves on by that
-  /// much times the speed, and at its end stops and goes back to the start.
+  /// much times the speed; at the end of the loop it goes back to its start,
+  /// and at the end of the track, with no loop, it stops and goes back to
+  /// the start.
   void advance(Duration time) {
     if (!playing) return;
     _position += time * speed;
+    final stretch = loop;
+    if (stretch != null) {
+      final span = stretch.$2 - stretch.$1;
+      while (_position >= stretch.$2) {
+        _position -= span;
+      }
+      return;
+    }
     if (_position >= length) {
       playing = false;
       _position = Duration.zero;
