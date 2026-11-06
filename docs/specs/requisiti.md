@@ -71,11 +71,11 @@ Fuori dallo scopo, per decisione presa: libreria PDF e conversione in MusicXML/M
 
 | Codice | Requisito | Stato | Test |
 | --- | --- | --- | --- |
-| RF-ACC-01 | Cromatico: si suona una nota e compare, senza scegliere la corda. Strobo circolare con la nota al centro, barra dei cent sotto. | ✓ | `tuner_test` |
+| RF-ACC-01 | Cromatico: si suona una nota e compare, senza scegliere la corda. Strobo circolare con la nota al centro, scala dei cent sotto (asse segnato ogni 5 cent, lancetta, asse colorato da 0 alla lancetta). | ✓ | `tuner_test` |
 | RF-ACC-02 | Rilevamento YIN da 28 a 2800 Hz; con il basso scelto fino a 700 Hz (scarta voci e fruscio). | ✓ | `pitch_detector_test`, `bass_support_test`, `review/pitch_review_test` |
 | RF-ACC-03 | Campo Strumento: cromatico, chitarra, basso, ukulele, violino, viola, violoncello, con il numero di corda. Predefinito **chitarra** (scelta voluta), poi l'ultimo scelto. | ✓ | `review/settings_review_test` |
 | RF-ACC-04 | Strumenti traspositori (Si♭, Mi♭, Fa) in impostazioni: l'accordatore cromatico mostra la nota scritta. | ✓ | `tuner_transposition_test` |
-| RF-ACC-05 | Verdetto: verde intonato, giallo vicino, rosso lontano; zona intonata ±2, ±5 (predefinito) o ±10 cent. Colore solo sull'etichetta del verdetto, mai unico segnale. | ✓ | `accessibility_test` |
+| RF-ACC-05 | Verdetto: verde acqua intonato (#5FD7C8, distinguibile anche da chi confonde rosso e verde), giallo vicino, rosso lontano; zona intonata ±2, ±5 (predefinito) o ±10 cent. Colore solo sull'etichetta del verdetto e sulla lancetta della scala dei cent, mai unico segnale: spunta se intonato, una freccia se vicino, due se lontano (oltre 15 cent). | ✓ | `accessibility_test` |
 | RF-ACC-06 | La A di riferimento (415–445 Hz, a passi di 1; scorciatoie 415, 432, 440, 442) è condivisa con l'Armonia. | ✓ | `regression_test` |
 | RF-ACC-07 | Il microfono ascolta solo con l'accordatore sullo schermo; si spegne cambiando sezione, aprendo le impostazioni o mandando l'app in background. Niente riparte da solo. | ✓ | `regression_test`, `startup_test` |
 | RF-ACC-08 | Entrare nell'accordatore non ferma niente: ascolta da solo solo se nulla suona. Toccare il quadrante (o `tuner_start`) mette in pausa Metronomo e Armonia, con un avviso e il pulsante "Riprendi". | ✓ | `playback_flow_test` |

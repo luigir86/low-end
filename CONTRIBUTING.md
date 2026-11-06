@@ -32,7 +32,7 @@ Every screen must work with TalkBack/VoiceOver, with the largest text size and w
 
 ## Translations
 
-Texts live in `lib/l10n/app_en.arb` (English, the reference) and `lib/l10n/app_it.arb` (Italian). To add a language, copy `app_en.arb` to `app_<code>.arb`, translate the values and run `flutter gen-l10n`.
+Texts live in `lib/l10n/app_en.arb` (English, the reference), `app_it.arb` (Italian), `app_es.arb` (Spanish) and `app_fr.arb` (French): a new text goes in all four. To add a language, copy `app_en.arb` to `app_<code>.arb`, translate the values and run `flutter gen-l10n`; add the language to `supportedLanguages` in `lib/app/settings.dart` and to the `language` enum of `settings_set` in `lib/actions/app_actions.dart`, and if it names notes its own way, add a value to `NoteNames` in `lib/audio/pitch.dart` (see [docs/architecture.md](docs/architecture.md)).
 
 ## Licence
 

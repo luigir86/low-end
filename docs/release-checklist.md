@@ -5,10 +5,11 @@ marks anything that cannot be confirmed from the code.
 
 ## 1. Version and build
 
-- [ ] `pubspec.yaml`: `version: 1.4.3+8` (name `1.4.3`, versionCode `8`),
+- [ ] `pubspec.yaml`: `version: 1.5.0+9` (name `1.5.0`, versionCode `9`),
       and the same in `lib/app/version.dart` (shown in About; `version_test` checks it).
       1.0.0+1 went to the closed test on 2026-10-19, 1.3.0+4 on 2026-10-29;
-      1.4.0+5 (2026-11-05) stayed on "Preparing sounds", fixed in 1.4.1+6. The number after `+`
+      1.4.0+5 (2026-11-05) stayed on "Preparing sounds", fixed in 1.4.1+6;
+      1.4.2+7 and 1.4.3+8 built on 2026-11-05. The number after `+`
       must grow with every upload to Play.
 - [ ] Target SDK: `flutter.targetSdkVersion` (36 with the current Flutter
       stable; minSdk 24, compileSdk 36). TO VERIFY in Play Console that 36 meets
@@ -54,16 +55,19 @@ marks anything that cannot be confirmed from the code.
 
 ## 4. Store listing
 
-- [ ] Texts: `store/listing/en-US/` and `store/listing/it-IT/` (title ≤ 30,
+- [ ] Texts: `store/listing/<locale>/` for en-US, it-IT, es-ES and fr-FR (title ≤ 30,
       short ≤ 80, full ≤ 4000, release notes ≤ 500 characters; already within
       the limits, see store/README.md). Read them against
       `docs/specs/requisiti.md`: nothing promised that is not there, nothing
-      said differently.
+      said differently. Count characters, not bytes (accents and ♭ are one each):
+      `node -e` with `[...text].length`, or Play Console itself.
+- [ ] TO VERIFY: Spanish and French were written by Claude; a musician who
+      speaks each language reads the app texts and the listing.
 - [ ] Graphics: `store/graphics/icon-512.png`, feature graphic 1024×500 per
       language, phone screenshots in `store/graphics/phone/<locale>/`.
       Regenerate with
       `flutter test test_screenshots/store_screenshots_test.dart --update-goldens`
-      only if the UI changes. TO VERIFY by eye that all screenshots (it and en)
+      only if the UI changes. TO VERIFY by eye that all screenshots (en, it, es, fr)
       match the final UI.
 - [ ] Privacy policy URL: Play needs a public URL. `PRIVACY.md` is in the
       repository; TO VERIFY that the repository (or a published page) is
@@ -90,7 +94,7 @@ Consistent with PRIVACY.md and the code (to be filled in by the owner):
 - [ ] Release build installed on a real phone (Galaxy S20 FE tested by the
       developer): metronome, harmony (with the countdown), tuner and its
       "Resume" snackbar, screen off for a few minutes with sound playing,
-      incoming call / headphones unplugged, Italian and English.
+      incoming call / headphones unplugged, in each of the four languages.
 - [ ] Internal testing track first, then closed/open per Play's requirements
       for new personal accounts (TO VERIFY: the current testing requirements
       of the owner's developer account).

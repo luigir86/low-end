@@ -4,7 +4,7 @@ Everything the Play Console asks for, ready to copy. Nothing here is built into 
 
 ```
 store/
-  listing/en-US, it-IT   title, short and full description, release notes
+  listing/<locale>/      en-US, it-IT, es-ES, fr-FR: title, short and full description, release notes
   graphics/icon-512.png  app icon (512 × 512)
   graphics/<locale>/feature-graphic-1024x500.png  (text: tool/feature_graphic_text_test.dart)
   graphics/phone/<locale>/*.png   phone screenshots (1156 × 2312), four per language
@@ -22,7 +22,7 @@ The file is `build/app/outputs/bundle/release/app-release.aab`. It is signed wit
 
 **Keep the keystore and its passwords safe and backed up outside the repository**. Enrol in *Play App Signing* when you create the app: Google keeps the real app-signing key, and the upload key can be replaced through Play support if it is ever lost.
 
-Raise `version:` in `pubspec.yaml` (the number after `+` must grow with every upload) before each new bundle.
+Raise `version:` in `pubspec.yaml` (the number after `+` must grow with every upload) and `appVersion` in `lib/app/version.dart` (shown in About; `version_test` keeps them equal) before each new bundle.
 
 ## Store listing
 
@@ -30,7 +30,7 @@ The texts in `listing/` describe the app to the people on Google Play; what it d
 
 | Field | Value |
 | --- | --- |
-| App name | Low End: Metronome & Tuner (it: Low End: Metronomo Accordatore) |
+| App name | Low End: Metronome & Tuner (it: Low End: Metronomo Accordatore; es: Low End: Metrónomo y Afinador; fr: Low End: Métronome & Accordeur) |
 | Category | Music & Audio |
 | Free or paid | Free |
 | Contains ads | No |
@@ -75,4 +75,4 @@ New personal developer accounts must run a **closed test with at least 12 tester
 - Texts are in `store/listing/<locale>/`: title (30 characters at most), short description (80), full description (4000), release notes (500). They describe the app for every musician; the double bass appears only in the line saying who made it.
 - Feature graphics: change the line in `tool/feature_graphic_text_test.dart` and run `flutter test tool/feature_graphic_text_test.dart`.
 - Phone screenshots (1156 × 2312): `flutter test test_screenshots/store_screenshots_test.dart --update-goldens` writes them into `store/graphics/phone/<locale>/`.
-- The proof that the app needs no internet is in [docs/offline.md](../docs/offline.md); the privacy policy URL above points to [PRIVACY.md](../PRIVACY.md), which is also in Italian.
+- The proof that the app needs no internet is in [docs/offline.md](../docs/offline.md); the privacy policy URL above points to [PRIVACY.md](../PRIVACY.md), which is also in Italian (Play accepts one URL for every language).
