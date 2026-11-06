@@ -35,8 +35,11 @@ class Choice<T> {
 /// raised surface of the theme (`popupMenuTheme`). Every line is at least
 /// 48 dp high, and the [selected] one is marked the same way as in the
 /// lists of the sheets: its words in the accent and a tick at the end, so
-/// that the choice is not told by colour alone (WCAG 1.4.1). Returns the
-/// value chosen, or null when the menu is closed without a choice.
+/// that the choice is not told by colour alone (WCAG 1.4.1). A list longer
+/// than the screen, as the thirty-one reference A's, opens scrolled to the
+/// [selected] line, in the middle, so that it is seen at once with its
+/// neighbours around it. Returns the value chosen, or null when the menu is
+/// closed without a choice.
 Future<T?> showChoiceMenu<T>({
   required BuildContext anchor,
   required List<Choice<T>> choices,
@@ -81,16 +84,37 @@ Future<T?> showChoiceMenu<T>({
   );
 }
 
-class _ChoiceLine<T> extends StatelessWidget {
+class _ChoiceLine<T> extends StatefulWidget {
   const _ChoiceLine({required this.choice, required this.selected});
 
   final Choice<T> choice;
   final bool selected;
 
   @override
+  State<_ChoiceLine<T>> createState() => _ChoiceLineState<T>();
+}
+
+class _ChoiceLineState<T> extends State<_ChoiceLine<T>> {
+  @override
+  void initState() {
+    super.initState();
+    // The chosen line brings itself to the middle of the menu as it opens,
+    // at once: the menu is laid out at its full height from its first frame
+    // (it only unfolds over it), and a short menu does not move.
+    if (widget.selected) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        Scrollable.ensureVisible(context, alignment: 0.5);
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final choice = widget.choice;
+    final selected = widget.selected;
     final subtitle = choice.subtitle;
     return Semantics(
       selected: selected,

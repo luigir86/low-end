@@ -18,6 +18,14 @@ class ReferencePitchRow extends StatelessWidget {
   /// pitch and the orchestras'.
   static const standard = [415.0, 432.0, 440.0, 442.0];
 
+  /// The names of the [standard] pitches, under them in the lists.
+  static Map<double, String> standardNames(AppLocalizations l10n) => {
+    415.0: l10n.pitchBaroque,
+    432.0: l10n.pitchVerdi,
+    440.0: l10n.pitchConcert,
+    442.0: l10n.pitchOrchestras,
+  };
+
   @override
   Widget build(BuildContext context) {
     final settings = AudioScope.of(context).settings;
@@ -63,12 +71,7 @@ class ReferencePitchRow extends StatelessWidget {
   Future<void> _choose(BuildContext context) async {
     final settings = AudioScope.of(context).settings;
     final l10n = AppLocalizations.of(context);
-    final names = {
-      415.0: l10n.pitchBaroque,
-      432.0: l10n.pitchVerdi,
-      440.0: l10n.pitchConcert,
-      442.0: l10n.pitchOrchestras,
-    };
+    final names = standardNames(l10n);
     final hz = await showNumberSheet(
       context,
       title: l10n.referencePitch,

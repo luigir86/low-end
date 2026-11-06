@@ -4,6 +4,7 @@ import '../audio/audio_scope.dart';
 import '../audio/pitch.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/choice_menu.dart';
+import '../widgets/reference_pitch_row.dart';
 import '../widgets/row_controls.dart';
 import 'about.dart';
 import 'guide.dart';
@@ -25,6 +26,7 @@ class SettingsPage extends StatelessWidget {
         listenable: settings,
         builder: (context, _) {
           final names = settings.noteNames(Localizations.localeOf(context));
+          final pitchNames = ReferencePitchRow.standardNames(l10n);
           final example = const Note(
             9,
             4,
@@ -154,8 +156,14 @@ class SettingsPage extends StatelessWidget {
                   label: l10n.referencePitch,
                   selected: settings.a4,
                   choices: [
+                    // The named ones (baroque, concert pitch...) say so,
+                    // to be found at a glance among the thirty-one.
                     for (final hz in referencePitches)
-                      Choice(value: hz, title: '${hz.round()} Hz'),
+                      Choice(
+                        value: hz,
+                        title: '${hz.round()} Hz',
+                        subtitle: pitchNames[hz],
+                      ),
                   ],
                   onSelected: settings.setReferencePitch,
                 ),
