@@ -4,7 +4,7 @@ publish_to: 'none'
 
 # The number after the + is the Android versionCode: it must grow with every
 # upload to Google Play.
-version: 1.4.3+8
+version: 1.5.0+9
 
 environment:
   sdk: ^3.13.5

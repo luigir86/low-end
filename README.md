@@ -30,7 +30,7 @@ The three tabs are **Metronome**, **Harmony** and **Tuner**, and the app opens o
 ### Tuner
 
 - Chromatic, with a round strobe and the note in the middle: play any note and it shows up, no string to choose first.
-- Under the strobe, a bar shows how far off the note is: a round marker on a thin track, with a short mark in the middle.
+- Under the strobe, a cents scale shows how far off the note is: a needle on an axis marked every 5 cents, coloured from 0 to the needle. In tune is teal, close yellow, far off red, always with words and arrows too (one arrow when close, two when far off), so colour is never the only cue.
 - Finds the note with the YIN algorithm ([`lib/audio/pitch_detector.dart`](lib/audio/pitch_detector.dart)), from 28 to 2800 Hz (700 Hz with the bass chosen): from the lowest strings to the top of the violin and the flute. For B♭, E♭ and F instruments it can name the written note.
 - The instrument menu switches from Chromatic to the strings of guitar, violin, viola, cello, ukulele or bass, with the string number shown.
 - Reference A under the dial: − and + move by one hertz, the pencil types it or picks 415, 432, 440 or 442 Hz.
@@ -61,7 +61,7 @@ Nothing here is promised.
 
 - Metronome: more time signatures, a tempo trainer.
 - Harmony: more progressions and chords.
-- More languages (Spanish, German, French, Portuguese, Japanese).
+- More languages (German, with its own note names H and B, Portuguese, Japanese).
 - A PDF library for sheet music, set lists and annotations, and later PDF to MusicXML and MIDI playback.
 
 ## Project structure
@@ -72,11 +72,13 @@ lib/
   actions/                  actions for assistants and automation (docs/llm.md)
   app/                      app setup, navigation, settings, theme, about and guide
   features/
-    tuner/                  tuner and harmony (drone/) screens and logic
+    harmony/                Harmony ("drone" in the code): chords, progressions, example songs, dial
+    songs/                  a song sets Harmony and the metronome together
     metronome/              metronome screen and logic
+    tuner/                  tuner screen and logic
   audio/                    pitch maths and sound output
   widgets/                  shared UI pieces
-  l10n/                     translations (app_en.arb, app_it.arb)
+  l10n/                     translations (app_en.arb, app_it.arb, app_es.arb, app_fr.arb)
 test/                       automated tests (test/review: layouts, languages, text sizes)
 test_screenshots/           screenshot harness used to review every screen
 tool/                       scripts that make the icons, feature graphics and piano samples

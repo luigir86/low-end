@@ -1,6 +1,6 @@
 # Third-party components
 
-Low End itself is released under the [MIT License](LICENSE). It is built with the open-source components below. All of them are permissive licences (MIT, BSD, Apache-2.0, zlib, public domain) that allow free use and redistribution, including in a free app on Google Play. The full text of each licence ships with the app: **Settings → About Low End → View licences** lists every Flutter and Dart package, the two fonts and the piano recordings; the files named below hold the texts of the native parts.
+Low End itself is released under the [MIT License](LICENSE). It is built with the open-source components below. All of them are permissive licences (MIT, BSD, Apache-2.0, zlib, public domain) that allow free use and redistribution, including in a free app on Google Play. The full text of each licence ships with the app: **Settings → About Low End → View licences** lists every Flutter and Dart package, the two fonts and the piano and double bass recordings; the files named below hold the texts of the native parts.
 
 Exact versions of every package are in [pubspec.lock](pubspec.lock). Keep this file in step with `pubspec.yaml` when a dependency is added or removed.
 
@@ -15,7 +15,7 @@ Exact versions of every package are in [pubspec.lock](pubspec.lock). Keep this f
 | [shared_preferences](https://pub.dev/packages/shared_preferences) | 2.5.6 | Settings kept on the phone | BSD-3-Clause |
 | [wakelock_plus](https://pub.dev/packages/wakelock_plus) | 1.8.1 | Keep the screen on (optional) | BSD-3-Clause |
 | [url_launcher](https://pub.dev/packages/url_launcher) | 6.3.3 | Opens the source-code link | BSD-3-Clause |
-| [intl](https://pub.dev/packages/intl) | 0.20.3 | Languages (English, Italian) | BSD-3-Clause |
+| [intl](https://pub.dev/packages/intl) | 0.20.3 | Languages (English, Italian, Spanish, French) | BSD-3-Clause |
 
 Build and test only (not in the app): `flutter_test` and `flutter_lints` (BSD-3-Clause). The screenshot and test harnesses also use Roboto and the Material Icons font copied from the Flutter SDK into `test/fonts/` (Apache-2.0, licences beside them); they are not part of the app.
 
