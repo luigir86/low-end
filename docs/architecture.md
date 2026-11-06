@@ -4,7 +4,7 @@ A guide for developers. What the app does is written, one code per behaviour, in
 
 ## In one paragraph
 
-Low End is a single-module Flutter app for Android (package `com.luigir86.low_end`). It has four sections (metronome, harmony, tuner, Player) that share one audio engine, one microphone and one set of settings; the Player plays the person's own audio files through the system's player (ExoPlayer on Android, the browser's audio element on the web). There is no backend, no database and no network code. State lives in plain `ChangeNotifier` controllers, passed down the widget tree by one `InheritedWidget`; there is no state-management package.
+Low End is a single-module Flutter app for Android (package `com.luigir86.low_end`). It has four sections (metronome, harmony, Player, tuner) that share one audio engine, one microphone and one set of settings; the Player plays the person's own audio files through the system's player (ExoPlayer on Android, the browser's audio element on the web). There is no backend, no database and no network code. State lives in plain `ChangeNotifier` controllers, passed down the widget tree by one `InheritedWidget`; there is no state-management package.
 
 ## Layers
 

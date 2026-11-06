@@ -3,6 +3,7 @@
 // that gives what it is told to.
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/audio/track_files.dart';
@@ -258,6 +259,78 @@ void main() {
     expect(files.released, [_song]);
     // tearDown disposes again: a second time must be harmless.
     player = PlayerController(SilentTrackOutput(), files);
+  });
+
+  group('the wave of the track (RF-PLY-15)', () {
+    Uint16List some(int n) => Uint16List.fromList(List.filled(n, 1000));
+
+    test(
+      'there is none before a track, and reading starts when it is ready',
+      () async {
+        expect(player.peaks, isNull);
+        await player.pick();
+        expect(files.peaksAsked, [_song]);
+        expect(player.peaks, isNotNull);
+        expect(player.peaks!.length, 0);
+        files.peakStreams.single.add(some(5));
+        await Future<void>.delayed(Duration.zero);
+        expect(player.peaks!.length, 5);
+        await files.peakStreams.single.close();
+        await Future<void>.delayed(Duration.zero);
+        expect(player.peaks!.complete, isTrue);
+      },
+    );
+
+    test('a track that cannot be read has no wave and no message', () async {
+      await player.pick();
+      files.peakStreams.single.addError(StateError('no'));
+      await Future<void>.delayed(Duration.zero);
+      expect(player.peaks!.failed, isTrue);
+      expect(player.problem, isNull);
+      expect(player.status, PlayerStatus.ready);
+    });
+
+    test('another track stops the first reading before the next begins, and '
+        'what the first sends late is not in the second', () async {
+      await player.pick();
+      final first = player.peaks!;
+      files.next = _other;
+      await player.pick();
+      expect(files.peaksAsked, [_song, _other]);
+      expect(files.peaksCancelled, 1);
+      expect(identical(player.peaks, first), isFalse);
+      files.peakStreams.first.add(some(7));
+      files.peakStreams.last.add(some(2));
+      await Future<void>.delayed(Duration.zero);
+      expect(first.length, 0);
+      expect(player.peaks!.length, 2);
+    });
+
+    test(
+      'a track that fails to open has none, and closing stops reading',
+      () async {
+        await player.pick();
+        output.failWith = TrackOpenException(TrackProblem.unreadable);
+        files.next = _other;
+        await player.pick();
+        expect(player.peaks, isNull);
+        expect(files.peaksCancelled, 1);
+        files.next = _song;
+        await player.pick();
+        expect(player.peaks, isNotNull);
+        player.dispose();
+        expect(files.peaksCancelled, 2);
+        // The tearDown disposes again: make a fresh one for it.
+        player = PlayerController(output, files);
+      },
+    );
+
+    test('opening is not held up by the reading', () async {
+      // A stream that never says anything.
+      await player.pick();
+      expect(player.status, PlayerStatus.ready);
+      expect(player.peaks!.complete, isFalse);
+    });
   });
 }
 

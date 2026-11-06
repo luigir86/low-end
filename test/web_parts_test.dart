@@ -4,6 +4,7 @@ import 'package:low_end/audio/off_thread.dart';
 import 'package:low_end/audio/soloud_engine.dart';
 import 'package:low_end/audio/web_audio_engine.dart';
 import 'package:low_end/audio/web_audio_session.dart';
+import 'package:low_end/audio/web_peaks_limits.dart';
 
 // The pieces the web app uses in place of Android's (docs/web.md).
 void main() {
@@ -28,5 +29,27 @@ void main() {
     markWebAudioInUse();
     // Only a browser says how late its sound is heard.
     expect(webOutputLatency(), isNull);
+  });
+
+  group('the wave of a track in a web page (RF-PLY-15)', () {
+    test('is read up to 40 MB and 15 minutes, no further', () {
+      const ok = Duration(minutes: 15);
+      expect(webPeaksAllowed(size: webPeaksMaxBytes, duration: ok), isTrue);
+      expect(
+        webPeaksAllowed(size: webPeaksMaxBytes + 1, duration: ok),
+        isFalse,
+      );
+      expect(
+        webPeaksAllowed(size: 1000, duration: ok + const Duration(seconds: 1)),
+        isFalse,
+      );
+    });
+
+    test('a file of unknown size is judged by its length', () {
+      expect(
+        webPeaksAllowed(size: null, duration: const Duration(minutes: 6)),
+        isTrue,
+      );
+    });
   });
 }

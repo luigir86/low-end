@@ -2,6 +2,8 @@
 // middle, the ring, the field and the messages, in the whole app with silent
 // outputs.
 
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart' show kLongPressTimeout;
 import 'package:flutter/semantics.dart' show SemanticsAction;
@@ -251,6 +253,94 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  group('the wave in the ring (RF-PLY-03, RF-PLY-15)', () {
+    Finder waves() => find.byWidgetPredicate(
+      (w) => w is CustomPaint && w.painter.runtimeType.toString() == 'RingWave',
+    );
+
+    testWidgets('appears as the file is read, and a track with none still '
+        'plays', (tester) async {
+      final screen = await _open(tester);
+      expect(waves(), findsNothing);
+      await screen.player.open(_song);
+      await screen.settle();
+      // Ready, nothing read yet: the layer is there, still clear.
+      expect(waves(), findsOneWidget);
+      expect(
+        tester
+            .widget<AnimatedOpacity>(
+              find.ancestor(
+                of: waves(),
+                matching: find.byType(AnimatedOpacity),
+              ),
+            )
+            .opacity,
+        0,
+      );
+
+      final stream = screen.files.peakStreams.last;
+      stream.add(Uint16List.fromList([for (var i = 0; i < 3000; i++) i * 10]));
+      await tester.pump();
+      await screen.settle();
+      expect(
+        tester
+            .widget<AnimatedOpacity>(
+              find.ancestor(
+                of: waves(),
+                matching: find.byType(AnimatedOpacity),
+              ),
+            )
+            .opacity,
+        1,
+      );
+      stream.add(
+        Uint16List.fromList([for (var i = 0; i < 3000; i++) 30000 - i * 10]),
+      );
+      await stream.close();
+      await screen.settle();
+      expect(screen.player.peaks!.complete, isTrue);
+
+      // Another track: a new wave, from nothing.
+      screen.files.next = const TrackRef(uri: 'content://b', name: 'Other.wav');
+      await screen.player.pick();
+      await screen.settle();
+      expect(screen.player.peaks!.length, 0);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a track whose wave cannot be read plays all the same', (
+      tester,
+    ) async {
+      final screen = await _open(tester);
+      await screen.player.open(_song);
+      await screen.settle();
+      screen.files.peakStreams.last.addError(StateError('no wave'));
+      await screen.settle();
+      await tester.tap(find.byKey(const Key('playerHub')));
+      await screen.settle();
+      expect(screen.player.isPlaying, isTrue);
+      expect(find.text('0:00 / 6:00'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the playhead is a line across the ring, only for a track', (
+      tester,
+    ) async {
+      final screen = await _open(tester);
+      bool playhead() => tester.any(
+        find.byWidgetPredicate(
+          (w) =>
+              w is CustomPaint &&
+              w.painter.runtimeType.toString() == '_PlayheadPainter',
+        ),
+      );
+      expect(playhead(), isFalse);
+      await screen.player.open(_song);
+      await screen.settle();
+      expect(playhead(), isTrue);
+    });
+  });
+
   group('speed and loop (RF-PLY-08 to RF-PLY-12)', () {
     Finder pressable(Key key) => find.descendant(
       of: find.byKey(key),
@@ -446,7 +536,7 @@ void main() {
       expect(screen.scope.navigation.section, AppSection.player);
       await tester.flingFrom(ring(tester, 0, -0.4), const Offset(400, 0), 1000);
       await tester.pumpAndSettle();
-      expect(screen.scope.navigation.section, AppSection.tuner);
+      expect(screen.scope.navigation.section, AppSection.drone);
       expect(screen.player.hasLoop, isFalse);
     });
   });

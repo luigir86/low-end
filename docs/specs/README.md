@@ -8,6 +8,7 @@ Questa cartella è il punto di partenza per lavorare "spec-driven": prima si scr
 | [architettura.md](architettura.md) | Com'è fatta l'app oggi: moduli, dipendenze, flussi a runtime, thread, dati, build |
 | [valutazione.md](valutazione.md) | L'architettura misurata contro i requisiti: punti di forza, debolezze, duplicazioni, inefficienze, rischi di prestazioni |
 | [piano.md](piano.md) | Un piano di miglioramento a passi piccoli, ognuno con valore, rischio e dimensione, da approvare uno per uno |
+| [player.md](player.md) | Il piano di riferimento del Player (tab Ascolto): decisioni, progetto della schermata, passi e prove sul telefono |
 
 ## Come si usano
 

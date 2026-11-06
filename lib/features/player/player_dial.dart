@@ -9,6 +9,8 @@ import '../../l10n/app_localizations.dart';
 import '../../widgets/dial.dart';
 import 'clock_text.dart';
 import 'player_controller.dart';
+import 'ring_wave.dart';
+import 'ring_window.dart';
 
 /// How far apart the ticks of the ring are: a minute, ten seconds for a
 /// track of under two minutes, five minutes for one of over twenty
@@ -192,6 +194,9 @@ class _PlayerDialState extends State<PlayerDial>
     // The stretch to draw: the loop, or the one being slid out.
     var arcStart = player.loopStart, arcEnd = player.loopEnd;
     final drawing = _drawing;
+    final loopOn = drawing != null || player.looping;
+    final peaks = player.peaks;
+    final window = RingWindow.whole(ready ? duration : Duration.zero);
     if (drawing != null) {
       arcStart = drawing.$1 < drawing.$2 ? drawing.$1 : drawing.$2;
       arcEnd = drawing.$1 < drawing.$2 ? drawing.$2 : drawing.$1;
@@ -218,13 +223,50 @@ class _PlayerDialState extends State<PlayerDial>
               child: ExcludeSemantics(
                 child: CustomPaint(
                   painter: _RingPainter(
-                    duration: ready ? duration : Duration.zero,
+                    window: window,
                     fill: theme.colorScheme.outlineVariant,
                     edge: theme.colorScheme.outline,
                     tick: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ),
+            // The wave fills in as the file is read (RF-PLY-15); a track
+            // with none (too long for a web page) simply has none.
+            if (ready && peaks != null)
+              RepaintBoundary(
+                child: ExcludeSemantics(
+                  child: ListenableBuilder(
+                    listenable: peaks,
+                    builder: (context, _) => AnimatedOpacity(
+                      opacity: peaks.length > 0 ? 1 : 0,
+                      duration: MediaQuery.disableAnimationsOf(context)
+                          ? Duration.zero
+                          : Durations.medium1,
+                      curve: Easing.standard,
+                      child: CustomPaint(
+                        painter: RingWave(
+                          peaks: peaks,
+                          window: window,
+                          color: theme.colorScheme.onSurfaceVariant,
+                          passage: loopOn && arcStart != null && arcEnd != null
+                              ? (arcStart, arcEnd)
+                              : null,
+                          passageColor: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            RepaintBoundary(
+              child: ExcludeSemantics(
+                child: CustomPaint(
+                  painter: _LoopPainter(
+                    window: window,
                     loopStart: arcStart,
                     loopEnd: arcEnd,
-                    loopOn: drawing != null || player.looping,
+                    loopOn: loopOn,
                     arc: theme.colorScheme.primary,
                     letter: theme.colorScheme.onSurface,
                     letterOutline: theme.colorScheme.surface,
@@ -237,7 +279,7 @@ class _PlayerDialState extends State<PlayerDial>
               RepaintBoundary(
                 child: ExcludeSemantics(
                   child: CustomPaint(
-                    painter: _PointPainter(
+                    painter: _PlayheadPainter(
                       position: _position,
                       duration: duration,
                       color: theme.colorScheme.onSurface,
@@ -408,37 +450,20 @@ class _Hub extends StatelessWidget {
   }
 }
 
-/// The ring and its ticks: a whole ring, off, until a track is open.
+/// The ring and its ticks: a whole ring, off, until a track is open. The
+/// ticks sit on the outer edge, clear of the wave (RF-PLY-03).
 class _RingPainter extends CustomPainter {
   _RingPainter({
-    required this.duration,
+    required this.window,
     required this.fill,
     required this.edge,
     required this.tick,
-    required this.loopStart,
-    required this.loopEnd,
-    required this.loopOn,
-    required this.arc,
-    required this.letter,
-    required this.letterOutline,
-    required this.letterStyle,
   });
 
-  final Duration duration;
+  final RingWindow window;
   final Color fill;
   final Color edge;
   final Color tick;
-
-  /// The stretch A to B, drawn on the outer part of the ring: filled when
-  /// the loop is on, only its outline when the points are marked but the
-  /// loop is off.
-  final Duration? loopStart;
-  final Duration? loopEnd;
-  final bool loopOn;
-  final Color arc;
-  final Color letter;
-  final Color letterOutline;
-  final TextStyle? letterStyle;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -450,53 +475,77 @@ class _RingPainter extends CustomPainter {
       color: fill,
       border: edge,
     );
-    if (duration <= Duration.zero) return;
-    _paintLoop(canvas, dial);
+    if (window.length <= Duration.zero) return;
     final paint = Paint()
       ..color = tick
-      ..strokeWidth = 2
+      ..strokeWidth = 1.5
       ..strokeCap = StrokeCap.round;
-    for (final time in tickTimes(duration)) {
-      final a = ringAngle(time, duration);
+    for (final time in tickTimes(window.length)) {
+      final a = window.angleOf(time);
       final dir = Offset(math.sin(a), -math.cos(a));
       canvas.drawLine(
-        dial.center + dir * (dial.ringInner + dial.ringWidth * 0.12),
-        dial.center + dir * (dial.ringInner + dial.ringWidth * 0.38),
+        dial.center + dir * (dial.ringInner + dial.ringWidth * 0.92),
+        dial.center + dir * dial.ringOuter,
         paint,
       );
     }
   }
 
-  void _paintLoop(Canvas canvas, DialGeometry dial) {
+  @override
+  bool shouldRepaint(_RingPainter old) =>
+      old.window != window ||
+      old.fill != fill ||
+      old.edge != edge ||
+      old.tick != tick;
+}
+
+/// The loop on the ring: a band along the inner edge between A and B, filled
+/// when the loop is on and only its outline when the points are marked but
+/// the loop is off, and the letters of the ends.
+class _LoopPainter extends CustomPainter {
+  _LoopPainter({
+    required this.window,
+    required this.loopStart,
+    required this.loopEnd,
+    required this.loopOn,
+    required this.arc,
+    required this.letter,
+    required this.letterOutline,
+    required this.letterStyle,
+  });
+
+  final RingWindow window;
+  final Duration? loopStart;
+  final Duration? loopEnd;
+  final bool loopOn;
+  final Color arc;
+  final Color letter;
+  final Color letterOutline;
+  final TextStyle? letterStyle;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (window.length <= Duration.zero) return;
+    final dial = DialGeometry(size);
     final a = loopStart, b = loopEnd;
     if (a != null && b != null) {
-      final from = ringAngle(a, duration);
-      final sweep = math.max(ringAngle(b, duration) - from, 0.02);
-      final inner = dial.ringInner + dial.ringWidth * 0.5;
-      if (loopOn) {
-        dial.paintSegment(
-          canvas,
-          startAngle: from,
-          sweep: sweep,
-          color: arc,
-          inner: inner,
-        );
-      } else {
-        dial.paintSegment(
-          canvas,
-          startAngle: from,
-          sweep: sweep,
-          color: arc,
-          inner: inner,
-          stroke: 2,
-        );
-      }
+      final from = window.angleOf(a);
+      final sweep = math.max(window.angleOf(b) - from, 0.02);
+      final outer = dial.ringInner + dial.ringWidth * 0.12;
+      dial.paintSegment(
+        canvas,
+        startAngle: from,
+        sweep: sweep,
+        color: arc,
+        outer: outer,
+        stroke: loopOn ? null : 2,
+      );
     }
-    if (a != null) _paintLetter(canvas, dial, 'A', ringAngle(a, duration));
-    if (b != null) _paintLetter(canvas, dial, 'B', ringAngle(b, duration));
+    if (a != null) _paintLetter(canvas, dial, 'A', window.angleOf(a));
+    if (b != null) _paintLetter(canvas, dial, 'B', window.angleOf(b));
   }
 
-  /// A letter by the end it names, on the inner part of the ring.
+  /// A letter by the end it names, over the wave.
   void _paintLetter(Canvas canvas, DialGeometry dial, String text, double at) {
     final base = (letterStyle ?? const TextStyle()).copyWith(
       fontWeight: FontWeight.w700,
@@ -525,11 +574,8 @@ class _RingPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_RingPainter old) =>
-      old.duration != duration ||
-      old.fill != fill ||
-      old.edge != edge ||
-      old.tick != tick ||
+  bool shouldRepaint(_LoopPainter old) =>
+      old.window != window ||
       old.loopStart != loopStart ||
       old.loopEnd != loopEnd ||
       old.loopOn != loopOn ||
@@ -538,9 +584,11 @@ class _RingPainter extends CustomPainter {
       old.letterOutline != letterOutline;
 }
 
-/// The point where the track is listened to.
-class _PointPainter extends CustomPainter {
-  _PointPainter({
+/// The playhead: a line across the whole ring where the track is heard, like
+/// the line of an audio editor, a thin light stroke over a wider dark one so
+/// that it shows on the wave as on the bare ring.
+class _PlayheadPainter extends CustomPainter {
+  _PlayheadPainter({
     required this.position,
     required this.duration,
     required this.color,
@@ -552,17 +600,41 @@ class _PointPainter extends CustomPainter {
   final Color color;
   final Color outline;
 
+  /// How far the line sticks out of the ring on each side, and its two
+  /// widths, see [DialGeometry.ringWidth].
+  static const _overhang = 0.06;
+  static const _inner = 3.0;
+  static const _outer = 6.0;
+
   @override
   void paint(Canvas canvas, Size size) {
     final dial = DialGeometry(size);
-    final at = dial.ringPoint(ringAngle(position.value, duration));
-    final radius = dial.ringWidth * 0.3;
-    canvas.drawCircle(at, radius + 2, Paint()..color = outline);
-    canvas.drawCircle(at, radius, Paint()..color = color);
+    final angle = ringAngle(position.value, duration);
+    final dir = Offset(math.sin(angle), -math.cos(angle));
+    final from =
+        dial.center + dir * (dial.ringInner - dial.ringWidth * _overhang);
+    final to =
+        dial.center + dir * (dial.ringOuter + dial.ringWidth * _overhang);
+    canvas.drawLine(
+      from,
+      to,
+      Paint()
+        ..color = outline
+        ..strokeWidth = _outer
+        ..strokeCap = StrokeCap.round,
+    );
+    canvas.drawLine(
+      from,
+      to,
+      Paint()
+        ..color = color
+        ..strokeWidth = _inner
+        ..strokeCap = StrokeCap.round,
+    );
   }
 
   @override
-  bool shouldRepaint(_PointPainter old) =>
+  bool shouldRepaint(_PlayheadPainter old) =>
       old.duration != duration ||
       old.color != color ||
       old.outline != outline ||
