@@ -278,9 +278,11 @@ class AppActions {
       name: 'player_mark',
       description:
           'Marks the start or the end of the loop at the point being heard, '
-          'like the Set A and Set B buttons; a reaction time of 150 ms times '
-          'the speed is taken off. Marking the end turns the loop on and '
-          'plays from its start. Fails if no track is open.',
+          'like the screen reader actions Mark the start here and Mark the '
+          'end here on the Player\'s ring (there is no button for it); a '
+          'reaction time of 150 ms times the speed is taken off. Marking the '
+          'end turns the loop on and plays from its start. Fails if no track '
+          'is open.',
       parameters: {
         'edge': {
           'type': 'string',
@@ -293,7 +295,7 @@ class AppActions {
     const AppAction(
       name: 'player_loop_nudge',
       description:
-          'Moves the start or the end of the loop by some seconds, e.g. -0.1. '
+          'Moves the start or the end of the loop by some seconds, e.g. -0.01. '
           'Each point stops at its limit: the ends of the track, or 1 s from '
           'the other point. Fails if that point is not marked.',
       parameters: {

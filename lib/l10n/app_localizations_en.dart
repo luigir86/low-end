@@ -664,16 +664,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerLoop => 'Loop';
 
   @override
-  String get playerLoopStart => 'Start';
+  String get playerMarkStart => 'Mark the start here';
 
   @override
-  String get playerLoopEnd => 'End';
+  String get playerMarkEnd => 'Mark the end here';
 
   @override
-  String get playerMarkStart => 'Set A';
+  String get playerHintDraw =>
+      'Hold on the ring and slide to choose a passage to repeat';
 
   @override
-  String get playerMarkEnd => 'Set B';
+  String get playerHintGrips =>
+      'Drag A and B on the ring to adjust the passage';
+
+  @override
+  String playerStartAt(String time) {
+    return 'Start $time';
+  }
+
+  @override
+  String playerEndAt(String time) {
+    return 'End $time';
+  }
+
+  @override
+  String get playerStartUnmarked => 'Start not marked';
+
+  @override
+  String get playerEndUnmarked => 'End not marked';
 
   @override
   String get playerStartEarlier => 'Start earlier';

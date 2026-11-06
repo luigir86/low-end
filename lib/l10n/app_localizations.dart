@@ -1260,29 +1260,53 @@ abstract class AppLocalizations {
   /// **'Loop'**
   String get playerLoop;
 
-  /// Name of the point A, where the loop starts; one segment of a two-way choice with the point B (End). Short.
+  /// Screen reader action on the ring of the Player: marks the start of the loop (point A) at the point being heard. There is no button for it.
   ///
   /// In en, this message translates to:
-  /// **'Start'**
-  String get playerLoopStart;
-
-  /// Name of the point B, where the loop ends and starts again; the other segment of the choice with Start. Short.
-  ///
-  /// In en, this message translates to:
-  /// **'End'**
-  String get playerLoopEnd;
-
-  /// Button that marks the start of the loop (point A) at the point being heard. Short: it shares the row with three more buttons.
-  ///
-  /// In en, this message translates to:
-  /// **'Set A'**
+  /// **'Mark the start here'**
   String get playerMarkStart;
 
-  /// Button that marks the end of the loop (point B) at the point being heard and turns the loop on. Short.
+  /// Screen reader action on the ring of the Player: marks the end of the loop (point B) at the point being heard and turns the loop on.
   ///
   /// In en, this message translates to:
-  /// **'Set B'**
+  /// **'Mark the end here'**
   String get playerMarkEnd;
+
+  /// Hint under the Player's dial while no passage is marked: how to choose the passage that repeats. The ring is the circle round the middle of the dial.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold on the ring and slide to choose a passage to repeat'**
+  String get playerHintDraw;
+
+  /// Hint under the Player's dial once a passage is marked: the letters A and B on the ring can be dragged.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag A and B on the ring to adjust the passage'**
+  String get playerHintGrips;
+
+  /// Screen reader name of the time of the loop's start (point A), e.g. Start 1:12.34.
+  ///
+  /// In en, this message translates to:
+  /// **'Start {time}'**
+  String playerStartAt(String time);
+
+  /// Screen reader name of the time of the loop's end (point B), e.g. End 1:31.00.
+  ///
+  /// In en, this message translates to:
+  /// **'End {time}'**
+  String playerEndAt(String time);
+
+  /// Screen reader name of the loop's start (point A) while it is not marked.
+  ///
+  /// In en, this message translates to:
+  /// **'Start not marked'**
+  String get playerStartUnmarked;
+
+  /// Screen reader name of the loop's end (point B) while it is not marked.
+  ///
+  /// In en, this message translates to:
+  /// **'End not marked'**
+  String get playerEndUnmarked;
 
   /// Screen reader name of the − button when the start of the loop is chosen: it moves point A earlier.
   ///

@@ -16,6 +16,7 @@ class RingWave extends CustomPainter {
     required this.peaks,
     required this.window,
     required this.color,
+    this.gap = 0,
     this.passage,
     this.passageColor,
   }) : super(repaint: peaks);
@@ -23,6 +24,10 @@ class RingWave extends CustomPainter {
   final TrackPeaks peaks;
   final RingWindow window;
   final Color color;
+
+  /// Room left clear on each side of 12 o'clock, in radians (the seam of
+  /// the view of a passage).
+  final double gap;
 
   /// A stretch of the window drawn in [passageColor] instead (the passage
   /// that repeats).
@@ -50,7 +55,7 @@ class RingWave extends CustomPainter {
   /// The shape of the wave for [heights] (0..1, NaN for a slice not read:
   /// the shape stops there), centred on [dial]'s ring. Null when nothing is
   /// there to draw.
-  static Path? shape(DialGeometry dial, Float32List heights) {
+  static Path? shape(DialGeometry dial, Float32List heights, {double gap = 0}) {
     var read = 0;
     while (read < heights.length && !heights[read].isNaN) {
       read++;
@@ -58,7 +63,7 @@ class RingWave extends CustomPainter {
     if (read == 0) return null;
     final middle = dial.ringInner + dial.ringWidth / 2;
     Offset at(int i, double side) {
-      final angle = (i + 0.5) / heights.length * 2 * math.pi;
+      final angle = gap + (i + 0.5) / heights.length * (2 * math.pi - 2 * gap);
       final half = dial.ringWidth * (flat + (reach - flat) * heights[i]);
       final r = middle + side * half;
       return dial.center + Offset(math.sin(angle) * r, -math.cos(angle) * r);
@@ -91,7 +96,7 @@ class RingWave extends CustomPainter {
       _heights = peaks.heights(window.from, window.to, count);
       _key = key;
     }
-    final path = shape(dial, _heights!);
+    final path = shape(dial, _heights!, gap: gap);
     if (path == null) return;
     canvas.drawPath(path, Paint()..color = color);
     final stretch = passage, inside = passageColor;
@@ -120,6 +125,7 @@ class RingWave extends CustomPainter {
       old.peaks != peaks ||
       old.window != window ||
       old.color != color ||
+      old.gap != gap ||
       old.passage != passage ||
       old.passageColor != passageColor;
 }

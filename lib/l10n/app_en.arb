@@ -447,21 +447,47 @@
   "@playerLoop": {
     "description": "Name of the switch that repeats the stretch between the points A and B of the track. Short."
   },
-  "playerLoopStart": "Start",
-  "@playerLoopStart": {
-    "description": "Name of the point A, where the loop starts; one segment of a two-way choice with the point B (End). Short."
-  },
-  "playerLoopEnd": "End",
-  "@playerLoopEnd": {
-    "description": "Name of the point B, where the loop ends and starts again; the other segment of the choice with Start. Short."
-  },
-  "playerMarkStart": "Set A",
+  "playerMarkStart": "Mark the start here",
   "@playerMarkStart": {
-    "description": "Button that marks the start of the loop (point A) at the point being heard. Short: it shares the row with three more buttons."
+    "description": "Screen reader action on the ring of the Player: marks the start of the loop (point A) at the point being heard. There is no button for it."
   },
-  "playerMarkEnd": "Set B",
+  "playerMarkEnd": "Mark the end here",
   "@playerMarkEnd": {
-    "description": "Button that marks the end of the loop (point B) at the point being heard and turns the loop on. Short."
+    "description": "Screen reader action on the ring of the Player: marks the end of the loop (point B) at the point being heard and turns the loop on."
+  },
+  "playerHintDraw": "Hold on the ring and slide to choose a passage to repeat",
+  "@playerHintDraw": {
+    "description": "Hint under the Player's dial while no passage is marked: how to choose the passage that repeats. The ring is the circle round the middle of the dial."
+  },
+  "playerHintGrips": "Drag A and B on the ring to adjust the passage",
+  "@playerHintGrips": {
+    "description": "Hint under the Player's dial once a passage is marked: the letters A and B on the ring can be dragged."
+  },
+  "playerStartAt": "Start {time}",
+  "@playerStartAt": {
+    "description": "Screen reader name of the time of the loop's start (point A), e.g. Start 1:12.34.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "playerEndAt": "End {time}",
+  "@playerEndAt": {
+    "description": "Screen reader name of the time of the loop's end (point B), e.g. End 1:31.00.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "playerStartUnmarked": "Start not marked",
+  "@playerStartUnmarked": {
+    "description": "Screen reader name of the loop's start (point A) while it is not marked."
+  },
+  "playerEndUnmarked": "End not marked",
+  "@playerEndUnmarked": {
+    "description": "Screen reader name of the loop's end (point B) while it is not marked."
   },
   "playerStartEarlier": "Start earlier",
   "@playerStartEarlier": {
