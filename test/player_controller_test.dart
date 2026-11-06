@@ -443,10 +443,12 @@ void main() {
       await player.pick();
       expect(player.title, 'Blue Bossa');
       expect(player.artist, isNull);
+      expect(player.hasTags, isFalse);
       gate.complete((title: ' Blue Bossa (live) ', artist: 'Kenny Dorham'));
       await Future<void>.delayed(Duration.zero);
       expect(player.title, 'Blue Bossa (live)');
       expect(player.artist, 'Kenny Dorham');
+      expect(player.hasTags, isTrue);
     });
 
     test('tell the listeners, and are kept in the setup', () async {

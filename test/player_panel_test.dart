@@ -91,8 +91,37 @@ void main() {
     expect(screen.player.status, PlayerStatus.ready);
     // The track opens but does not play by itself.
     expect(screen.player.isPlaying, isFalse);
-    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
-    expect(find.text('0:00 / 6:00'), findsOneWidget);
+    expect(find.byIcon(Icons.play_arrow), findsNothing);
+    expect(find.text('Tap to start'), findsOneWidget);
+    expect(find.text('0:00'), findsOneWidget);
+  });
+
+  testWidgets('the middle shows title and artist only when the file has tags, '
+      'and the hint only when stopped (RF-PLY-02, RF-PLY-19)', (tester) async {
+    final files = FakeTrackFiles(next: _song)
+      ..tagsAnswer = (title: 'Blue Bossa', artist: 'Kenny Dorham');
+    final screen = await _open(tester, files: files);
+    await screen.player.pick();
+    await screen.settle();
+    expect(find.text('Blue Bossa · Kenny Dorham'), findsOneWidget);
+    expect(find.text('Tap to start'), findsOneWidget);
+    await tester.tap(hub);
+    await screen.settle();
+    expect(find.text('Tap to start'), findsNothing);
+    expect(find.text('Blue Bossa · Kenny Dorham'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('without tags the middle shows no title', (tester) async {
+    final screen = await _open(tester);
+    await screen.player.pick();
+    await screen.settle();
+    expect(screen.player.hasTags, isFalse);
+    expect(
+      find.descendant(of: hub, matching: find.text('Blue Bossa')),
+      findsNothing,
+    );
+    expect(find.text('0:00'), findsOneWidget);
   });
 
   testWidgets('the field names the track and opens the chooser again', (
@@ -133,19 +162,21 @@ void main() {
     await screen.settle();
     expect(screen.player.isPlaying, isTrue);
     expect(screen.output.playing, isTrue);
-    expect(find.byIcon(Icons.pause), findsOneWidget);
+    expect(find.byIcon(Icons.pause), findsNothing);
+    expect(find.text('Tap to start'), findsNothing);
     expect(find.bySemanticsLabel('Pause'), findsWidgets);
 
     screen.output.advance(const Duration(seconds: 72));
     await tester.pump(const Duration(milliseconds: 100));
-    expect(find.text('1:12 / 6:00'), findsOneWidget);
+    expect(find.text('1:12'), findsOneWidget);
 
     await tester.tap(hub);
     await screen.settle();
     expect(screen.player.isPlaying, isFalse);
-    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+    expect(find.byIcon(Icons.play_arrow), findsNothing);
+    expect(find.text('Tap to start'), findsOneWidget);
     // The position stays.
-    expect(find.text('1:12 / 6:00'), findsOneWidget);
+    expect(find.text('1:12'), findsOneWidget);
   });
 
   testWidgets('a touch on the ring moves the listening point', (tester) async {
@@ -323,7 +354,7 @@ void main() {
       await tester.tap(find.byKey(const Key('playerHub')));
       await screen.settle();
       expect(screen.player.isPlaying, isTrue);
-      expect(find.text('0:00 / 6:00'), findsOneWidget);
+      expect(find.text('0:00'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 

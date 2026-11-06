@@ -11,6 +11,7 @@ import 'package:flutter/services.dart' show HapticFeedback;
 import '../../l10n/app_localizations.dart';
 import '../../widgets/dial.dart';
 import 'clock_text.dart';
+import 'marquee.dart';
 import 'player_controller.dart';
 import 'ring_wave.dart';
 import 'ring_window.dart';
@@ -588,6 +589,9 @@ class _PlayerDialState extends State<PlayerDial> with TickerProviderStateMixin {
 /// the view of a passage, in radians (1°).
 const _seamGap = math.pi / 180;
 
+/// How wide the title and artist are, of the middle's diameter (RF-PLY-19).
+const _marqueeFraction = 0.8;
+
 /// The middle of the dial: the button that plays and pauses, or asks for a
 /// track.
 class _Hub extends StatelessWidget {
@@ -617,7 +621,7 @@ class _Hub extends StatelessWidget {
       PlayerStatus.empty => l10n.playerChoose,
       _ => player.isPlaying ? l10n.playerPause : l10n.playerPlay,
     };
-    final Widget content = switch (status) {
+    Widget content(double diameter) => switch (status) {
       PlayerStatus.empty => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -629,27 +633,47 @@ class _Hub extends StatelessWidget {
         dimension: 32,
         child: CircularProgressIndicator(strokeWidth: 3),
       ),
+      // No play icon: the time is the clock of the track and the whole middle
+      // is the button, as the tempo is on the metronome (RF-PLY-02).
       PlayerStatus.ready => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            player.isPlaying ? Icons.pause : Icons.play_arrow,
-            size: 40,
-            color: theme.colorScheme.primary,
-          ),
+          if (player.hasTags)
+            SizedBox(
+              width: diameter * _marqueeFraction,
+              child: Marquee(
+                text: [
+                  player.title,
+                  player.artist,
+                ].whereType<String>().join(' \u00b7 '),
+                style: muted,
+                playing: player.isPlaying,
+              ),
+            ),
           if (grabbed != null)
             // The time of the end being dragged, to the hundredth.
             Text(
               '${grabbed == LoopEdge.start ? 'A' : 'B'} ${clockText((grabbed == LoopEdge.start ? player.loopStart : player.loopEnd) ?? Duration.zero, hundredths: true, decimalSeparator: decimal)}',
-              style: theme.textTheme.titleLarge,
+              style: theme.textTheme.headlineSmall,
             )
           else
             ValueListenableBuilder<int>(
               valueListenable: seconds,
               builder: (context, s, _) => Text(
-                '${clockText(Duration(seconds: s), decimalSeparator: decimal)}'
-                ' / ${clockText(player.duration, decimalSeparator: decimal)}',
-                style: theme.textTheme.titleLarge,
+                clockText(Duration(seconds: s), decimalSeparator: decimal),
+                style: theme.textTheme.displaySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ),
+          if (!player.isPlaying)
+            Text(
+              l10n.playerHubHint,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
         ],
@@ -678,12 +702,17 @@ class _Hub extends StatelessWidget {
                     player.toggle();
                   }
                 },
-          child: Center(
-            child: FractionallySizedBox(
-              widthFactor: 0.5 / DialGeometry.hubFraction,
-              heightFactor: 0.5 / DialGeometry.hubFraction,
-              child: Center(
-                child: FittedBox(fit: BoxFit.scaleDown, child: content),
+          child: LayoutBuilder(
+            builder: (context, box) => Center(
+              child: FractionallySizedBox(
+                widthFactor: 0.5 / DialGeometry.hubFraction,
+                heightFactor: 0.5 / DialGeometry.hubFraction,
+                child: Center(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: content(box.biggest.shortestSide),
+                  ),
+                ),
               ),
             ),
           ),

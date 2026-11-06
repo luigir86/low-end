@@ -419,6 +419,7 @@
   },
   "playerTrack": "Track",
   "playerChoose": "Choose a track",
+  "playerHubHint": "Tap to start",
   "playerPlay": "Play",
   "playerPause": "Pause",
   "playerTimeOf": "{position} of {duration}",

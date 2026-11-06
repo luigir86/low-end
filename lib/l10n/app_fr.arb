@@ -184,6 +184,7 @@
   "playerTab": "Écoute",
   "playerTrack": "Morceau",
   "playerChoose": "Choisissez un morceau",
+  "playerHubHint": "Touchez pour démarrer",
   "playerPlay": "Lire",
   "playerPause": "Pause",
   "playerTimeOf": "{position} sur {duration}",

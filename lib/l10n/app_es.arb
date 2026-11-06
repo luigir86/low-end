@@ -184,6 +184,7 @@
   "playerTab": "Escucha",
   "playerTrack": "Pista",
   "playerChoose": "Elige una pista",
+  "playerHubHint": "Toca para empezar",
   "playerPlay": "Reproducir",
   "playerPause": "Pausa",
   "playerTimeOf": "{position} de {duration}",
