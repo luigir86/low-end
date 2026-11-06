@@ -2,10 +2,14 @@ package com.luigir86.low_end
 
 import android.app.Activity
 import android.content.Intent
+import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.provider.OpenableColumns
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
+import java.util.concurrent.Executors
 
 // The Player's files (see lib/audio/track_files.dart): the system's document
 // chooser, which needs no permission, and the right to read the file chosen,
@@ -16,6 +20,11 @@ object TrackFiles {
     private var activity: Activity? = null
     private var pending: MethodChannel.Result? = null
 
+    // Reading tags can take a while (a slow card, a cloud file): off the main
+    // thread, and one at a time.
+    private val worker = Executors.newSingleThreadExecutor()
+    private val main = Handler(Looper.getMainLooper())
+
     // Called each time a screen opens on the engine. A chooser left over from
     // a screen that is gone can no longer answer: it is closed with no choice.
     fun attach(activity: Activity, messenger: BinaryMessenger) {
@@ -23,7 +32,13 @@ object TrackFiles {
         pending?.success(null)
         pending = null
         MethodChannel(messenger, "low_end/track_files").setMethodCallHandler { call, result ->
-            if (call.method == "pick") pick(result) else result.notImplemented()
+            when (call.method) {
+                "pick" -> pick(result)
+                "canRead" -> canRead(call.argument<String>("uri"), result)
+                "tags" -> tags(call.argument<String>("uri"), result)
+                "release" -> release(call.argument<String>("uri"), result)
+                else -> result.notImplemented()
+            }
         }
     }
 
@@ -63,6 +78,68 @@ object TrackFiles {
             // The permission lasts for this session only; it can be played now.
         }
         result.success(describe(host, uri))
+    }
+
+    // Can the track still be opened after a restart: the right to read it was
+    // kept (the system may have dropped it) and the file is still there.
+    private fun canRead(uri: String?, result: MethodChannel.Result) {
+        val host = activity
+        if (uri == null || host == null) {
+            result.success(false)
+            return
+        }
+        worker.execute {
+            val readable = try {
+                val target = Uri.parse(uri)
+                val kept = host.contentResolver.persistedUriPermissions
+                    .any { it.uri == target && it.isReadPermission }
+                kept && host.contentResolver.openFileDescriptor(target, "r")?.use { true } == true
+            } catch (e: Exception) {
+                false
+            }
+            main.post { result.success(readable) }
+        }
+    }
+
+    // The title and the artist written in the file, whatever its format.
+    private fun tags(uri: String?, result: MethodChannel.Result) {
+        val host = activity
+        if (uri == null || host == null) {
+            result.success(mapOf("title" to null, "artist" to null))
+            return
+        }
+        worker.execute {
+            var title: String? = null
+            var artist: String? = null
+            val retriever = MediaMetadataRetriever()
+            try {
+                retriever.setDataSource(host, Uri.parse(uri))
+                title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
+                artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
+            } catch (e: Exception) {
+                // No tags: the name of the file stands in.
+            } finally {
+                try { retriever.release() } catch (_: Exception) {}
+            }
+            main.post { result.success(mapOf("title" to title, "artist" to artist)) }
+        }
+    }
+
+    // Gives back the right to read a file the player let go of: the system
+    // keeps only a few hundred.
+    private fun release(uri: String?, result: MethodChannel.Result) {
+        val host = activity
+        if (uri != null && host != null) {
+            try {
+                host.contentResolver.releasePersistableUriPermission(
+                    Uri.parse(uri),
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                )
+            } catch (e: SecurityException) {
+                // It was not kept.
+            }
+        }
+        result.success(null)
     }
 
     private fun describe(host: Activity, uri: Uri): Map<String, Any?> {

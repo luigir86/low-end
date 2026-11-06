@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/audio/track_files.dart';
 import 'package:low_end/audio/track_output.dart';
 import 'package:low_end/features/player/player_controller.dart';
+import 'package:low_end/features/player/player_setup.dart';
 
 const _song = TrackRef(uri: 'content://song', name: 'Blue Bossa.mp3');
 const _other = TrackRef(uri: 'content://other', name: 'Other.m4a');
@@ -251,14 +252,244 @@ void main() {
     });
   });
 
-  test('closing lets go of the file and the output', () async {
-    await player.pick();
-    player.dispose();
-    await Future<void>.delayed(Duration.zero);
-    expect(output.closed, isTrue);
-    expect(files.released, [_song]);
-    // tearDown disposes again: a second time must be harmless.
-    player = PlayerController(SilentTrackOutput(), files);
+  test(
+    'closing lets go of the output, and keeps the right to the file',
+    () async {
+      await player.pick();
+      player.dispose();
+      await Future<void>.delayed(Duration.zero);
+      expect(output.closed, isTrue);
+      // The track is remembered for the next launch (RF-PLY-13).
+      expect(files.released, isEmpty);
+      // tearDown disposes again: a second time must be harmless.
+      player = PlayerController(SilentTrackOutput(), files);
+    },
+  );
+
+  group('a track remembered from the last launch (RF-PLY-13)', () {
+    final setup = PlayerSetup(
+      track: _song,
+      duration: const Duration(minutes: 5),
+      speed: 70,
+      loopStart: const Duration(seconds: 60),
+      loopEnd: const Duration(seconds: 90),
+      looping: true,
+      title: 'Blue Bossa',
+      artist: 'Kenny Dorham',
+    );
+
+    test('comes back with its speed and passage, and asks nothing of the '
+        'system', () {
+      player.restore(setup);
+      expect(player.status, PlayerStatus.ready);
+      expect(player.track, _song);
+      expect(player.duration, const Duration(minutes: 5));
+      expect(player.speed, 70);
+      expect(player.loopStart, const Duration(seconds: 60));
+      expect(player.looping, isTrue);
+      expect(player.title, 'Blue Bossa');
+      expect(player.artist, 'Kenny Dorham');
+      expect(player.position, Duration.zero);
+      expect(output.openCount, 0);
+      expect(files.canReadAsked, isEmpty);
+      expect(files.tagsAsked, isEmpty);
+      expect(files.peaksAsked, isEmpty);
+      expect(player.peaks, isNull);
+    });
+
+    test('is what the player gives back as its setup', () {
+      expect(player.setup, isNull);
+      player.restore(setup);
+      final back = player.setup!;
+      expect(back.toJson(), setup.toJson());
+    });
+
+    test('is not restored over a track already there', () async {
+      await player.pick();
+      player.restore(setup);
+      expect(player.track, _song);
+      expect(player.speed, 100);
+      expect(output.openCount, 1);
+    });
+
+    test('is looked at once, when the tab is reached', () async {
+      player.restore(setup);
+      await player.activate();
+      await player.activate();
+      expect(files.canReadAsked, [_song]);
+      expect(player.status, PlayerStatus.ready);
+      // The wave and the tags are read now, the output is still untouched.
+      expect(files.peaksAsked, [_song]);
+      expect(files.tagsAsked, [_song]);
+      expect(output.openCount, 0);
+    });
+
+    test('that is gone says so, is let go and forgotten', () async {
+      files.readable = false;
+      player.restore(setup);
+      await player.activate();
+      expect(player.status, PlayerStatus.empty);
+      expect(player.problem, TrackProblem.missing);
+      expect(player.track, isNull);
+      expect(player.setup, isNull);
+      expect(files.released, [_song]);
+      expect(output.openCount, 0);
+    });
+
+    test('opens at the first play, at A, with its speed and loop', () async {
+      player.restore(setup);
+      await player.activate();
+      await player.start();
+      expect(output.openCount, 1);
+      expect(output.opened, _song);
+      expect(output.seeks, isEmpty);
+      expect(output.speed, 0.7);
+      expect(output.loop, (
+        const Duration(seconds: 60),
+        const Duration(seconds: 90),
+      ));
+      expect(output.playing, isTrue);
+      expect(player.position, const Duration(seconds: 60));
+      // A second play does not open it again.
+      await player.stop();
+      await player.start();
+      expect(output.openCount, 1);
+    });
+
+    test('opens at the start when there is no loop', () async {
+      player.restore(
+        PlayerSetup(track: _song, duration: const Duration(minutes: 5)),
+      );
+      await player.start();
+      expect(output.openCount, 1);
+      expect(player.position, Duration.zero);
+      expect(output.loop, isNull);
+    });
+
+    test('opens when the listening point is moved, at that point', () async {
+      player.restore(setup);
+      await player.seek(const Duration(seconds: 200));
+      expect(output.openCount, 1);
+      // Outside the loop: the loop goes off, as with any track.
+      expect(player.looping, isFalse);
+      expect(player.position, const Duration(seconds: 200));
+      expect(output.playing, isFalse);
+    });
+
+    test('takes the passage and the speed before it is opened, and tells '
+        'them when it opens', () async {
+      player.restore(
+        PlayerSetup(track: _song, duration: const Duration(minutes: 5)),
+      );
+      player.setSpeed(60);
+      await player.setLoop(
+        const Duration(seconds: 10),
+        const Duration(seconds: 20),
+      );
+      player.moveEdge(LoopEdge.end, const Duration(seconds: 25));
+      expect(output.openCount, 0);
+      expect(output.loop, isNull);
+      await player.start();
+      expect(output.speed, 0.6);
+      expect(output.loop, (
+        const Duration(seconds: 10),
+        const Duration(seconds: 25),
+      ));
+      expect(player.position, const Duration(seconds: 10));
+    });
+
+    test(
+      'that cannot be opened at the first play leaves the Player empty',
+      () async {
+        player.restore(setup);
+        output.failWith = TrackOpenException(TrackProblem.unreadable);
+        await player.start();
+        expect(player.status, PlayerStatus.empty);
+        expect(player.problem, TrackProblem.unreadable);
+        expect(player.isPlaying, isFalse);
+        expect(player.setup, isNull);
+      },
+    );
+
+    test('a pause while it opens keeps it from playing', () async {
+      player.restore(setup);
+      final play = player.start();
+      await player.stop();
+      await play;
+      expect(output.playing, isFalse);
+    });
+
+    test('a new track starts again at 100% with no loop', () async {
+      player.restore(setup);
+      await player.pick();
+      expect(player.speed, 100);
+      expect(player.hasLoop, isFalse);
+      expect(player.title, 'Blue Bossa');
+      expect(files.released, isEmpty);
+    });
+
+    test('a different track lets the remembered one go', () async {
+      player.restore(setup);
+      files.next = _other;
+      await player.pick();
+      expect(files.released, [_song]);
+    });
+  });
+
+  group('the title and the artist (RF-PLY-14)', () {
+    test('are the name of the file until the tags say otherwise', () async {
+      final gate = Completer<TrackTags>();
+      files.tagsFor = (_) => gate.future;
+      await player.pick();
+      expect(player.title, 'Blue Bossa');
+      expect(player.artist, isNull);
+      gate.complete((title: ' Blue Bossa (live) ', artist: 'Kenny Dorham'));
+      await Future<void>.delayed(Duration.zero);
+      expect(player.title, 'Blue Bossa (live)');
+      expect(player.artist, 'Kenny Dorham');
+    });
+
+    test('tell the listeners, and are kept in the setup', () async {
+      var told = 0;
+      player.addListener(() => told++);
+      files.tagsAnswer = (title: 'Song', artist: null);
+      await player.pick();
+      await Future<void>.delayed(Duration.zero);
+      expect(player.title, 'Song');
+      expect(player.setup!.title, 'Song');
+      expect(player.setup!.artist, isNull);
+      expect(told, greaterThan(1));
+    });
+
+    test('empty ones are as none', () async {
+      files.tagsAnswer = (title: '  ', artist: '');
+      await player.pick();
+      await Future<void>.delayed(Duration.zero);
+      expect(player.title, 'Blue Bossa');
+      expect(player.artist, isNull);
+    });
+
+    test('that arrive late for an old track are ignored', () async {
+      final gates = <String, Completer<TrackTags>>{};
+      files.tagsFor = (track) =>
+          (gates[track.uri] = Completer<TrackTags>()).future;
+      await player.pick();
+      files.next = _other;
+      await player.pick();
+      gates[_song.uri]!.complete((title: 'Old', artist: 'Old artist'));
+      await Future<void>.delayed(Duration.zero);
+      expect(player.title, 'Other');
+      gates[_other.uri]!.complete((title: 'New', artist: null));
+      await Future<void>.delayed(Duration.zero);
+      expect(player.title, 'New');
+    });
+
+    test('that cannot be read leave the name of the file', () async {
+      files.tagsFor = (_) async => throw StateError('no tags');
+      await player.pick();
+      await Future<void>.delayed(Duration.zero);
+      expect(player.title, 'Blue Bossa');
+    });
   });
 
   group('the wave of the track (RF-PLY-15)', () {
