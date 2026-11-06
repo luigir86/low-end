@@ -22,7 +22,7 @@ android {
     // told the phone is in English. res/values-it holds the Italian one;
     // the filter keeps the libraries' other translations out of the APK.
     androidResources {
-        localeFilters += listOf("en", "it")
+        localeFilters += listOf("en", "it", "es", "fr")
     }
 
     defaultConfig {

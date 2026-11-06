@@ -16,15 +16,50 @@ final referencePitches = [
   for (var hz = minReferencePitch; hz <= maxReferencePitch; hz++) hz,
 ];
 
-/// How note names are written.
+/// How note names are written: a system of names, and the language of the
+/// words written round them in chord names ("C major", "Do maggiore",
+/// "Do mayor", "Do majeur"). The words follow the note names, never letters
+/// with other words ("C maggiore"). Another system, such as the German one
+/// (C D E… H, with B for B♭, "C-Dur"), is one more value here with its own
+/// names and words.
 enum NoteNames {
-  /// C, D, E… with scientific octave numbers: A4 = 440 Hz.
-  letters,
+  /// C, D, E… with English words, and by default scientific octave numbers:
+  /// A4 = 440 Hz.
+  letters(['C', 'D', 'E', 'F', 'G', 'A', 'B'], words: 'en'),
 
-  /// Do, Re, Mi… with the octave numbers used in Italy and France, one lower
-  /// than the scientific ones: La3 = 440 Hz.
-  solfege,
+  /// Do, Re, Mi… with Italian words ("Do maggiore"), and by default the
+  /// octave numbers used in Italy and France, one lower than the scientific
+  /// ones: La3 = 440 Hz. Also the solfège of an app shown in English.
+  solfege(_solfegeNames, words: 'it'),
+
+  /// Do, Re, Mi… with Spanish words: "Do mayor", "La menor".
+  solfegeSpanish(_solfegeNames, words: 'es'),
+
+  /// Do, Ré, Mi… with French words: "Do majeur", "La mineur".
+  solfegeFrench(['Do', 'Ré', 'Mi', 'Fa', 'Sol', 'La', 'Si'], words: 'fr');
+
+  const NoteNames(this.naturalNames, {required this.words});
+
+  /// The names of the seven natural notes, C to B.
+  final List<String> naturalNames;
+
+  /// The language code of the words round a chord or key name.
+  final String words;
+
+  /// Whether the names are those of solfège (Do Re Mi), which by default
+  /// number octaves one lower: La3 = 440 Hz.
+  bool get isSolfege => this != letters;
+
+  /// The solfège that goes with the app shown in [languageCode]: Italian
+  /// words for an app in Italian or in a language with no solfège of its own.
+  static NoteNames solfegeFor(String languageCode) => switch (languageCode) {
+    'es' => solfegeSpanish,
+    'fr' => solfegeFrench,
+    _ => solfege,
+  };
 }
+
+const _solfegeNames = ['Do', 'Re', 'Mi', 'Fa', 'Sol', 'La', 'Si'];
 
 /// How octaves are numbered, independently of how notes are named.
 enum OctaveNumbering {
@@ -37,23 +72,11 @@ enum OctaveNumbering {
   italian,
 }
 
-/// Names of the 12 pitch classes, starting from C, in the spelling a bassist
-/// usually reads (flats for E♭, A♭ and B♭).
-const _englishNames = [
-  'C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B', //
-];
-const _italianNames = [
-  'Do', 'Do♯', 'Re', 'Mi♭', 'Mi', 'Fa', 'Fa♯', 'Sol', 'La♭', 'La', 'Si♭',
-  'Si', //
-];
-
-/// The seven letters, C to B, their pitch classes and their names.
+/// The pitch classes of the seven letters, C to B.
 const _naturals = [0, 2, 4, 5, 7, 9, 11];
-const _englishLetters = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
-const _italianLetters = ['Do', 'Re', 'Mi', 'Fa', 'Sol', 'La', 'Si'];
 
-/// The letter of each pitch class (0 = C … 6 = B) as the names above write
-/// it: C♯ on C, E♭ on E.
+/// The letter of each pitch class (0 = C … 6 = B) in the spelling a bassist
+/// usually reads: C♯ on C, but flats for E♭, A♭ and B♭.
 const _usualLetters = [0, 0, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6];
 
 /// The letter (0 = C … 6 = B) [pitchClass] is written with: the usual one,
@@ -70,9 +93,7 @@ int letterOf(int pitchClass, {bool flat = false}) {
 /// as needed, such as D♯ or Re♭: how a note is spelled in a key. Where that
 /// would take a double sharp or flat, the usual name instead.
 String spell(int pitchClass, int letter, NoteNames names) {
-  final base = (names == NoteNames.solfege
-      ? _italianLetters
-      : _englishLetters)[letter];
+  final base = names.naturalNames[letter];
   return switch ((pitchClass - _naturals[letter] + 18) % 12 - 6) {
     0 => base,
     1 => '$base♯',
@@ -112,9 +133,7 @@ class Note {
   /// with a flat (D♭, G♭).
   String name(NoteNames names, {bool flat = false}) => flat
       ? spell(pitchClass, letterOf(pitchClass, flat: true), names)
-      : (names == NoteNames.solfege
-            ? _italianNames
-            : _englishNames)[pitchClass];
+      : spell(pitchClass, _usualLetters[pitchClass], names);
 
   /// The octave number as written with [numbering]. Without it, the number
   /// follows [names] as it used to: the Italian numbering for solfège. The
@@ -122,7 +141,7 @@ class Note {
   int octaveIn(NoteNames names, {OctaveNumbering? numbering}) {
     final italian = numbering != null
         ? numbering == OctaveNumbering.italian
-        : names == NoteNames.solfege;
+        : names.isSolfege;
     return italian ? octave - 1 : octave;
   }
 

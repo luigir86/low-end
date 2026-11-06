@@ -20,6 +20,8 @@ const _tagline = {
   'en-US':
       'Piano chords and progressions to play over, with metronome and tuner.',
   'it-IT': 'Accordi e progressioni al piano su cui suonare, con metronomo e accordatore.',
+  'es-ES': 'Acordes y progresiones de piano sobre los que tocar, con metrónomo y afinador.',
+  'fr-FR': 'Accords et progressions au piano pour jouer dessus, avec métronome et accordeur.',
 };
 
 void main() {
@@ -35,7 +37,7 @@ void main() {
     }
     await loader.load();
     await tester.runAsync(() async {
-      for (final locale in ['en-US', 'it-IT']) {
+      for (final locale in _tagline.keys) {
         final path = 'store/graphics/$locale/feature-graphic-1024x500.png';
         final codec = await ui.instantiateImageCodec(
           File(path).readAsBytesSync(),

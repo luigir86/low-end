@@ -27,10 +27,11 @@ String chordSymbol(DroneChord chord, String note, NoteNames names) =>
     _chordSymbol(chordWords(names), chord, note);
 
 /// The words round a chord or key name ("major", "maggiore") follow the
-/// note names, not the app's language: C D E go with English words
-/// (C♯ major), Do Re Mi with Italian ones (Do♯ maggiore).
+/// note names, never letters with other words: C D E go with English words
+/// (C♯ major), Do Re Mi with those of its language (Do♯ maggiore, Do♯ mayor,
+/// Do♯ majeur).
 AppLocalizations chordWords(NoteNames names) =>
-    lookupAppLocalizations(Locale(names == NoteNames.letters ? 'en' : 'it'));
+    lookupAppLocalizations(Locale(names.words));
 
 String _chordSymbol(AppLocalizations l10n, DroneChord chord, String note) =>
     switch (chord.quality) {

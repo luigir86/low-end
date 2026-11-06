@@ -49,8 +49,17 @@ void main() {
   ) async {
     await open(tester, const [Locale('en', 'GB')]);
     expect(l10n(tester).localeName, 'en');
-    await open(tester, const [Locale('fr', 'FR')]);
+    await open(tester, const [Locale('de', 'DE')]);
     expect(l10n(tester).localeName, 'en');
+  });
+
+  testWidgets('a Spanish or French phone gets its language', (tester) async {
+    await open(tester, const [Locale('es', 'MX')]);
+    expect(l10n(tester).localeName, 'es');
+    expect(find.text('Afinador'), findsOneWidget);
+    await open(tester, const [Locale('fr', 'CA')]);
+    expect(l10n(tester).localeName, 'fr');
+    expect(find.text('Accordeur'), findsOneWidget);
   });
 
   testWidgets('a language chosen in the settings wins over the phone', (

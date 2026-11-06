@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/low_end_app.dart';
+import 'package:low_end/l10n/app_localizations.dart';
 import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/piano_output.dart';
@@ -41,10 +42,14 @@ void main() {
     await load('MaterialIcons', ['test/fonts/materialicons-regular.otf']);
   });
 
-  for (final (locale, lang) in [('en-US', 'en'), ('it-IT', 'it')]) {
+  for (final (locale, lang) in [
+    ('en-US', 'en'),
+    ('it-IT', 'it'),
+    ('es-ES', 'es'),
+    ('fr-FR', 'fr'),
+  ]) {
     testWidgets('store screenshots $locale', (tester) async {
-      final it = lang == 'it';
-      String t(String en, String itText) => it ? itText : en;
+      final l10n = lookupAppLocalizations(Locale(lang));
       WidgetsApp.debugAllowBannerOverride = false;
       addTearDown(() => WidgetsApp.debugAllowBannerOverride = true);
       tester.view.physicalSize = const Size(1156, 2312);
@@ -78,14 +83,7 @@ void main() {
 
       // 1. Harmony, where the app first opens: the progression it opens on
       // (I–VI–IV–V in A, Stand by Me), playing.
-      final dialCentre = tester.getCenter(
-        find.text(
-          t(
-            'Touch a note to play it. Touch it again to stop.',
-            'Tocca una nota per farla suonare. Toccala di nuovo per fermarla.',
-          ),
-        ),
-      );
+      final dialCentre = tester.getCenter(find.text(l10n.droneHint));
       await tester.tapAt(dialCentre);
       await settle();
       await tester.pump(const Duration(milliseconds: 600));
@@ -102,7 +100,7 @@ void main() {
       await settle();
 
       // 4. The tuner, a little flat on an E.
-      await tester.tap(find.text(t('Tuner', 'Accordatore')).last);
+      await tester.tap(find.text(l10n.tunerTab).last);
       await settle();
       for (var i = 0; i < 20; i++) {
         mic.add(
@@ -120,13 +118,13 @@ void main() {
       await shot('4_tuner');
 
       // 3. The metronome, running, with swung eighths.
-      await tester.tap(find.text(t('Metronome', 'Metronomo')).last);
+      await tester.tap(find.text(l10n.metronomeTab).last);
       await settle();
       await tester.tap(find.byKey(const Key('subdivisionMenu')));
       await settle();
-      await tester.tap(find.text(t('Swung eighth notes', 'Crome swing')));
+      await tester.tap(find.text(l10n.subdivisionSwungEighths));
       await settle();
-      await tester.tap(find.text(t('Tap to start', 'Tocca per avviare')));
+      await tester.tap(find.text(l10n.metronomeHint));
       await settle();
       await tester.pump(const Duration(milliseconds: 600));
       await shot('3_metronome');
