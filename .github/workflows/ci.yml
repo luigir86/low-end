@@ -1,23 +1,14 @@
 name: CI
 
+# The workflow always starts, so that the checks `main` requires always
+# report. The first job looks at what changed: when it is only texts (see
+# `changes` below) the three real jobs are skipped, and a skipped job counts
+# as passed for a required check. Filtering the trigger by paths instead
+# left a texts-only pull request waiting for a check that never came.
 on:
   push:
     branches: [main]
-    paths:
-      - '**'
-      # Texts only: nothing to build or test.
-      - '!**.md'
-      - '!docs/**'
-      - '!store/**'
-      # Except the action catalog, which a test compares with the code.
-      - 'docs/llm-actions.json'
   pull_request:
-    paths:
-      - '**'
-      - '!**.md'
-      - '!docs/**'
-      - '!store/**'
-      - 'docs/llm-actions.json'
 
 # The workflow only reads the code: no other permission is needed.
 permissions:
@@ -31,7 +22,48 @@ concurrency:
 
 # Three jobs side by side: the run lasts as long as the longest one.
 jobs:
+  # Is there anything to build or test? Texts only (Markdown, docs/, store/)
+  # means no, except the action catalog, which a test compares with the code.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.files.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: files
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          # A pull request is checked as merged into its base: the first
+          # parent is the base. On main, from the last commit that was there.
+          if [ "$EVENT" = pull_request ]; then
+            base=$(git rev-parse HEAD^1)
+          else
+            base="$BEFORE"
+          fi
+          # Not sure what changed: build and test everything.
+          if ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # --no-renames: code moved into docs/ also counts as leaving lib/.
+          code=false
+          while IFS= read -r file; do
+            case "$file" in
+              docs/llm-actions.json) code=true ;;
+              *.md | docs/* | store/*) ;;
+              *) code=true ;;
+            esac
+          done < <(git diff --no-renames --name-only "$base" HEAD)
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+
   test:
+    needs: changes
+    # Also when `changes` itself failed: better to test than to skip.
+    if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.code == 'true') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -47,6 +79,8 @@ jobs:
   # Catches a mistake in the manifest or in Gradle before it reaches a
   # phone. Debug: a release build needs the upload key (see store/README.md).
   android:
+    needs: changes
+    if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.code == 'true') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -78,6 +112,8 @@ jobs:
 
   # The same for the web app (docs/web.md); web.yml publishes it.
   web:
+    needs: changes
+    if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.code == 'true') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
