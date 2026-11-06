@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../app/settings.dart';
-import '../../app/style.dart';
 import '../../widgets/row_controls.dart';
 import '../../app/theme.dart';
 import '../../audio/audio_scope.dart';
@@ -527,9 +526,8 @@ class _DialCenterState extends State<_DialCenter> {
       fontWeight: FontWeight.w700,
       color: theme.colorScheme.onSurface,
     );
-    final root = Note(drone.rootPitchClass, drone.octave);
     // Spelled as in the key: D♯ in C♯ minor, G♭ in D♭.
-    final rootName = spell(root.pitchClass, drone.rootLetter, names);
+    final rootName = spell(drone.rootPitchClass, drone.rootLetter, names);
     final chord = drone.currentChord;
     // Waiting for a bar line (the metronome's, or the loop's own while the
     // old one fades): the beats to go, in the muted ink, and under them what
@@ -594,20 +592,10 @@ class _DialCenterState extends State<_DialCenter> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(text: rootName),
-                TextSpan(
-                  text:
-                      '${root.octaveIn(names, numbering: AudioScope.of(context).settings.octaveNumbering)}',
-                  style: LowEndType.octave(noteStyle),
-                ),
-              ],
-            ),
-            style: noteStyle,
-            textAlign: TextAlign.center,
-          ),
+          // The name alone: Harmony always plays the root in the same
+          // octave, so a number would say nothing (and the walking bass and
+          // the piano sound in other octaves). A note alone shows its hertz.
+          Text(rootName, style: noteStyle, textAlign: TextAlign.center),
           if (chord != null)
             Text(
               chordSymbol(chord, rootName, names),

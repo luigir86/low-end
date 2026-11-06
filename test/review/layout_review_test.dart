@@ -237,7 +237,11 @@ void main() {
         expect(h.output.frequencies.single, closeTo(220, 1e-9));
         expect((h.mic as FakeMicInput).isCapturing, isFalse);
         expect(h.scope.navigation.section, tab);
-        if (tab == AppSection.drone) expect(find.text('La3'), findsOneWidget);
+        if (tab == AppSection.drone) {
+          // The name alone on the dial: the octave never changes.
+          expect(find.text('La3'), findsNothing);
+          expect(find.text('220.0 Hz'), findsOneWidget);
+        }
         h.expectClean();
       });
     }
