@@ -49,6 +49,7 @@ jobs:
             echo "code=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+          # --no-renames: code moved into docs/ also counts as leaving lib/.
           code=false
           while IFS= read -r file; do
             case "$file" in
@@ -56,7 +57,7 @@ jobs:
               *.md | docs/* | store/*) ;;
               *) code=true ;;
             esac
-          done < <(git diff --name-only "$base" HEAD)
+          done < <(git diff --no-renames --name-only "$base" HEAD)
           echo "code=$code" >> "$GITHUB_OUTPUT"
 
   test:
