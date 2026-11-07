@@ -7,6 +7,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/semantics.dart' show CustomSemanticsAction;
 import 'package:flutter/services.dart' show HapticFeedback;
 
+import '../../app/theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/dial.dart';
 import 'clock_text.dart';
@@ -430,7 +431,7 @@ class _PlayerDialState extends State<PlayerDial>
                           window: window,
                           color: theme.colorScheme.onSurfaceVariant,
                           passage: loopOn ? (stretch.$1!, stretch.$2!) : null,
-                          passageColor: theme.colorScheme.primary,
+                          passageColor: LowEndColors.of(context).activeFill,
                         ),
                       ),
                     ),
@@ -631,7 +632,11 @@ class _Hub extends StatelessWidget {
       PlayerStatus.empty => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.folder_open, size: 32, color: theme.colorScheme.primary),
+          Icon(
+            Icons.folder_open,
+            size: 32,
+            color: LowEndColors.of(context).activeFill,
+          ),
           Text(l10n.playerChoose, style: muted, textAlign: TextAlign.center),
         ],
       ),

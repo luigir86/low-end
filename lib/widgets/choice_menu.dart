@@ -118,8 +118,14 @@ class _ChoiceLineState<T> extends State<_ChoiceLine<T>> {
     final subtitle = choice.subtitle;
     return Semantics(
       selected: selected,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Container(
+        decoration: selected
+            ? BoxDecoration(
+                color: scheme.primaryContainer,
+                borderRadius: BorderRadius.circular(4),
+              )
+            : null,
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
         child: Row(
           children: [
             if (choice.leading != null) ...[
@@ -134,14 +140,18 @@ class _ChoiceLineState<T> extends State<_ChoiceLine<T>> {
                   Text(
                     choice.title,
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: selected ? scheme.primary : scheme.onSurface,
+                      color: selected
+                          ? scheme.onPrimaryContainer
+                          : scheme.onSurface,
                     ),
                   ),
                   if (subtitle != null)
                     Text(
                       subtitle,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
+                        color: selected
+                            ? scheme.onPrimaryContainer
+                            : scheme.onSurfaceVariant,
                       ),
                     ),
                 ],
@@ -151,7 +161,7 @@ class _ChoiceLineState<T> extends State<_ChoiceLine<T>> {
             SizedBox(
               width: 36,
               child: selected
-                  ? Icon(Icons.check, color: scheme.primary)
+                  ? Icon(Icons.check, color: scheme.onPrimaryContainer)
                   : const SizedBox.shrink(),
             ),
           ],

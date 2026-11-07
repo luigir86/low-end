@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// The vertical scroll of each section's page (it scrolls with very large
 /// text), so that the disc under the pages can follow the page on screen.
 class SectionScrolls extends ChangeNotifier {
-  final _offsets = List<double>.filled(3, 0);
+  final _offsets = List<double>.filled(4, 0);
 
   double operator [](int i) => _offsets[i];
 

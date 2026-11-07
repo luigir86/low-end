@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/widgets/page_dots.dart';
+import 'package:low_end/app/theme.dart';
 
 void main() {
   Future<void> pump(WidgetTester tester, int count) => tester.pumpWidget(
     MaterialApp(
+      theme: LowEndTheme.dark,
       home: Center(child: PageDots(count: count, current: 0, size: 7)),
     ),
   );

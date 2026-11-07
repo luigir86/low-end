@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../app/theme.dart';
+
 /// The pieces of the row of controls under a dial, shared by the metronome,
 /// the harmony and the tuner so that the three look the same: a field with
 /// its name on the border, round-cornered chips and a plain icon
@@ -97,12 +99,14 @@ class RowButton extends StatelessWidget {
     this.tooltip,
     this.onPressed,
     this.filled = false,
+    this.adjustment = false,
   });
 
   final Widget label;
   final String? tooltip;
   final VoidCallback? onPressed;
   final bool filled;
+  final bool adjustment;
 
   @override
   Widget build(BuildContext context) {
@@ -122,10 +126,22 @@ class RowButton extends StatelessWidget {
       horizontal: rowButtonInset / 2,
       vertical: rowButtonPadding,
     );
-    final Widget button = filled
+    final colors = LowEndColors.of(context);
+    final pale = adjustment && colors.filledSteps;
+    final Widget button = filled || pale
         ? FilledButton.tonal(
             onPressed: onPressed,
             style: FilledButton.styleFrom(
+              backgroundColor: pale
+                  ? colors.stepFill
+                  : colors.filledSteps
+                  ? colors.activeFill
+                  : Theme.of(context).colorScheme.secondaryContainer,
+              foregroundColor: pale
+                  ? colors.onStepFill
+                  : colors.filledSteps
+                  ? colors.onActiveFill
+                  : Theme.of(context).colorScheme.onSecondaryContainer,
               padding: padding,
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -166,6 +182,7 @@ class RowIconButton extends StatelessWidget {
     required this.tooltip,
     required this.onPressed,
     this.leads = false,
+    this.filled = true,
   }) : assert((icon == null) != (picture == null));
 
   /// A Material icon, or else a [picture] of the size of one.
@@ -174,6 +191,7 @@ class RowIconButton extends StatelessWidget {
   final String tooltip;
   final VoidCallback onPressed;
   final bool leads;
+  final bool filled;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -181,12 +199,15 @@ class RowIconButton extends StatelessWidget {
         ? const EdgeInsetsDirectional.only(end: rowGap)
         : const EdgeInsetsDirectional.only(start: rowGap),
     child: RowButton(
+      filled: filled && LowEndColors.of(context).filledSteps,
       // The size and ink of an icon of the row, not the smaller one a
       // button gives its icons.
       label: IconTheme.merge(
         data: IconThemeData(
           size: 24,
-          color: Theme.of(context).colorScheme.onSurface,
+          color: filled && LowEndColors.of(context).filledSteps
+              ? LowEndColors.of(context).onActiveFill
+              : Theme.of(context).colorScheme.onSurface,
         ),
         child: picture ?? Icon(icon),
       ),

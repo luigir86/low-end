@@ -94,3 +94,6 @@ Se **stacchi le cuffie** (o si scollegano quelle Bluetooth), il suono si ferma s
 ## Domande e problemi
 
 Scrivi a ribaluigi@gmail.com oppure apri una segnalazione su https://github.com/luigir86/low-end/issues.
+
+
+La fascia rossa superiore contiene le Impostazioni; anche la navigazione inferiore resta rossa. Centri e fondo dei controlli restano scuri. La ghiera del tempo ha soltanto tacche: trascinarla oppure usare i pulsanti chiari −/+. Modifica e libreria usano pulsanti rossi. Il verdetto dell’accordatore combina salvia, ocra e rosso con simboli e parole.

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../app/theme.dart';
+
 /// How a flag looks (RF-PLY-08): the colour is never the only sign, there are
 /// the letter and the fill.
 enum FlagLook {
@@ -30,8 +32,8 @@ class FlagColors {
   });
 
   factory FlagColors.of(ThemeData theme) => FlagColors(
-    primary: theme.colorScheme.primary,
-    onPrimary: theme.colorScheme.onPrimary,
+    primary: theme.extension<LowEndColors>()!.activeFill,
+    onPrimary: theme.extension<LowEndColors>()!.onActiveFill,
     surface: theme.colorScheme.surface,
     trace: theme.colorScheme.onSurfaceVariant,
     style: theme.textTheme.labelLarge,
@@ -95,6 +97,13 @@ void paintPennant(
   };
   if (solid) {
     canvas.drawRRect(shape, Paint()..color = colors.primary);
+    canvas.drawRRect(
+      shape,
+      Paint()
+        ..color = colors.trace
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1,
+    );
   } else if (look == FlagLook.hollow) {
     canvas
       ..drawRRect(shape, Paint()..color = colors.surface)

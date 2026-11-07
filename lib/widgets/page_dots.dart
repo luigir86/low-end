@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../app/theme.dart';
+
 /// A row of [count] dots, the [current] one filled: the pages of the guide,
 /// the chords of a progression. Only a picture; what it shows is said in
 /// words beside it.
@@ -34,7 +36,7 @@ class PageDots extends StatelessWidget {
       margin: EdgeInsets.symmetric(horizontal: size / 3),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: i == current ? colors.primary : null,
+        color: i == current ? LowEndColors.of(context).activeFill : null,
         border: Border.all(color: colors.outline, width: 1.2),
       ),
     );

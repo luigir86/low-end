@@ -594,7 +594,7 @@ class _NoteDisplay extends StatelessWidget {
     if (!listening) {
       // Paused: what touching the middle does.
       return fit([
-        Icon(Icons.mic, size: 32, color: theme.colorScheme.primary),
+        Icon(Icons.mic, size: 32, color: LowEndColors.of(context).activeFill),
         Text(l10n.startListening, style: muted, textAlign: TextAlign.center),
         // Something sounds: touching will pause it, and the player is told
         // before, not after.
@@ -645,8 +645,8 @@ class _NoteDisplay extends StatelessWidget {
               : Durations.short4,
           opacity: held ? 0.55 : 1,
           child: fit([
-            // The note in the ink of the text; the verdict alone, under it,
-            // turns teal green, yellow or red.
+            // Note and verdict words remain readable; the symbol carries
+            // the palette-specific verdict colour.
             _NoteName(
               note: target,
               names: names,
@@ -662,13 +662,16 @@ class _NoteDisplay extends StatelessWidget {
                 Icon(
                   verdictIcon(r.cents, tolerance),
                   color: color,
+                  shadows: [
+                    Shadow(color: theme.colorScheme.onSurface, blurRadius: 2),
+                  ],
                   size: LowEndType.headline,
                 ),
                 const SizedBox(width: 6),
                 Text(
                   r.inTune ? direction : '$direction $centsText',
                   style: theme.textTheme.headlineSmall?.copyWith(
-                    color: color,
+                    color: theme.colorScheme.onSurface,
                     fontWeight: FontWeight.w700,
                   ),
                 ),

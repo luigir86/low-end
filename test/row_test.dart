@@ -4,6 +4,7 @@ import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/home_shell.dart';
 import 'package:low_end/app/low_end_app.dart';
 import 'package:low_end/app/settings.dart';
+import 'package:low_end/app/theme.dart';
 import 'package:low_end/audio/audio_scope.dart';
 import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/mic_input.dart';
@@ -90,6 +91,13 @@ void main() {
     expect(find.text('Time signature'), findsOneWidget);
     expect(find.bySemanticsLabel('Time signature'), findsOneWidget);
     semantics.dispose();
+    final frame = tester.widget<AppBar>(find.byKey(const Key('appFrame')));
+    final colors = LowEndTheme.dark.extension<LowEndColors>()!;
+    expect(frame.backgroundColor, colors.navigationBackground);
+    expect(frame.foregroundColor, colors.navigationInk);
+    final settingsRect = tester.getRect(find.byTooltip('Settings'));
+    expect(settingsRect.height, greaterThanOrEqualTo(48));
+    expect(settingsRect.width, greaterThanOrEqualTo(48));
     expect(find.text('4/4'), findsOneWidget);
     expect(find.text('TAP'), findsOneWidget);
     // − and + have no tooltip, which a hold would open: holding them runs
@@ -130,13 +138,13 @@ void main() {
       scope.settings.setReferencePitch(415);
       await tester.pump();
       // At the lowest, − is dimmed and does nothing; + still works.
-      final lower = find.widgetWithIcon(OutlinedButton, Icons.remove);
-      expect(tester.widget<OutlinedButton>(lower).onPressed, isNull);
+      final lower = find.widgetWithIcon(FilledButton, Icons.remove);
+      expect(tester.widget<FilledButton>(lower).onPressed, isNull);
       scope.settings.setReferencePitch(445);
       await tester.pump();
-      final higher = find.widgetWithIcon(OutlinedButton, Icons.add);
-      expect(tester.widget<OutlinedButton>(higher).onPressed, isNull);
-      expect(tester.widget<OutlinedButton>(lower).onPressed, isNotNull);
+      final higher = find.widgetWithIcon(FilledButton, Icons.add);
+      expect(tester.widget<FilledButton>(higher).onPressed, isNull);
+      expect(tester.widget<FilledButton>(lower).onPressed, isNotNull);
     });
 
     testWidgets('− and + move one hertz at a time, also between standards', (

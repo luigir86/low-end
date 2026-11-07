@@ -234,17 +234,6 @@ class _HomeShellState extends State<HomeShell> {
                 ],
               ),
             ),
-            PositionedDirectional(
-              top: 0,
-              end: 4,
-              child: IconButton(
-                icon: const Icon(Icons.settings_outlined),
-                tooltip: l10n.settingsTitle,
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (_) => const SettingsPage()),
-                ),
-              ),
-            ),
           ],
         );
         // In the order of AppSection.
@@ -282,8 +271,24 @@ class _HomeShellState extends State<HomeShell> {
           ),
         ];
         return Scaffold(
-          // No title bar: the three sections share the whole height, and the
-          // name lives in About. Settings is the one button left, in the corner.
+          appBar: AppBar(
+            key: const Key('appFrame'),
+            toolbarHeight: kMinInteractiveDimension,
+            backgroundColor: LowEndColors.of(context).navigationBackground,
+            foregroundColor: LowEndColors.of(context).navigationInk,
+            actions: [
+              IconButton(
+                style: IconButton.styleFrom(
+                  minimumSize: const Size.square(kMinInteractiveDimension),
+                ),
+                icon: const Icon(Icons.settings_outlined),
+                tooltip: l10n.settingsTitle,
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const SettingsPage()),
+                ),
+              ),
+            ],
+          ),
           body: SectionFlip(
             onFlip: locked ? null : _flip,
             child: SafeArea(

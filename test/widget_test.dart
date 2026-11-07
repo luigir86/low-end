@@ -527,8 +527,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final faster = find.widgetWithIcon(OutlinedButton, Icons.add);
-      final slower = find.widgetWithIcon(OutlinedButton, Icons.remove);
+      final faster = find.widgetWithIcon(FilledButton, Icons.add);
+      final slower = find.widgetWithIcon(FilledButton, Icons.remove);
       await tester.tap(faster);
       await tester.tap(faster);
       await tester.tap(slower);
