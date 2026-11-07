@@ -223,12 +223,21 @@ void main() {
       expect(e.stepFill, const Color(0xFFD6D6D6));
       expect(e.activeFill, accent);
       expect(e.downbeat, accent);
+      for (final shade in [c.secondary, e.beatWeak, e.beatSilent]) {
+        final hsl = HSLColor.fromColor(shade);
+        expect(hsl.saturation, greaterThan(0.05));
+        final delta = (hsl.hue - HSLColor.fromColor(accent).hue).abs();
+        expect(math.min(delta, 360 - delta), lessThan(5));
+      }
+      expect(c.secondary, isNot(accent));
+      expect(contrast(c.secondary, e.disc), greaterThanOrEqualTo(3));
       expect(c.primaryContainer, accent);
       expect(e.navigationBackground, accent);
       expect(e.bottomNavigationBorder, accent);
       expect(theme.badgeTheme.backgroundColor, accent);
       for (final pair in [
         (e.onActiveFill, accent),
+        (c.onSecondary, c.secondary),
         (c.onPrimaryContainer, accent),
         (e.navigationInk, e.navigationIndicator),
         (e.bottomNavigationSelectedInk, e.bottomNavigationBackground),
