@@ -10,7 +10,7 @@ import 'style.dart';
 enum LowEndThemeVariant { woodAndBrass, anthraciteAndRed }
 
 abstract final class Palette {
-  /// The accent: the honey bronze of the lion on the icon.
+  /// The warm accent of the original Wood&Brass palette.
   static const bronze = Color(0xFFD4A373);
 
   // The ground, from the darkest up.
@@ -20,7 +20,7 @@ abstract final class Palette {
   static const ebonyShade3 = Color(0xFF312F2C);
   static const walnutDeep = Color(0xFF2B1D16);
 
-  /// Shared pre-Flutter background on Android and web.
+  /// Neutral app surface and browser chrome; the brand splash uses LowEndBrand.red.
   static const startup = Color(0xFF181818);
 
   // Text.

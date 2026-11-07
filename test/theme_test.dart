@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/theme.dart';
+import 'package:low_end/app/brand.dart';
 
 String _hex(Color c) =>
     '#${(c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
@@ -25,16 +26,18 @@ void main() {
           File('android/app/src/main/res/values/colors.xml').readAsStringSync(),
         )![0]!
         .toUpperCase();
-    expect(launch, _hex(Palette.startup));
+    expect(launch, _hex(LowEndBrand.red));
     final manifest = jsonDecode(File('web/manifest.json').readAsStringSync());
-    for (final key in ['background_color', 'theme_color']) {
-      expect((manifest[key] as String).toUpperCase(), launch);
-    }
+    expect((manifest['background_color'] as String).toUpperCase(), launch);
+    expect(
+      (manifest['theme_color'] as String).toUpperCase(),
+      _hex(Palette.startup),
+    );
     final html = File('web/index.html').readAsStringSync();
-    expect(html, contains('background: ${launch.toLowerCase()}'));
+    expect(html, contains('background: $launch'));
     expect(
       html,
-      contains('name="theme-color" content="${launch.toLowerCase()}"'),
+      contains('name="theme-color" content="${_hex(Palette.startup)}"'),
     );
     expect(
       Directory('android/app/src/main/res/values-night').existsSync(),

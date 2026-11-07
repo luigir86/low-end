@@ -1,7 +1,7 @@
 # Icona e avvio — leone/ricciolo
 
-Proposta approvata da Luigi il 7 novembre 2026. Riferimento originale:
-https://chatgpt.com/s/m_6aef05068a748191a2a2a4322a97daf4
+Proposta approvata da Luigi il 7 novembre 2026. Il riferimento visivo originale
+è conservato nell’immagine seguente.
 
 ![Versione approvata](images/lion-brand-approved.png)
 
@@ -48,3 +48,39 @@ Il marchio rimane uguale con entrambe le varianti interne del tema.
 La verifica automatica non sostituisce la prova di avvio a freddo su Android
 prima e dopo API 31 e PWA da Home su iPad, anche offline e con movimento ridotto.
 Misurare RNF-AVV-01 sul telefono; nessuna nuova promessa di tempi assoluti.
+
+## Realizzazione
+
+Il generatore estrae il simbolo dal riferimento approvato a 1536×1024,
+rettangolo `(292,116,350,532)`, ricava la copertura dei bordi dal canale verde
+e applica la tinta avorio uniforme. Produce `design/lion-mark.png` e tutte le
+risorse; non richiede pacchetti aggiuntivi. L'immagine bronzea è conservata.
+
+Il simbolo adaptive occupa metà dell'altezza dello strato 108 dp: anche gli
+estremi del manico inclinato rientrano nel cerchio sicuro da 66 dp. La versione
+maskable usa il 60%. Le icone normali usano l'80%.
+Per un passaggio coerente da Android 12 al primo frame Flutter, l'avvio usa
+un riquadro trasparente da 288 dp con simbolo al 50%: la dimensione è adeguata
+allo splash di sistema, più contenuta della simulazione a schermo intero.
+Anche il caricatore HTML usa lo stesso riquadro.
+
+`LowEndBrand` centralizza colori, risorsa e durata della transizione.
+`StartupReveal` si monta solo in `main`, una volta per processo: costruisce
+subito l'app sotto un livello che ignora tocchi e semantica. La dissolvenza
+parte dopo il primo frame con l'immagine disponibile; con movimento ridotto
+o navigazione accessibile si rimuove subito. Un errore dell'asset non blocca
+l'avvio. Nessun timer di attesa e nessun nuovo permesso o azione.
+
+![Asset di produzione, maschere e avvio](images/lion-brand-production.png)
+
+### Verifica del recupero del 7 novembre 2026
+
+- Riferimento e tavola di produzione confrontati con gli allegati approvati.
+- Recupero sul `main` aggiornato, conservando le ultime modifiche alla cornice
+  rossa, alla navigazione inferiore chiara e ai colori semantici dei temi.
+- Formattazione Dart, analisi statica e `git diff --check`: superati.
+- Suite completa rieseguita: **875 test superati** in una singola esecuzione,
+  inclusi maschere adaptive, startup, movimento ridotto e temi.
+- Build web release WASM e fallback JavaScript: superata; cache offline generata.
+- Build Android e avvio su dispositivi reali: non eseguiti in questo ambiente;
+  da verificare in CI e su telefono/iPad prima del rilascio.

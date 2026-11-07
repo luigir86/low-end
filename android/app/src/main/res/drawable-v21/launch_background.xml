@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Plain background in the app's own colour while Flutter starts: no image to
-     decode, and no flash when the first frame replaces it. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/launch_background" />
+    <item android:width="288dp" android:height="288dp" android:gravity="center">
+        <bitmap android:src="@drawable/brand_splash" android:gravity="fill" />
+    </item>
 </layer-list>

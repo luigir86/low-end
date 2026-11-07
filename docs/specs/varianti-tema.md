@@ -9,9 +9,9 @@ Rendere reversibile la revisione estetica con **Wood&Brass** e **Anthracite & Re
 - `LowEndTheme.variant` è la sola scelta dell'app; `LowEndTheme.dark` continua a essere il tema consumato dall'applicazione.
 - `LowEndTheme.forVariant` costruisce entrambe le varianti per verifiche e anteprime. Nessuna condizione sul tema nelle schermate.
 - Un solo costruttore mantiene tipografia Edwin, forme, misure, animazioni e componenti Material. `ColorScheme` e `LowEndColors` espongono ruoli, non nomi di temi.
-- Wood&Brass conserva bronzo ed ebano e le miscele attuali; sono ammesse le migliorie comuni dello strobo neutro e del fondo di avvio neutro.
+- Wood&Brass conserva bronzo ed ebano e le miscele attuali; sono ammesse le migliorie comuni dello strobo neutro e del marchio di avvio comune.
 - I colori del verdetto sono ruoli semantici della variante, con simboli e parole. Anthracite & Red usa rosso TAP, salvia e ocra come definito in `rosso-coerente-cornice.md`; Wood&Brass conserva i precedenti. Lo strobo resta neutro.
-- Android e web usano un fondo di avvio neutro comune, controllato dai test; il rollback non richiede altri file di configurazione.
+- Android e web usano il marchio di avvio rosso comune (vedi `../icona-avvio.md`), controllato dai test; il rollback non richiede altri file di configurazione.
 
 ## Consegna
 
