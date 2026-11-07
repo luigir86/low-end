@@ -29,7 +29,7 @@ Future<FakeMicInput> _open(
     ),
   );
   await tester.pumpAndSettle();
-  await tester.tap(find.text('Tuner'));
+  await tester.tap(find.byTooltip('Tuner'));
   await tester.pumpAndSettle();
   return mic;
 }

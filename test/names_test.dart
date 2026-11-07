@@ -26,7 +26,7 @@ Future<void> _open(
   await tester.tap(
     find.descendant(
       of: find.byType(NavigationBar),
-      matching: find.text(language == 'en' ? 'Harmony' : 'Armonia'),
+      matching: find.byTooltip(language == 'en' ? 'Harmony' : 'Armonia'),
     ),
   );
   await tester.pumpAndSettle();

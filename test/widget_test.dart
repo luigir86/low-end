@@ -27,11 +27,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// else on the screen.
 final _harmonyTab = find.descendant(
   of: find.byType(NavigationBar),
-  matching: find.text('Harmony'),
+  matching: find.byTooltip('Harmony'),
 );
 final _metronomeTab = find.descendant(
   of: find.byType(NavigationBar),
-  matching: find.text('Metronome'),
+  matching: find.byTooltip('Metronome'),
 );
 
 /// The test window is 800 x 600, a landscape one: these tests are about the
@@ -67,7 +67,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Tuner'), findsOneWidget);
+    expect(find.byTooltip('Tuner'), findsOneWidget);
     expect(_harmonyTab, findsOneWidget);
     expect(_metronomeTab, findsOneWidget);
     expect(find.text('Library'), findsNothing);
@@ -275,7 +275,7 @@ void main() {
 
     // Coming to the tuner changes nothing: a swipe too far must not stop
     // the band. The tuner waits, and says what a touch will do.
-    await tester.tap(find.text('Tuner'));
+    await tester.tap(find.byTooltip('Tuner'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pump(const Duration(milliseconds: 300));
@@ -627,7 +627,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byType(NavigationBar),
-        matching: find.text('Armonia'),
+        matching: find.byTooltip('Armonia'),
       ),
     );
     await tester.pumpAndSettle();
@@ -861,8 +861,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('Metronome'), findsOneWidget);
-      expect(find.text('Harmony'), findsOneWidget);
+      expect(find.byTooltip('Metronome'), findsOneWidget);
+      expect(find.byTooltip('Harmony'), findsOneWidget);
       // The time signature field is named on its border and for screen readers.
       final semantics = tester.ensureSemantics();
       expect(find.text('Time signature'), findsOneWidget);
