@@ -97,6 +97,6 @@ Oltre a creare gli oggetti, contiene le regole tra sezioni (pausa per l'accordat
 ## 6. Cose piccole trovate strada facendo
 
 - `web/prova-microfono.html` (PR #88, "temporanea"): tolta il 4/11.
-- Il README dice "The second row under the dial (the first is left empty)": riletta il 5/11, è giusta (sotto il quadrante tre righe, la prima vuota per Metronomo e Armonia).
+- Al 5/11 la prima delle tre righe era vuota per Metronomo e Armonia. Con RF-MET-09 (7/11) nel Metronomo ospita il suggerimento della ghiera; i comandi restano nelle altre due.
 - `docs/architecture.md` non parla dei brani né del lavoro a fette nel web: aggiornato il 5/11 (passo 11).
 - Il pacchetto e le azioni dicono `drone`, l'interfaccia dice Armonia: è voluto per le azioni (compatibilità), ma nel codice interno non serve più.

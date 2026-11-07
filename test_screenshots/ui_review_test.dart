@@ -211,6 +211,7 @@ void main() {
       testWidgets('metronome and settings', (tester) async {
         final h = _Harness(tester, config);
         await h.start();
+        await h.tab('Metronome', 'Metronomo');
         await h.shot('metronome_idle');
         // A bar of one beat is a whole ring.
         await h.tapText('4/4');
