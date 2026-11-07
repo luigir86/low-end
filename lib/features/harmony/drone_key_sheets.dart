@@ -135,7 +135,11 @@ class _KeySheet extends StatelessWidget {
             ),
         ],
         heading(l10n.legendTitle),
-        swatch(colors.primary, l10n.legendRoot),
+        swatch(
+          LowEndColors.of(context).activeFill,
+          l10n.legendRoot,
+          border: colors.outline,
+        ),
         swatch(colors.secondary, l10n.legendChord),
         swatch(colors.outlineVariant, l10n.legendInKey, border: colors.outline),
         swatch(Color.lerp(disc, colors.surface, 0.6)!, l10n.legendOutOfKey),

@@ -172,6 +172,7 @@ class _FifthsDial extends StatelessWidget {
                   receding: receding,
                   colors: theme.colorScheme,
                   disc: LowEndColors.of(context).disc,
+                  activeFill: LowEndColors.of(context).activeFill,
                 ),
               ),
             ),
@@ -263,6 +264,7 @@ class _FifthsPainter extends CustomPainter {
     required this.receding,
     required this.colors,
     required this.disc,
+    required this.activeFill,
   });
 
   final List<int> order;
@@ -273,6 +275,7 @@ class _FifthsPainter extends CustomPainter {
   final Set<int> receding;
   final ColorScheme colors;
   final Color disc;
+  final Color activeFill;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -290,7 +293,7 @@ class _FifthsPainter extends CustomPainter {
         startAngle: start,
         sweep: sweep,
         color: lit
-            ? colors.primary
+            ? activeFill
             : inChord
             ? colors.secondary
             : recedes
@@ -308,7 +311,8 @@ class _FifthsPainter extends CustomPainter {
       !setEquals(old.chord, chord) ||
       !setEquals(old.receding, receding) ||
       old.colors != colors ||
-      old.disc != disc;
+      old.disc != disc ||
+      old.activeFill != activeFill;
 }
 
 /// The touch area and label of one segment; the segment itself is painted
@@ -399,7 +403,7 @@ class _NoteKey extends StatelessWidget {
                                 degree!,
                                 style: theme.textTheme.labelMedium?.copyWith(
                                   color: playing
-                                      ? colors.onPrimary
+                                      ? LowEndColors.of(context).onActiveFill
                                       : inChord
                                       ? colors.onSecondary
                                       : colors.onSurfaceVariant,
@@ -413,7 +417,7 @@ class _NoteKey extends StatelessWidget {
                           name,
                           style: theme.textTheme.titleMedium?.copyWith(
                             color: playing
-                                ? colors.onPrimary
+                                ? LowEndColors.of(context).onActiveFill
                                 : inChord
                                 ? colors.onSecondary
                                 : receding
@@ -434,7 +438,7 @@ class _NoteKey extends StatelessWidget {
                         respelling,
                         style: theme.textTheme.labelMedium?.copyWith(
                           color: playing
-                              ? colors.onPrimary
+                              ? LowEndColors.of(context).onActiveFill
                               : inChord
                               ? colors.onSecondary
                               : colors.onSurfaceVariant,
