@@ -292,9 +292,7 @@ class _Section extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.only(top: 16, bottom: 4),
         child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: LowEndColors.of(context).activeFill,
-          ),
+          decoration: BoxDecoration(color: LowEndColors.of(context).activeFill),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Text(
