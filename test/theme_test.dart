@@ -175,7 +175,7 @@ void main() {
   });
 
   test(
-    'Anthracite & Red keeps the header red and lightens bottom navigation',
+    'Anthracite & Red keeps the frame red and lightens bottom navigation',
     () {
       final theme = LowEndTheme.forVariant(LowEndThemeVariant.anthraciteAndRed);
       final c = theme.colorScheme;

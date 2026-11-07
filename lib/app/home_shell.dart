@@ -273,7 +273,8 @@ class _HomeShellState extends State<HomeShell> {
         return Scaffold(
           appBar: AppBar(
             key: const Key('appFrame'),
-            toolbarHeight: kMinInteractiveDimension,
+            toolbarHeight: LowEndShape.navigationBaseLine,
+            automaticallyImplyLeading: false,
             backgroundColor: LowEndColors.of(context).navigationBackground,
             foregroundColor: LowEndColors.of(context).navigationInk,
             systemOverlayStyle: LowEndTheme.systemBars.copyWith(
@@ -286,60 +287,72 @@ class _HomeShellState extends State<HomeShell> {
                   ? Brightness.dark
                   : Brightness.light,
             ),
-            actions: [
-              IconButton(
-                style: IconButton.styleFrom(
-                  minimumSize: const Size.square(kMinInteractiveDimension),
+          ),
+          body: Stack(
+            children: [
+              SectionFlip(
+                onFlip: locked ? null : _flip,
+                child: SafeArea(
+                  bottom: false,
+                  child: landscape
+                      ? Row(
+                          children: [
+                            FlipDetector(
+                              child: SizedBox(
+                                width: LowEndShape.railWidth,
+                                child: NavigationRail(
+                                  key: const Key('tabRail'),
+                                  selectedIndex: section.index,
+                                  onDestinationSelected: _onDestination,
+                                  labelType: NavigationRailLabelType.all,
+                                  groupAlignment: 0,
+                                  destinations: [
+                                    for (final e in entries)
+                                      NavigationRailDestination(
+                                        icon: _TabIcon(
+                                          section: e.section,
+                                          icon: e.icon,
+                                        ),
+                                        selectedIcon: _TabIcon(
+                                          section: e.section,
+                                          icon: e.selectedIcon,
+                                        ),
+                                        label: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(e.label),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Expanded(child: pages),
+                          ],
+                        )
+                      : pages,
                 ),
-                icon: const Icon(Icons.settings_outlined),
-                tooltip: l10n.settingsTitle,
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (_) => const SettingsPage()),
+              ),
+              PositionedDirectional(
+                top: 0,
+                end: 0,
+                child: SafeArea(
+                  bottom: false,
+                  child: IconButton(
+                    style: IconButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.onSurface,
+                      minimumSize: const Size.square(kMinInteractiveDimension),
+                    ),
+                    icon: const Icon(Icons.settings_outlined),
+                    tooltip: l10n.settingsTitle,
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const SettingsPage(),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
-          ),
-          body: SectionFlip(
-            onFlip: locked ? null : _flip,
-            child: SafeArea(
-              bottom: false,
-              child: landscape
-                  ? Row(
-                      children: [
-                        FlipDetector(
-                          child: SizedBox(
-                            width: LowEndShape.railWidth,
-                            child: NavigationRail(
-                              key: const Key('tabRail'),
-                              selectedIndex: section.index,
-                              onDestinationSelected: _onDestination,
-                              labelType: NavigationRailLabelType.all,
-                              groupAlignment: 0,
-                              destinations: [
-                                for (final e in entries)
-                                  NavigationRailDestination(
-                                    icon: _TabIcon(
-                                      section: e.section,
-                                      icon: e.icon,
-                                    ),
-                                    selectedIcon: _TabIcon(
-                                      section: e.section,
-                                      icon: e.selectedIcon,
-                                    ),
-                                    label: FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Text(e.label),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Expanded(child: pages),
-                      ],
-                    )
-                  : pages,
-            ),
           ),
           // The tabs only go to a section; each one starts and stops its own
           // sound (the middle of the dial).

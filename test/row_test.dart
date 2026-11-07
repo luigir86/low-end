@@ -95,6 +95,13 @@ void main() {
     final colors = LowEndTheme.dark.extension<LowEndColors>()!;
     expect(frame.backgroundColor, colors.navigationBackground);
     expect(frame.foregroundColor, colors.navigationInk);
+    expect(frame.toolbarHeight, 2.0);
+    expect(
+      tester.getRect(find.byTooltip('Settings')).top,
+      greaterThanOrEqualTo(
+        tester.getRect(find.byKey(const Key('appFrame'))).bottom,
+      ),
+    );
     final settingsRect = tester.getRect(find.byTooltip('Settings'));
     expect(settingsRect.height, greaterThanOrEqualTo(48));
     expect(settingsRect.width, greaterThanOrEqualTo(48));
