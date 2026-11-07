@@ -15,7 +15,7 @@ import 'player_dial.dart';
 import 'recording_controls.dart';
 
 /// The full-track dial and three fixed rows: waveform, transport, track.
-class PlayerPanel extends StatelessWidget {
+class PlayerPanel extends StatefulWidget {
   const PlayerPanel({super.key});
 
   /// Marks the field that names the track, for tests.
@@ -30,52 +30,7 @@ class PlayerPanel extends StatelessWidget {
   static const speedShortcuts = [50, 60, 70, 75, 80, 90, 100, 110, 125];
 
   @override
-  Widget build(BuildContext context) {
-    final player = AudioScope.of(context).player;
-    final l10n = AppLocalizations.of(context);
-    return ListenableBuilder(
-      listenable: player,
-      builder: (context, _) {
-        Widget source(String label) => Row(
-          children: [
-            Expanded(
-              child: LabeledField(
-                key: trackFieldKey,
-                label: label,
-                value: player.title ?? l10n.playerChoose,
-                onTap: () async {
-                  if (player.track is RecordedTrack &&
-                      !await confirmReplace(context, player.track)) {
-                    return;
-                  }
-                  await player.pick();
-                },
-              ),
-            ),
-            const SizedBox(width: rowGap),
-            IconButton.outlined(
-              tooltip: l10n.takeRecord,
-              icon: const Icon(Icons.mic_none),
-              onPressed: () => recordForPlayer(context, player),
-            ),
-          ],
-        );
-        return DialLayout(
-          dial: PlayerDial(player: player),
-          header: _FirstRow(player: player),
-          upper: _ControlRow(player: player),
-          lower: switch (player.track) {
-            final RecordedTrack take => TakeActions(
-              key: ValueKey(take.uri),
-              take: take,
-              source: source,
-            ),
-            _ => source(l10n.playerTrack),
-          },
-        );
-      },
-    );
-  }
+  State<PlayerPanel> createState() => _PlayerPanelState();
 
   static Future<void> _askSpeed(
     BuildContext context,
@@ -94,6 +49,101 @@ class PlayerPanel extends StatelessWidget {
       ],
     );
     if (percent != null) player.setSpeed(percent);
+  }
+}
+
+class _PlayerPanelState extends State<PlayerPanel>
+    with AutomaticKeepAliveClientMixin {
+  bool recording = false;
+  final elapsed = ValueNotifier<Duration>(Duration.zero);
+
+  @override
+  bool get wantKeepAlive => recording;
+
+  void setRecording(bool value) {
+    elapsed.value = Duration.zero;
+    setState(() => recording = value);
+    updateKeepAlive();
+  }
+
+  @override
+  void dispose() {
+    elapsed.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    final player = AudioScope.of(context).player;
+    final strings = AppLocalizations.of(context);
+    return ListenableBuilder(
+      listenable: player,
+      builder: (context, _) {
+        Widget source(String label) => LabeledField(
+          key: PlayerPanel.trackFieldKey,
+          label: label,
+          value: player.title ?? strings.playerChoose,
+          onTap: () async {
+            if (player.track is RecordedTrack &&
+                !await confirmReplace(context, player.track)) {
+              return;
+            }
+            await player.pick();
+          },
+        );
+        final rec = Tooltip(
+          message: strings.takeRecord,
+          child: OutlinedButton.icon(
+            onPressed: () => setRecording(true),
+            icon: const Icon(Icons.circle, color: Colors.red, size: 14),
+            label: const Text('REC'),
+          ),
+        );
+        final track = player.track;
+        return DialLayout(
+          dial: PlayerDial(
+            player: player,
+            recordingTime: recording ? elapsed : null,
+          ),
+          header: IgnorePointer(
+            ignoring: recording,
+            child: ExcludeSemantics(
+              excluding: recording,
+              child: _FirstRow(player: player),
+            ),
+          ),
+          upper: AbsorbPointer(
+            absorbing: recording,
+            child: ExcludeSemantics(
+              excluding: recording,
+              child: _ControlRow(player: player),
+            ),
+          ),
+          lower: recording
+              ? RecordingRow(
+                  player: player,
+                  elapsed: elapsed,
+                  onDone: () => setRecording(false),
+                )
+              : track is RecordedTrack
+              ? TakeActions(
+                  key: ValueKey(track.uri),
+                  take: track,
+                  player: player,
+                  source: source,
+                  record: rec,
+                )
+              : Row(
+                  children: [
+                    Expanded(child: source(strings.playerTrack)),
+                    const SizedBox(width: rowGap),
+                    rec,
+                  ],
+                ),
+        );
+      },
+    );
   }
 }
 
@@ -118,41 +168,10 @@ class _FirstRow extends StatelessWidget {
               children: [
                 Expanded(child: PassageStrip(player: player)),
                 if (player.loopStart != null || player.loopEnd != null)
-                  PopupMenuButton<VoidCallback>(
-                    onSelected: (action) => action(),
-                    itemBuilder: (context) {
-                      final l10n = AppLocalizations.of(context);
-                      return [
-                        for (final (edge, earlier, later) in [
-                          (
-                            LoopEdge.start,
-                            l10n.playerStartEarlier,
-                            l10n.playerStartLater,
-                          ),
-                          (
-                            LoopEdge.end,
-                            l10n.playerEndEarlier,
-                            l10n.playerEndLater,
-                          ),
-                        ])
-                          if ((edge == LoopEdge.start
-                                  ? player.loopStart
-                                  : player.loopEnd) !=
-                              null)
-                            for (final (text, step) in [
-                              (earlier, -PlayerController.fineStep),
-                              (later, PlayerController.fineStep),
-                            ])
-                              PopupMenuItem(
-                                value: () => player.nudge(edge, step),
-                                child: Text(text),
-                              ),
-                        PopupMenuItem(
-                          value: player.clearPassage,
-                          child: Text(l10n.playerNewPassage),
-                        ),
-                      ];
-                    },
+                  IconButton(
+                    tooltip: AppLocalizations.of(context).playerNewPassage,
+                    icon: const Icon(Icons.restart_alt),
+                    onPressed: player.clearPassage,
                   ),
               ],
             )

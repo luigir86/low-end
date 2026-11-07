@@ -361,7 +361,20 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     return false;
   }
 
-  void _fail(TrackProblem problem) {
+  /// Only session recordings own a temporary file that can be removed here.
+  Future<void> removeRecording(RecordedTrack take) async {
+    if (!identical(_track, take)) return;
+    await stop();
+    if (_disposed || !identical(_track, take)) return;
+    ++_generation;
+    _settle?.cancel();
+    _clearTrack(null);
+    notifyListeners();
+  }
+
+  void _fail(TrackProblem problem) => _clearTrack(problem);
+
+  void _clearTrack(TrackProblem? problem) {
     final failed = _track;
     if (failed != null) unawaited(_files.release(failed));
     _stopReadingPeaks();

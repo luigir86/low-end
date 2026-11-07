@@ -10,6 +10,15 @@ class AppLocalizationsIt extends AppLocalizations {
   AppLocalizationsIt([String locale = 'it']) : super(locale);
 
   @override
+  String get takeDiscard => 'Scarta';
+
+  @override
+  String get takeDelete => 'Elimina registrazione';
+
+  @override
+  String get takeRemove => 'Rimuovi dal player';
+
+  @override
   String get takeRecord => 'Registra';
 
   @override
