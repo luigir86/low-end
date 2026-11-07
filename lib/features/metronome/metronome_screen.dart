@@ -22,8 +22,8 @@ import 'time_signature.dart';
 
 /// The metronome: a ring with one segment per beat of the bar (4 in 4/4,
 /// 6 in 6/8, and so on) lights up clockwise from 12 o'clock, with the "one"
-/// in its own colour, and the tempo in the middle. An inner light jog wheel
-/// adjusts tempo independently of the outer beat ring and start/stop hub.
+/// in its own colour, and the tempo in the middle. A thin outer jog wheel
+/// adjusts tempo independently of the inner beat ring and start/stop hub.
 /// In bars felt in groups (6/8) wider gaps split the groups, and a bar of one beat is a single
 /// segment that flashes. Touching the ring starts and stops it; below it, a
 /// row like the harmony's that chooses the bar (the time signature and what
@@ -229,7 +229,7 @@ class _BeatRingState extends State<_BeatRing>
         return Stack(
           fit: StackFit.expand,
           children: [
-            // Preserve the old outer-ring tap and swipe behaviour. Its
+            // Preserve the beat-ring tap and swipe behaviour. Its
             // accessible button is the centre, above the tempo slider.
             ExcludeSemantics(
               child: Material(
@@ -254,7 +254,7 @@ class _BeatRingState extends State<_BeatRing>
             MetronomeTempoDial(metronome: metronome),
             Center(
               child: SizedBox.square(
-                dimension: geometry.inner * 2,
+                dimension: geometry.hubRadius * 2,
                 child: Semantics(
                   button: true,
                   label: playing ? l10n.metronomeStop : l10n.metronomeStart,
@@ -328,7 +328,8 @@ class _RingPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final dial = DialGeometry(size);
+    final geometry = TempoDialGeometry(size);
+    final dial = geometry.dial;
     final beat = metronome.beat;
     final count = signature.beats;
     final slice = 2 * math.pi / count;
@@ -375,8 +376,8 @@ class _RingPainter extends CustomPainter {
       final one = b == 0 && b == beat && count > 1 && !metronome.isSilent(0);
       dial.paintSegment(
         canvas,
-        inner: dial.ringInner + dial.ringWidth * (one ? 0.12 : 0.22),
-        outer: dial.ringOuter - dial.ringWidth * (one ? 0.0 : 0.08),
+        inner: geometry.beatInner + geometry.beatWidth * (one ? 0.12 : 0.22),
+        outer: geometry.beatOuter - geometry.beatWidth * (one ? 0.0 : 0.08),
         startAngle: b * slice + start,
         sweep: slice - start - end,
         color: color,

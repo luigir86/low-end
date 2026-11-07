@@ -99,9 +99,12 @@ Three gestures, each with one component, so a choice looks the same wherever it 
 
 ## Metronome tempo dial (RF-MET-09)
 
-A light neutral annular band inside the beat ring, separated by a dark gap,
+A thin light neutral annular band outside the beat ring, separated by a dark gap,
 with dark grip ticks and directional signs. Its colours are derived from
 `surface` and `onSurface` in both internal themes. It is a relative jog wheel:
-no numeric scale, thumb or absolute progress arc. Its own geometry adapts to
+no numeric scale, thumb or absolute progress arc. Its visible width is at most 20 dp; the adjacent dark margin enlarges the
+interactive band to at most 36 dp, without overlapping the beats or hub.
+The beats move inward while retaining their thickness and accents.
+Its own geometry adapts to
 the existing dial size; the central start/stop target fills the inner disc.
 The other dials and lower controls keep their positions.
