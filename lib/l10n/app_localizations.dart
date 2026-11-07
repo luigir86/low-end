@@ -102,6 +102,84 @@ abstract class AppLocalizations {
     Locale('it'),
   ];
 
+  /// No description provided for @takeRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Record'**
+  String get takeRecord;
+
+  /// No description provided for @takeStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get takeStop;
+
+  /// No description provided for @takeRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording'**
+  String get takeRecording;
+
+  /// No description provided for @takeTemporary.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporary'**
+  String get takeTemporary;
+
+  /// No description provided for @takeSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get takeSave;
+
+  /// No description provided for @takeShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get takeShare;
+
+  /// No description provided for @takeReplaceQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace the temporary recording?'**
+  String get takeReplaceQuestion;
+
+  /// No description provided for @takeKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get takeKeep;
+
+  /// No description provided for @takeReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get takeReplace;
+
+  /// No description provided for @takeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio operation failed. Try again.'**
+  String get takeError;
+
+  /// No description provided for @takeShareUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This browser cannot share audio files. Save the file and attach it in WhatsApp.'**
+  String get takeShareUnavailable;
+
+  /// No description provided for @takeSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get takeSaved;
+
+  /// No description provided for @takeStarting.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting microphone…'**
+  String get takeStarting;
+
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
@@ -669,7 +747,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutDescription.
   ///
   /// In en, this message translates to:
-  /// **'Metronome, harmony and tuner for musicians. Made by an amateur double bass player with the friends from the orchestra in mind, and useful to everyone. Low End works offline: the microphone is used only while the tuner is listening, and no sound or data leaves your phone.'**
+  /// **'Metronome, harmony and tuner for musicians. Made by an amateur double bass player with the friends from the orchestra in mind, and useful to everyone. Low End works offline. The tuner listens on your device. In the Player you can record, save and share your own audio.'**
   String get aboutDescription;
 
   /// No description provided for @aboutPiano.

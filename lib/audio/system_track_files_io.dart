@@ -1,15 +1,38 @@
 import 'dart:async';
-import 'dart:io' show Platform;
+import 'dart:io' show File, Platform;
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:flutter/services.dart';
 
 import 'track_files.dart';
+import 'recorded_track.dart';
 import 'track_output.dart';
 
 /// See system_track_files.dart.
 TrackFiles systemTrackFiles() => AndroidTrackFiles();
+
+const _takes = MethodChannel('low_end/takes');
+
+Future<String> recordingPath(String name) async =>
+    (await _takes.invokeMethod<String>('path', name))!;
+
+Future<RecordedTrack> recordedTrack(String path, String name) async =>
+    RecordedTrack(uri: Uri.file(path).toString(), name: name);
+
+Future<bool> saveRecording(RecordedTrack track) async =>
+    await _takes.invokeMethod<bool>(
+      'save',
+      Uri.parse(track.uri).toFilePath(),
+    ) ??
+    false;
+
+Future<bool> shareRecording(RecordedTrack track) async =>
+    await _takes.invokeMethod<bool>(
+      'share',
+      Uri.parse(track.uri).toFilePath(),
+    ) ??
+    false;
 
 /// [TrackFiles] from Android's document chooser, through TrackFiles.kt: it
 /// asks for no permission, and keeps the right to read the chosen file.
@@ -94,6 +117,14 @@ class AndroidTrackFiles implements TrackFiles {
   /// number: done when the track is replaced or cannot be read.
   @override
   Future<void> release(TrackRef track) async {
+    if (track is RecordedTrack) {
+      try {
+        await File.fromUri(Uri.parse(track.uri)).delete();
+      } on Object catch (error) {
+        debugPrint('Could not release the temporary recording: $error');
+      }
+      return;
+    }
     if (!_supported) return;
     try {
       await _channel.invokeMethod<void>('release', {'uri': track.uri});

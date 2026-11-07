@@ -10,6 +10,46 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get takeRecord => 'Record';
+
+  @override
+  String get takeStop => 'Stop';
+
+  @override
+  String get takeRecording => 'Recording';
+
+  @override
+  String get takeTemporary => 'Temporary';
+
+  @override
+  String get takeSave => 'Save';
+
+  @override
+  String get takeShare => 'Share';
+
+  @override
+  String get takeReplaceQuestion => 'Replace the temporary recording?';
+
+  @override
+  String get takeKeep => 'Keep';
+
+  @override
+  String get takeReplace => 'Replace';
+
+  @override
+  String get takeError => 'Audio operation failed. Try again.';
+
+  @override
+  String get takeShareUnavailable =>
+      'This browser cannot share audio files. Save the file and attach it in WhatsApp.';
+
+  @override
+  String get takeSaved => 'Saved';
+
+  @override
+  String get takeStarting => 'Starting microphone…';
+
+  @override
   String get appTitle => 'Low End';
 
   @override
@@ -332,7 +372,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutDescription =>
-      'Metronome, harmony and tuner for musicians. Made by an amateur double bass player with the friends from the orchestra in mind, and useful to everyone. Low End works offline: the microphone is used only while the tuner is listening, and no sound or data leaves your phone.';
+      'Metronome, harmony and tuner for musicians. Made by an amateur double bass player with the friends from the orchestra in mind, and useful to everyone. Low End works offline. The tuner listens on your device. In the Player you can record, save and share your own audio.';
 
   @override
   String get aboutPiano =>

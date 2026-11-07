@@ -10,6 +10,47 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
+  String get takeRecord => 'Grabar';
+
+  @override
+  String get takeStop => 'Detener';
+
+  @override
+  String get takeRecording => 'Grabación';
+
+  @override
+  String get takeTemporary => 'Temporal';
+
+  @override
+  String get takeSave => 'Guardar';
+
+  @override
+  String get takeShare => 'Compartir';
+
+  @override
+  String get takeReplaceQuestion => '¿Reemplazar la grabación temporal?';
+
+  @override
+  String get takeKeep => 'Conservar';
+
+  @override
+  String get takeReplace => 'Reemplazar';
+
+  @override
+  String get takeError =>
+      'La operación de audio ha fallado. Inténtalo de nuevo.';
+
+  @override
+  String get takeShareUnavailable =>
+      'Este navegador no puede compartir archivos de audio. Guarda el archivo y adjúntalo en WhatsApp.';
+
+  @override
+  String get takeSaved => 'Guardada';
+
+  @override
+  String get takeStarting => 'Activando el micrófono…';
+
+  @override
   String get appTitle => 'Low End';
 
   @override
@@ -335,7 +376,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get aboutDescription =>
-      'Metrónomo, armonía y afinador para músicos. Hecha por un contrabajista aficionado pensando en los amigos de la orquesta, y útil para todos. Low End funciona sin conexión: el micrófono solo se usa mientras el afinador escucha, y ningún sonido ni dato sale de tu teléfono.';
+      'Metrónomo, armonía y afinador para músicos. Hecha por un contrabajista aficionado pensando en los amigos de la orquesta, y útil para todos. Low End funciona sin conexión. El afinador escucha en tu dispositivo. En el reproductor puedes grabar, guardar y compartir tu propio audio.';
 
   @override
   String get aboutPiano =>

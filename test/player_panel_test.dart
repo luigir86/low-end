@@ -5,6 +5,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter/gestures.dart' show kLongPressTimeout;
 import 'package:flutter/semantics.dart' show SemanticsAction, SemanticsNode;
 import 'package:flutter_test/flutter_test.dart';
@@ -76,6 +77,52 @@ void main() {
   setUp(() => SharedPreferences.setMockInitialValues({'seen_guide': true}));
 
   final hub = find.byKey(const Key('playerHub'));
+
+  testWidgets(
+    'a take opens paused, loops, shares before saving and survives a cancelled replacement',
+    (tester) async {
+      final screen = await _open(tester);
+      final messenger = tester.binding.defaultBinaryMessenger;
+      const microphone = MethodChannel('com.llfbandit.record/messages');
+      const takes = MethodChannel('low_end/takes');
+      const path = '/tmp/lesson.m4a';
+      final exports = <String>[];
+      messenger.setMockMethodCallHandler(microphone, (call) async {
+        if (call.method == 'hasPermission') return true;
+        if (call.method == 'stop') return path;
+        return null;
+      });
+      messenger.setMockMethodCallHandler(takes, (call) async {
+        if (call.method == 'path') return path;
+        exports.add(call.method);
+        return true;
+      });
+      addTearDown(() {
+        messenger.setMockMethodCallHandler(microphone, null);
+        messenger.setMockMethodCallHandler(takes, null);
+      });
+      await tester.tap(find.byTooltip('Record'));
+      await screen.settle();
+      await tester.tap(find.text('Stop'));
+      await screen.settle();
+      expect(screen.player.status, PlayerStatus.ready);
+      expect(screen.player.isPlaying, isFalse);
+      expect(screen.player.looping, isTrue);
+      expect(screen.player.setup, isNull);
+      await tester.tap(find.byTooltip('Share'));
+      await screen.settle();
+      expect(exports, ['share']);
+      await tester.tap(find.byTooltip('Record'));
+      await screen.settle();
+      await tester.tap(find.text('Keep'));
+      await screen.settle();
+      expect(find.text('Temporary'), findsOneWidget);
+      await tester.tap(find.byTooltip('Save'));
+      await screen.settle();
+      expect(exports, ['share', 'save']);
+      expect(find.text('Saved'), findsOneWidget);
+    },
+  );
 
   testWidgets('with no track the middle asks for one, and a touch opens the '
       'chooser', (tester) async {

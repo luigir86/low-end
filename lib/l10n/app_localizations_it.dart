@@ -10,6 +10,46 @@ class AppLocalizationsIt extends AppLocalizations {
   AppLocalizationsIt([String locale = 'it']) : super(locale);
 
   @override
+  String get takeRecord => 'Registra';
+
+  @override
+  String get takeStop => 'Stop';
+
+  @override
+  String get takeRecording => 'Registrazione';
+
+  @override
+  String get takeTemporary => 'Temporanea';
+
+  @override
+  String get takeSave => 'Salva';
+
+  @override
+  String get takeShare => 'Condividi';
+
+  @override
+  String get takeReplaceQuestion => 'Sostituire la registrazione temporanea?';
+
+  @override
+  String get takeKeep => 'Conserva';
+
+  @override
+  String get takeReplace => 'Sostituisci';
+
+  @override
+  String get takeError => 'Operazione audio non riuscita. Riprova.';
+
+  @override
+  String get takeShareUnavailable =>
+      'Questo browser non può condividere file audio. Usa Salva, poi allega il file in WhatsApp.';
+
+  @override
+  String get takeSaved => 'Salvata';
+
+  @override
+  String get takeStarting => 'Microfono in attivazione…';
+
+  @override
   String get appTitle => 'Low End';
 
   @override
@@ -335,7 +375,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get aboutDescription =>
-      'Metronomo, armonia e accordatore per musicisti. Realizzata da un contrabbassista amatoriale pensando agli amici dell\'orchestra, ma utile a tutti. Low End funziona offline: il microfono si usa solo mentre l\'accordatore ascolta, e nessun suono o dato esce dal telefono.';
+      'Metronomo, armonia e accordatore per musicisti. Realizzata da un contrabbassista amatoriale pensando agli amici dell\'orchestra, ma utile a tutti. Low End funziona offline. L’accordatore ascolta sul dispositivo. In Ascolto puoi registrare, salvare e condividere il tuo audio.';
 
   @override
   String get aboutPiano =>

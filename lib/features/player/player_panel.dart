@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
 import '../../audio/audio_scope.dart';
+import '../../audio/recorded_track.dart';
 import '../../audio/track_output.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/dial.dart';
@@ -11,6 +12,7 @@ import '../../widgets/row_controls.dart';
 import 'player_controller.dart';
 import 'passage_strip.dart';
 import 'player_dial.dart';
+import 'recording_controls.dart';
 
 /// The full-track dial and three fixed rows: waveform, transport, track.
 class PlayerPanel extends StatelessWidget {
@@ -34,18 +36,42 @@ class PlayerPanel extends StatelessWidget {
     return ListenableBuilder(
       listenable: player,
       builder: (context, _) {
+        Widget source(String label) => Row(
+          children: [
+            Expanded(
+              child: LabeledField(
+                key: trackFieldKey,
+                label: label,
+                value: player.title ?? l10n.playerChoose,
+                onTap: () async {
+                  if (player.track is RecordedTrack &&
+                      !await confirmReplace(context, player.track)) {
+                    return;
+                  }
+                  await player.pick();
+                },
+              ),
+            ),
+            const SizedBox(width: rowGap),
+            IconButton.outlined(
+              tooltip: l10n.takeRecord,
+              icon: const Icon(Icons.mic_none),
+              onPressed: () => recordForPlayer(context, player),
+            ),
+          ],
+        );
         return DialLayout(
           dial: PlayerDial(player: player),
           header: _FirstRow(player: player),
           upper: _ControlRow(player: player),
-          lower: LabeledField(
-            key: trackFieldKey,
-            label: l10n.playerTrack,
-            value: player.title ?? l10n.playerChoose,
-            // The chooser, at once: a menu comes with more than one way to
-            // get a track.
-            onTap: player.pick,
-          ),
+          lower: switch (player.track) {
+            final RecordedTrack take => TakeActions(
+              key: ValueKey(take.uri),
+              take: take,
+              source: source,
+            ),
+            _ => source(l10n.playerTrack),
+          },
         );
       },
     );
