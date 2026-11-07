@@ -283,7 +283,7 @@ String _songKey(ExampleSong song, NoteNames names) {
 }
 
 /// The heading of a section of the example songs, as in the progression
-/// menu: small muted words, announced as a heading.
+/// menu: a full-width band, announced as a heading.
 class _SongSection extends StatelessWidget {
   const _SongSection(this.text);
 
@@ -295,13 +295,15 @@ class _SongSection extends StatelessWidget {
     return Semantics(
       header: true,
       child: Padding(
-        padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
-        child: Align(
-          alignment: AlignmentDirectional.centerStart,
+        padding: const EdgeInsets.only(top: 16, bottom: 4),
+        child: Container(
+          width: double.infinity,
+          color: LowEndColors.of(context).activeFill,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Text(
             text,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: LowEndColors.of(context).onActiveFill,
             ),
           ),
         ),

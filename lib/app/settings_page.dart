@@ -290,14 +290,11 @@ class _Section extends StatelessWidget {
     return Semantics(
       header: true,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+        padding: const EdgeInsets.only(top: 16, bottom: 4),
         child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: LowEndColors.of(context).activeFill,
-            borderRadius: BorderRadius.circular(LowEndTheme.radius),
-          ),
+          decoration: BoxDecoration(color: LowEndColors.of(context).activeFill),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Text(
               title,
               style: theme.textTheme.titleSmall?.copyWith(
