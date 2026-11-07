@@ -6,9 +6,9 @@ import 'style.dart';
 /// Low End's look, in one place: change a colour, a radius or a font weight
 /// here and every screen follows, like the variables of a CSS stylesheet.
 ///
-/// Bronze on ebony (docs/tema-bronzo.md): always dark, one flat accent for
-/// the whole app, the bronze of the lion on the icon. Every other shade is
-/// that bronze mixed into the ebony ground.
+/// Two internal palettes, selected at build time without a user setting.
+enum LowEndThemeVariant { woodAndBrass, anthraciteAndRed }
+
 abstract final class Palette {
   /// The accent: the honey bronze of the lion on the icon.
   static const bronze = Color(0xFFD4A373);
@@ -19,6 +19,9 @@ abstract final class Palette {
   static const ebonyShade2 = Color(0xFF262422);
   static const ebonyShade3 = Color(0xFF312F2C);
   static const walnutDeep = Color(0xFF2B1D16);
+
+  /// Shared pre-Flutter background on Android and web.
+  static const startup = Color(0xFF181818);
 
   // Text.
   static const inkOnLight = Color(0xFF1E1C1A);
@@ -39,6 +42,14 @@ abstract final class Palette {
 @immutable
 class LowEndColors extends ThemeExtension<LowEndColors> {
   const LowEndColors({
+    required this.activeFill,
+    required this.onActiveFill,
+    required this.strobeIdle,
+    required this.strobeOuter,
+    required this.strobeInner,
+    required this.navigationBackground,
+    required this.navigationIndicator,
+    required this.navigationInk,
     required this.inTune,
     required this.close,
     required this.off,
@@ -48,6 +59,16 @@ class LowEndColors extends ThemeExtension<LowEndColors> {
     required this.beatSilent,
     required this.beatWeak,
   });
+
+  /// Semantic fills and ink, independent of the readable Material accent.
+  final Color activeFill;
+  final Color onActiveFill;
+  final Color strobeIdle;
+  final Color strobeOuter;
+  final Color strobeInner;
+  final Color navigationBackground;
+  final Color navigationIndicator;
+  final Color navigationInk;
 
   /// Within a few cents.
   final Color inTune;
@@ -81,6 +102,14 @@ class LowEndColors extends ThemeExtension<LowEndColors> {
 
   @override
   LowEndColors copyWith({
+    Color? activeFill,
+    Color? onActiveFill,
+    Color? strobeIdle,
+    Color? strobeOuter,
+    Color? strobeInner,
+    Color? navigationBackground,
+    Color? navigationIndicator,
+    Color? navigationInk,
     Color? inTune,
     Color? close,
     Color? off,
@@ -90,6 +119,14 @@ class LowEndColors extends ThemeExtension<LowEndColors> {
     Color? beatSilent,
     Color? beatWeak,
   }) => LowEndColors(
+    activeFill: activeFill ?? this.activeFill,
+    onActiveFill: onActiveFill ?? this.onActiveFill,
+    strobeIdle: strobeIdle ?? this.strobeIdle,
+    strobeOuter: strobeOuter ?? this.strobeOuter,
+    strobeInner: strobeInner ?? this.strobeInner,
+    navigationBackground: navigationBackground ?? this.navigationBackground,
+    navigationIndicator: navigationIndicator ?? this.navigationIndicator,
+    navigationInk: navigationInk ?? this.navigationInk,
     inTune: inTune ?? this.inTune,
     close: close ?? this.close,
     off: off ?? this.off,
@@ -104,6 +141,22 @@ class LowEndColors extends ThemeExtension<LowEndColors> {
   LowEndColors lerp(LowEndColors? other, double t) {
     if (other == null) return this;
     return LowEndColors(
+      activeFill: Color.lerp(activeFill, other.activeFill, t)!,
+      onActiveFill: Color.lerp(onActiveFill, other.onActiveFill, t)!,
+      strobeIdle: Color.lerp(strobeIdle, other.strobeIdle, t)!,
+      strobeOuter: Color.lerp(strobeOuter, other.strobeOuter, t)!,
+      strobeInner: Color.lerp(strobeInner, other.strobeInner, t)!,
+      navigationBackground: Color.lerp(
+        navigationBackground,
+        other.navigationBackground,
+        t,
+      )!,
+      navigationIndicator: Color.lerp(
+        navigationIndicator,
+        other.navigationIndicator,
+        t,
+      )!,
+      navigationInk: Color.lerp(navigationInk, other.navigationInk, t)!,
       inTune: Color.lerp(inTune, other.inTune, t)!,
       close: Color.lerp(close, other.close, t)!,
       off: Color.lerp(off, other.off, t)!,
@@ -117,9 +170,18 @@ class LowEndColors extends ThemeExtension<LowEndColors> {
 }
 
 abstract final class LowEndTheme {
+  /// The only product switch. Change this and rebuild to roll back.
+  static const variant = LowEndThemeVariant.woodAndBrass;
+  static final dark = forVariant(variant);
+
+  static ThemeData forVariant(LowEndThemeVariant variant) => switch (variant) {
+    LowEndThemeVariant.woodAndBrass => _woodAndBrass,
+    LowEndThemeVariant.anthraciteAndRed => _anthraciteAndRed,
+  };
+
   static const radius = LowEndShape.radius;
 
-  /// The bronze mixed into the ebony: the more of it, the stronger.
+  /// Wood&Brass mixtures, preserved independently of the active variant.
   static Color tint(double amount) =>
       Color.lerp(Palette.ebony, Palette.bronze, amount)!;
 
@@ -136,9 +198,8 @@ abstract final class LowEndTheme {
     systemNavigationBarContrastEnforced: false,
   );
 
-  /// The one theme: dark, bronze on ebony. There is no light theme and no
-  /// choice of theme (docs/tema-bronzo.md).
-  static final dark = () {
+  /// Legacy palette; component geometry is shared by both variants.
+  static final _woodAndBrass = () {
     final container = tint(0.2);
     // 3 : 1 on the disc (the strobe and the beats are drawn in it too) and
     // 4.5 : 1 under the light ink of the note names.
@@ -179,6 +240,14 @@ abstract final class LowEndTheme {
         outlineVariant: tint(0.26),
       ),
       LowEndColors(
+        activeFill: Palette.bronze,
+        onActiveFill: Palette.walnutDeep,
+        strobeIdle: const Color(0xFF777777),
+        strobeOuter: const Color(0xFF999999),
+        strobeInner: const Color(0xFFEFEDEA),
+        navigationBackground: Palette.ebonyShade1,
+        navigationIndicator: container,
+        navigationInk: Palette.inkOnDark,
         inTune: Palette.inTune,
         close: Palette.close,
         off: Palette.off,
@@ -187,6 +256,59 @@ abstract final class LowEndTheme {
         // beats take the colour of a chord's other notes (secondary).
         downbeat: Palette.bronze,
         beatReceded: Color.lerp(disc, Palette.ebony, 0.6)!,
+        beatSilent: Color.alphaBlend(outline.withValues(alpha: 0.35), disc),
+        beatWeak: Color.alphaBlend(chord.withValues(alpha: 0.6), disc),
+      ),
+    );
+  }();
+
+  static final _anthraciteAndRed = () {
+    const ground = Color(0xFF242424);
+    const disc = Color(0xFF202020);
+    const red = Color(0xFFA6282C);
+    const ink = Color(0xFFEFEDEA);
+    const chord = Color(0xFFB2494F);
+    const outline = Color(0xFF999999);
+    return _build(
+      const ColorScheme(
+        brightness: Brightness.dark,
+        // Readable small text/icons; institutional red is a separate fill.
+        primary: Color(0xFFFFA2A6),
+        onPrimary: Color(0xFF242424),
+        primaryContainer: red,
+        onPrimaryContainer: ink,
+        secondary: chord,
+        onSecondary: ink,
+        secondaryContainer: red,
+        onSecondaryContainer: ink,
+        error: Palette.off,
+        onError: Color(0xFF242424),
+        surface: ground,
+        onSurface: ink,
+        onSurfaceVariant: Color(0xFFB8B8B8),
+        surfaceContainerLowest: Palette.startup,
+        surfaceContainerLow: Color(0xFF282828),
+        surfaceContainer: Color(0xFF282828),
+        surfaceContainerHigh: Color(0xFF303030),
+        surfaceContainerHighest: Color(0xFF383838),
+        outline: outline,
+        outlineVariant: Color(0xFF484848),
+      ),
+      LowEndColors(
+        activeFill: red,
+        onActiveFill: ink,
+        strobeIdle: const Color(0xFF777777),
+        strobeOuter: outline,
+        strobeInner: ink,
+        navigationBackground: red,
+        navigationIndicator: const Color(0xFF69191C),
+        navigationInk: ink,
+        inTune: Palette.inTune,
+        close: Palette.close,
+        off: Palette.off,
+        disc: disc,
+        downbeat: const Color(0xFFE16A70),
+        beatReceded: Color.lerp(disc, ground, 0.6)!,
         beatSilent: Color.alphaBlend(outline.withValues(alpha: 0.35), disc),
         beatWeak: Color.alphaBlend(chord.withValues(alpha: 0.6), disc),
       ),
@@ -227,38 +349,43 @@ abstract final class LowEndTheme {
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
+        iconTheme: WidgetStatePropertyAll(
+          IconThemeData(color: colors.navigationInk),
+        ),
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => TextStyle(
             fontSize: LowEndType.small,
-            color: scheme.onSurface,
+            color: colors.navigationInk,
             fontWeight: states.contains(WidgetState.selected)
                 ? FontWeight.w700
                 : FontWeight.w400,
           ),
         ),
-        backgroundColor: scheme.surfaceContainer,
-        indicatorColor: scheme.primaryContainer,
+        backgroundColor: colors.navigationBackground,
+        indicatorColor: colors.navigationIndicator,
         surfaceTintColor: Colors.transparent,
       ),
-      // The tabs in landscape, the same three destinations as the bottom
+      // The tabs in landscape, the same destinations as the bottom
       // bar, in the same colours and text.
       navigationRailTheme: NavigationRailThemeData(
-        backgroundColor: scheme.surfaceContainer,
-        indicatorColor: scheme.primaryContainer,
+        selectedIconTheme: IconThemeData(color: colors.navigationInk),
+        unselectedIconTheme: IconThemeData(color: colors.navigationInk),
+        backgroundColor: colors.navigationBackground,
+        indicatorColor: colors.navigationIndicator,
         minWidth: LowEndShape.railWidth,
         // The rail does not take the app's font by itself.
         selectedLabelTextStyle: TextStyle(
           fontFamily: 'Edwin',
           fontFamilyFallback: const ['NotoMusic'],
           fontSize: LowEndType.small,
-          color: scheme.onSurface,
+          color: colors.navigationInk,
           fontWeight: FontWeight.w700,
         ),
         unselectedLabelTextStyle: TextStyle(
           fontFamily: 'Edwin',
           fontFamilyFallback: const ['NotoMusic'],
           fontSize: LowEndType.small,
-          color: scheme.onSurface,
+          color: colors.navigationInk,
         ),
       ),
       // The dot on the tab of a section that is playing: the accent, not

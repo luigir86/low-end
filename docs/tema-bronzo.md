@@ -1,6 +1,6 @@
 # Tema Bronzo per Low End
 
-Stato: **nel codice**. Sostituisce il tema "Orchestra" (un colore per scheda, chiaro e scuro), scartato da Luigi il 17 ottobre 2026. Le schermate del negozio sono in `store/graphics/phone/<lingua>/` (`flutter test test_screenshots/store_screenshots_test.dart --update-goldens`).
+Stato: **nel codice**, variante interna **Wood&Brass**. Vedi [varianti-tema](specs/varianti-tema.md) e [Anthracite & Red](tema-ffm.md). Sostituisce il tema "Orchestra" (un colore per scheda, chiaro e scuro), scartato da Luigi il 17 ottobre 2026. Le schermate del negozio sono in `store/graphics/phone/<lingua>/` (`flutter test test_screenshots/store_screenshots_test.dart --update-goldens`).
 
 ## 1. L'idea in una frase
 
@@ -21,9 +21,9 @@ Un solo colore per tutta l'app, il **bronzo miele** del leone dell'icona, su fon
 | Sfondo, ebano | #141312 (superfici #1C1B19, #262422, #312F2C) |
 | Testo | #EFEDEA, attenuato #C9C5BF mescolato al 25% di bronzo |
 
-Ogni altra tinta è il bronzo **mescolato nell'ebano** (`LowEndTheme.tint`): disco 10% (`LowEndColors.disc`), tasti e battiti spenti 26%, TAP e indicatore della scheda scelta 20%, note dell'accordo, battiti accesi dopo il primo e banda esterna dello strobo 58% (`secondary`), bordi 75%. Il primo battito e la banda interna dello strobo sono il bronzo pieno; il primo battito è anche più largo. Mentre il metronomo suona, i battiti spenti si ritirano nel disco (`beatReceded`), un battito lasciato muto (click su 2 e 4) appena si accende (`beatSilent`) e i movimenti deboli di un gruppo del 6/8 sono più tenui (`beatWeak`): tre tinte con nome in `LowEndColors`, nessuna opacità scritta nelle schermate.
+Ogni altra tinta è il bronzo **mescolato nell'ebano** (`LowEndTheme.tint`): disco 10% (`LowEndColors.disc`), tasti e battiti spenti 26%, TAP e indicatore della scheda scelta 20%, note dell'accordo, battiti accesi dopo il primo  58% (`secondary`), bordi 75%. Il primo battito è il bronzo pieno; il primo battito è anche più largo. Mentre il metronomo suona, i battiti spenti si ritirano nel disco (`beatReceded`), un battito lasciato muto (click su 2 e 4) appena si accende (`beatSilent`) e i movimenti deboli di un gruppo del 6/8 sono più tenui (`beatWeak`): tre tinte con nome in `LowEndColors`, nessuna opacità scritta nelle schermate.
 
-La schermata di avvio di Android usa l'ebano (`android/app/src/main/res/values/colors.xml`), senza variante notte.
+Il fondo di avvio Android/web usa il neutro comune `#181818`, indipendente dalla variante.
 
 ## 4. Verdetti dell'accordatore
 
@@ -36,3 +36,7 @@ Intonato verde acqua #5FD7C8, quasi giallo #F2DA4E, lontano rosso puro #FF5F56. 
 ## 6. Icona
 
 Resta com'è: il leone in legno e bronzo su fondo scuro è già il tema.
+
+## Migliorie comuni alle varianti
+
+Lo strobo usa ora grigi neutri (`strobeIdle`, `strobeOuter`, `strobeInner`) indipendenti da primary/secondary; parole, simboli e colori del verdetto restano invariati. Le altre miscele Wood&Brass rimangono quelle descritte sopra. Il test di avvio verifica il neutro comune, non la superficie di ciascuna variante.
