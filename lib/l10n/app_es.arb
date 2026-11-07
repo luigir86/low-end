@@ -1,4 +1,7 @@
 {
+  "takeDiscard": "Descartar",
+  "takeDelete": "Eliminar grabación",
+  "takeRemove": "Quitar del reproductor",
   "takeRecord": "Grabar",
   "takeStop": "Detener",
   "takeRecording": "Grabación",

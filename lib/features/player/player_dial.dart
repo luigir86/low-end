@@ -23,9 +23,11 @@ double touchAngle(Offset offset, Size size) {
 
 /// The full-track clock; tap the ring to seek or the hub to play and pause.
 class PlayerDial extends StatefulWidget {
-  const PlayerDial({super.key, required this.player});
+  const PlayerDial({super.key, required this.player, this.recordingTime});
 
   final PlayerController player;
+
+  final ValueListenable<Duration>? recordingTime;
 
   /// Marks the middle of the dial, for tests.
   static const hubKey = Key('playerHub');
@@ -217,51 +219,66 @@ class _PlayerDialState extends State<PlayerDial>
               ),
             // The ring, as a slider for screen readers; a touch on it moves
             // the listening point. The middle is a button above it.
-            Semantics(
-              slider: true,
-              enabled: ready,
-              label: l10n.playerTrack,
-              // Read when the Player changes (a seek, play, pause), not
-              // every second: the time must not be announced by itself
-              // (RF-PLY-16).
-              value: ready ? timeOf(position) : null,
-              increasedValue: ready
-                  ? timeOf(position + PlayerDial.readerStep)
-                  : null,
-              decreasedValue: ready
-                  ? timeOf(position - PlayerDial.readerStep)
-                  : null,
-              onIncrease: ready ? () => _seekBy(PlayerDial.readerStep) : null,
-              onDecrease: ready ? () => _seekBy(-PlayerDial.readerStep) : null,
-              // The way to choose a passage without dragging (RF-PLY-16).
-              customSemanticsActions: ready
-                  ? {
-                      CustomSemanticsAction(label: l10n.playerMarkStart): () =>
-                          player.mark(LoopEdge.start),
-                      CustomSemanticsAction(label: l10n.playerMarkEnd): () =>
-                          player.mark(LoopEdge.end),
-                    }
-                  : null,
-              child: GestureDetector(
-                key: const Key('playerRing'),
-                behavior: HitTestBehavior.opaque,
-                excludeFromSemantics: true,
-                onTapUp: ready
-                    ? (details) => _tap(details.localPosition)
+            if (widget.recordingTime == null)
+              Semantics(
+                slider: true,
+                enabled: ready,
+                label: l10n.playerTrack,
+                // Read when the Player changes (a seek, play, pause), not
+                // every second: the time must not be announced by itself
+                // (RF-PLY-16).
+                value: ready ? timeOf(position) : null,
+                increasedValue: ready
+                    ? timeOf(position + PlayerDial.readerStep)
                     : null,
+                decreasedValue: ready
+                    ? timeOf(position - PlayerDial.readerStep)
+                    : null,
+                onIncrease: ready ? () => _seekBy(PlayerDial.readerStep) : null,
+                onDecrease: ready
+                    ? () => _seekBy(-PlayerDial.readerStep)
+                    : null,
+                // The way to choose a passage without dragging (RF-PLY-16).
+                customSemanticsActions: ready
+                    ? {
+                        CustomSemanticsAction(
+                          label: l10n.playerMarkStart,
+                        ): () =>
+                            player.mark(LoopEdge.start),
+                        CustomSemanticsAction(label: l10n.playerMarkEnd): () =>
+                            player.mark(LoopEdge.end),
+                      }
+                    : null,
+                child: GestureDetector(
+                  key: const Key('playerRing'),
+                  behavior: HitTestBehavior.opaque,
+                  excludeFromSemantics: true,
+                  onTapUp: ready
+                      ? (details) => _tap(details.localPosition)
+                      : null,
+                ),
               ),
-            ),
             Center(
               child: FractionallySizedBox(
                 widthFactor: DialGeometry.hubFraction,
                 heightFactor: DialGeometry.hubFraction,
                 // Keep the corners of the hub square available for seeking.
                 child: ClipOval(
-                  child: _Hub(
-                    player: widget.player,
-                    seconds: _seconds,
-                    decimal: decimal,
-                  ),
+                  child: widget.recordingTime != null
+                      ? Center(
+                          child: ValueListenableBuilder<Duration>(
+                            valueListenable: widget.recordingTime!,
+                            builder: (context, time, _) => Text(
+                              clockText(time),
+                              style: theme.textTheme.displaySmall,
+                            ),
+                          ),
+                        )
+                      : _Hub(
+                          player: widget.player,
+                          seconds: _seconds,
+                          decimal: decimal,
+                        ),
                 ),
               ),
             ),
@@ -346,20 +363,6 @@ class _Hub extends StatelessWidget {
             '/ ${clockText(player.duration, decimalSeparator: decimal)}',
             style: muted,
           ),
-          const SizedBox(height: 4),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              color: LowEndColors.of(context).activeFill,
-              shape: BoxShape.circle,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Icon(
-                player.isPlaying ? Icons.pause : Icons.play_arrow,
-                color: LowEndColors.of(context).onActiveFill,
-              ),
-            ),
-          ),
         ],
       ),
     };
@@ -436,8 +439,8 @@ class _RingPainter extends CustomPainter {
       ..color = tick
       ..strokeWidth = 1.5
       ..strokeCap = StrokeCap.round;
-    for (final time in tickTimes(window)) {
-      final a = window.angleOf(time);
+    for (var tickIndex = 0; tickIndex < 12; tickIndex++) {
+      final a = tickIndex * math.pi / 6;
       final dir = Offset(math.sin(a), -math.cos(a));
       canvas.drawLine(
         dial.center + dir * (dial.ringInner + dial.ringWidth * 0.92),

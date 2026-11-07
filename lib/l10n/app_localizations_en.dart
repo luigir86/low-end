@@ -10,6 +10,15 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get takeDiscard => 'Discard';
+
+  @override
+  String get takeDelete => 'Delete recording';
+
+  @override
+  String get takeRemove => 'Remove from player';
+
+  @override
   String get takeRecord => 'Record';
 
   @override

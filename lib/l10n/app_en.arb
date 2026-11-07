@@ -1,4 +1,7 @@
 {
+  "takeDiscard": "Discard",
+  "takeDelete": "Delete recording",
+  "takeRemove": "Remove from player",
   "takeRecord": "Record",
   "takeStop": "Stop",
   "takeRecording": "Recording",

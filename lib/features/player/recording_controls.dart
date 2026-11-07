@@ -4,10 +4,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 
+import '../../app/app_navigation.dart';
+import '../../audio/audio_scope.dart';
 import '../../audio/recorded_track.dart';
 import '../../audio/system_track_files.dart';
 import '../../audio/track_output.dart';
 import '../../l10n/app_localizations.dart';
+import 'clock_text.dart';
 import 'player_controller.dart';
 
 Future<bool> confirmReplace(BuildContext context, TrackRef? track) async {
@@ -32,75 +35,92 @@ Future<bool> confirmReplace(BuildContext context, TrackRef? track) async {
       false;
 }
 
-Future<void> recordForPlayer(
-  BuildContext context,
-  PlayerController player,
-) async {
-  if (!await confirmReplace(context, player.track) || !context.mounted) return;
-  await player.stop();
-  if (!context.mounted) return;
-  final take = await showDialog<RecordedTrack>(
-    context: context,
-    barrierDismissible: false,
-    builder: (_) => const _RecordingDialog(),
-  );
-  if (take != null) {
-    await player.open(take);
-    if (player.track == take && player.status == PlayerStatus.ready) {
-      await player.setLoop(Duration.zero, player.duration);
-    }
-  }
-}
-
-class _RecordingDialog extends StatefulWidget {
-  const _RecordingDialog();
+class RecordingRow extends StatefulWidget {
+  const RecordingRow({
+    required this.player,
+    required this.elapsed,
+    required this.onDone,
+    super.key,
+  });
+  final PlayerController player;
+  final ValueNotifier<Duration> elapsed;
+  final VoidCallback onDone;
   @override
-  State<_RecordingDialog> createState() => _RecordingDialogState();
+  State<RecordingRow> createState() => _RecordingRowState();
 }
 
-class _RecordingDialogState extends State<_RecordingDialog>
-    with WidgetsBindingObserver {
+class _RecordingRowState extends State<RecordingRow>
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   final recorder = AudioRecorder();
-  Future<void>? startup;
-  final elapsed = Stopwatch();
+  final clock = Stopwatch();
+  late final pulse = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 800),
+    value: 1,
+  );
+  AppNavigation? navigation;
+  late final Future<void> startup;
+  Future<void>? finishing;
   Timer? timer;
-  String? error;
+  bool started = false;
+  bool ending = false;
   late String name;
-  bool stopping = false;
-  bool backgrounded = false;
-  bool cancelled = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    startup = Future.microtask(start);
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    startup ??= start();
+    final next = AudioScope.of(context).navigation;
+    if (navigation != next) {
+      navigation?.removeListener(checkVisible);
+      navigation = next..addListener(checkVisible);
+    }
+    syncPulse();
+  }
+
+  void syncPulse() {
+    if (started && !ending && !MediaQuery.disableAnimationsOf(context)) {
+      if (!pulse.isAnimating) pulse.repeat(min: .4, max: 1, reverse: true);
+    } else {
+      pulse.stop();
+      pulse.value = 1;
+    }
+  }
+
+  void checkVisible() {
+    if (navigation?.section != AppSection.player || navigation!.covered) {
+      finish();
+    }
   }
 
   Future<void> start() async {
+    if (!mounted || ending) return;
     final strings = AppLocalizations.of(context);
     try {
+      await widget.player.stop();
+      if (!mounted || ending) return;
       if (!await recorder.hasPermission()) {
-        if (mounted) {
-          setState(
-            () => error = kIsWeb
+        if (mounted && !ending) {
+          fail(
+            kIsWeb
                 ? strings.micPermissionDeniedWeb
                 : strings.micPermissionDenied,
           );
         }
         return;
       }
-      if (!mounted || backgrounded || cancelled) return;
+      if (!mounted || ending) return;
       final stamp = DateTime.now().toIso8601String().replaceAll(':', '-');
       name =
           '${strings.takeRecording} ${stamp.replaceFirst('T', ' ')}.${kIsWeb ? 'wav' : 'm4a'}';
       final path = await recordingPath(name);
-      if (!mounted || backgrounded || cancelled) return;
+      if (!mounted || ending) return;
       await recorder.start(
         RecordConfig(
           encoder: kIsWeb ? AudioEncoder.wav : AudioEncoder.aacLc,
@@ -108,105 +128,146 @@ class _RecordingDialogState extends State<_RecordingDialog>
         ),
         path: path,
       );
-      if (!mounted) return;
-      elapsed.start();
+      started = true;
+      if (!mounted || ending) return;
+      clock.start();
       timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (mounted) setState(() {});
+        widget.elapsed.value = clock.elapsed;
       });
+      syncPulse();
       setState(() {});
-    } catch (e) {
-      if (mounted) setState(() => error = strings.takeError);
+    } catch (_) {
+      if (mounted && !ending) fail(strings.takeError);
     }
   }
 
-  Future<void> finish() async {
-    if (stopping) return;
-    setState(() => stopping = true);
-    await startup;
-    if (!mounted) return;
+  void fail(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+    widget.onDone();
+  }
+
+  void finish({bool discard = false}) {
+    if (ending) return;
+    ending = true;
+    if (discard && !started) {
+      widget.onDone();
+      return;
+    }
+    timer?.cancel();
+    clock.stop();
+    syncPulse();
+    setState(() {});
+    finishing = complete(discard);
+  }
+
+  Future<void> complete(bool discard) async {
     final strings = AppLocalizations.of(context);
     try {
-      if (!elapsed.isRunning || error != null) {
-        Navigator.pop(context);
-        return;
+      await startup;
+      if (started) {
+        if (discard || !mounted) {
+          await recorder.cancel();
+        } else {
+          final path = await recorder.stop();
+          if (path == null) throw StateError('Missing recording');
+          final take = await recordedTrack(path, name);
+          if (mounted) {
+            await widget.player.open(take);
+          } else {
+            await systemTrackFiles().release(take);
+          }
+        }
       }
-      elapsed.stop();
-      timer?.cancel();
-      final path = await recorder.stop();
-      if (path == null) throw StateError('No recording');
-      final track = await recordedTrack(path, name);
-      if (mounted) Navigator.pop(context, track);
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
-        setState(() {
-          error = strings.takeError;
-          stopping = false;
-        });
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(strings.takeError)));
       }
+    } finally {
+      if (mounted) widget.onDone();
     }
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Permission prompts can make the app inactive while it is starting.
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden) {
-      backgrounded = true;
-      unawaited(finish());
+      finish();
     }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    navigation?.removeListener(checkVisible);
     timer?.cancel();
-    unawaited((startup ?? Future<void>.value()).whenComplete(recorder.dispose));
+    pulse.dispose();
+    unawaited(releaseRecorder());
     super.dispose();
+  }
+
+  Future<void> releaseRecorder() async {
+    try {
+      await startup;
+      if (finishing != null) {
+        await finishing;
+      } else if (started) {
+        await recorder.cancel();
+      }
+    } finally {
+      await recorder.dispose();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
-    final seconds = elapsed.elapsed.inSeconds;
-    return PopScope(
-      canPop: false,
-      child: AlertDialog(
-        title: Text(strings.takeRecording),
-        content: Text(
-          error ??
-              (elapsed.isRunning || stopping
-                  ? '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}'
-                  : strings.takeStarting),
-        ),
-        actions: [
-          if (!elapsed.isRunning && !stopping && error == null)
-            TextButton(
-              onPressed: () {
-                cancelled = true;
-                Navigator.pop(context);
-              },
-              child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
-            ),
-          FilledButton.icon(
-            onPressed: stopping || (!elapsed.isRunning && error == null)
-                ? null
-                : finish,
-            icon: Icon(error == null ? Icons.stop : Icons.close),
-            label: Text(
-              error == null
-                  ? strings.takeStop
-                  : MaterialLocalizations.of(context).closeButtonLabel,
-            ),
+    return Row(
+      children: [
+        if (started)
+          FadeTransition(
+            opacity: pulse,
+            child: const Icon(Icons.circle, color: Colors.red, size: 16),
           ),
-        ],
-      ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: started
+              ? ValueListenableBuilder<Duration>(
+                  valueListenable: widget.elapsed,
+                  builder: (context, time, _) => Text(clockText(time)),
+                )
+              : Text(
+                  strings.takeStarting,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+        ),
+        FilledButton(
+          onPressed: started && !ending ? finish : null,
+          child: Text(strings.takeStop),
+        ),
+        const SizedBox(width: 4),
+        TextButton(
+          onPressed: ending ? null : () => finish(discard: true),
+          child: Text(strings.takeDiscard),
+        ),
+      ],
     );
   }
 }
 
 class TakeActions extends StatefulWidget {
-  const TakeActions({required this.take, required this.source, super.key});
+  const TakeActions({
+    required this.take,
+    required this.source,
+    required this.player,
+    required this.record,
+    super.key,
+  });
   final RecordedTrack take;
+  final PlayerController player;
+  final Widget record;
   final Widget Function(String label) source;
   @override
   State<TakeActions> createState() => _TakeActionsState();
@@ -242,19 +303,32 @@ class _TakeActionsState extends State<TakeActions> {
     return Row(
       children: [
         Expanded(
-          child: widget.source(
-            widget.take.saved ? strings.takeSaved : strings.takeTemporary,
+          child: IgnorePointer(
+            ignoring: busy,
+            child: widget.source(
+              widget.take.saved ? strings.takeSaved : strings.takeTemporary,
+            ),
           ),
         ),
-        IconButton(
-          onPressed: busy ? null : () => export(false),
-          icon: const Icon(Icons.save_outlined),
-          tooltip: strings.takeSave,
-        ),
-        IconButton(
+        if (widget.take.saved)
+          IgnorePointer(ignoring: busy, child: widget.record)
+        else
+          IconButton.outlined(
+            onPressed: busy ? null : () => export(false),
+            icon: const Icon(Icons.save_outlined),
+            tooltip: strings.takeSave,
+          ),
+        IconButton.outlined(
           onPressed: busy ? null : () => export(true),
           icon: const Icon(Icons.share_outlined),
           tooltip: strings.takeShare,
+        ),
+        IconButton.outlined(
+          tooltip: widget.take.saved ? strings.takeRemove : strings.takeDelete,
+          icon: const Icon(Icons.delete_outline),
+          onPressed: busy
+              ? null
+              : () => widget.player.removeRecording(widget.take),
         ),
       ],
     );

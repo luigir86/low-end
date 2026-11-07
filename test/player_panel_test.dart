@@ -2,6 +2,7 @@
 // middle, the ring, the field and the messages, in the whole app with silent
 // outputs.
 
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -79,7 +80,7 @@ void main() {
   final hub = find.byKey(const Key('playerHub'));
 
   testWidgets(
-    'a take opens paused, loops, shares before saving and survives a cancelled replacement',
+    'the three rows support discard, review, export and removal of takes',
     (tester) async {
       final screen = await _open(tester);
       final messenger = tester.binding.defaultBinaryMessenger;
@@ -101,18 +102,34 @@ void main() {
         messenger.setMockMethodCallHandler(microphone, null);
         messenger.setMockMethodCallHandler(takes, null);
       });
-      await tester.tap(find.byTooltip('Record'));
+      await screen.player.open(_song);
+      const at = Duration(seconds: 43);
+      await screen.player.seek(at);
+      await screen.settle();
+      expect(find.byIcon(Icons.delete_outline), findsNothing);
+      await tester.tap(find.text('REC'));
+      await screen.settle();
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.byKey(DialLayout.rowKeys.last), findsOneWidget);
+      await tester.tap(find.text('Discard'));
+      await screen.settle();
+      expect(screen.player.track, same(_song));
+      expect(screen.player.position, at);
+      await tester.tap(find.text('REC'));
       await screen.settle();
       await tester.tap(find.text('Stop'));
       await screen.settle();
       expect(screen.player.status, PlayerStatus.ready);
       expect(screen.player.isPlaying, isFalse);
-      expect(screen.player.looping, isTrue);
+      expect(screen.player.looping, isFalse);
+      expect(screen.player.position, Duration.zero);
       expect(screen.player.setup, isNull);
       await tester.tap(find.byTooltip('Share'));
       await screen.settle();
       expect(exports, ['share']);
-      await tester.tap(find.byTooltip('Record'));
+      expect(find.text('REC'), findsNothing);
+      expect(find.byTooltip('Delete recording'), findsOneWidget);
+      await tester.tap(find.byKey(PlayerPanel.trackFieldKey));
       await screen.settle();
       await tester.tap(find.text('Keep'));
       await screen.settle();
@@ -121,6 +138,42 @@ void main() {
       await screen.settle();
       expect(exports, ['share', 'save']);
       expect(find.text('Saved'), findsOneWidget);
+      expect(find.text('REC'), findsOneWidget);
+      final take = screen.player.track;
+      await tester.tap(find.byTooltip('Remove from player'));
+      await screen.settle();
+      expect(screen.player.track, isNull);
+      expect(screen.files.released, contains(take));
+      expect(find.byIcon(Icons.delete_outline), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'discard during a microphone prompt cannot start a late recording',
+    (tester) async {
+      final screen = await _open(tester);
+      final permission = Completer<bool>();
+      final calls = <String>[];
+      const microphone = MethodChannel('com.llfbandit.record/messages');
+      final messenger = tester.binding.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(microphone, (call) async {
+        calls.add(call.method);
+        if (call.method == 'hasPermission') return permission.future;
+        return null;
+      });
+      addTearDown(() => messenger.setMockMethodCallHandler(microphone, null));
+      await screen.player.open(_song);
+      await screen.settle();
+      await tester.tap(find.text('REC'));
+      await screen.settle();
+      expect(calls, contains('hasPermission'));
+      await tester.tap(find.text('Discard'));
+      permission.complete(true);
+      await screen.settle();
+      expect(calls, isNot(contains('start')));
+      expect(screen.player.track, same(_song));
+      expect(find.text('REC'), findsOneWidget);
+      expect(find.byIcon(Icons.delete_outline), findsNothing);
     },
   );
 
@@ -139,7 +192,7 @@ void main() {
     expect(screen.player.isPlaying, isFalse);
     expect(
       find.descendant(of: hub, matching: find.byIcon(Icons.play_arrow)),
-      findsOneWidget,
+      findsNothing,
     );
     expect(find.text('/ 6:00'), findsOneWidget);
     expect(find.text('0:00'), findsOneWidget);
@@ -215,7 +268,7 @@ void main() {
     expect(screen.output.playing, isTrue);
     expect(
       find.descendant(of: hub, matching: find.byIcon(Icons.pause)),
-      findsOneWidget,
+      findsNothing,
     );
     expect(find.text('Tap to start'), findsNothing);
     expect(find.bySemanticsLabel('Pause'), findsWidgets);
@@ -229,7 +282,7 @@ void main() {
     expect(screen.player.isPlaying, isFalse);
     expect(
       find.descendant(of: hub, matching: find.byIcon(Icons.play_arrow)),
-      findsOneWidget,
+      findsNothing,
     );
     expect(find.text('/ 6:00'), findsOneWidget);
     // The position stays.
@@ -489,9 +542,7 @@ void main() {
       expect(screen.player.looping, isTrue);
       expect(dialRect(tester), dial);
       expect(tester.getCenter(button), center);
-      await tester.tap(find.byType(PopupMenuButton<VoidCallback>));
-      await screen.settle();
-      await tester.tap(find.text('New passage'));
+      await tester.tap(find.byTooltip('New passage'));
       await screen.settle();
       expect(screen.player.loopStart, isNull);
       expect(screen.player.loopEnd, isNull);

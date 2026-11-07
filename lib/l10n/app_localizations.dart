@@ -102,6 +102,24 @@ abstract class AppLocalizations {
     Locale('it'),
   ];
 
+  /// No description provided for @takeDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get takeDiscard;
+
+  /// No description provided for @takeDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete recording'**
+  String get takeDelete;
+
+  /// No description provided for @takeRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from player'**
+  String get takeRemove;
+
   /// No description provided for @takeRecord.
   ///
   /// In en, this message translates to:

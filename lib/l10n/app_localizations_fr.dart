@@ -10,6 +10,15 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
+  String get takeDiscard => 'Abandonner';
+
+  @override
+  String get takeDelete => 'Supprimer la prise';
+
+  @override
+  String get takeRemove => 'Retirer du lecteur';
+
+  @override
   String get takeRecord => 'Enregistrer';
 
   @override
