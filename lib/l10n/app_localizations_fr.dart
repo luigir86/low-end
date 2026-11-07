@@ -31,6 +31,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get metronomeHint => 'Touchez pour démarrer';
 
   @override
+  String get tempoDial => 'Molette du tempo';
+
+  @override
+  String get tempoDialHint =>
+      'Glissez dans le sens horaire pour augmenter le tempo ; antihoraire pour le réduire';
+
+  @override
+  String get tempoDialCaption => 'Tournez pour régler le tempo';
+
+  @override
   String bpmValue(String bpm) {
     return '$bpm BPM';
   }

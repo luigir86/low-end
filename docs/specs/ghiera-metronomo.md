@@ -87,3 +87,39 @@ basata sulla documentale. Non unire automaticamente nessuna delle due.
 
 Prima della pubblicazione: provare precisione con un dito, leggibilità dal
 leggio, audio con Armonia e accessibilità su Android/iPad.
+
+## Implementazione e riscontro
+
+`lib/features/metronome/tempo_dial.dart` contiene la geometria locale,
+la fascia chiara con tacche e il riconoscitore che riserva la rotazione
+alla ghiera. Il centro e l'anello esterno mantengono avvio/stop; lo slider
+ha semantiche separate e usa `MetronomeController.step` anche per gli
+incrementi accessibili. Non cambia il motore audio né la scelta interna del tema.
+
+Schermata renderizzata dall'app (Anthracite & Red, italiano, metronomo fermo):
+
+![Metronomo con ghiera chiara implementata](../images/metronome-tempo-dial.png)
+
+Verifica locale: suite completa di **860 test** superata, inclusi 15 casi
+dedicati alla ghiera; analisi statica e formattazione pulite. Dieci
+configurazioni di revisione visiva (IT/EN, verticale/orizzontale, schermo
+piccolo e testo ingrandito) renderizzate con esito positivo:
+
+```sh
+flutter test
+flutter analyze
+dart format --output=none --set-exit-if-changed lib test
+flutter build web --wasm --release --no-web-resources-cdn
+flutter test test_screenshots/ui_review_test.dart --plain-name 'metronome and settings' --update-goldens
+```
+
+Il generatore di schermate ora apre esplicitamente il Metronomo: l'app può
+avviarsi su Armonia e non è corretto assumere la sezione iniziale. Le immagini
+complete generate per revisione restano fuori dai test di regressione;
+quella sopra è il riferimento incluso nella documentazione.
+
+Build web release (WASM e fallback JavaScript) riuscita. La build Android
+resta affidata al workflow CI della PR; non è stata eseguita localmente.
+
+RF-MET-09 resta **◐**: ergonomia, sensibilità, lettori di schermo reali e
+ascolto sul telefono/iPad sono ancora da provare, non dimostrati dai test.

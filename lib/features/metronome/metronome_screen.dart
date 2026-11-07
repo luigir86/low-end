@@ -17,12 +17,14 @@ import 'metronome_controller.dart';
 import 'note_icon.dart';
 import 'subdivision.dart';
 import 'tempo_dialog.dart';
+import 'tempo_dial.dart';
 import 'time_signature.dart';
 
 /// The metronome: a ring with one segment per beat of the bar (4 in 4/4,
 /// 6 in 6/8, and so on) lights up clockwise from 12 o'clock, with the "one"
-/// in its own colour, and the tempo in the middle. In bars felt in groups
-/// (6/8) wider gaps split the groups, and a bar of one beat is a single
+/// in its own colour, and the tempo in the middle. An inner light jog wheel
+/// adjusts tempo independently of the outer beat ring and start/stop hub.
+/// In bars felt in groups (6/8) wider gaps split the groups, and a bar of one beat is a single
 /// segment that flashes. Touching the ring starts and stops it; below it, a
 /// row like the harmony's that chooses the bar (the time signature and what
 /// fills each beat), and one for the tempo: TAP, − + and a pencil to type it.
@@ -38,6 +40,13 @@ class MetronomeScreen extends StatelessWidget {
       listenable: metronome,
       builder: (context, _) => DialLayout(
         dial: _BeatRing(metronome: metronome),
+        header: Text(
+          l10n.tempoDialCaption,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
         // The upper row, two fields like the tuner's, chooses the bar: the time
         // signature and what fills each beat. The second only sets the tempo:
         // TAP, − + and the pencil.
@@ -209,52 +218,82 @@ class _BeatRingState extends State<_BeatRing>
     final theme = Theme.of(context);
     final metronome = widget.metronome;
     final playing = metronome.isPlaying;
-    return Semantics(
-      button: true,
-      label: playing ? l10n.metronomeStop : l10n.metronomeStart,
-      value:
-          '${l10n.bpmValue('${metronome.bpm}')}, '
-          '${beatUnitName(l10n, metronome.signature.beatUnit)}, '
-          '${tempoMark(metronome.signature, metronome.bpm)}',
-      excludeSemantics: true,
-      child: Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          // Felt in the hand as well: on stage the eyes are on the music.
-          onTap: () {
-            HapticFeedback.lightImpact();
-            metronome.toggle();
-          },
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              RepaintBoundary(
-                child: CustomPaint(
-                  painter: _RingPainter(
-                    metronome: metronome,
-                    signature: metronome.signature,
-                    frame: _ringFrame,
-                    colors: theme.colorScheme,
-                    beats: LowEndColors.of(context),
+    void toggle() {
+      HapticFeedback.lightImpact();
+      metronome.toggle();
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final geometry = TempoDialGeometry(constraints.biggest);
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            // Preserve the old outer-ring tap and swipe behaviour. Its
+            // accessible button is the centre, above the tempo slider.
+            ExcludeSemantics(
+              child: Material(
+                type: MaterialType.transparency,
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: toggle,
+                  child: RepaintBoundary(
+                    child: CustomPaint(
+                      painter: _RingPainter(
+                        metronome: metronome,
+                        signature: metronome.signature,
+                        frame: _ringFrame,
+                        colors: theme.colorScheme,
+                        beats: LowEndColors.of(context),
+                      ),
+                    ),
                   ),
                 ),
               ),
-              FractionallySizedBox(
-                widthFactor: 0.5,
-                heightFactor: 0.5,
-                child: ValueListenableBuilder<int>(
-                  valueListenable: _hubFrame,
-                  builder: (context, _, _) => FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: _Hub(metronome: metronome, playing: playing),
+            ),
+            MetronomeTempoDial(metronome: metronome),
+            Center(
+              child: SizedBox.square(
+                dimension: geometry.inner * 2,
+                child: Semantics(
+                  button: true,
+                  label: playing ? l10n.metronomeStop : l10n.metronomeStart,
+                  value:
+                      '${l10n.bpmValue('${metronome.bpm}')}, '
+                      '${beatUnitName(l10n, metronome.signature.beatUnit)}, '
+                      '${tempoMark(metronome.signature, metronome.bpm)}',
+                  onTap: toggle,
+                  excludeSemantics: true,
+                  child: ClipOval(
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: toggle,
+                        child: Center(
+                          child: SizedBox.square(
+                            dimension: geometry.hubSize,
+                            child: ValueListenableBuilder<int>(
+                              valueListenable: _hubFrame,
+                              builder: (context, _, _) => FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: _Hub(
+                                  metronome: metronome,
+                                  playing: playing,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

@@ -31,6 +31,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get metronomeHint => 'Tocca per avviare';
 
   @override
+  String get tempoDial => 'Ghiera del tempo';
+
+  @override
+  String get tempoDialHint =>
+      'Trascina in senso orario per aumentare il tempo; antiorario per diminuirlo';
+
+  @override
+  String get tempoDialCaption => 'Ruota per il tempo';
+
+  @override
   String bpmValue(String bpm) {
     return '$bpm BPM';
   }

@@ -132,8 +132,8 @@ class DialLayout extends StatelessWidget {
   final Widget dial;
 
   /// The first row under the dial: the tuner's cents scale (or its messages).
-  /// The metronome and the harmony leave it empty, so that their controls sit
-  /// lower, nearer the thumb, and in the same place as the tuner's.
+  /// The metronome shows its tempo-wheel hint here; Harmony leaves it empty.
+  /// Their controls sit lower, nearer the thumb, in the same place as the tuner's.
   final Widget header;
 
   /// The second row: the tempo, Root or Chord, the tuner's Chromatic /

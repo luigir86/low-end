@@ -7,6 +7,9 @@
   "metronomeStart": "Start the metronome",
   "metronomeStop": "Stop the metronome",
   "metronomeHint": "Tap to start",
+  "tempoDial": "Tempo dial",
+  "tempoDialHint": "Drag clockwise to increase the tempo; counterclockwise to decrease it",
+  "tempoDialCaption": "Turn to set tempo",
   "bpmValue": "{bpm} BPM",
   "@bpmValue": {
     "placeholders": {
