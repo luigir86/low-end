@@ -430,6 +430,8 @@ void main() {
       // A point outside the loop turns it off.
       result = await actions.call('player_seek', {'seconds': 100});
       expect((player(result)['loop']! as Map)['on'], false);
+      result = await actions.call('player_loop_clear');
+      expect(player(result)['loop'], isNull);
     });
 
     test('mark and nudge move the points', () async {

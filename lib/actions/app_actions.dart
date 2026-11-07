@@ -317,6 +317,11 @@ class AppActions {
       name: 'player_loop_off',
       description: 'Turns the loop off; its start and end stay marked.',
     ),
+    const AppAction(
+      name: 'player_loop_clear',
+      description:
+          'Clears both passage marks so a new passage can be captured.',
+    ),
     AppAction(
       name: 'set_reference_pitch',
       description:
@@ -707,6 +712,8 @@ class AppActions {
         player.nudge(edge, Duration(milliseconds: (seconds * 1000).round()));
       case 'player_loop_off':
         await player.setLooping(false);
+      case 'player_loop_clear':
+        await player.clearPassage();
       case 'drone_play':
         final change = _droneChange(args);
         // Each sound plays from its own section; on the tuner it would

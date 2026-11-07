@@ -674,6 +674,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerSpeedTitle => 'Listening speed';
 
   @override
+  String get playerCaptureStart => 'Mark start';
+
+  @override
+  String get playerCaptureEnd => 'Mark end';
+
+  @override
+  String get playerLoopActive => 'Loop active';
+
+  @override
+  String get playerResumeLoop => 'Resume loop';
+
+  @override
+  String get playerNewPassage => 'New passage';
+
+  @override
   String get playerLoop => 'Loop';
 
   @override
@@ -706,7 +721,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guidePlayerLoop =>
-      'In the Player, drag the flags A and B onto the circle to loop a passage.';
+      'In Player, tap Mark start and Mark end while listening. Drag the waveform handles to refine the passage.';
 
   @override
   String get playerHintFlags =>

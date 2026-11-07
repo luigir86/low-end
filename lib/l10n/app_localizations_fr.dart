@@ -681,6 +681,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get playerSpeedTitle => 'Vitesse d’écoute';
 
   @override
+  String get playerCaptureStart => 'Marquer le début';
+
+  @override
+  String get playerCaptureEnd => 'Marquer la fin';
+
+  @override
+  String get playerLoopActive => 'Boucle active';
+
+  @override
+  String get playerResumeLoop => 'Réactiver la boucle';
+
+  @override
+  String get playerNewPassage => 'Nouveau passage';
+
+  @override
   String get playerLoop => 'Boucle';
 
   @override
@@ -713,7 +728,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get guidePlayerLoop =>
-      'Dans Écoute, placez les drapeaux A et B sur le cercle pour répéter un passage.';
+      'Dans le lecteur, marquez le début puis la fin en écoutant. Ajustez le passage sur la forme d’onde.';
 
   @override
   String get playerHintFlags =>

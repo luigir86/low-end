@@ -191,34 +191,13 @@ void main() {
       expect(player.looping, isFalse);
     });
 
-    test('a flag is armed by a touch and disarmed by the same, or by the '
-        'other taking its place', () async {
-      expect(player.armed, isNull);
-      player.arm(LoopEdge.start);
-      expect(player.armed, LoopEdge.start);
-      player.arm(LoopEdge.end);
-      expect(player.armed, LoopEdge.end);
-      player.arm(LoopEdge.end);
-      expect(player.armed, isNull);
-    });
-
-    test('placing, a new track and disarm all disarm', () async {
-      player.arm(LoopEdge.start);
-      await player.place(LoopEdge.start, _s(10));
-      expect(player.armed, isNull);
-      player.arm(LoopEdge.end);
-      player.disarm();
-      expect(player.armed, isNull);
-      player.arm(LoopEdge.end);
-      await player.open(const TrackRef(uri: 'content://b', name: 'B.wav'));
-      expect(player.armed, isNull);
-    });
-
-    test('nothing is armed without a track', () async {
-      final empty = PlayerController(SilentTrackOutput(), FakeTrackFiles());
-      empty.arm(LoopEdge.start);
-      expect(empty.armed, isNull);
-      empty.dispose();
+    test('two taps at the same paused position keep A and create the shortest loop', () async {
+      await player.seek(_s(10));
+      await player.captureOrToggle();
+      await player.captureOrToggle();
+      expect(player.loopStart, _s(10));
+      expect(player.loopEnd, _s(10) + PlayerController.minLoop);
+      expect(player.looping, isTrue);
     });
 
     test('the arrows move the active flag, B alone too', () async {

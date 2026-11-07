@@ -55,7 +55,6 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   var _looping = false;
   Timer? _settle;
   var _active = LoopEdge.start;
-  LoopEdge? _armed;
 
   /// The slowest and the fastest the track plays, in percent.
   static const minSpeed = 50;
@@ -205,7 +204,6 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     _settle?.cancel();
     _loopStart = _loopEnd = null;
     _active = LoopEdge.start;
-    _armed = null;
     _looping = false;
     _loaded = false;
     _title = _artist = null;
@@ -277,7 +275,6 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     _loopEnd = setup.loopEnd;
     _looping = setup.looping;
     _active = LoopEdge.start;
-    _armed = null;
     _title = setup.title;
     _artist = setup.artist;
     notifyListeners();
@@ -372,7 +369,6 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     _problem = problem;
     _loopStart = _loopEnd = null;
     _active = LoopEdge.start;
-    _armed = null;
     _looping = false;
   }
 
@@ -433,21 +429,41 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   /// Marks the start or the end of the loop where the track is heard, less
   /// the person's reaction (RF-PLY-09), as [place] does.
   Future<void> mark(LoopEdge edge) {
+    return place(edge, _heardPosition);
+  }
+
+  Duration get _heardPosition {
     final lag = Duration(
       microseconds: (reaction.inMicroseconds * _speed / 100).round(),
     );
-    return place(edge, position - lag);
+    return position - lag;
   }
 
-  /// Puts the flag of [edge] at [at], within the track (RF-PLY-08): by
-  /// dragging it onto the ring, by two touches or by "Mark here". If the
-  /// other flag no longer keeps its place (A past B − [minLoop], or B before
-  /// A + [minLoop]) it goes back to its corner and the loop turns off. With
-  /// both flags placed the loop turns on, and if the track plays it restarts
-  /// from A. The flag placed becomes the active one.
+  /// The two-touch control uses the exact cursor when paused. While listening,
+  /// both marks use the same reaction compensation as the ring's actions.
+  Future<void> captureOrToggle() async {
+    if (hasLoop) return setLooping(!looping);
+    final at = _playing ? _heardPosition : position;
+    final a = _loopStart;
+    if (a == null) return place(LoopEdge.start, at);
+    // Preserve A on a quick double tap and enforce the minimum duration.
+    final b = position >= duration ? duration : at;
+    await place(LoopEdge.end, b < a + minLoop ? a + minLoop : b);
+  }
+
+  Future<void> clearPassage() async {
+    _settle?.cancel();
+    _loopStart = _loopEnd = null;
+    _looping = false;
+    _active = LoopEdge.start;
+    notifyListeners();
+    await _queue(() => _applyLoop());
+  }
+
+  /// Marks an endpoint. Replacing it discards an incompatible opposite
+  /// endpoint. A complete passage repeats, restarting at A when playing.
   Future<void> place(LoopEdge edge, Duration at) async {
     if (_status != PlayerStatus.ready || _duration < minLoop) return;
-    _armed = null;
     final wasLooping = looping;
     final t = _within(at);
     switch (edge) {
@@ -537,7 +553,6 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     _loopEnd = end;
     _looping = true;
     _active = LoopEdge.end;
-    _armed = null;
     _settle?.cancel();
     notifyListeners();
     await _queue(() => _applyLoop(jumpTo: _playing ? start : null));
@@ -551,22 +566,6 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   void focus(LoopEdge edge) {
     if (_active == edge) return;
     _active = edge;
-    notifyListeners();
-  }
-
-  /// The flag in its corner that waits for a touch on the ring, or null.
-  LoopEdge? get armed => _armed;
-
-  /// Arms the flag of [edge]; touched again, disarms it (RF-PLY-08).
-  void arm(LoopEdge edge) {
-    if (_status != PlayerStatus.ready) return;
-    _armed = _armed == edge ? null : edge;
-    notifyListeners();
-  }
-
-  void disarm() {
-    if (_armed == null) return;
-    _armed = null;
     notifyListeners();
   }
 

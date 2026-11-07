@@ -6,7 +6,6 @@ import 'dart:ui' show PictureRecorder;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:low_end/features/player/player_controller.dart';
 import 'package:low_end/features/player/player_dial.dart';
 import 'package:low_end/features/player/ring_wave.dart';
 import 'package:low_end/features/player/ring_window.dart';
@@ -250,110 +249,6 @@ void main() {
       final half = whole.lerp(passage, 0.5);
       expect(half.from, const Duration(seconds: 27, milliseconds: 500));
       expect(half.to, const Duration(seconds: 222, milliseconds: 500));
-    });
-  });
-
-  group('the flags on the ring', () {
-    const size = Size(300, 300);
-    const track = Duration(minutes: 6);
-    final window = RingWindow.whole(track);
-    const a = Duration(minutes: 1), b = Duration(minutes: 2);
-
-    test('A sits inside the ring and B outside, so both are in reach', () {
-      final dial = DialGeometry(size);
-      // The pennant is moved along the ring, towards the passage.
-      final half = pennantSize(dial.ringWidth).width / 2;
-      double radius(LoopEdge edge, Duration t) =>
-          (gripCenter(edge, window, t, size) - dial.center).distance;
-      expect(
-        radius(LoopEdge.start, a),
-        closeTo(
-          math.sqrt(
-            math.pow(dial.ringInner + dial.ringWidth * 0.25, 2) + half * half,
-          ),
-          1e-6,
-        ),
-      );
-      expect(
-        radius(LoopEdge.end, b),
-        closeTo(
-          math.sqrt(
-            math.pow(dial.ringInner + dial.ringWidth * 0.75, 2) + half * half,
-          ),
-          1e-6,
-        ),
-      );
-    });
-
-    test('both pennants lean towards the passage', () {
-      final dial = DialGeometry(size);
-      final startAt = touchAngle(
-        gripCenter(LoopEdge.start, window, a, size),
-        size,
-      );
-      final endAt = touchAngle(gripCenter(LoopEdge.end, window, b, size), size);
-      expect(startAt, greaterThan(window.angleOf(a)));
-      expect(endAt, lessThan(window.angleOf(b)));
-      expect(dial.ringWidth, greaterThan(0));
-    });
-
-    test('a touch on a pennant takes that flag, one far away takes none', () {
-      final onA = gripCenter(LoopEdge.start, window, a, size);
-      expect(gripAt(onA, size, window, start: a, end: b), LoopEdge.start);
-      final onB = gripCenter(LoopEdge.end, window, b, size);
-      expect(gripAt(onB, size, window, start: a, end: b), LoopEdge.end);
-      expect(
-        gripAt(const Offset(150, 20), size, window, start: a, end: b),
-        // 12 o'clock: out of reach of both.
-        isNull,
-      );
-      // The middle of the dial is nobody's.
-      expect(
-        gripAt(const Offset(150, 150), size, window, start: a, end: b),
-        isNull,
-      );
-    });
-
-    test('where a flag is not on the ring it cannot be taken there', () {
-      final onA = gripCenter(LoopEdge.start, window, a, size);
-      expect(gripAt(onA, size, window), isNull);
-      expect(gripAt(onA, size, window, end: b), isNull);
-    });
-
-    test('of two flags at the same time, the nearer wins', () {
-      final inner = gripCenter(LoopEdge.start, window, a, size);
-      final outer = gripCenter(LoopEdge.end, window, a, size);
-      expect(gripAt(inner, size, window, start: a, end: a), LoopEdge.start);
-      expect(gripAt(outer, size, window, start: a, end: a), LoopEdge.end);
-    });
-  });
-
-  group('the flags in the corners', () {
-    test('sit on the lower diagonals, inside the square of the dial', () {
-      for (final side in [200.0, 280.0, 380.0]) {
-        final size = Size(side, side);
-        final dial = DialGeometry(size);
-        final a = holderCenter(LoopEdge.start, size);
-        final b = holderCenter(LoopEdge.end, size);
-        for (final c in [a, b]) {
-          expect(c.dy, greaterThan(dial.center.dy));
-          // The 48 dp target is inside the dial's square.
-          expect(c.dx - gripReach, greaterThanOrEqualTo(-1e-9));
-          expect(c.dx + gripReach, lessThanOrEqualTo(side + 1e-9));
-          expect(c.dy + gripReach, lessThanOrEqualTo(side + 1e-9));
-        }
-        expect(a.dx, lessThan(dial.center.dx));
-        expect(b.dx, greaterThan(dial.center.dx));
-        expect(a.dy, b.dy);
-        // From 280 dp up the target clears the ring by 4 dp.
-        if (side >= 280) {
-          expect(
-            (a - dial.center).distance - gripReach,
-            greaterThanOrEqualTo(dial.ringOuter + 4),
-            reason: '$side dp',
-          );
-        }
-      }
     });
   });
 

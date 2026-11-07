@@ -1278,6 +1278,36 @@ abstract class AppLocalizations {
   /// **'Listening speed'**
   String get playerSpeedTitle;
 
+  /// No description provided for @playerCaptureStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark start'**
+  String get playerCaptureStart;
+
+  /// No description provided for @playerCaptureEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark end'**
+  String get playerCaptureEnd;
+
+  /// No description provided for @playerLoopActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Loop active'**
+  String get playerLoopActive;
+
+  /// No description provided for @playerResumeLoop.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume loop'**
+  String get playerResumeLoop;
+
+  /// No description provided for @playerNewPassage.
+  ///
+  /// In en, this message translates to:
+  /// **'New passage'**
+  String get playerNewPassage;
+
   /// Name of the switch that repeats the stretch between the points A and B of the track. Short.
   ///
   /// In en, this message translates to:
@@ -1335,7 +1365,7 @@ abstract class AppLocalizations {
   /// A line of the first-launch guide. The name of the Player tab (Ascolto in Italian) must match playerTab.
   ///
   /// In en, this message translates to:
-  /// **'In the Player, drag the flags A and B onto the circle to loop a passage.'**
+  /// **'In Player, tap Mark start and Mark end while listening. Drag the waveform handles to refine the passage.'**
   String get guidePlayerLoop;
 
   /// Hint under the Player dial while no flag is on the ring: how to choose the passage that repeats. The flags A and B wait in the lower corners of the dial; the ring is the circle round its middle.

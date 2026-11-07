@@ -9,8 +9,6 @@ import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/audio/track_files.dart';
 import 'package:low_end/audio/track_output.dart';
-import 'package:low_end/features/player/player_controller.dart';
-import 'package:low_end/features/player/player_dial.dart';
 import 'package:low_end/widgets/dial.dart';
 
 /// Checks the main screens against Flutter's accessibility guidelines: touch
@@ -138,33 +136,19 @@ void main() {
         await tester.tap(find.byKey(const Key('playerHub')));
         await tester.pump(const Duration(milliseconds: 300));
         await expectAccessible(tester);
-        // A loop marked without dragging: the flags are buttons whose
-        // activation marks the point heard, the ring has the same actions,
-        // and a flag is put on the ring by two touches (RF-PLY-16).
-        expect(
-          find.bySemanticsLabel('Flag A, start of the passage'),
-          findsOneWidget,
-        );
-        expect(
-          find.bySemanticsLabel('Flag B, end of the passage'),
-          findsOneWidget,
-        );
+        expect(find.text('Mark start'), findsOneWidget);
         _customAction(tester, 'Mark the start here');
         await tester.pump(const Duration(milliseconds: 300));
+        expect(find.text('Mark end'), findsOneWidget);
         final dial = tester.getRect(find.byKey(DialLayout.dialKey));
         final geometry = DialGeometry(dial.size);
-        await tester.tapAt(
-          dial.topLeft + holderCenter(LoopEdge.end, dial.size),
-        );
-        await tester.pump(const Duration(milliseconds: 300));
         await tester.tapAt(
           dial.topLeft +
               geometry.center +
               Offset(geometry.ringInner + geometry.ringWidth / 2, 0),
         );
         await tester.pump(const Duration(milliseconds: 300));
-        expect(find.bySemanticsLabel('End earlier'), findsOneWidget);
-        // With both flags on the ring the strip has a slider for each.
+        await tester.tap(find.text('Mark end'));
         await tester.pump(const Duration(milliseconds: 600));
         expect(find.bySemanticsLabel(RegExp(r'^Start ')), findsOneWidget);
         expect(find.bySemanticsLabel(RegExp(r'^End \d')), findsOneWidget);

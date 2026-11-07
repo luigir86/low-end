@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../app/theme.dart';
 import '../../audio/audio_scope.dart';
 import '../../audio/track_output.dart';
 import '../../l10n/app_localizations.dart';
@@ -7,30 +8,21 @@ import '../../widgets/dial.dart';
 import '../../widgets/choice_menu.dart';
 import '../../widgets/number_sheet.dart';
 import '../../widgets/row_controls.dart';
-import '../../widgets/step_button.dart';
 import 'player_controller.dart';
 import 'passage_strip.dart';
 import 'player_dial.dart';
 
-/// The Player: plays a track of the person's own, chosen with the system's
-/// file chooser. The ring of the dial is the clock of the track and the
-/// middle plays and pauses; the passage that repeats is chosen with the flags
-/// A and B of the dial's corners. Under the dial: a line that says the next
-/// step, the loop switch with the arrows that move the active flag and the
-/// speed, and the field that names the track (it opens the chooser again).
+/// The full-track dial and three fixed rows: waveform, transport, track.
 class PlayerPanel extends StatelessWidget {
   const PlayerPanel({super.key});
 
   /// Marks the field that names the track, for tests.
   static const trackFieldKey = Key('playerTrack');
 
-  /// Mark the speed field, the loop switch, the line of messages and the
-  /// arrows that move the active flag, for tests.
+  /// Keys for the speed, loop control and file error.
   static const speedFieldKey = Key('playerSpeed');
   static const loopSwitchKey = Key('playerLoop');
   static const messageKey = Key('playerMessage');
-  static const earlierKey = Key('playerEarlier');
-  static const laterKey = Key('playerLater');
 
   /// The speeds offered in the sheet, in percent.
   static const speedShortcuts = [50, 60, 70, 75, 80, 90, 100, 110, 125];
@@ -79,9 +71,7 @@ class PlayerPanel extends StatelessWidget {
   }
 }
 
-/// The first row, under the dial: the strip of the passage once both flags are
-/// on the ring, else the line of messages (RF-PLY-17, RF-PLY-18); a fault of
-/// the file always takes the line.
+/// Show file errors in the space normally occupied by the waveform.
 class _FirstRow extends StatelessWidget {
   const _FirstRow({required this.player});
 
@@ -89,10 +79,7 @@ class _FirstRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final strip =
-        player.status == PlayerStatus.ready &&
-        player.hasLoop &&
-        player.problem == null;
+    final strip = player.status == PlayerStatus.ready && player.problem == null;
     return AnimatedSwitcher(
       duration: MediaQuery.disableAnimationsOf(context)
           ? Duration.zero
@@ -100,50 +87,74 @@ class _FirstRow extends StatelessWidget {
       switchInCurve: Easing.standard,
       switchOutCurve: Easing.standard,
       child: strip
-          ? PassageStrip(key: const ValueKey('strip'), player: player)
+          ? Row(
+              key: const ValueKey('strip'),
+              children: [
+                Expanded(child: PassageStrip(player: player)),
+                if (player.loopStart != null || player.loopEnd != null)
+                  PopupMenuButton<VoidCallback>(
+                    onSelected: (action) => action(),
+                    itemBuilder: (context) {
+                      final l10n = AppLocalizations.of(context);
+                      return [
+                        for (final (edge, earlier, later) in [
+                          (
+                            LoopEdge.start,
+                            l10n.playerStartEarlier,
+                            l10n.playerStartLater,
+                          ),
+                          (
+                            LoopEdge.end,
+                            l10n.playerEndEarlier,
+                            l10n.playerEndLater,
+                          ),
+                        ])
+                          if ((edge == LoopEdge.start
+                                  ? player.loopStart
+                                  : player.loopEnd) !=
+                              null)
+                            for (final (text, step) in [
+                              (earlier, -PlayerController.fineStep),
+                              (later, PlayerController.fineStep),
+                            ])
+                              PopupMenuItem(
+                                value: () => player.nudge(edge, step),
+                                child: Text(text),
+                              ),
+                        PopupMenuItem(
+                          value: player.clearPassage,
+                          child: Text(l10n.playerNewPassage),
+                        ),
+                      ];
+                    },
+                  ),
+              ],
+            )
           : _MessageRow(key: const ValueKey('message'), player: player),
     );
   }
 }
 
-/// The line of messages, under the dial: a word on what is wrong with the file, or
-/// else how to choose the passage that repeats and, once there is one, how to
-/// adjust it (RF-PLY-18). Nothing without a track.
+/// An accessible file error in the waveform row.
 class _MessageRow extends StatelessWidget {
   const _MessageRow({super.key, required this.player});
 
   final PlayerController player;
 
-  /// What to do next to choose the passage (RF-PLY-18).
-  String _step(AppLocalizations l10n) {
-    final armed = player.armed;
-    if (armed != null) {
-      return armed == LoopEdge.start
-          ? l10n.playerHintPlaceStart
-          : l10n.playerHintPlaceEnd;
-    }
-    final a = player.loopStart != null, b = player.loopEnd != null;
-    if (a) return l10n.playerHintNeedEnd;
-    if (b) return l10n.playerHintNeedStart;
-    return l10n.playerHintFlags;
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final problem = switch (player.problem) {
+    final text = switch (player.problem) {
       TrackProblem.unreadable => l10n.playerUnreadable,
       TrackProblem.missing => l10n.playerMissing,
       null => null,
     };
-    final ready = player.status == PlayerStatus.ready;
-    final String? text = problem ?? (ready ? _step(l10n) : null);
     if (text == null) return const SizedBox.shrink();
     return Semantics(
       // A fault is announced; the hint is not, it must not speak at every
       // change.
-      liveRegion: problem != null,
+      liveRegion: true,
       child: Text(
         text,
         key: PlayerPanel.messageKey,
@@ -151,18 +162,13 @@ class _MessageRow extends StatelessWidget {
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: theme.textTheme.bodyMedium?.copyWith(
-          color: problem != null
-              ? theme.colorScheme.error
-              : theme.colorScheme.onSurfaceVariant,
+          color: theme.colorScheme.error,
         ),
       ),
     );
   }
 }
 
-/// The second row: the switch that repeats the passage, the arrows that move
-/// the active flag a hundredth of a second (held, faster, then a tenth), and
-/// the speed (RF-PLY-10, RF-PLY-12).
 class _ControlRow extends StatelessWidget {
   const _ControlRow({required this.player});
 
@@ -173,61 +179,49 @@ class _ControlRow extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final ready = player.status == PlayerStatus.ready;
-    final edge = player.activeEdge;
-    final start = edge == LoopEdge.start;
-    final placed = ready && (start ? player.loopStart : player.loopEnd) != null;
-    final letter = Text(
-      start ? 'A' : 'B',
-      style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
-    );
-    Duration size(int unit) =>
-        unit == 1 ? PlayerController.fineStep : PlayerController.coarseStep;
+    final active = player.looping;
+    final pending = player.loopStart != null && !player.hasLoop;
+    final label = active
+        ? l10n.playerLoopActive
+        : player.hasLoop
+        ? l10n.playerResumeLoop
+        : pending
+        ? l10n.playerCaptureEnd
+        : l10n.playerCaptureStart;
+    final colors = LowEndColors.of(context);
+    final enabled = ready && player.duration >= PlayerController.minLoop;
     return Row(
       children: [
-        Semantics(
-          toggled: player.looping,
-          // At least a finger wide: an icon alone is narrower.
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              minWidth: kMinInteractiveDimension,
-            ),
-            child: RowButton(
+        Expanded(
+          child: Semantics(
+            toggled: player.hasLoop ? active : null,
+            child: OutlinedButton(
               key: PlayerPanel.loopSwitchKey,
-              tooltip: l10n.playerLoop,
-              // Coloured while the loop repeats.
-              filled: player.looping,
-              onPressed: ready && player.hasLoop
-                  ? () => player.setLooping(!player.looping)
-                  : null,
-              label: Icon(player.looping ? Icons.repeat_on : Icons.repeat),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(48, 52),
+                backgroundColor: active
+                    ? colors.activeFill
+                    : theme.colorScheme.surface,
+                foregroundColor: active
+                    ? colors.onActiveFill
+                    : theme.colorScheme.onSurface,
+                side: BorderSide(
+                  color: active || pending
+                      ? colors.activeFill
+                      : theme.colorScheme.outline,
+                ),
+              ),
+              onPressed: enabled ? player.captureOrToggle : null,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.repeat, size: 18),
+                  const SizedBox(width: 6),
+                  Flexible(child: Text(label, textAlign: TextAlign.center)),
+                ],
+              ),
             ),
           ),
-        ),
-        const SizedBox(width: rowGap),
-        StepButton(
-          key: PlayerPanel.earlierKey,
-          label: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [const Icon(Icons.chevron_left), letter],
-          ),
-          tooltip: start ? l10n.playerStartEarlier : l10n.playerEndEarlier,
-          onStep: placed
-              ? () => player.nudge(edge, -PlayerController.fineStep)
-              : null,
-          onHold: (unit) => player.nudge(edge, -size(unit)),
-        ),
-        const SizedBox(width: rowGap),
-        StepButton(
-          key: PlayerPanel.laterKey,
-          label: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [letter, const Icon(Icons.chevron_right)],
-          ),
-          tooltip: start ? l10n.playerStartLater : l10n.playerEndLater,
-          onStep: placed
-              ? () => player.nudge(edge, PlayerController.fineStep)
-              : null,
-          onHold: (unit) => player.nudge(edge, size(unit)),
         ),
         const SizedBox(width: rowGap),
         Expanded(
