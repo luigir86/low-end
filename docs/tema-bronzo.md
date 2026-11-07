@@ -39,4 +39,4 @@ Resta com'è: il leone in legno e bronzo su fondo scuro è già il tema.
 
 ## Migliorie comuni alle varianti
 
-Lo strobo usa ora grigi neutri (`strobeIdle`, `strobeOuter`, `strobeInner`) indipendenti da primary/secondary; parole, simboli e colori del verdetto restano invariati. Le altre miscele Wood&Brass rimangono quelle descritte sopra. Il test di avvio verifica il neutro comune, non la superficie di ciascuna variante.
+Lo strobo usa `strobeIdle` grigio a riposo, senza segnale o quando mantiene soltanto l’ultima nota. Durante una lettura attiva entrambi gli anelli usano i colori semantici del verdetto: verde entro la tolleranza, giallo fino a 15 cent e rosso oltre; la transizione dura `Durations.short4` e viene eliminata con movimento ridotto. I colori sono indipendenti da primary/secondary; parole e simboli del verdetto restano presenti. Le altre miscele Wood&Brass rimangono quelle descritte sopra. Il test di avvio verifica il neutro comune, non la superficie di ciascuna variante.
