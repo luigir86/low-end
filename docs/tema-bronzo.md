@@ -1,6 +1,6 @@
 # Tema Bronzo per Low End
 
-Stato: **nel codice**, variante interna **Wood&Brass**. Vedi [varianti-tema](specs/varianti-tema.md) e [Anthracite & Red](tema-ffm.md). Sostituisce il tema "Orchestra" (un colore per scheda, chiaro e scuro), scartato da Luigi il 17 ottobre 2026. Le schermate del negozio sono in `store/graphics/phone/<lingua>/` (`flutter test test_screenshots/store_screenshots_test.dart --update-goldens`).
+Stato: **nel codice**, variante interna **Wood&Brass**, conservata per il rollback; il tema attivo è Anthracite & Red. Vedi [varianti-tema](specs/varianti-tema.md) e [Anthracite & Red](tema-ffm.md). Sostituisce il tema "Orchestra" (un colore per scheda, chiaro e scuro), scartato da Luigi il 17 ottobre 2026. Le schermate del negozio sono in `store/graphics/phone/<lingua>/` (`flutter test test_screenshots/store_screenshots_test.dart --update-goldens`).
 
 ## 1. L'idea in una frase
 
