@@ -9,6 +9,7 @@ import '../widgets/row_controls.dart';
 import 'about.dart';
 import 'guide.dart';
 import 'settings.dart';
+import 'theme.dart';
 
 /// The settings in three groups (the whole app, the tuner, the harmony), then
 /// the thanks, the guide and the About box.
@@ -290,10 +291,19 @@ class _Section extends StatelessWidget {
       header: true,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-        child: Text(
-          title,
-          style: theme.textTheme.titleSmall?.copyWith(
-            color: theme.colorScheme.primary,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: LowEndColors.of(context).activeFill,
+            borderRadius: BorderRadius.circular(LowEndTheme.radius),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            child: Text(
+              title,
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: LowEndColors.of(context).onActiveFill,
+              ),
+            ),
           ),
         ),
       ),

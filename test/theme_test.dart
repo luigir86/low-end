@@ -74,7 +74,7 @@ void main() {
         for (final shape in [
           c.outline,
           c.secondary,
-          e.downbeat,
+          if (variant == LowEndThemeVariant.woodAndBrass) e.downbeat,
           e.strobeIdle,
           e.strobeOuter,
           e.strobeInner,
@@ -84,7 +84,11 @@ void main() {
         // The institutional red fill is identified by a readable border,
         // white label and bold type, rather than fill contrast alone.
         expect(contrast(c.outline, c.surface), greaterThanOrEqualTo(3));
-        for (final verdict in [e.inTune, e.close, e.off]) {
+        for (final verdict in [
+          e.inTune,
+          e.close,
+          if (variant == LowEndThemeVariant.woodAndBrass) e.off,
+        ]) {
           expect(contrast(verdict, e.disc), greaterThanOrEqualTo(3));
           expect(contrast(verdict, c.surface), greaterThanOrEqualTo(3));
         }
@@ -94,9 +98,20 @@ void main() {
           expect(color.r, color.g);
           expect(color.g, color.b);
         }
-        expect(e.inTune, Palette.inTune);
-        expect(e.close, Palette.close);
-        expect(e.off, Palette.off);
+        if (variant == LowEndThemeVariant.woodAndBrass) {
+          expect(e.inTune, Palette.inTune);
+          expect(e.close, Palette.close);
+          expect(e.off, Palette.off);
+        } else {
+          expect(e.off, e.activeFill);
+          expect(e.downbeat, e.activeFill);
+          expect(contrast(c.outline, e.disc), greaterThanOrEqualTo(3));
+          expect(contrast(e.onActiveFill, e.off), greaterThanOrEqualTo(4.5));
+          expect(contrast(e.onStepFill, e.stepFill), greaterThanOrEqualTo(4.5));
+          expect(e.filledSteps, isTrue);
+          expect(e.inTune, const Color(0xFF8FA891));
+          expect(e.close, const Color(0xFFC5A35A));
+        }
         expect(e.strobeInner, isNot(e.off));
       });
       test('extension copies and interpolates all semantic roles', () {
@@ -117,8 +132,11 @@ void main() {
           x.beatReceded,
           x.beatSilent,
           x.beatWeak,
+          x.stepFill,
+          x.onStepFill,
         ];
         expect(roles(e.copyWith()), roles(e));
+        expect(e.copyWith().filledSteps, e.filledSteps);
         final other = LowEndTheme.forVariant(
           variant == LowEndThemeVariant.woodAndBrass
               ? LowEndThemeVariant.anthraciteAndRed

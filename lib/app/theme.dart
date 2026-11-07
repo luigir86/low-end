@@ -58,6 +58,9 @@ class LowEndColors extends ThemeExtension<LowEndColors> {
     required this.beatReceded,
     required this.beatSilent,
     required this.beatWeak,
+    required this.stepFill,
+    required this.onStepFill,
+    this.filledSteps = false,
   });
 
   /// Semantic fills and ink, independent of the readable Material accent.
@@ -97,6 +100,11 @@ class LowEndColors extends ThemeExtension<LowEndColors> {
   /// first.
   final Color beatWeak;
 
+  /// Numeric adjustment buttons, independently of transport buttons.
+  final Color stepFill;
+  final Color onStepFill;
+  final bool filledSteps;
+
   static LowEndColors of(BuildContext context) =>
       Theme.of(context).extension<LowEndColors>()!;
 
@@ -118,6 +126,9 @@ class LowEndColors extends ThemeExtension<LowEndColors> {
     Color? beatReceded,
     Color? beatSilent,
     Color? beatWeak,
+    Color? stepFill,
+    Color? onStepFill,
+    bool? filledSteps,
   }) => LowEndColors(
     activeFill: activeFill ?? this.activeFill,
     onActiveFill: onActiveFill ?? this.onActiveFill,
@@ -135,6 +146,9 @@ class LowEndColors extends ThemeExtension<LowEndColors> {
     beatReceded: beatReceded ?? this.beatReceded,
     beatSilent: beatSilent ?? this.beatSilent,
     beatWeak: beatWeak ?? this.beatWeak,
+    stepFill: stepFill ?? this.stepFill,
+    onStepFill: onStepFill ?? this.onStepFill,
+    filledSteps: filledSteps ?? this.filledSteps,
   );
 
   @override
@@ -165,6 +179,9 @@ class LowEndColors extends ThemeExtension<LowEndColors> {
       beatReceded: Color.lerp(beatReceded, other.beatReceded, t)!,
       beatSilent: Color.lerp(beatSilent, other.beatSilent, t)!,
       beatWeak: Color.lerp(beatWeak, other.beatWeak, t)!,
+      stepFill: Color.lerp(stepFill, other.stepFill, t)!,
+      onStepFill: Color.lerp(onStepFill, other.onStepFill, t)!,
+      filledSteps: t < 0.5 ? filledSteps : other.filledSteps,
     );
   }
 }
@@ -240,6 +257,8 @@ abstract final class LowEndTheme {
         outlineVariant: tint(0.26),
       ),
       LowEndColors(
+        stepFill: Palette.ebony,
+        onStepFill: Palette.inkOnDark,
         activeFill: Palette.bronze,
         onActiveFill: Palette.walnutDeep,
         strobeIdle: const Color(0xFF777777),
@@ -267,18 +286,18 @@ abstract final class LowEndTheme {
     const disc = Color(0xFF202020);
     const red = Color(0xFFA6282C);
     const ink = Color(0xFFEFEDEA);
-    const chord = Color(0xFFB2494F);
+    const chord = Color(0xFF999999);
     const outline = Color(0xFF999999);
     return _build(
       const ColorScheme(
         brightness: Brightness.dark,
-        // Readable small text/icons; institutional red is a separate fill.
-        primary: Color(0xFFFFA2A6),
-        onPrimary: Color(0xFF242424),
+        // Readable Material text; action fills use the red semantic role.
+        primary: ink,
+        onPrimary: ground,
         primaryContainer: red,
         onPrimaryContainer: ink,
         secondary: chord,
-        onSecondary: ink,
+        onSecondary: ground,
         secondaryContainer: red,
         onSecondaryContainer: ink,
         error: Palette.off,
@@ -295,6 +314,9 @@ abstract final class LowEndTheme {
         outlineVariant: Color(0xFF484848),
       ),
       LowEndColors(
+        stepFill: const Color(0xFFD6D6D6),
+        onStepFill: const Color(0xFF242424),
+        filledSteps: true,
         activeFill: red,
         onActiveFill: ink,
         strobeIdle: const Color(0xFF777777),
@@ -303,11 +325,11 @@ abstract final class LowEndTheme {
         navigationBackground: red,
         navigationIndicator: const Color(0xFF69191C),
         navigationInk: ink,
-        inTune: Palette.inTune,
-        close: Palette.close,
-        off: Palette.off,
+        inTune: const Color(0xFF8FA891),
+        close: const Color(0xFFC5A35A),
+        off: red,
         disc: disc,
-        downbeat: const Color(0xFFE16A70),
+        downbeat: red,
         beatReceded: Color.lerp(disc, ground, 0.6)!,
         beatSilent: Color.alphaBlend(outline.withValues(alpha: 0.35), disc),
         beatWeak: Color.alphaBlend(chord.withValues(alpha: 0.6), disc),
@@ -390,7 +412,35 @@ abstract final class LowEndTheme {
       ),
       // The dot on the tab of a section that is playing: the accent, not
       // the red of an error.
-      badgeTheme: BadgeThemeData(backgroundColor: scheme.primary),
+      badgeTheme: BadgeThemeData(
+        backgroundColor: scheme.primary,
+        textColor: scheme.onPrimary,
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.disabled)
+              ? null
+              : states.contains(WidgetState.selected)
+              ? colors.activeFill
+              : scheme.outline,
+        ),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.disabled)
+              ? null
+              : states.contains(WidgetState.selected)
+              ? colors.onActiveFill
+              : null,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.disabled)
+              ? null
+              : states.contains(WidgetState.selected)
+              ? colors.activeFill
+              : null,
+        ),
+      ),
       // The menu of every list of choices (`showChoiceMenu`): round corners
       // like the buttons, on the raised surface, with no tint.
       popupMenuTheme: PopupMenuThemeData(
@@ -401,7 +451,11 @@ abstract final class LowEndTheme {
         menuPadding: const EdgeInsets.symmetric(vertical: 8),
       ),
       filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(shape: shape),
+        style: FilledButton.styleFrom(
+          shape: shape,
+          backgroundColor: colors.filledSteps ? colors.activeFill : null,
+          foregroundColor: colors.filledSteps ? colors.onActiveFill : null,
+        ),
       ),
       // Every outlined button alike: the ink of the text, a border that
       // reads on the disc, and both dimmed at the end of a range.

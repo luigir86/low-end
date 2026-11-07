@@ -108,3 +108,8 @@ The beats move inward while retaining their thickness and accents.
 Its own geometry adapts to
 the existing dial size; the central start/stop target fills the inner disc.
 The other dials and lower controls keep their positions.
+
+
+## Anthracite & Red refinement
+
+See [the approved specification](specs/rosso-coerente-cornice.md). Action fills and selected states use TAP red; readable Material text remains neutral. Numeric −/+ controls are light gray without an outline; action icons in control rows use red fills and light ink. A 48 dp red header holds Settings; bottom navigation/landscape rail stay red. Dial centres and control surfaces stay dark. The wheel shows ticks only. Tuner verdicts are palette-specific, with neutral words and redundant symbols.

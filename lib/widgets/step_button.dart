@@ -118,6 +118,7 @@ class _StepButtonState extends State<StepButton> {
           _holding = false;
         },
         child: RowButton(
+          adjustment: widget.icon == Icons.remove || widget.icon == Icons.add,
           label: widget.label ?? Icon(widget.icon, size: 24),
           // A tap steps by one; the end of a hold has already stepped.
           onPressed: onStep == null

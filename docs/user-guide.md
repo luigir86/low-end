@@ -94,3 +94,6 @@ If you **unplug the headphones** (or a Bluetooth headset goes away), the sound s
 ## Questions and problems
 
 Write to ribaluigi@gmail.com or open an issue at https://github.com/luigir86/low-end/issues.
+
+
+The red header contains Settings; the bottom navigation stays red. Dial centres and control backgrounds stay dark. The tempo wheel has ticks only; drag it or use the separate light −/+ buttons. Edit and library actions use red buttons. Tuner feedback combines sage, ochre and red with symbols and words.

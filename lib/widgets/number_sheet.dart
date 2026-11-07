@@ -137,7 +137,8 @@ class _NumberSheetState extends State<_NumberSheet> {
                 title: Text(c.title),
                 subtitle: c.subtitle == null ? null : Text(c.subtitle!),
                 selected: c.value == widget.current,
-                selectedColor: scheme.primary,
+                selectedColor: scheme.onPrimaryContainer,
+                selectedTileColor: scheme.primaryContainer,
                 trailing: c.value == widget.current
                     ? const Icon(Icons.check)
                     : null,

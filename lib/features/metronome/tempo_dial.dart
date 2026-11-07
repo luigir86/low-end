@@ -249,7 +249,6 @@ class _TempoPainter extends CustomPainter {
       ..strokeWidth = 1.2;
     for (var i = 0; i < 48; i++) {
       final angle = i * math.pi / 24 + rotation;
-      if (math.atan2(math.sin(angle), math.cos(angle)).abs() < 0.65) continue;
       final direction = Offset(math.sin(angle), -math.cos(angle));
       final length = width * (i % 4 == 0 ? 0.38 : 0.22);
       canvas.drawLine(
@@ -258,30 +257,6 @@ class _TempoPainter extends CustomPainter {
         tick,
       );
     }
-    // Relative direction cues, no thumb or fixed numeric scale.
-    for (final sign in [-1, 1]) {
-      final angle = sign * 0.44;
-      final at = center + Offset(math.sin(angle), -math.cos(angle)) * radius;
-      final reach = math.min(6.0, width * 0.2);
-      canvas.drawLine(at - Offset(reach, 0), at + Offset(reach, 0), tick);
-      if (sign > 0) {
-        canvas.drawLine(at - Offset(0, reach), at + Offset(0, reach), tick);
-      }
-    }
-    final arrow = Paint()
-      ..color = ink
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -math.pi / 2 - 0.18,
-      0.36,
-      false,
-      arrow,
-    );
-    final end = center + Offset(math.sin(0.18), -math.cos(0.18)) * radius;
-    canvas.drawLine(end, end + const Offset(-4, -3), arrow);
-    canvas.drawLine(end, end + const Offset(-4, 3), arrow);
   }
 
   @override
