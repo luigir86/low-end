@@ -12,7 +12,7 @@ Le schede in basso (a sinistra con il telefono in orizzontale) sono **Metronomo*
 - **Scorri** a destra o a sinistra per cambiare sezione. Con il telefono in orizzontale le schede passano in una colonna a sinistra e l'ingranaggio resta in alto a destra: **scorri verso l'alto o il basso** sul cerchio o sulle schede (non sulle righe a destra, che possono scorrere) per cambiare sezione. Dev'essere un gesto rapido: un trascinamento lento non fa nulla. La prima volta che giri il telefono in orizzontale un breve suggerimento lo ricorda.
 - Per le prove, **Blocca i gesti** nelle impostazioni disattiva gli scorrimenti tra le sezioni. Le schede continuano a funzionare.
 - La prima volta compare una **guida ai gesti** di una pagina; la ritrovi in *Impostazioni → Gesti e scorciatoie*.
-- Sotto ogni cerchio ci sono tre righe. Il Metronomo mostra nella prima il suggerimento della ghiera; l'Armonia la lascia vuota. Entrambi usano la seconda e la terza per i comandi, così i comandi stanno più in basso, vicino al pollice; l'accordatore le usa tutte e tre: la scala dei cent per prima, vicino allo strobo, poi il campo Strumento e il La di riferimento.
+- Sotto ogni cerchio ci sono tre righe, separate da un piccolo spazio. Il Metronomo mostra nella prima il suggerimento della ghiera; l'Armonia la lascia vuota. Entrambi usano la seconda e la terza per i comandi, così i comandi stanno più in basso, vicino al pollice; l'accordatore le usa tutte e tre: la scala dei cent per prima, vicino allo strobo, poi il campo Strumento e il La di riferimento.
 
 Il volume è quello del telefono: usa i suoi tasti.
 

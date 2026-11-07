@@ -153,6 +153,7 @@ class DialLayout extends StatelessWidget {
   /// large text a row grows and
   /// the screen scrolls.
   static const rowHeight = LowEndShape.controlRowHeight;
+  static const _rowGap = 8.0;
 
   /// Keep the three rows aligned when enlarged captions need more room.
   static double _rowExtent(BuildContext context) =>
@@ -228,8 +229,10 @@ class DialLayout extends StatelessWidget {
                   child: SectionFloat.ring(context, dial),
                 ),
                 SizedBox(height: m.gap),
-                for (final (i, row) in [header, upper, lower].indexed)
+                for (final (i, row) in [header, upper, lower].indexed) ...[
+                  if (i > 0) const SizedBox(height: _rowGap),
                   _row(context, i, row, Axis.horizontal),
+                ],
               ],
             ),
           ),
@@ -259,7 +262,7 @@ class DialLayout extends StatelessWidget {
     Size area, {
     double rowExtent = rowHeight,
   }) {
-    final room = math.max(232.0, area.height - 3 * rowExtent);
+    final room = math.max(232.0, area.height - 3 * rowExtent - 2 * _rowGap);
     final size = math.max(
       200.0,
       math.min(math.min(area.width - 32, _maxSize), room - 32),
@@ -303,7 +306,8 @@ class DialLayout extends StatelessWidget {
         // centred with every row at its minimum height, so they never move
         // between tabs; the settings button has the room above.
         final room = height - _cornerRoom - 16;
-        final top = math.max(0.0, (room - 3 * _rowExtent(context)) / 2);
+        final rowsHeight = 3 * _rowExtent(context) + 2 * _rowGap;
+        final top = math.max(0.0, (room - rowsHeight) / 2);
         return SizedBox(
           height: height,
           child: Row(
@@ -327,8 +331,14 @@ class DialLayout extends StatelessWidget {
                     child: Column(
                       children: [
                         SizedBox(height: top),
-                        for (final (i, row) in [header, upper, lower].indexed)
+                        for (final (i, row) in [
+                          header,
+                          upper,
+                          lower,
+                        ].indexed) ...[
+                          if (i > 0) const SizedBox(height: _rowGap),
                           _row(context, i, row, Axis.vertical),
+                        ],
                       ],
                     ),
                   ),

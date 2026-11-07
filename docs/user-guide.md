@@ -12,7 +12,7 @@ The tabs at the bottom (on the left when the phone is sideways) are **Metronome*
 - **Swipe** left or right to change section. With the phone turned sideways the tabs move to a column on the left and the settings gear stays top right: **swipe up or down** over the dial or the tabs (not over the rows on the right, which may scroll) to change section. It has to be a quick flick: a slow drag does nothing. The first time you turn the phone sideways a short hint says so.
 - For rehearsals, **Lock the gestures** in the settings turns off the swipes between sections. The tabs still work.
 - The first time you open the app a one-page **gesture guide** appears. It is also in *Settings → Gestures and shortcuts*.
-- Under every dial there are three rows. Metronome shows its tempo-dial hint in the first; Harmony leaves it empty. Both use the second and third for controls, so their controls sit lower, near the thumb; the tuner uses all three, with the cents scale first, next to the strobe, then the Instrument field and the reference A.
+- Under every dial there are three rows, with a small gap between them. Metronome shows its tempo-dial hint in the first; Harmony leaves it empty. Both use the second and third for controls, so their controls sit lower, near the thumb; the tuner uses all three, with the cents scale first, next to the strobe, then the Instrument field and the reference A.
 
 The volume is the phone's: use its volume keys.
 
