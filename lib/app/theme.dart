@@ -29,14 +29,12 @@ abstract final class Palette {
   static const inkOnDark = Color(0xFFEFEDEA);
   static const inkOnDarkMuted = Color(0xFFC9C5BF);
 
-  // Tuner verdicts: green, amber and a pure red, told apart from the bronze
-  // by their hue, so a verdict never reads as the app's own colour. The
-  // green leans to teal: a player who cannot tell red from green
-  // (protanopia, deuteranopia) sees it as a pale grey, not as a beige
-  // next to the bronze and the yellow.
-  static const inTune = Color(0xFF5FD7C8);
-  static const close = Color(0xFFF2DA4E);
-  static const off = Color(0xFFFF5F56);
+  static const error = Color(0xFFFF5F56);
+
+  // Warm tuner colours against the ebony dial.
+  static const inTune = Color(0xFFA4BF89);
+  static const close = Color(0xFFDCCB79);
+  static const off = Color(0xFFD98376);
 }
 
 /// Colours the Material scheme has no name for.
@@ -293,7 +291,7 @@ abstract final class LowEndTheme {
         onSecondary: _readableOn(chord),
         secondaryContainer: container,
         onSecondaryContainer: Palette.inkOnDark,
-        error: Palette.off,
+        error: Palette.error,
         onError: Palette.walnutDeep,
         surface: Palette.ebony,
         onSurface: Palette.inkOnDark,
@@ -365,7 +363,7 @@ abstract final class LowEndTheme {
         onSecondary: ground,
         secondaryContainer: accent,
         onSecondaryContainer: onAccent,
-        error: Palette.off,
+        error: Palette.error,
         onError: const Color(0xFF242424),
         surface: ground,
         onSurface: ink,
