@@ -2,7 +2,7 @@
 
 *Italiano: [manuale-utente.md](manuale-utente.md).* What every control does is also written, with a code each, in [the requirements](specs/requisiti.md) (in Italian); where this guide says something else, the requirements are right.
 
-Low End is a metronome, a piano harmony section, a tuner and a player for your own recordings in one app. It was made by an amateur double bass player with the friends from the orchestra in mind, and it is meant for every musician. It is free, shows no ads, collects nothing and needs no internet. It always has the same dark look, bronze on ebony; there is no theme to choose.
+Low End is a metronome, a piano harmony section, a tuner and a player for your own recordings in one app. It was made by an amateur double bass player with the friends from the orchestra in mind, and it is meant for every musician. It is free, shows no ads, collects nothing and needs no internet. It has a dark anthracite look with red accents and light text; there is no theme to choose.
 
 ## The four sections
 

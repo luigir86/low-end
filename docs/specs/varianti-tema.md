@@ -24,3 +24,7 @@ Contrasto e tipografia verificati per entrambe le varianti; copyWith/lerp preser
 ## Punti di integrazione
 
 `LowEndThemeVariant` e `LowEndTheme.forVariant` risiedono in `lib/app/theme.dart`. La ruota armonica e la sua legenda usano `activeFill`/`onActiveFill`; lo strobo usa i tre ruoli neutri. Il costruttore comune configura Material, barra e rail. Nessuna variante viene salvata in `AppSettings` o esposta nelle azioni.
+
+## Selezione corrente e rollback
+
+Anthracite & Red è il tema predefinito. Per tornare al precedente: impostare `LowEndTheme.variant = LowEndThemeVariant.woodAndBrass` in `lib/app/theme.dart` e ricompilare. Per ripristinare Anthracite & Red usare `LowEndThemeVariant.anthraciteAndRed`. Non cambiano preferenze, schermate o risorse di avvio.

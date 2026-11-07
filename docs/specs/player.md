@@ -98,7 +98,7 @@ Il testo che vale è in `requisiti.md`; qui solo dove si realizzano.
 
 | Posto | Senza brano | Brano aperto, bandiere non posate | Bandiere posate |
 | --- | --- | --- | --- |
-| Toro | Anello spento | Brano intero: forma d'onda, tacche, cursore | In più le bandiere A e B sul toro e, a loop acceso, il passaggio in bronzo |
+| Toro | Anello spento | Brano intero: forma d'onda, tacche, cursore | In più le bandiere A e B sul toro e, a loop acceso, il passaggio nel colore d'accento |
 | Centro | Cartella e "Scegli un brano" (apre il selettore) | Titolo e autore (se ci sono tag), tempo trascorso, "Tocca per avviare" da fermo | Uguale |
 | Angoli bassi | Niente | Bandiere A e B piene, pronte | Al loro posto la traccia tratteggiata |
 | Prima riga (`header`) | Vuota, o l'errore | Il passo successivo (sezione 5.4) | La striscia del passaggio |

@@ -171,7 +171,7 @@ class LowEndColors extends ThemeExtension<LowEndColors> {
 
 abstract final class LowEndTheme {
   /// The only product switch. Change this and rebuild to roll back.
-  static const variant = LowEndThemeVariant.woodAndBrass;
+  static const variant = LowEndThemeVariant.anthraciteAndRed;
   static final dark = forVariant(variant);
 
   static ThemeData forVariant(LowEndThemeVariant variant) => switch (variant) {

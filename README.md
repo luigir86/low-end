@@ -84,10 +84,10 @@ test_screenshots/           screenshot harness used to review every screen
 tool/                       scripts that make the icons, feature graphics and piano samples
 assets/                     piano samples, fonts and the logo
 store/                      Google Play listing: texts, graphics, checklist
-docs/                       user guide, architecture, style sheet, bronze theme, offline check, assistant actions
+docs/                       user guide, architecture, style sheet, internal themes, offline check, assistant actions
 ```
 
-All colours, shapes and text styles live in `lib/app/theme.dart` (always dark: one bronze accent on ebony, the bronze of the icon; see [docs/tema-bronzo.md](docs/tema-bronzo.md)).
+All colours, shapes and text styles live in `lib/app/theme.dart` (always dark: Anthracite & Red by default, with Wood&Brass retained internally; see [docs/specs/varianti-tema.md](docs/specs/varianti-tema.md) and [docs/tema-ffm.md](docs/tema-ffm.md)).
 
 ## Run it
 
@@ -129,7 +129,7 @@ What the app does is written once, with a code for each behaviour (`RF-ARM-07`, 
 | [docs/user-guide.md](docs/user-guide.md) (English), [docs/manuale-utente.md](docs/manuale-utente.md) (Italiano) | Players: what every control does |
 | [docs/architecture.md](docs/architecture.md) | Developers: how the app is built |
 | [docs/specs/](docs/specs/README.md) (in Italian) | Everyone who changes the app: the requirements, the architecture as it is, its evaluation and the improvement plan |
-| [docs/style.md](docs/style.md), [docs/tema-bronzo.md](docs/tema-bronzo.md) (the second in Italian) | Developers and designers: sizes, shapes and the bronze-on-ebony colours |
+| [docs/style.md](docs/style.md), [docs/tema-ffm.md](docs/tema-ffm.md) (the second in Italian) | Developers and designers: sizes, shapes and the Anthracite & Red colours |
 | [docs/offline.md](docs/offline.md) | Proof that the app needs no internet, and how to check it |
 | [docs/llm.md](docs/llm.md) | Assistants and automation: the `lowend://` actions |
 | [docs/web.md](docs/web.md) | The web app for iPhone: installing it, its limits, how it is built |

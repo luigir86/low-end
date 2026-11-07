@@ -21,7 +21,7 @@ Four sections: **Metronome**, **Harmony** (Armonia), **Player** and **Tuner**. H
 - **The Player plays alone.** `player_play` plays the track open, and pauses the metronome and Harmony if they play (the player sees a notice with a "Resume" button); `metronome_start`, `drone_play` and `tuner_start` pause the Player, without a notice. Only the person can choose the file: `player_open` opens the phone's file chooser and the answer comes when it closes. In the web app the chooser needs a touch on the page, so `player_open` fails there, and a link may not start the sound without a touch.
 - **Locking the gestures** ("Blocca i gesti" in the settings) only disables swiping between sections. Actions, including `open_section`, still work.
 - Loudness follows the phone's media volume; there is no volume or balance action. The piano (walking bass included) is in equal temperament; the held tone (style `tone`) is in pure intervals, so that it does not beat and can be tuned against.
-- The app is always dark (bronze theme); there is no theme setting.
+- The app is always dark (Anthracite & Red); there is no theme setting. The internal variant is selected only in code, not through an assistant action.
 
 ## Actions
 
