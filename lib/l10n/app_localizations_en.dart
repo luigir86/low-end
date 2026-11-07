@@ -715,9 +715,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerHintNeedEnd => 'Now bring B to where the passage ends';
 
   @override
-  String get playerHintTune => 'Fine-tune with ‹ and ›';
-
-  @override
   String get playerFlagStart => 'Flag A, start of the passage';
 
   @override

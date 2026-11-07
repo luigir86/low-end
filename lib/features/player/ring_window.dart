@@ -47,13 +47,26 @@ class RingWindow {
 
   Duration get length => to - from;
 
-  /// Where [time] sits on the ring: 0 is the top, clockwise, a whole turn
-  /// the window; a time outside it stops at its edges.
-  double angleOf(Duration time) {
+  /// How far [time] is through the window, 0 to 1; a time outside it stops
+  /// at its edges.
+  double fractionOf(Duration time) {
     if (length <= Duration.zero) return 0;
     final turn = (time - from).inMicroseconds / length.inMicroseconds;
-    return turn.clamp(0.0, 1.0) * 2 * math.pi;
+    return turn.clamp(0.0, 1.0);
   }
+
+  /// The time [fraction] of the way through the window (0 to 1): the other
+  /// way round of [fractionOf]; outside it stops at the edges.
+  Duration timeAtFraction(double fraction) =>
+      from +
+      Duration(
+        microseconds: (length.inMicroseconds * fraction.clamp(0.0, 1.0))
+            .round(),
+      );
+
+  /// Where [time] sits on the ring: 0 is the top, clockwise, a whole turn
+  /// the window; a time outside it stops at its edges.
+  double angleOf(Duration time) => fractionOf(time) * 2 * math.pi;
 
   /// The time at [angle] (0 at the top, clockwise): the other way round of
   /// [angleOf].

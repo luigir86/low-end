@@ -164,6 +164,10 @@ void main() {
         );
         await tester.pump(const Duration(milliseconds: 300));
         expect(find.bySemanticsLabel('End earlier'), findsOneWidget);
+        // With both flags on the ring the strip has a slider for each.
+        await tester.pump(const Duration(milliseconds: 600));
+        expect(find.bySemanticsLabel(RegExp(r'^Start ')), findsOneWidget);
+        expect(find.bySemanticsLabel(RegExp(r'^End \d')), findsOneWidget);
         await expectAccessible(tester);
         handle.dispose();
       },

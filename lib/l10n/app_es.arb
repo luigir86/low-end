@@ -208,7 +208,6 @@
   "playerHintPlaceEnd": "Toca el anillo donde termina el pasaje",
   "playerHintNeedStart": "Ahora lleva A adonde empieza el pasaje",
   "playerHintNeedEnd": "Ahora lleva B adonde termina el pasaje",
-  "playerHintTune": "Ajusta con ‹ y ›",
   "playerFlagStart": "Bandera A, inicio del pasaje",
   "playerFlagEnd": "Bandera B, final del pasaje"
 }

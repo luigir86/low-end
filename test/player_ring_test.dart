@@ -136,6 +136,23 @@ void main() {
       );
     });
 
+    test('fractionOf and timeAtFraction are the two ways of one map, and '
+        'stop at the edges', () {
+      final w = RingWindow(
+        const Duration(seconds: 45),
+        const Duration(seconds: 135),
+      );
+      expect(w.fractionOf(const Duration(seconds: 45)), 0);
+      expect(w.fractionOf(const Duration(seconds: 90)), 0.5);
+      expect(w.fractionOf(const Duration(seconds: 200)), 1);
+      expect(w.fractionOf(Duration.zero), 0);
+      expect(w.timeAtFraction(0.5), const Duration(seconds: 90));
+      expect(w.timeAtFraction(-1), const Duration(seconds: 45));
+      expect(w.timeAtFraction(2), const Duration(seconds: 135));
+      expect(w.angleOf(const Duration(seconds: 90)), closeTo(math.pi, 1e-9));
+      expect(RingWindow.whole(Duration.zero).fractionOf(Duration.zero), 0);
+    });
+
     test('an empty window is at the top', () {
       expect(
         RingWindow.whole(Duration.zero).angleOf(const Duration(seconds: 1)),
