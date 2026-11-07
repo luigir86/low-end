@@ -1,7 +1,8 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/home_shell.dart';
@@ -34,11 +35,14 @@ Future<AudioScope> _open(
   final settings = AppSettings()..rememberSection(AppSection.metronome);
   settings.setGesturesLocked(locked);
   await tester.pumpWidget(
-    LowEndApp(
-      settings: settings,
-      toneOutput: SilentToneOutput(),
-      clickOutput: SilentClickOutput(),
-      micInput: FakeMicInput(),
+    RepaintBoundary(
+      key: const Key('metronomeCapture'),
+      child: LowEndApp(
+        settings: settings,
+        toneOutput: SilentToneOutput(),
+        clickOutput: SilentClickOutput(),
+        micInput: FakeMicInput(),
+      ),
     ),
   );
   await tester.pumpAndSettle();
@@ -57,11 +61,16 @@ Future<void> _turn(
   WidgetTester tester,
   double sweep, {
   double start = 0,
+  double? radius,
 }) async {
-  final gesture = await tester.startGesture(_point(tester, start));
+  final gesture = await tester.startGesture(
+    _point(tester, start, radius: radius),
+  );
   final count = (sweep.abs() / (math.pi / 24)).ceil();
   for (var i = 1; i <= count; i++) {
-    await gesture.moveTo(_point(tester, start + sweep * i / count));
+    await gesture.moveTo(
+      _point(tester, start + sweep * i / count, radius: radius),
+    );
     await tester.pump(Duration(milliseconds: i < count ? 5 : 0));
   }
   await gesture.up();
@@ -69,6 +78,102 @@ Future<void> _turn(
 }
 
 void main() {
+  group('RF-MET-09 revision 2 geometry', () {
+    for (final diameter in [160.0, 200.0, 320.0, 420.0]) {
+      test('thin outer paint and separate generous hit area at $diameter', () {
+        final g = TempoDialGeometry(Size.square(diameter));
+        final oldInner = math.max(
+          g.dial.ringInner - 4 - 40,
+          g.dial.radius * 0.31,
+        );
+        expect(g.outer, g.dial.ringOuter);
+        expect(g.outer - g.inner, lessThanOrEqualTo(20));
+        expect(g.hitOuter - g.hitInner, greaterThan(g.outer - g.inner));
+        expect(g.hitOuter, lessThanOrEqualTo(g.dial.radius));
+        expect(g.hitInner, greaterThan(g.beatOuter));
+        expect(g.hubRadius, lessThan(g.beatInner));
+        expect(g.hubRadius, greaterThanOrEqualTo(oldInner));
+      });
+    }
+  });
+
+  testWidgets('dark margin of the outer wheel also adjusts tempo', (
+    tester,
+  ) async {
+    final scope = await _open(tester);
+    final g = TempoDialGeometry(tester.getSize(_dial));
+    final radius = (g.hitInner + g.inner) / 2;
+    expect(g.band.contains(g.dial.center + Offset(radius, 0)), isFalse);
+    await _turn(tester, math.pi / 2, radius: radius);
+    expect(scope.metronome.bpm, 110);
+    expect(scope.metronome.isPlaying, isFalse);
+    expect(scope.navigation.section, AppSection.metronome);
+  });
+
+  for (final label in ['1/1', '4/4', '6/8']) {
+    testWidgets('beat ring remains a start-stop control in $label', (
+      tester,
+    ) async {
+      final scope = await _open(tester);
+      scope.metronome.setSignature(
+        TimeSignature.all.firstWhere((s) => s.label == label),
+      );
+      await tester.pump();
+      final g = TempoDialGeometry(tester.getSize(_dial));
+      await tester.tapAt(
+        _point(tester, math.pi / 4, radius: (g.beatInner + g.beatOuter) / 2),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(scope.metronome.isPlaying, isTrue);
+      expect(scope.metronome.bpm, 80);
+      await tester.tapAt(tester.getCenter(_dial));
+      await tester.pump();
+      expect(scope.metronome.isPlaying, isFalse);
+      expect(scope.metronome.bpm, 80);
+    });
+  }
+
+  testWidgets(
+    'wheel remains painted after signature changes and repeated captures',
+    (tester) async {
+      final scope = await _open(tester);
+      Future<void> checkPaint() async {
+        final point = _point(tester, math.pi / 2 + math.pi / 96);
+        final boundary = tester.renderObject<RenderRepaintBoundary>(
+          find.byKey(const Key('metronomeCapture')),
+        );
+        await tester.runAsync(() async {
+          final image = await boundary.toImage(pixelRatio: 1);
+          final data = (await image.toByteData(
+            format: ui.ImageByteFormat.rawRgba,
+          ))!;
+          final pixel = (point.dy.floor() * image.width + point.dx.floor()) * 4;
+          expect(
+            data.getUint8(pixel),
+            greaterThan(130),
+            reason: 'the light outer band must remain visible',
+          );
+          image.dispose();
+        });
+      }
+
+      for (final label in ['4/4', '1/1', '6/8', '4/4']) {
+        scope.metronome.setSignature(
+          TimeSignature.all.firstWhere((s) => s.label == label),
+        );
+        await tester.pumpAndSettle();
+        await checkPaint();
+        await tester.pump(const Duration(milliseconds: 100));
+        await checkPaint();
+        await scope.metronome.start();
+        await tester.pump(const Duration(milliseconds: 100));
+        await checkPaint();
+        await scope.metronome.stop();
+        await tester.pumpAndSettle();
+      }
+    },
+  );
+
   // RF-MET-09: exercise real pointer routing inside the complete app.
   testWidgets('contact, tap and small tremor do not change or start anything', (
     tester,

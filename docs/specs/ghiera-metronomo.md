@@ -149,3 +149,28 @@ ascolto sul telefono/iPad sono ancora da provare, non dimostrati dai test.
   landscape, schermo piccolo e testo ingrandito.
 - Ripetere i test dei gesti e dell'accessibilità della prima versione.
   Sensibilità invariata: 90° = 30 BPM, ±1/TAP/matita e debounce invariati.
+
+## Implementazione della revisione 2
+
+La ghiera è ora esterna: massimo 20 dp visibili e 36 dp sensibili, con i
+battiti spostati all'interno. La geometria resta locale al Metronomo; il
+centro conserva almeno lo spazio precedente e gli altri quadranti non cambiano.
+Il margine scuro del controllo accetta la rotazione senza sovrapporsi ai
+segmenti dei battiti, che conservano avvio/stop e l'accento del primo tempo.
+
+Il disegno della fascia è separato dalla clip usata per il tocco. Un test
+controlla i pixel della fascia dopo cambi 4/4 → 1/1 → 6/8 → 4/4, catture
+ripetute e avvio/stop, così la sua visibilità non dipende solo dalle verifiche
+dei gesti. La revisione delle schermate comprende anche il 6/8 in riproduzione.
+Il generatore porta in vista le scelte del menu nei layout bassi e considera
+un errore i tocchi che non raggiungono il controllo previsto.
+
+Schermata reale della revisione 2, con metronomo fermo:
+
+![Metronomo con ghiera esterna sottile](../images/metronome-outer-tempo-dial.png)
+
+Verifiche della revisione 2: suite completa di **869 test** superata, inclusi
+24 test dedicati alla ghiera e alla sua persistenza visiva; analisi statica e
+formattazione pulite. Build web release WASM con fallback JavaScript riuscita. I comandi riproducibili restano
+quelli elencati sopra. Ergonomia e sensibilità sul dispositivo restano da
+verificare con Luigi.

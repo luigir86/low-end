@@ -130,8 +130,10 @@ class _Harness {
     await _settle();
   }
 
-  Future<void> tapText(String text) async {
-    await tester.tap(find.text(text).first);
+  Future<void> tapText(String text, {bool scrollIntoView = false}) async {
+    final target = find.text(text).first;
+    if (scrollIntoView) await tester.ensureVisible(target);
+    await tester.tap(target);
     await _settle();
   }
 
@@ -209,6 +211,12 @@ void main() {
       });
 
       testWidgets('metronome and settings', (tester) async {
+        final oldHitTestWarning = WidgetController.hitTestWarningShouldBeFatal;
+        WidgetController.hitTestWarningShouldBeFatal = true;
+        addTearDown(
+          () =>
+              WidgetController.hitTestWarningShouldBeFatal = oldHitTestWarning,
+        );
         final h = _Harness(tester, config);
         await h.start();
         await h.tab('Metronome', 'Metronomo');
@@ -219,7 +227,23 @@ void main() {
         await h.shot('metronome_1_1_idle');
         await h.tapText(h.t('Tap to start', 'Tocca per avviare'));
         await h.shot('metronome_1_1_beat');
-        await h.tapText('80');
+        await h.tester.tap(
+          find.bySemanticsLabel(
+            h.t('Stop the metronome', 'Ferma il metronomo'),
+          ),
+        );
+        await h._settle();
+        await h.tapText('1/1');
+        await h.tapText('6/8', scrollIntoView: true);
+        await h.shot('metronome_6_8_idle');
+        await h.tapText(h.t('Tap to start', 'Tocca per avviare'));
+        await h.shot('metronome_6_8_beat');
+        await h.tester.tap(
+          find.bySemanticsLabel(
+            h.t('Stop the metronome', 'Ferma il metronomo'),
+          ),
+        );
+        await h._settle();
         await h.tester.tap(find.byTooltip(h.t('Settings', 'Impostazioni')));
         await h._settle();
         await h.shot('settings_1_top');

@@ -7,19 +7,32 @@ import '../../l10n/app_localizations.dart';
 import '../../widgets/dial.dart';
 import 'metronome_controller.dart';
 
-/// The tempo control fits inside the beat ring; other dials keep their geometry.
+/// Metronome-only geometry: a thin outer wheel and beats inside it.
+/// The shared dial size and the other sections keep their geometry.
 class TempoDialGeometry {
   TempoDialGeometry(Size size) : dial = DialGeometry(size);
 
   final DialGeometry dial;
-  double get outer => dial.ringInner - 4;
-  double get inner => math.max(outer - 40, dial.radius * 0.31);
-  double get hubSize => inner * 1.65;
+  // Half the previous 40 dp visual weight; smaller dials stay proportional.
+  double get outer => dial.ringOuter;
+  double get inner => outer - math.min(20, dial.radius * 0.14);
 
-  Path get band => Path()
+  // Dark margins enlarge the drag target without painting a heavy band.
+  double get hitOuter => dial.radius;
+  double get hitInner => hitOuter - math.min(36, dial.radius * 0.23);
+  double get beatOuter => hitInner - 4;
+  double get beatInner => beatOuter - dial.ringWidth;
+  double get beatWidth => beatOuter - beatInner;
+  double get hubRadius => beatInner - 4;
+  double get hubSize => hubRadius * 1.65;
+
+  Path _annulus(double inner, double outer) => Path()
     ..fillType = PathFillType.evenOdd
     ..addOval(Rect.fromCircle(center: dial.center, radius: outer))
     ..addOval(Rect.fromCircle(center: dial.center, radius: inner));
+
+  Path get band => _annulus(inner, outer);
+  Path get hitBand => _annulus(hitInner, hitOuter);
 }
 
 /// RF-MET-09: an endless relative jog wheel, not an absolute circular slider.
@@ -47,7 +60,7 @@ class _MetronomeTempoDialState extends State<MetronomeTempoDial> {
     final geometry = TempoDialGeometry(_size);
     final point = local - geometry.dial.center;
     // The angle is undefined at the centre; re-enter without a jump.
-    if (point.distance < geometry.inner * 0.75) return null;
+    if (point.distance < geometry.hubRadius * 0.75) return null;
     return math.atan2(point.dx, -point.dy);
   }
 
@@ -75,7 +88,7 @@ class _MetronomeTempoDialState extends State<MetronomeTempoDial> {
             (-(from.dx * segment.dx + from.dy * segment.dy) /
                     segment.distanceSquared)
                 .clamp(0.0, 1.0);
-        if ((from + segment * t).distance < geometry.inner * 0.75) return;
+        if ((from + segment * t).distance < geometry.hubRadius * 0.75) return;
       }
     }
     // Shortest signed arc also works across the seam at twelve o'clock.
@@ -139,35 +152,40 @@ class _MetronomeTempoDialState extends State<MetronomeTempoDial> {
           onIncrease: increase ? () => metronome.step(1) : null,
           onDecrease: decrease ? () => metronome.step(-1) : null,
           excludeSemantics: true,
-          // Clip hit-testing as well as painting: the centre and outer beats
-          // fall through to their own start/stop controls.
-          child: ClipPath(
-            key: const Key('metronomeTempoDial'),
-            clipper: const _BandClipper(),
-            child: RawGestureDetector(
-              behavior: HitTestBehavior.opaque,
-              excludeFromSemantics: true,
-              gestures: {
-                _TempoPan: GestureRecognizerFactoryWithHandlers<_TempoPan>(
-                  _TempoPan.new,
-                  (drag) => drag
-                    ..onDown = _down
-                    ..onUpdate = _update
-                    ..onEnd = ((_) => _end())
-                    ..onCancel = _end,
-                ),
-              },
-              child: RepaintBoundary(
+          // Paint independently of the hit-test clip so the static band
+          // remains visible across signature changes and image captures.
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              IgnorePointer(
                 child: CustomPaint(
                   painter: _TempoPainter(
-                    // Neutral, conspicuous and derived from each theme.
                     fill: Color.lerp(colors.surface, colors.onSurface, 0.72)!,
                     ink: colors.surface,
                     rotation: _rotation,
                   ),
                 ),
               ),
-            ),
+              ClipPath(
+                key: const Key('metronomeTempoDial'),
+                clipper: const _BandClipper(),
+                child: RawGestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  excludeFromSemantics: true,
+                  gestures: {
+                    _TempoPan: GestureRecognizerFactoryWithHandlers<_TempoPan>(
+                      _TempoPan.new,
+                      (drag) => drag
+                        ..onDown = _down
+                        ..onUpdate = _update
+                        ..onEnd = ((_) => _end())
+                        ..onCancel = _end,
+                    ),
+                  },
+                  child: const SizedBox.expand(),
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -202,7 +220,7 @@ class _BandClipper extends CustomClipper<Path> {
   const _BandClipper();
 
   @override
-  Path getClip(Size size) => TempoDialGeometry(size).band;
+  Path getClip(Size size) => TempoDialGeometry(size).hitBand;
 
   @override
   bool shouldReclip(_BandClipper oldClipper) => false;
