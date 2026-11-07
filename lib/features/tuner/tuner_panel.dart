@@ -258,7 +258,7 @@ IconData verdictIcon(double cents, double tolerance) {
   return far ? Icons.keyboard_double_arrow_up : Icons.arrow_upward;
 }
 
-/// Green when in tune, ochre when close, red when far off: the shades live
+/// Green when in tune, yellow when close, red when far off: the shades live
 /// in lib/app/theme.dart and keep at least 3:1 contrast (WCAG 1.4.3, 1.4.11).
 Color _centsColor(ThemeData theme, double cents, double tolerance) {
   final colors = theme.extension<LowEndColors>()!;
@@ -340,7 +340,8 @@ class _StrobeDiscState extends State<_StrobeDisc>
 
   /// Turns only while a note is heard, to save battery.
   void _sync() {
-    final turning = widget.reading != null && _animate;
+    final turning =
+        widget.listening && widget.reading != null && !widget.held && _animate;
     if (turning && !_ticker.isActive) {
       _last = Duration.zero;
       _ticker.start();
@@ -369,30 +370,35 @@ class _StrobeDiscState extends State<_StrobeDisc>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final r = widget.reading;
-    // The segments keep the same colours whatever the pitch: the verdict is
-    // told by the note, its words and its arrow, and by the direction the
-    // segments turn.
-    final idle = r == null || widget.held;
-    // Neutral in both themes; pitch verdicts have their own words and symbols.
+    // The same verdict as the symbol and cents scale, on both bands.
+    // A held note is no longer heard: it must not look actively in tune.
+    final idle = !widget.listening || r == null || widget.held;
     final colors = LowEndColors.of(context);
-    final segments = idle ? colors.strobeIdle : colors.strobeOuter;
-    final innerSegments = idle ? colors.strobeIdle : colors.strobeInner;
+    final segments = idle
+        ? colors.strobeIdle
+        : _centsColor(theme, r.cents, widget.tolerance);
     return Stack(
       fit: StackFit.expand,
       children: [
         // Moves on every frame: repaint only this part of the screen.
         RepaintBoundary(
           child: ExcludeSemantics(
-            child: CustomPaint(
-              painter: _DiscPainter(
-                phase: _phase,
-                segments: segments,
-                innerSegments: innerSegments,
-                hub: theme.colorScheme.surface,
-                // A still marker for players who turned animations off.
-                stillCents: _animate ? null : r?.cents,
-                scale: theme.colorScheme.outline,
-                edge: theme.colorScheme.outline,
+            child: TweenAnimationBuilder<Color?>(
+              tween: ColorTween(begin: segments, end: segments),
+              duration: _animate ? Durations.short4 : Duration.zero,
+              curve: Easing.standard,
+              builder: (context, color, _) => CustomPaint(
+                key: const Key('tunerStrobe'),
+                painter: _DiscPainter(
+                  phase: _phase,
+                  segments: color!,
+                  innerSegments: color,
+                  hub: theme.colorScheme.surface,
+                  // A still marker for players who turned animations off.
+                  stillCents: _animate ? null : r?.cents,
+                  scale: theme.colorScheme.outline,
+                  edge: theme.colorScheme.outline,
+                ),
               ),
             ),
           ),

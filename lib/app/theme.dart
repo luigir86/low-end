@@ -390,9 +390,11 @@ abstract final class LowEndTheme {
         navigationBackground: red,
         navigationIndicator: const Color(0xFF69191C),
         navigationInk: ink,
-        inTune: const Color(0xFF8FA891),
-        close: const Color(0xFFC5A35A),
-        off: red,
+        // Pitch verdicts stay bright on the disc, independently of the
+        // institutional red used for controls and navigation.
+        inTune: Palette.inTune,
+        close: Palette.close,
+        off: Palette.off,
         disc: disc,
         downbeat: red,
         beatReceded: Color.lerp(disc, ground, 0.6)!,

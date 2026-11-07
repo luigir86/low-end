@@ -87,33 +87,25 @@ void main() {
         // The institutional red fill is identified by a readable border,
         // white label and bold type, rather than fill contrast alone.
         expect(contrast(c.outline, c.surface), greaterThanOrEqualTo(3));
-        for (final verdict in [
-          e.inTune,
-          e.close,
-          if (variant == LowEndThemeVariant.woodAndBrass) e.off,
-        ]) {
+        for (final verdict in [e.inTune, e.close, e.off]) {
           expect(contrast(verdict, e.disc), greaterThanOrEqualTo(3));
           expect(contrast(verdict, c.surface), greaterThanOrEqualTo(3));
         }
       });
-      test('strobe is neutral and verdicts remain semantic', () {
+      test('idle strobe is neutral and verdicts remain semantic', () {
         for (final color in [e.strobeIdle, e.strobeOuter]) {
           expect(color.r, color.g);
           expect(color.g, color.b);
         }
-        if (variant == LowEndThemeVariant.woodAndBrass) {
-          expect(e.inTune, Palette.inTune);
-          expect(e.close, Palette.close);
-          expect(e.off, Palette.off);
-        } else {
-          expect(e.off, e.activeFill);
+        expect(e.inTune, Palette.inTune);
+        expect(e.close, Palette.close);
+        expect(e.off, Palette.off);
+        if (variant == LowEndThemeVariant.anthraciteAndRed) {
+          expect(e.off, isNot(e.activeFill));
           expect(e.downbeat, e.activeFill);
           expect(contrast(c.outline, e.disc), greaterThanOrEqualTo(3));
-          expect(contrast(e.onActiveFill, e.off), greaterThanOrEqualTo(4.5));
           expect(contrast(e.onStepFill, e.stepFill), greaterThanOrEqualTo(4.5));
           expect(e.filledSteps, isTrue);
-          expect(e.inTune, const Color(0xFF8FA891));
-          expect(e.close, const Color(0xFFC5A35A));
         }
         expect(e.strobeInner, isNot(e.off));
       });
