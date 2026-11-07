@@ -18,3 +18,5 @@ Questa cartella è il punto di partenza per lavorare "spec-driven": prima si scr
 4. **Le decisioni prese restano scritte.** Le scelte di prodotto già fatte (niente tema chiaro, niente donazioni, niente scelta dell'ottava…) sono elencate come vincoli, così nessuno le ripropone per sbaglio.
 
 Stato dei requisiti: **✓** realizzato e coperto da test automatici; **◐** realizzato ma verificato solo a mano o in parte; **○** non realizzato o da verificare sul telefono; **?** da chiarire con Luigi.
+
+- [Varianti interne del tema](varianti-tema.md) e [Anthracite & Red](../tema-ffm.md): revisione estetica reversibile.

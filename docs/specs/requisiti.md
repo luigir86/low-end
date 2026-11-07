@@ -161,9 +161,10 @@ Azioni per assistenti (RF-LLM): `player_open`, `player_play`, `player_pause`, `p
 | RNF-FLU-01 | **Fluidità**: lo schermo non si blocca più di 100 ms per un'azione del musicista (cambio sezione, accordo, brano, tempo), né su Android né nel web; il suono non si interrompe mentre si prepara quello nuovo. | brano: corretto dalla PR #98; tempo e stile nel web ancora a rischio | ○ |
 | RNF-MEM-01 | Memoria contenuta su telefoni economici (proposta, da confermare dopo le misure: < 150 MB di picco suonando un walking di 12 battute). | mai misurata | ? |
 | RNF-DIM-01 | App leggera: pochi pacchetti, codec inutili esclusi; dimensione dell'APK per architettura da tenere sotto controllo (oggi 13 MB di campioni). Con il Player (ExoPlayer) al massimo 2,5 MB più grande di prima, da misurare al CANCELLO 3 del Player. | `pubspec.yaml` | ◐ |
-| RNF-UX-01 | **UI/UX** prima di tutto, in stile Material 3 e Android standard (durate e curve M3, pulsanti standard, menu uniformi); identità del marchio: bronzo su ebano, sempre scuro, quadrante, strobo, font Edwin. | `style_test`, `theme_test`, `choice_menu_test`, `row_heights_test` | ✓ |
+| RNF-UX-01 | **UI/UX** prima di tutto, in stile Material 3 e Android standard (durate e curve M3, pulsanti standard, menu uniformi); identità del marchio: sempre scuro, quadrante, strobo, font Edwin; palette interne Wood&Brass e Anthracite & Red. | `style_test`, `theme_test`, `choice_menu_test`, `row_heights_test` | ✓ |
 | RNF-UX-02 | Ogni testo visibile in inglese (riferimento), italiano, spagnolo e francese; niente testi o colori scritti nel codice. | `.arb`, `style_test` | ✓ |
 | RNF-UX-03 | Layout senza overflow da 320×568 al tablet, in orizzontale, testo fino a 2×, in italiano e inglese, e in francese e spagnolo (le lingue più lunghe) sui telefoni più stretti. | `review/layout_review_test`, `dial_alignment_test` | ✓ |
+| RNF-UX-04 | Due temi interni selezionati da una sola costante: Wood&Brass e Anthracite & Red; nessuna scelta utente. Layout e controlli condivisi, strobo neutro e fondo di avvio comune. Vedi `varianti-tema.md` e `../tema-ffm.md`. | `theme_test`, `style_test`, revisione visiva | ○ |
 | RNF-ACC-01 | **WCAG 2.1 AA** (volontario, Legge Stanca): etichette per lettori di schermo, bersagli di tocco, contrasto ≥ 3:1 sui controlli e 4,5:1 sul testo, colore mai unico segnale, animazioni ridotte rispettate. | `accessibility_test` | ✓ |
 | RNF-PRIV-01 | **Nessuna rete**: niente codice di rete in `lib/`, nessun permesso `INTERNET` né `ACCESS_NETWORK_STATE` in release (il secondo lo porta ExoPlayer e si toglie nel manifest), nessun dato raccolto. | `docs/offline.md`, `PRIVACY.md` | ✓ |
 | RNF-OSS-01 | **Open source MIT**; ogni componente e campione con licenza compatibile e citata (Salamander pubblico dominio, Meatbass CC0, Edwin e Noto Music OFL). | `THIRD_PARTY_NOTICES.md`, audit del 24/10 | ✓ |
@@ -189,7 +190,7 @@ Note: `dumpsys gfxinfo` non vede i frame di Flutter, quindi il blocco è misurat
 
 ## 4. Vincoli già decisi (non riproporre)
 
-Sempre tema scuro, un solo accento bronzo; niente tema chiaro né colori per sezione. Niente donazioni. Niente scelta dell'ottava, preset per basso, forme d'accordo. Strumento predefinito dell'accordatore: chitarra. Nome "Low End", pacchetto `com.luigir86.low_end` (permanente). Scheda dello store rivolta a tutti i musicisti. Niente app iOS nativa: per l'iPhone solo la web app. Il click resta quello di oggi (niente woodblock modale).
+Sempre tema scuro, un solo accento per variante interna; niente scelta utente, tema chiaro né colori per sezione. Niente donazioni. Niente scelta dell'ottava, preset per basso, forme d'accordo. Strumento predefinito dell'accordatore: chitarra. Nome "Low End", pacchetto `com.luigir86.low_end` (permanente). Scheda dello store rivolta a tutti i musicisti. Niente app iOS nativa: per l'iPhone solo la web app. Il click resta quello di oggi (niente woodblock modale).
 
 ## 5. Questioni aperte da decidere
 
