@@ -56,6 +56,9 @@ abstract final class LowEndShape {
   /// Corner radius of buttons, cards and menus.
   static const radius = 16.0;
 
+  /// Shared baseline height of the three control rows and bottom tabs.
+  static const controlRowHeight = 64.0;
+
   /// Fine rule beneath the bottom navigation, including its safe area.
   static const navigationBaseLine = 2.0;
 

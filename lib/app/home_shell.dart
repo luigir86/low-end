@@ -374,6 +374,7 @@ class _HomeShellState extends State<HomeShell> {
                     ),
                   ),
                   child: NavigationBar(
+                    height: LowEndShape.controlRowHeight,
                     animationDuration: MediaQuery.disableAnimationsOf(context)
                         ? Duration.zero
                         : Durations.medium1,

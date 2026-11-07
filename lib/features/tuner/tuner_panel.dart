@@ -811,7 +811,8 @@ class _CentsBar extends StatelessWidget {
               ],
             ),
             SizedBox(
-              height: 36,
+              // Leave room for both caption lines in the shared 64 dp row.
+              height: 24,
               width: double.infinity,
               child: CustomPaint(
                 painter: _CentsScalePainter(
