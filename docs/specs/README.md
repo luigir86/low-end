@@ -20,3 +20,4 @@ Questa cartella è il punto di partenza per lavorare "spec-driven": prima si scr
 Stato dei requisiti: **✓** realizzato e coperto da test automatici; **◐** realizzato ma verificato solo a mano o in parte; **○** non realizzato o da verificare sul telefono; **?** da chiarire con Luigi.
 
 - [Varianti interne del tema](varianti-tema.md) e [Anthracite & Red](../tema-ffm.md): revisione estetica reversibile.
+- [Ghiera del metronomo](ghiera-metronomo.md): regolazione rapida dei BPM con una fascia interna chiara (RF-MET-09).
