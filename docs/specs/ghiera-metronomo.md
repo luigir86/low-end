@@ -2,6 +2,11 @@
 
 Proposta approvata da Luigi il 7 novembre 2026. Requisito: **RF-MET-09**.
 
+**Revisione 2 — esterna sottile**, scelta da Luigi dopo la prova sul telefono.
+La prima versione interna (PR #138) era visivamente troppo tozza. Questa
+revisione sostituisce la posizione e lo spessore della fascia, conservandone
+la regolazione relativa e tutte le protezioni dei gesti.
+
 ## Problema e scelta
 
 Un musicista trova lenta la regolazione con − e + e propone passi di 5 BPM.
@@ -9,18 +14,25 @@ I pulsanti già accelerano durante la pressione lunga, ma il gesto è poco
 scopribile. Si aggiunge una ghiera per le variazioni ampie, mantenendo ±1
 per rifinire, TAP e inserimento numerico.
 
-La simulazione approvata mette la ghiera **dentro** l'anello dei battiti.
-Luigi ha poi chiesto una fascia più chiara, vicina per visibilità al TAP.
-La simulazione è un riferimento di composizione, non una schermata implementata;
-il TAP reale resta del colore previsto dal tema.
+La variante scelta è **B · Esterna sottile**: fascia chiara sul bordo esterno,
+spessa circa metà della precedente, battiti spostati all'interno e centro
+più libero. L'ingombro complessivo del quadrante e le righe dei controlli
+restano invariati. La simulazione è un riferimento visivo; la nuova PR deve
+includere una schermata renderizzata dal codice.
 
 ## Aspetto e comportamento
 
 - Fascia grigio chiaro opaco, tacche scure, centro scuro e BPM leggibili.
   Colori ricavati dal tema anche in Wood & Brass, senza nuove impostazioni.
   Il rosso resta un segnale dei battiti, non la posizione della ghiera.
-- Anello dei battiti, posizione del quadrante e righe inferiori invariati.
-  Un piccolo intervallo scuro separa la fascia dai battiti.
+- La ghiera è l'anello più esterno: tratto visibile fino a **20 dp**, contro
+  i precedenti 40 dp, proporzionato nei quadranti piccoli. Lo spazio scuro
+  adiacente amplia l'area trascinabile fino a **36 dp** senza invadere i battiti.
+- I segmenti dei battiti si spostano verso il centro, conservando spessore,
+  colori, accenti e suddivisione della misura. Un intervallo scuro separa
+  la loro area dalla zona sensibile della ghiera. Il centro guadagna spazio.
+- Geometria specifica del Metronomo: nessuna modifica agli altri quadranti,
+  al diametro complessivo o alla posizione delle righe inferiori.
 - Rotazione oraria: aumenta; antioraria: diminuisce. **90° valgono 30 BPM**,
   senza accelerazione dipendente dalla velocità. Sensibilità iniziale da
   verificare sul telefono.
@@ -33,7 +45,7 @@ il TAP reale resta del colore previsto dal tema.
   salti. Annullare termina il gesto conservando il tempo già scelto.
 - La ghiera prende il gesto prima dello swipe delle sezioni, in entrambi i
   layout. Un secondo dito non modifica il gesto in corso. Fuori dalla fascia
-  gli swipe e il tocco sull'anello esterno restano disponibili.
+  gli swipe e il tocco sull'anello dei battiti restano disponibili.
 - Il centro continua ad avviare e fermare. Il rilascio della ghiera non lo
   attiva. Una breve indicazione localizzata «Ruota per il tempo» occupa la
   riga prima vuota sotto il quadrante; niente testi sovrapposti al numero.
@@ -51,8 +63,9 @@ il TAP reale resta del colore previsto dal tema.
 
 La ghiera è uno slider distinto dal pulsante centrale: nome e suggerimento
 localizzati, valore in BPM, aumenta/diminuisci di 1 solo entro i limiti.
-−/+, TAP e matita rimangono alternative senza trascinamento. La fascia mira
-a 40 dp di spessore e si adatta ai quadranti piccoli; il centro ridimensiona
+−/+, TAP e matita rimangono alternative senza trascinamento. La fascia visibile arriva
+a 20 dp; l'area sensibile è più larga, arriva a 36 dp e si adatta ai quadranti
+piccoli senza sovrapporsi ai battiti o al centro. Il centro ridimensiona
 il contenuto senza overflow. La leggibilità e l'uso reale con TalkBack e
 VoiceOver richiedono una prova sul dispositivo.
 
@@ -88,15 +101,16 @@ basata sulla documentale. Non unire automaticamente nessuna delle due.
 Prima della pubblicazione: provare precisione con un dito, leggibilità dal
 leggio, audio con Armonia e accessibilità su Android/iPad.
 
-## Implementazione e riscontro
+## Riscontro della prima versione interna (PR #138)
 
 `lib/features/metronome/tempo_dial.dart` contiene la geometria locale,
 la fascia chiara con tacche e il riconoscitore che riserva la rotazione
-alla ghiera. Il centro e l'anello esterno mantengono avvio/stop; lo slider
+alla ghiera. Il centro e l'anello dei battiti mantengono avvio/stop; lo slider
 ha semantiche separate e usa `MetronomeController.step` anche per gli
 incrementi accessibili. Non cambia il motore audio né la scelta interna del tema.
 
-Schermata renderizzata dall'app (Anthracite & Red, italiano, metronomo fermo):
+Schermata storica della prima versione, **superata dalla revisione 2**
+(Anthracite & Red, italiano, metronomo fermo):
 
 ![Metronomo con ghiera chiara implementata](../images/metronome-tempo-dial.png)
 
@@ -123,3 +137,15 @@ resta affidata al workflow CI della PR; non è stata eseguita localmente.
 
 RF-MET-09 resta **◐**: ergonomia, sensibilità, lettori di schermo reali e
 ascolto sul telefono/iPad sono ancora da provare, non dimostrati dai test.
+
+## Criteri aggiuntivi della revisione 2
+
+- Ghiera visibile dimezzata ed esterna; nessuna seconda ghiera interna.
+- Area sensibile più larga del tratto, ma separata da battiti e centro.
+- Una rotazione iniziata nel margine scuro della ghiera regola i BPM;
+  un tocco sui battiti avvia/ferma e non regola il tempo.
+- Stesso ingombro del quadrante; il centro è almeno ampio come prima.
+- Verificare almeno 1/1, 4/4 e 6/8 (battito attivo compreso), portrait,
+  landscape, schermo piccolo e testo ingrandito.
+- Ripetere i test dei gesti e dell'accessibilità della prima versione.
+  Sensibilità invariata: 90° = 30 BPM, ±1/TAP/matita e debounce invariati.
