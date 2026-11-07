@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 
+import '../../app/style.dart';
 import '../../l10n/app_localizations.dart';
 import 'clock_text.dart';
 import 'flag_drag.dart';
@@ -29,7 +30,7 @@ class PassageStrip extends StatefulWidget {
   static const stripKey = Key('playerStrip');
 
   /// The tallest the strip is at normal text size, in logical pixels.
-  static const height = 72.0;
+  static const height = LowEndShape.controlRowHeight;
 
   /// Room on each side, so that a pole at the very start or end of the track
   /// can still be taken.
@@ -234,7 +235,7 @@ class _PassageStripState extends State<PassageStrip>
     _reduce = MediaQuery.disableAnimationsOf(context);
     final scale = MediaQuery.textScalerOf(context);
     // With large text the flags grow and the strip with them.
-    final height = math.max(PassageStrip.height, 2 * scale.scale(20) + 36);
+    final height = math.max(PassageStrip.height, 2 * scale.scale(20) + 24);
     final a = player.loopStart, b = player.loopEnd;
     return SizedBox(
       key: PassageStrip.stripKey,
