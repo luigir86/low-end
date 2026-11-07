@@ -7,7 +7,7 @@ L'antracite domina; rosso FFM `#A6282C` su barra di navigazione, TAP e selezioni
 | Ruolo | Trattamento |
 | --- | --- |
 | Fondo e superfici | Antracite neutro, con livelli di elevazione scuri |
-| Barra e TAP | Rosso FFM, scritte quasi bianche (circa 6,79:1) |
+| Barra e TAP | Rosso FFM, scritte quasi bianche (circa 6,07:1) |
 | Nota selezionata | Rosso FFM con testo chiaro e contorno leggibile |
 | Accento per testo e piccole icone | Variante rossa schiarita per almeno 4,5:1 sulle superfici |
 | Battiti attivi e altre note dell'accordo | Rossi graduati, almeno 3:1 sul disco |

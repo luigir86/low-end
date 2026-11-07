@@ -20,3 +20,7 @@ Tre PR in ordine: questa specifica documentale; gestione interna con entrambe le
 ## Criteri di accettazione
 
 Contrasto e tipografia verificati per entrambe le varianti; copyWith/lerp preservano tutti i ruoli. Nessuna modifica alle impostazioni o agli strumenti audio. Test di accessibilità, regressioni e layout esistenti superati; screenshot di revisione e build web controllati. La verifica su telefono dei colori e delle barre di sistema resta da fare prima della pubblicazione sullo store.
+
+## Punti di integrazione
+
+`LowEndThemeVariant` e `LowEndTheme.forVariant` risiedono in `lib/app/theme.dart`. La ruota armonica e la sua legenda usano `activeFill`/`onActiveFill`; lo strobo usa i tre ruoli neutri. Il costruttore comune configura Material, barra e rail. Nessuna variante viene salvata in `AppSettings` o esposta nelle azioni.

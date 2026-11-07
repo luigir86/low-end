@@ -24,7 +24,7 @@ Keep the app light: please discuss in an issue before adding a new package, and 
 
 ## Look and feel
 
-All colours, shapes and text styles live in `lib/app/theme.dart` and `lib/app/style.dart`: the bronze accent of the icon on ebony (the app is always dark, with no theme to choose; see [docs/tema-bronzo.md](docs/tema-bronzo.md), in Italian), and the tuner verdict colours. [docs/style.md](docs/style.md) is the style sheet: sizes, shapes and the layout of the three sections. Screens take them from the theme (`Theme.of(context)`, `LowEndColors.of(context)`) and never write a colour of their own. If you change the background colours, change `android/app/src/main/res/values/colors.xml` too: `test/theme_test.dart` checks they match.
+All colours, shapes and text styles live in `lib/app/theme.dart` and `lib/app/style.dart`: two internal palettes, Wood&Brass and Anthracite & Red (the app is always dark, with no theme to choose; see [docs/specs/varianti-tema.md](docs/specs/varianti-tema.md), in Italian), and the tuner verdict colours. [docs/style.md](docs/style.md) is the style sheet: sizes, shapes and the layout of the three sections. Screens take them from the theme (`Theme.of(context)`, `LowEndColors.of(context)`) and never write a colour of their own. Change `LowEndTheme.variant` and rebuild to switch the product palette. Android and web use the shared `Palette.startup` background: `test/theme_test.dart` checks it independently of the variant and checks both palettes for contrast.
 
 ## Accessibility
 

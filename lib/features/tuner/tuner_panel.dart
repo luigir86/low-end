@@ -373,15 +373,10 @@ class _StrobeDiscState extends State<_StrobeDisc>
     // told by the note, its words and its arrow, and by the direction the
     // segments turn.
     final idle = r == null || widget.held;
-    // Hearing a note: the inner band, which turns twice as fast and next to
-    // the note, in the full accent; the outer one in the colour of a chord's
-    // other notes, as on the other dials.
-    final segments = idle
-        ? theme.colorScheme.outlineVariant
-        : theme.colorScheme.secondary;
-    final innerSegments = idle
-        ? theme.colorScheme.outlineVariant
-        : theme.colorScheme.primary;
+    // Neutral in both themes; pitch verdicts have their own words and symbols.
+    final colors = LowEndColors.of(context);
+    final segments = idle ? colors.strobeIdle : colors.strobeOuter;
+    final innerSegments = idle ? colors.strobeIdle : colors.strobeInner;
     return Stack(
       fit: StackFit.expand,
       children: [

@@ -40,20 +40,20 @@ Rules: pick a role, never a number; the three dials show their value in `display
 
 ## Colour
 
-Bronze on ebony (full notes in [tema-bronzo.md](tema-bronzo.md)): always dark, no choice of theme, and one accent for the whole app, the honey bronze of the lion on the icon. Everything else is neutral and everything is flat: no gradients, no sheen. Every other shade is the bronze mixed into the ebony (`LowEndTheme.tint`), so the three tabs look like one app and are told apart by their icons, names and dials.
+The app is always dark. Two palettes are selected internally with one constant, never by the player: **Wood&Brass** and **Anthracite & Red** ([variant contract](specs/varianti-tema.md), [redesign](tema-ffm.md), [legacy palette](tema-bronzo.md)). Both share the same component builder, Edwin, shapes, sizes and layouts. Flat fills, no gradients or sheen.
 
-| Meaning | Colour |
+| Meaning | Theme role |
 | --- | --- |
-| Surface, text, muted text | ebony `ebony`, `inkOnDark`, `inkOnDarkMuted` with a quarter of bronze |
-| Accent (the lit "one", the note sounding on the harmony, the borders) | bronze `#D4A373` |
-| Shades of the accent | the bronze mixed into the ebony: disc 10 % (`LowEndColors.disc`), keys and beats that are off 26 %, TAP and the selected tab's indicator 20 %, the rest of a chord, the metronome's other lit beats and the strobe's outer band 58 % (`secondary`: 3 : 1 on the disc, 4.5 : 1 under the light ink), borders 75 %; the strobe's inner band, the fast one next to the note, is the full bronze. While the metronome plays, its unlit beats recede into the disc as the harmony's silent notes do (`beatReceded`), a beat left silent only glows (`beatSilent`) and the weak pulses of a 6/8 group are softer (`beatWeak`): named in `LowEndColors`, never an opacity written in a screen |
-| The metronome's "one" | the accent at full strength, and wider than the other beats (it fills the ring's margins), so it is told by its shape too |
-| Choices of a segmented button (the transposition in the settings) | the chosen one filled, in ink; the others in the muted ink, never in the accent |
-| Icons and text on the row of controls | the ink of the text, with a border in `outline` (dimmed with the button at the end of a range); every outlined button of the app takes this from `outlinedButtonTheme` |
-| Tuner verdict | in tune teal green, close yellow, off pure red (`inTune`, `close`, `off`), on the verdict words and their tick or arrows, and on the needle of the cents scale and its stretch of axis (the note itself is in ink, like the middle of every dial), always with a shape as well: a tick in tune, one arrow close, two arrows far off. The green leans to teal so that protanopes and deuteranopes see it as a pale grey, not as a beige next to the bronze and the yellow. They are never the bronze: the yellow is at least 20 degrees of hue away from it |
-| The functions of a progression (harmony) | its Roman numerals (I, II, V) written small on the notes they stand on, and still while it plays; nothing moves to say what is next |
+| Small accent text/icons | `ColorScheme.primary`, light enough for text contrast |
+| Selected harmony root and its text | `LowEndColors.activeFill` / `onActiveFill` |
+| Other chord notes and lit beats | `secondary`; the first beat is `downbeat` and remains wider |
+| TAP / selected segmented controls | `primaryContainer` / `onPrimaryContainer` |
+| Inactive segments / borders | `outlineVariant` / `outline` |
+| Navigation bar and rail | `navigationBackground`, `navigationIndicator`, `navigationInk` |
+| Strobe | Neutral `strobeIdle`, `strobeOuter`, `strobeInner`, independent of verdicts |
+| Tuner verdict | Common teal, yellow and pure red; words, tick/arrows and cents needle, never colour alone |
 
-All text and shapes keep at least 4.5:1 / 3:1 contrast (`theme_test.dart`, `accessibility_test.dart`).
+In Anthracite & Red the institutional red `#A6282C` is a fill, while small accent text uses a lighter red. The root's light text, bold weight and neutral border identify the selected segment. Wood&Brass preserves its legacy mixtures; both gain the neutral strobe and shared startup background. `theme_test.dart` checks text at 4.5:1 and informative shapes at 3:1 for both variants. Beats left silent, weak pulses and receding beats retain named roles, with no theme conditionals in screens. Roman numerals stay on the notes they represent.
 
 ## Landscape
 

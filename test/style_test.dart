@@ -6,7 +6,7 @@ import 'package:low_end/app/theme.dart';
 
 void main() {
   test('no text in the theme is smaller than the style sheet allows', () {
-    for (final theme in [LowEndTheme.dark]) {
+    for (final theme in LowEndThemeVariant.values.map(LowEndTheme.forVariant)) {
       final t = theme.textTheme;
       for (final style in [
         t.displayMedium,

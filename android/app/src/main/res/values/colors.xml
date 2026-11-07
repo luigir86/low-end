@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Same as Palette.ebony in lib/app/theme.dart: the app is always dark, so opening it shows no flash before the first frame. -->
-    <color name="launch_background">#141312</color>
+    <!-- Same as Palette.startup in lib/app/theme.dart: a neutral pre-Flutter background shared by both dark variants. -->
+    <color name="launch_background">#181818</color>
 </resources>
