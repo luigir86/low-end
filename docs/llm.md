@@ -39,6 +39,7 @@ Four sections: **Metronome**, **Harmony** (Armonia), **Player** and **Tuner**. H
 | `player_loop` | `start`, `end` in seconds (both or neither) | Repeats the track between `start` and `end` (at least 1 s apart; put in order and kept within the track) and plays from `start` if it was playing. Without arguments turns the loop back on between the points already marked |
 | `player_mark` | `edge`: `start` or `end` (required) | Marks A or B at the point being heard, less 150 ms times the speed (the person's reaction), like a screen reader's "Mark the start here" / "Mark the end here" (on the ring and on the flags A and B). A point marked past the other one clears the other; once both are marked the loop turns on and plays from `start` |
 | `player_loop_nudge` | `edge` (required), `seconds` (required, -10 to 10, decimals allowed) | Moves A or B, e.g. -0.01 (the − and + under the dial move it by 0.01 s). Each point stops at its limit (the ends of the track, or 1 s from the other point) and does not push the other. Fails if that point is not marked |
+| `player_loop_clear` | none | Clears both marks for a new passage |
 | `player_loop_off` | none | Turns the loop off; A and B stay marked |
 | `drone_play` | all optional: `song`, `note`, `voicing`, `chord`, `progression`, `style`, `held_tone`, `flat` | Opens Harmony, applies the arguments and plays the piano if it was not playing (if it was, only the arguments change). See below for the values |
 | `drone_stop` | none | Stops Harmony, also during the countdown |

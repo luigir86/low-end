@@ -15,11 +15,8 @@ import 'player_controller.dart';
 import 'ring_window.dart';
 import 'track_peaks.dart';
 
-/// The passage between the flags A and B, as a straight strip with the wave
-/// of just that stretch (RF-PLY-17): the zoom of the ring, which always shows
-/// the whole track. The poles of the flags are dragged to ear-tune the passage
-/// (with the arrows, to the hundredth); a touch anywhere else moves the
-/// listening point.
+/// A full-track waveform that zooms to the marked passage (RF-PLY-17).
+/// Drag a handle to refine an endpoint or tap the waveform to seek.
 class PassageStrip extends StatefulWidget {
   const PassageStrip({super.key, required this.player});
 
@@ -107,7 +104,7 @@ class _PassageStripState extends State<PassageStrip>
   RingWindow _wanted() {
     final player = widget.player;
     final a = player.loopStart, b = player.loopEnd;
-    if (a == null || b == null) return _from;
+    if (a == null || b == null) return RingWindow.whole(player.duration);
     return RingWindow.passage(a, b, player.duration);
   }
 
@@ -406,6 +403,14 @@ class _StripPainter extends CustomPainter {
     if (window.length <= Duration.zero) return;
     final inner = size.width - 2 * PassageStrip.margin;
     double x(Duration t) => PassageStrip.margin + window.fractionOf(t) * inner;
+
+    if (start != null && end != null) {
+      canvas.drawRect(
+        Rect.fromLTRB(x(start!), 0, x(end!), size.height),
+        Paint()
+          ..color = colors.primary.withValues(alpha: looping ? 0.28 : 0.08),
+      );
+    }
 
     // The ticks, on the top edge, on the true multiples of the track.
     final ticks = Paint()

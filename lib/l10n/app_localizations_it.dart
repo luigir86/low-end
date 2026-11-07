@@ -679,6 +679,21 @@ class AppLocalizationsIt extends AppLocalizations {
   String get playerSpeedTitle => 'Velocità di ascolto';
 
   @override
+  String get playerCaptureStart => 'Segna inizio';
+
+  @override
+  String get playerCaptureEnd => 'Segna fine';
+
+  @override
+  String get playerLoopActive => 'Loop attivo';
+
+  @override
+  String get playerResumeLoop => 'Riattiva loop';
+
+  @override
+  String get playerNewPassage => 'Nuovo passaggio';
+
+  @override
   String get playerLoop => 'Loop';
 
   @override
@@ -711,7 +726,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get guidePlayerLoop =>
-      'In Ascolto porta le bandiere A e B sul cerchio per ripetere un passaggio.';
+      'In Ascolto tocca Segna inizio e Segna fine mentre ascolti. Trascina le aste sulla forma d’onda per rifinire il passaggio.';
 
   @override
   String get playerHintFlags =>

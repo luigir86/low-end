@@ -679,6 +679,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String get playerSpeedTitle => 'Velocidad de escucha';
 
   @override
+  String get playerCaptureStart => 'Marcar inicio';
+
+  @override
+  String get playerCaptureEnd => 'Marcar fin';
+
+  @override
+  String get playerLoopActive => 'Bucle activo';
+
+  @override
+  String get playerResumeLoop => 'Reactivar bucle';
+
+  @override
+  String get playerNewPassage => 'Nuevo pasaje';
+
+  @override
   String get playerLoop => 'Bucle';
 
   @override
@@ -711,7 +726,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get guidePlayerLoop =>
-      'En Escucha, lleva las banderas A y B al círculo para repetir un pasaje.';
+      'En el reproductor, marca el inicio y el fin mientras escuchas. Ajusta el pasaje en la forma de onda.';
 
   @override
   String get playerHintFlags =>

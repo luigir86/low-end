@@ -285,9 +285,6 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     _navigation.tunerVisible ? _tuner.resume() : _tuner.stop();
     if (_navigation.section == AppSection.player) {
       _player.activate();
-    } else {
-      // A flag waiting for a touch on the ring does not wait across tabs.
-      _player.disarm();
     }
     _settings.rememberSection(_navigation.section);
     _preparePiano();

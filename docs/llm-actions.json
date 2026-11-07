@@ -477,6 +477,15 @@
     }
   },
   {
+    "name": "player_loop_clear",
+    "description": "Clears both passage marks so a new passage can be captured.",
+    "input_schema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
     "name": "set_reference_pitch",
     "description": "Sets the frequency of A4, shared by the tuner and the drone, and saves it in the settings. Whole hertz only.",
     "input_schema": {

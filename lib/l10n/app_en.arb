@@ -463,6 +463,11 @@
   "@playerSpeedTitle": {
     "description": "Title of the sheet where the person types the listening speed in percent."
   },
+  "playerCaptureStart": "Mark start",
+  "playerCaptureEnd": "Mark end",
+  "playerLoopActive": "Loop active",
+  "playerResumeLoop": "Resume loop",
+  "playerNewPassage": "New passage",
   "playerLoop": "Loop",
   "@playerLoop": {
     "description": "Name of the switch that repeats the stretch between the points A and B of the track. Short."
@@ -509,7 +514,7 @@
   "@playerEndLater": {
     "description": "Screen reader name of the + button when the end of the loop is chosen: it moves point B later."
   },
-  "guidePlayerLoop": "In the Player, drag the flags A and B onto the circle to loop a passage.",
+  "guidePlayerLoop": "In Player, tap Mark start and Mark end while listening. Drag the waveform handles to refine the passage.",
   "@guidePlayerLoop": {
     "description": "A line of the first-launch guide. The name of the Player tab (Ascolto in Italian) must match playerTab."
   },

@@ -2,6 +2,8 @@
 
 Il terzo tab di Low End: un brano proprio, rallentato senza cambiare intonazione, con un passaggio che si ripete. Questo file dice **come** si costruisce e in quali passi; **cosa** l'app deve fare sta in [requisiti.md](requisiti.md), sezione 2.10 (codici RF-PLY). Se i due file dicono cose diverse vale `requisiti.md`, e questo file va corretto.
 
+**Revisione 4, 7 novembre.** La sezione 2.10 di requisiti.md e il manuale descrivono il Player attuale: cattura A–B con due tocchi, arco sul quadrante, forma d’onda sempre disponibile con un brano caricato, Loop e Velocità sulla seconda riga e Brano sulla terza. Le sezioni seguenti conservano il piano storico della revisione 3.
+
 Revisione 3, 6 novembre 2026 sera: rivede la scelta del passaggio dopo la seconda prova di Luigi (su `main` fino alla PR #129). Valuta la sua proposta (bandiere A e B, striscia dritta della forma d'onda sotto il quadrante, niente zoom sul toro), dice cosa conviene tenere e come costruirlo. Le revisioni 1 e 2 sono nella storia di git di questo file.
 
 ## 1. Come si usa

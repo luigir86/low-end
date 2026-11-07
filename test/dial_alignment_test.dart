@@ -75,7 +75,7 @@ void main() {
 
   Future<List<List<Rect>>> allTabs(WidgetTester tester) async {
     final all = <List<Rect>>[];
-    for (final tab in ['Metronome', 'Harmony', 'Tuner']) {
+    for (final tab in ['Metronome', 'Harmony', 'Player', 'Tuner']) {
       final rail = find.byKey(const Key('tabRail'));
       await tester.tap(
         rail.evaluate().isEmpty
@@ -105,7 +105,7 @@ void main() {
       final tabs = await allTabs(tester);
       for (final g in tabs) {
         expect(g.length, 4);
-        expect(g[0].center.dy, tabs[0][0].center.dy);
+        expect(g[0].center, tabs[0][0].center);
         expect(g[0].size, tabs[0][0].size);
         for (var i = 1; i < 4; i++) {
           expect(g[i].top, tabs[0][i].top, reason: 'row $i');
@@ -134,7 +134,7 @@ void main() {
     await open(tester, const Size(390, 844), 1.0);
     final tabs = await allTabs(tester);
     // allTabs leaves the tuner open; check it first, then go back.
-    final tuner = tabs[2];
+    final tuner = tabs[3];
     await tester.pumpAndSettle();
     final hint = tester.getRect(find.text('Cents').last);
     expect(hint.center.dy, inInclusiveRange(tuner[1].top, tuner[1].bottom));
@@ -169,8 +169,8 @@ void main() {
       mic: FakeMicInput(allowed: false),
     );
     final tabs = await allTabs(tester);
-    expect(tabs[2][0].center.dy, tabs[0][0].center.dy);
-    expect(tabs[2][0].size, tabs[0][0].size);
+    expect(tabs[3][0].center.dy, tabs[0][0].center.dy);
+    expect(tabs[3][0].size, tabs[0][0].size);
   });
 
   testWidgets('landscape: dial on the left, three equal rows to its right', (
