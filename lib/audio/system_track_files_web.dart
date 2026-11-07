@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
 import 'package:web/web.dart' as web;
@@ -8,6 +9,7 @@ import 'package:flutter/foundation.dart';
 
 import '../features/player/track_tags.dart';
 import 'track_files.dart';
+import 'recorded_track.dart';
 import 'track_output.dart';
 import 'web_peaks_limits.dart';
 
@@ -16,6 +18,49 @@ external JSFunction? get _peaksFunction;
 
 /// See system_track_files.dart.
 TrackFiles systemTrackFiles() => WebTrackFiles();
+
+final _takes = <String, web.File>{};
+Future<String> recordingPath(String name) async => name;
+
+Future<RecordedTrack> recordedTrack(String url, String name) async {
+  try {
+    final response = await web.window.fetch(url.toJS).toDart;
+    final blob = await response.blob().toDart;
+    _takes[url] = web.File(
+      [blob].toJS,
+      name,
+      web.FilePropertyBag(type: 'audio/wav'),
+    );
+    return RecordedTrack(uri: url, name: name);
+  } catch (_) {
+    web.URL.revokeObjectURL(url);
+    rethrow;
+  }
+}
+
+Future<bool> saveRecording(RecordedTrack track) async {
+  final link = web.HTMLAnchorElement()
+    ..href = track.uri
+    ..download = track.name;
+  link.click();
+  return true;
+}
+
+Future<bool> shareRecording(RecordedTrack track) async {
+  final data = web.ShareData(
+    files: [_takes[track.uri]!].toJS,
+    title: track.baseName,
+  );
+  final navigator = web.window.navigator;
+  if (!navigator.has('canShare') || !navigator.canShare(data)) return false;
+  try {
+    await navigator.share(data).toDart;
+  } catch (error) {
+    if (error.toString().contains('AbortError')) return true;
+    rethrow;
+  }
+  return true;
+}
 
 /// [TrackFiles] from the browser's file chooser. The file becomes a `blob:`
 /// address the audio element plays; it lasts as long as the page.
@@ -91,7 +136,7 @@ class WebTrackFiles implements TrackFiles {
     TrackRef track, {
     required Duration duration,
   }) async* {
-    final file = _files[track.uri];
+    final file = _files[track.uri] ?? _takes[track.uri];
     final read = _peaksFunction;
     if (file == null ||
         read == null ||
@@ -112,6 +157,7 @@ class WebTrackFiles implements TrackFiles {
   @override
   Future<void> release(TrackRef track) async {
     _files.remove(track.uri);
+    _takes.remove(track.uri);
     web.URL.revokeObjectURL(track.uri);
   }
 }

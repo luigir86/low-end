@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 
 import '../../audio/sound_section.dart';
+import '../../audio/recorded_track.dart';
 import '../../audio/track_files.dart';
 import '../../audio/track_output.dart';
 import 'player_setup.dart';
@@ -134,7 +135,10 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   /// What is kept for the next launch; null with no track.
   PlayerSetup? get setup {
     final track = _track;
-    if (track == null || _status != PlayerStatus.ready) return null;
+    if (track == null ||
+        track is RecordedTrack ||
+        _status != PlayerStatus.ready)
+      return null;
     return PlayerSetup(
       track: track,
       duration: _duration,
@@ -629,6 +633,8 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     _events.cancel();
     _interruptions.close();
     // The right to read the file is kept: the track is remembered.
+    final track = _track;
+    if (track is RecordedTrack) unawaited(_files.release(track));
     unawaited(_output.close());
     super.dispose();
   }

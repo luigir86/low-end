@@ -27,6 +27,7 @@ class MainActivity : AudioServiceActivity() {
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         TrackFiles.onActivityResult(requestCode, resultCode, data)
+        TakeFiles.onResult(this, requestCode, resultCode, data)
         @Suppress("DEPRECATION")
         super.onActivityResult(requestCode, resultCode, data)
     }
@@ -35,6 +36,7 @@ class MainActivity : AudioServiceActivity() {
         super.configureFlutterEngine(flutterEngine)
         AudioRoute.attach(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
         TrackFiles.attach(this, flutterEngine.dartExecutor.binaryMessenger)
+        TakeFiles.attach(this, flutterEngine.dartExecutor.binaryMessenger)
         TrackPeaks.attach(this, flutterEngine.dartExecutor.binaryMessenger)
         // Android 13+ shows the notification only if the user allows it.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "low_end/notifications")

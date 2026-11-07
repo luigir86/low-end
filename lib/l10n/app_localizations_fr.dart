@@ -10,6 +10,46 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
+  String get takeRecord => 'Enregistrer';
+
+  @override
+  String get takeStop => 'Arrêter';
+
+  @override
+  String get takeRecording => 'Enregistrement';
+
+  @override
+  String get takeTemporary => 'Temporaire';
+
+  @override
+  String get takeSave => 'Sauvegarder';
+
+  @override
+  String get takeShare => 'Partager';
+
+  @override
+  String get takeReplaceQuestion => 'Remplacer l’enregistrement temporaire ?';
+
+  @override
+  String get takeKeep => 'Garder';
+
+  @override
+  String get takeReplace => 'Remplacer';
+
+  @override
+  String get takeError => 'L’opération audio a échoué. Réessayez.';
+
+  @override
+  String get takeShareUnavailable =>
+      'Ce navigateur ne peut pas partager de fichiers audio. Sauvegardez le fichier puis joignez-le dans WhatsApp.';
+
+  @override
+  String get takeSaved => 'Sauvegardé';
+
+  @override
+  String get takeStarting => 'Activation du micro…';
+
+  @override
   String get appTitle => 'Low End';
 
   @override
@@ -333,7 +373,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get aboutDescription =>
-      'Métronome, harmonie et accordeur pour musiciens. Créée par un contrebassiste amateur en pensant aux amis de l’orchestre, et utile à tous. Low End fonctionne hors ligne : le micro n’est utilisé que pendant que l’accordeur écoute, et aucun son ni aucune donnée ne quitte votre téléphone.';
+      'Métronome, harmonie et accordeur pour musiciens. Créée par un contrebassiste amateur en pensant aux amis de l’orchestre, et utile à tous. Low End fonctionne hors ligne. L’accordeur écoute sur votre appareil. Dans le lecteur, vous pouvez enregistrer, sauvegarder et partager votre audio.';
 
   @override
   String get aboutPiano =>
