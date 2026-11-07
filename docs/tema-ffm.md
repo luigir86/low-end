@@ -1,6 +1,6 @@
 # Anthracite & Red — revisione estetica Low End
 
-**Aggiornamento:** il [colore d’accento unico](specs/colore-accento.md) mantiene questa struttura con ottone predefinito e rosso FFM disponibile.
+**Aggiornamento:** il [colore d’accento unico](specs/colore-accento.md) mantiene questa struttura con rosso FFM predefinito e ottone disponibile.
 
 Specifica della proposta approvata il 7 novembre 2026. La gestione interna è descritta in [varianti-tema](specs/varianti-tema.md).
 

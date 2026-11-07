@@ -5,9 +5,8 @@ Decisione di Luigi del 7 novembre 2026, successiva alla revisione Anthracite & R
 ## Scelta e superfici
 
 `LowEndBrand.accent` in `lib/app/brand.dart` è l’unica scelta cromatica del tema
-corrente, **Anthracite & Accent**. Il default è `brass` (`#B69A58`); `ffmRed`
-(`#A6282C`) conserva esattamente il rosso FFM precedente. Per confrontarli basta
-cambiare `static const accent = brass;` in `static const accent = ffmRed;`.
+corrente, **Anthracite & Accent**. Il colore predefinito è `ffmRed` (`#A6282C`). Per provare l’ottone
+(`#B69A58`), assegnare `brass` a `LowEndBrand.accent`.
 
 L’accento governa riempimenti attivi, TAP, selezioni, battiti, Player, cornice,
 indicatori di riproduzione, navigazione, icona e avvio Android/web/Flutter.

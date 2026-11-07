@@ -7,8 +7,8 @@ abstract final class LowEndBrand {
   static const ffmRed = Color(0xFFA6282C);
   static const brass = Color(0xFFB69A58);
 
-  /// The only colour choice: use ffmRed to restore the FFM accent.
-  static const accent = brass;
+  /// Shared by the theme and the generated brand assets.
+  static const accent = ffmRed;
 
   static const ivory = Color(0xFFFFF5E3);
   static const mark = 'assets/brand/mark.png';

@@ -3,8 +3,8 @@
 ## Aggiornamento corrente — accento unico
 
 La [specifica del colore d’accento](colore-accento.md) aggiorna questa proposta:
-il tema corrente si chiama **Anthracite & Accent**, con ottone predefinito e
-rosso FFM conservato. `LowEndBrand.accent` governa anche marchio e avvio;
+il tema corrente si chiama **Anthracite & Accent**, con rosso FFM predefinito e
+ottone disponibile. `LowEndBrand.accent` governa anche marchio e avvio;
 `LowEndThemeVariant.anthraciteAndAccent` è la variante corrente. Le descrizioni
 Anthracite & Red seguenti documentano la decisione iniziale.
 

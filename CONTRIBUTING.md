@@ -24,7 +24,7 @@ Keep the app light: please discuss in an issue before adding a new package, and 
 
 ## Look and feel
 
-All colours, shapes and text styles live in `lib/app/theme.dart` and `lib/app/style.dart`. The current **Anthracite & Accent** palette keeps anthracite and light grey fixed; its one colour choice is `LowEndBrand.accent` in `lib/app/brand.dart`, defaulting to `brass` (`#B69A58`). `ffmRed` (`#A6282C`) is preserved: assign it to `accent` to try the previous red. Text on the accent and selected navigation text adapt for contrast. Tuner verdict colours remain semantic and independent. No theme setting is exposed to users.
+All colours, shapes and text styles live in `lib/app/theme.dart` and `lib/app/style.dart`. The current **Anthracite & Accent** palette keeps anthracite and light grey fixed; its one colour choice is `LowEndBrand.accent` in `lib/app/brand.dart`, defaulting to `ffmRed` (`#A6282C`). Assign `brass` to `accent` to use the brass variant. Text on the accent and selected navigation text adapt for contrast. Tuner verdict colours remain semantic and independent. No theme setting is exposed to users.
 
 After changing the accent, run `flutter test tool/make_icons_test.dart` **before any local run/build/test**. It regenerates launcher/PWA/store icons, native Android backgrounds, HTML loader and manifest from the same constant as Flutter startup and controls. CI and Pages run this automatically, so a future colour-only PR can change just the constant. Generated files are also checked in as a convenient local starting point; regenerate after a colour-only pull. The approved ivory lion silhouette is unchanged.
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Generated from LowEndBrand.accent by tool/make_icons_test.dart. -->
-    <color name="launch_background">#B69A58</color>
+    <color name="launch_background">#A6282C</color>
     <color name="app_background">#181818</color>
 </resources>
