@@ -72,6 +72,8 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
+      # Generate native/web colours and icons from the single Dart accent.
+      - run: flutter test tool/make_icons_test.dart
       - run: dart format --output=none --set-exit-if-changed lib test
       - run: flutter analyze
       - run: flutter test
@@ -96,6 +98,8 @@ jobs:
       # read by pull requests).
       - uses: gradle/actions/setup-gradle@v4
       - run: flutter pub get
+      # Generate native/web colours and icons from the single Dart accent.
+      - run: flutter test tool/make_icons_test.dart
       # arm64 only (nearly every phone, the S20 FE too): the C++ audio engine
       # is compiled once instead of once per processor type. The .aab for the
       # Play Store is built on the PC and still holds every type.
@@ -122,4 +126,6 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
+      # Generate native/web colours and icons from the single Dart accent.
+      - run: flutter test tool/make_icons_test.dart
       - run: flutter build web --wasm --release --no-web-resources-cdn

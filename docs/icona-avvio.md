@@ -5,6 +5,14 @@ Proposta approvata da Luigi il 7 novembre 2026. Il riferimento visivo originale
 
 ![Versione approvata](images/lion-brand-approved.png)
 
+## Aggiornamento cromatico corrente
+
+Il [colore d’accento unico](specs/colore-accento.md) sostituisce il rosso fisso
+con `LowEndBrand.accent`: ottone `#B69A58` predefinito, `ffmRed` conservato.
+Generatore, icone e tutti i livelli dell’avvio seguono questa costante.
+Il disegno avorio approvato resta identico. Le indicazioni sul rosso seguenti
+descrivono il riferimento originale.
+
 ## Contratto visivo
 
 Leone semplificato rivolto a sinistra, con ricciolo e manico integrati; asse

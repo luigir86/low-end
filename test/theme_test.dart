@@ -26,7 +26,16 @@ void main() {
           File('android/app/src/main/res/values/colors.xml').readAsStringSync(),
         )![0]!
         .toUpperCase();
-    expect(launch, _hex(LowEndBrand.red));
+    expect(launch, _hex(LowEndBrand.accent));
+    expect(
+      File('android/app/src/main/res/values/ic_launcher_background.xml')
+          .readAsStringSync(),
+      contains(launch),
+    );
+    expect(
+      File('android/app/src/main/res/values/colors.xml').readAsStringSync(),
+      contains('<color name="app_background">${_hex(Palette.startup)}</color>'),
+    );
     final manifest = jsonDecode(File('web/manifest.json').readAsStringSync());
     expect((manifest['background_color'] as String).toUpperCase(), launch);
     expect(
@@ -100,7 +109,7 @@ void main() {
         expect(e.inTune, Palette.inTune);
         expect(e.close, Palette.close);
         expect(e.off, Palette.off);
-        if (variant == LowEndThemeVariant.anthraciteAndRed) {
+        if (variant == LowEndThemeVariant.anthraciteAndAccent) {
           expect(e.off, isNot(e.activeFill));
           expect(e.downbeat, e.activeFill);
           expect(contrast(c.outline, e.disc), greaterThanOrEqualTo(3));
@@ -140,7 +149,7 @@ void main() {
         expect(e.copyWith().filledSteps, e.filledSteps);
         final other = LowEndTheme.forVariant(
           variant == LowEndThemeVariant.woodAndBrass
-              ? LowEndThemeVariant.anthraciteAndRed
+              ? LowEndThemeVariant.anthraciteAndAccent
               : LowEndThemeVariant.woodAndBrass,
         ).extension<LowEndColors>()!;
         expect(roles(e.lerp(other, 0)), roles(e));
@@ -167,12 +176,14 @@ void main() {
   });
 
   test(
-    'Anthracite & Red keeps the frame red and lightens bottom navigation',
+    'the current accent colours the frame with readable light navigation',
     () {
-      final theme = LowEndTheme.forVariant(LowEndThemeVariant.anthraciteAndRed);
+      final theme = LowEndTheme.forVariant(
+        LowEndThemeVariant.anthraciteAndAccent,
+      );
       final c = theme.colorScheme;
       final e = theme.extension<LowEndColors>()!;
-      expect(_hex(c.primaryContainer), '#A6282C');
+      expect(c.primaryContainer, LowEndBrand.accent);
       expect(e.activeFill, c.primaryContainer);
       expect(
         theme.navigationBarTheme.backgroundColor,
@@ -180,7 +191,6 @@ void main() {
       );
       expect(e.bottomNavigationBorder, e.activeFill);
       expect(e.bottomNavigationIndicator, Colors.transparent);
-      expect(e.bottomNavigationSelectedInk, e.activeFill);
       expect(
         contrast(e.bottomNavigationSelectedInk, e.bottomNavigationBackground),
         greaterThanOrEqualTo(4.5),
@@ -190,7 +200,55 @@ void main() {
         greaterThanOrEqualTo(4.5),
       );
       expect(theme.navigationRailTheme.backgroundColor, e.navigationBackground);
-      expect(_hex(e.navigationBackground), '#A6282C');
+      expect(e.navigationBackground, LowEndBrand.accent);
     },
   );
+
+  for (final accent in [
+    LowEndBrand.ffmRed,
+    LowEndBrand.brass,
+    const Color(0xFFB97858),
+    const Color(0xFF438C87),
+    const Color(0xFF608DB4),
+    const Color(0xFF987493),
+  ]) {
+    test('accent ${_hex(accent)} preserves neutrals and readable controls', () {
+      final theme = LowEndTheme.withAccent(accent);
+      final c = theme.colorScheme;
+      final e = theme.extension<LowEndColors>()!;
+      final base = LowEndTheme.dark.colorScheme;
+      expect(c.surface, base.surface);
+      expect(c.surfaceContainerHighest, base.surfaceContainerHighest);
+      expect(c.outline, base.outline);
+      expect(e.stepFill, const Color(0xFFD6D6D6));
+      expect(e.activeFill, accent);
+      expect(e.downbeat, accent);
+      expect(c.primaryContainer, accent);
+      expect(e.navigationBackground, accent);
+      expect(e.bottomNavigationBorder, accent);
+      expect(theme.badgeTheme.backgroundColor, accent);
+      for (final pair in [
+        (e.onActiveFill, accent),
+        (c.onPrimaryContainer, accent),
+        (e.navigationInk, e.navigationIndicator),
+        (e.bottomNavigationSelectedInk, e.bottomNavigationBackground),
+      ]) {
+        expect(contrast(pair.$1, pair.$2), greaterThanOrEqualTo(4.5));
+      }
+      expect(e.off, Palette.off);
+      expect(e.close, Palette.close);
+      expect(e.inTune, Palette.inTune);
+    });
+  }
+
+  test('brass and FFM red keep their values and choose readable ink', () {
+    expect(_hex(LowEndBrand.ffmRed), '#A6282C');
+    expect(_hex(LowEndBrand.brass), '#B69A58');
+    final brass = LowEndTheme.withAccent(LowEndBrand.brass)
+        .extension<LowEndColors>()!;
+    expect(brass.onActiveFill, Palette.inkOnLight);
+    final red = LowEndTheme.withAccent(LowEndBrand.ffmRed)
+        .extension<LowEndColors>()!;
+    expect(red.onActiveFill, Palette.inkOnDark);
+  });
 }
