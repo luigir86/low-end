@@ -9,6 +9,9 @@ import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/audio/track_files.dart';
 import 'package:low_end/audio/track_output.dart';
+import 'package:low_end/features/player/player_controller.dart';
+import 'package:low_end/features/player/player_dial.dart';
+import 'package:low_end/widgets/dial.dart';
 
 /// Checks the main screens against Flutter's accessibility guidelines: touch
 /// targets of at least 48 dp, a label on every tappable element, and text
@@ -135,15 +138,32 @@ void main() {
         await tester.tap(find.byKey(const Key('playerHub')));
         await tester.pump(const Duration(milliseconds: 300));
         await expectAccessible(tester);
-        // A loop marked without dragging, by the ring's own actions: the
-        // grips, the ends and the switch.
+        // A loop marked without dragging: the flags are buttons whose
+        // activation marks the point heard, the ring has the same actions,
+        // and a flag is put on the ring by two touches (RF-PLY-16).
+        expect(
+          find.bySemanticsLabel('Flag A, start of the passage'),
+          findsOneWidget,
+        );
+        expect(
+          find.bySemanticsLabel('Flag B, end of the passage'),
+          findsOneWidget,
+        );
         _customAction(tester, 'Mark the start here');
         await tester.pump(const Duration(milliseconds: 300));
-        _customAction(tester, 'Mark the end here');
+        final dial = tester.getRect(find.byKey(DialLayout.dialKey));
+        final geometry = DialGeometry(dial.size);
+        await tester.tapAt(
+          dial.topLeft + holderCenter(LoopEdge.end, dial.size),
+        );
         await tester.pump(const Duration(milliseconds: 300));
-        expect(find.text('B 0:01.00'), findsOneWidget);
-        expect(find.bySemanticsLabel('Start 0:00.00'), findsOneWidget);
-        expect(find.bySemanticsLabel('End 0:01.00'), findsOneWidget);
+        await tester.tapAt(
+          dial.topLeft +
+              geometry.center +
+              Offset(geometry.ringInner + geometry.ringWidth / 2, 0),
+        );
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(find.bySemanticsLabel('End earlier'), findsOneWidget);
         await expectAccessible(tester);
         handle.dispose();
       },

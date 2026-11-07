@@ -678,14 +678,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get playerMarkEnd => 'Segna la fine qui';
 
   @override
-  String get playerHintDraw =>
-      'Tieni premuto sull\'anello e scorri per scegliere un passaggio da ripetere';
-
-  @override
-  String get playerHintGrips =>
-      'Trascina A e B sull\'anello per ritoccare il passaggio';
-
-  @override
   String playerStartAt(String time) {
     return 'Inizio $time';
   }
@@ -694,12 +686,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String playerEndAt(String time) {
     return 'Fine $time';
   }
-
-  @override
-  String get playerStartUnmarked => 'Inizio non segnato';
-
-  @override
-  String get playerEndUnmarked => 'Fine non segnata';
 
   @override
   String get playerStartEarlier => 'Inizio prima';
@@ -715,5 +701,30 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get guidePlayerLoop =>
-      'In Ascolto tieni premuto il cerchio e scorri per disegnare un loop.';
+      'In Ascolto porta le bandiere A e B sul cerchio per ripetere un passaggio.';
+
+  @override
+  String get playerHintFlags =>
+      'Porta A e B sull\'anello per scegliere il passaggio da ripetere';
+
+  @override
+  String get playerHintPlaceStart => 'Tocca l\'anello dove inizia il passaggio';
+
+  @override
+  String get playerHintPlaceEnd => 'Tocca l\'anello dove finisce il passaggio';
+
+  @override
+  String get playerHintNeedStart => 'Ora porta A dove inizia il passaggio';
+
+  @override
+  String get playerHintNeedEnd => 'Ora porta B dove finisce il passaggio';
+
+  @override
+  String get playerHintTune => 'Ritocca con ‹ e ›';
+
+  @override
+  String get playerFlagStart => 'Bandiera A, inizio del passaggio';
+
+  @override
+  String get playerFlagEnd => 'Bandiera B, fine del passaggio';
 }

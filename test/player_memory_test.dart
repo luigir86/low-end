@@ -146,8 +146,8 @@ void main() {
       expect(find.text('Blue Bossa (Dorham)'), findsWidgets);
       expect(find.text('0:00'), findsOneWidget);
       expect(find.text('80%'), findsOneWidget);
-      expect(find.text('A 1:00.00'), findsOneWidget);
-      expect(find.text('B 1:30.00'), findsOneWidget);
+      expect(player.loopStart, const Duration(seconds: 60));
+      expect(player.loopEnd, const Duration(seconds: 90));
       expect(player.looping, isTrue);
       // Looked at, once, because the tab is on screen; not opened.
       expect(app.files.canReadAsked, [_song]);

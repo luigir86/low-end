@@ -376,7 +376,10 @@ void main() {
     });
   });
 
-  group('the passage (RF-PLY-08 to RF-PLY-12, RF-PLY-17, RF-PLY-18)', () {
+  group('the flags and the passage (RF-PLY-08 to RF-PLY-12, RF-PLY-18)', () {
+    const a = Duration(minutes: 1), b = Duration(minutes: 2);
+    final whole = RingWindow.whole(const Duration(minutes: 6));
+
     Finder pressable(Key key) => find.descendant(
       of: find.byKey(key),
       matching: find.byWidgetPredicate(
@@ -389,81 +392,94 @@ void main() {
       return button.onPressed != null;
     }
 
+    Rect dialRect(WidgetTester tester) =>
+        tester.getRect(find.byKey(DialLayout.dialKey));
+
     Offset ring(WidgetTester tester, double dx, double dy) {
-      final dial = tester.getRect(find.byKey(DialLayout.dialKey));
+      final dial = dialRect(tester);
       return dial.center + Offset(dial.width * dx, dial.height * dy);
     }
 
-    /// Where a grip is on the screen, in the window shown.
-    Offset grip(
-      WidgetTester tester,
-      LoopEdge edge,
-      RingWindow window,
-      Duration time,
-    ) {
-      final dial = tester.getRect(find.byKey(DialLayout.dialKey));
-      return dial.topLeft + gripCenter(edge, window, time, dial.size);
+    /// Where the flag of [edge] waits, on the screen.
+    Offset corner(WidgetTester tester, LoopEdge edge) {
+      final dial = dialRect(tester);
+      return dial.topLeft + holderCenter(edge, dial.size);
     }
 
-    /// The point of the ring, outside the middle, at [time] of [window].
-    Offset onRing(WidgetTester tester, RingWindow window, Duration time) {
-      final dial = tester.getRect(find.byKey(DialLayout.dialKey));
+    /// Where the pennant of a flag on the ring is, on the screen.
+    Offset pennant(WidgetTester tester, LoopEdge edge, Duration time) {
+      final dial = dialRect(tester);
+      return dial.topLeft + gripCenter(edge, whole, time, dial.size);
+    }
+
+    /// The point of the ring, outside the middle, at [time].
+    Offset onRing(WidgetTester tester, Duration time) {
+      final dial = dialRect(tester);
       final g = DialGeometry(dial.size);
-      final angle = window.angleOf(time);
+      final angle = whole.angleOf(time);
       final r = g.ringInner + g.ringWidth * 0.5;
       return dial.topLeft +
           g.center +
           Offset(math.sin(angle), -math.cos(angle)) * r;
     }
 
-    RingWindow shown(WidgetTester tester) =>
-        (tester
-                    .widget<CustomPaint>(
-                      find.byWidgetPredicate(
-                        (w) => w is CustomPaint && w.painter is RingWave,
-                      ),
-                    )
-                    .painter!
-                as RingWave)
-            .window;
+    /// Drags from [from] to [to] in steps and lets go.
+    Future<void> drag(
+      WidgetTester tester,
+      Offset from,
+      Offset to, {
+      bool letGo = true,
+    }) async {
+      final gesture = await tester.startGesture(from);
+      await tester.pump();
+      for (var i = 1; i <= 6; i++) {
+        await gesture.moveTo(Offset.lerp(from, to, i / 6)!);
+        await tester.pump(const Duration(milliseconds: 20));
+      }
+      if (letGo) await gesture.up();
+      await tester.pump();
+    }
 
-    const a = Duration(minutes: 1), b = Duration(minutes: 2);
-    final passage = RingWindow.passage(a, b, const Duration(minutes: 6));
-    final whole = RingWindow.whole(const Duration(minutes: 6));
+    String message(WidgetTester tester) =>
+        tester.widget<Text>(find.byKey(PlayerPanel.messageKey)).data!;
+
+    Future<_Screen> track(WidgetTester tester) async {
+      final screen = await _open(tester);
+      await screen.player.open(_song);
+      await screen.settle();
+      return screen;
+    }
 
     testWidgets('with no track the controls are off', (tester) async {
       final screen = await _open(tester);
       expect(enabled(tester, PlayerPanel.loopSwitchKey), isFalse);
-      expect(enabled(tester, PlayerPanel.startEarlierKey), isFalse);
-      expect(enabled(tester, PlayerPanel.endLaterKey), isFalse);
-      expect(find.text('A –'), findsOneWidget);
-      expect(find.text('B –'), findsOneWidget);
+      expect(enabled(tester, PlayerPanel.earlierKey), isFalse);
+      expect(enabled(tester, PlayerPanel.laterKey), isFalse);
       expect(find.byKey(PlayerPanel.messageKey), findsNothing);
       await tester.tap(find.byKey(PlayerPanel.speedFieldKey));
       await screen.settle();
       expect(find.text('Listening speed'), findsNothing);
     });
 
-    testWidgets('the line of messages says how to choose, then how to adjust '
-        'the passage', (tester) async {
-      final screen = await _open(tester);
-      await screen.player.open(_song);
-      await screen.settle();
+    testWidgets('the line of messages says the next step', (tester) async {
+      final screen = await track(tester);
       expect(
-        tester.widget<Text>(find.byKey(PlayerPanel.messageKey)).data,
-        startsWith('Hold on the ring and slide'),
+        message(tester),
+        'Drag A and B onto the ring to choose the passage to repeat',
       );
-      await screen.player.setLoop(a, b);
+      await tester.tapAt(corner(tester, LoopEdge.start));
       await screen.settle();
-      expect(
-        find.text('Drag A and B on the ring to adjust the passage'),
-        findsOneWidget,
-      );
-      expect(find.textContaining('Hold on the ring'), findsNothing);
-      // The loop off, the ends still marked: still the adjusting hint.
-      await screen.player.setLooping(false);
+      expect(message(tester), 'Touch the ring where the passage starts');
+      await tester.tapAt(corner(tester, LoopEdge.end));
       await screen.settle();
-      expect(find.textContaining('Drag A and B'), findsOneWidget);
+      expect(message(tester), 'Touch the ring where the passage ends');
+      await tester.tapAt(onRing(tester, b));
+      await screen.settle();
+      expect(message(tester), 'Now bring A to where the passage starts');
+      await tester.tapAt(corner(tester, LoopEdge.start));
+      await tester.tapAt(onRing(tester, a));
+      await screen.settle();
+      expect(message(tester), 'Fine-tune with ‹ and ›');
     });
 
     testWidgets('a file that fails is said in the same line, as an error', (
@@ -473,60 +489,77 @@ void main() {
       screen.output.failWith = TrackOpenException(TrackProblem.missing);
       await tester.tap(hub);
       await screen.settle();
-      final message = tester.widget<Text>(find.byKey(PlayerPanel.messageKey));
-      expect(message.data, 'The file is no longer available.');
+      final text = tester.widget<Text>(find.byKey(PlayerPanel.messageKey));
+      expect(text.data, 'The file is no longer available.');
       expect(
-        message.style?.color,
+        text.style?.color,
         Theme.of(tester.element(find.byKey(PlayerPanel.messageKey)))
             .colorScheme
             .error,
       );
     });
 
-    testWidgets('each end has its own − and +, a hundredth at a touch', (
+    testWidgets('the arrows move the active flag, a hundredth at a touch', (
       tester,
     ) async {
-      final screen = await _open(tester);
-      await screen.player.open(_song);
+      final screen = await track(tester);
+      await screen.player.place(LoopEdge.start, const Duration(seconds: 10));
+      await screen.player.place(LoopEdge.end, const Duration(seconds: 20));
       await screen.settle();
-      await screen.player.setLoop(
-        const Duration(seconds: 10),
-        const Duration(seconds: 20),
+      expect(enabled(tester, PlayerPanel.loopSwitchKey), isTrue);
+      // B was placed last: the arrows say B.
+      expect(
+        find.descendant(
+          of: find.byKey(PlayerPanel.earlierKey),
+          matching: find.text('B'),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(PlayerPanel.laterKey));
+      await screen.settle();
+      expect(screen.player.loopEnd, const Duration(milliseconds: 20010));
+      expect(screen.player.loopStart, const Duration(seconds: 10));
+      // A touch on the pennant of A on the ring makes A the active one.
+      await tester.tapAt(
+        pennant(tester, LoopEdge.start, const Duration(seconds: 10)),
       );
       await screen.settle();
-      expect(find.text('A 0:10.00'), findsOneWidget);
-      expect(find.text('B 0:20.00'), findsOneWidget);
-      expect(enabled(tester, PlayerPanel.loopSwitchKey), isTrue);
-
-      await tester.tap(find.byKey(PlayerPanel.startEarlierKey));
-      await screen.settle();
-      expect(screen.player.loopStart, const Duration(milliseconds: 9990));
-      expect(find.text('A 0:09.99'), findsOneWidget);
-
-      await tester.tap(find.byKey(PlayerPanel.endLaterKey));
+      expect(screen.player.activeEdge, LoopEdge.start);
+      expect(
+        find.descendant(
+          of: find.byKey(PlayerPanel.earlierKey),
+          matching: find.text('A'),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(PlayerPanel.earlierKey));
       await screen.settle();
       expect(screen.player.loopStart, const Duration(milliseconds: 9990));
       expect(screen.player.loopEnd, const Duration(milliseconds: 20010));
-      expect(find.text('B 0:20.01'), findsOneWidget);
-
-      await tester.tap(find.byKey(PlayerPanel.startLaterKey));
-      await tester.tap(find.byKey(PlayerPanel.endEarlierKey));
-      await screen.settle();
-      expect(screen.player.loopStart, const Duration(seconds: 10));
-      expect(screen.player.loopEnd, const Duration(seconds: 20));
     });
 
-    testWidgets('holding + keeps moving the end', (tester) async {
-      final screen = await _open(tester);
-      await screen.player.open(_song);
+    testWidgets('the arrows are off while the active flag is in its corner', (
+      tester,
+    ) async {
+      final screen = await track(tester);
+      expect(enabled(tester, PlayerPanel.earlierKey), isFalse);
+      await screen.player.place(LoopEdge.end, b);
       await screen.settle();
+      expect(enabled(tester, PlayerPanel.laterKey), isTrue);
+      screen.player.focus(LoopEdge.start);
+      await screen.settle();
+      expect(enabled(tester, PlayerPanel.laterKey), isFalse);
+    });
+
+    testWidgets('holding an arrow keeps moving the flag', (tester) async {
+      final screen = await track(tester);
       await screen.player.setLoop(
         const Duration(seconds: 10),
         const Duration(seconds: 20),
       );
       await screen.settle();
       final hold = await tester.startGesture(
-        tester.getCenter(find.byKey(PlayerPanel.endLaterKey)),
+        tester.getCenter(find.byKey(PlayerPanel.laterKey)),
       );
       await tester.pump(const Duration(milliseconds: 1500));
       await hold.up();
@@ -541,15 +574,12 @@ void main() {
     testWidgets('the loop switch repeats the passage or lets it go', (
       tester,
     ) async {
-      final screen = await _open(tester);
-      await screen.player.open(_song);
+      final screen = await track(tester);
+      await screen.player.place(LoopEdge.end, b);
       await screen.settle();
-      await screen.player.mark(LoopEdge.start);
-      await screen.settle();
-      // The switch needs both ends.
+      // The switch needs both flags.
       expect(enabled(tester, PlayerPanel.loopSwitchKey), isFalse);
-      await screen.player.seek(const Duration(seconds: 20));
-      await screen.player.mark(LoopEdge.end);
+      await screen.player.place(LoopEdge.start, Duration.zero);
       await screen.settle();
       expect(screen.player.looping, isTrue);
       expect(screen.output.loop, isNotNull);
@@ -562,9 +592,7 @@ void main() {
     });
 
     testWidgets('the speed field asks for a speed in a sheet', (tester) async {
-      final screen = await _open(tester);
-      await screen.player.open(_song);
-      await screen.settle();
+      final screen = await track(tester);
       expect(
         find.descendant(
           of: find.byKey(PlayerPanel.speedFieldKey),
@@ -579,197 +607,155 @@ void main() {
       await screen.settle();
       expect(screen.player.speed, 70);
       expect(screen.output.speed, 0.7);
-      expect(
-        find.descendant(
-          of: find.byKey(PlayerPanel.speedFieldKey),
-          matching: find.text('70%'),
-        ),
-        findsOneWidget,
-      );
     });
 
-    testWidgets('holding the ring and sliding draws a passage, and the ring '
-        'turns to show it', (tester) async {
-      final screen = await _open(tester);
-      await screen.player.open(_song);
-      await screen.settle();
-      expect(shown(tester), whole);
-      // From 3 o'clock (a quarter: 1:30) to 6 o'clock (half: 3:00).
-      final slide = await tester.startGesture(ring(tester, 0.4, 0));
-      await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
-      await slide.moveTo(ring(tester, 0.3, 0.3));
-      await tester.pump();
-      await slide.moveTo(ring(tester, 0, 0.4));
-      await tester.pump();
-      // Still the whole track while the finger works.
-      expect(shown(tester), whole);
-      await slide.up();
-      await screen.settle();
-      expect(screen.player.looping, isTrue);
-      expect(screen.player.loopStart, const Duration(seconds: 90));
-      expect(screen.player.loopEnd, const Duration(minutes: 3));
-      expect(find.text('A 1:30.00'), findsOneWidget);
-      expect(find.text('B 3:00.00'), findsOneWidget);
-      expect(
-        shown(tester),
-        RingWindow.passage(
-          const Duration(seconds: 90),
-          const Duration(minutes: 3),
-          const Duration(minutes: 6),
-        ),
-      );
+    testWidgets('the last row is the track field alone', (tester) async {
+      final screen = await track(tester);
+      expect(find.byKey(PlayerPanel.trackFieldKey), findsOneWidget);
+      final field = tester.getRect(find.byKey(PlayerPanel.trackFieldKey));
+      final speed = tester.getRect(find.byKey(PlayerPanel.speedFieldKey));
+      expect(field.top, greaterThan(speed.bottom));
+      expect(screen.player.title, 'Blue Bossa');
     });
 
-    testWidgets('a slide shorter than a second is a touch', (tester) async {
-      final screen = await _open(tester);
-      await screen.player.open(_song);
-      await screen.settle();
-      final slide = await tester.startGesture(ring(tester, 0.4, 0));
-      await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
-      await slide.up();
-      await screen.settle();
-      expect(screen.player.hasLoop, isFalse);
-      expect(screen.player.position, const Duration(seconds: 90));
-    });
-
-    testWidgets('the ring shows the passage while the loop is on, the whole '
-        'track when it is off', (tester) async {
-      final screen = await _open(tester);
-      await screen.player.open(_song);
-      await screen.settle();
-      await screen.player.setLoop(a, b);
-      await screen.settle();
-      expect(shown(tester), passage);
-      await screen.player.setLooping(false);
-      await screen.settle();
-      expect(shown(tester), whole);
-      await screen.player.setLooping(true);
-      await screen.settle();
-      expect(shown(tester), passage);
-    });
-
-    testWidgets('a touch on the ring outside the passage turns the loop off, '
-        'and the ring goes back to the whole track', (tester) async {
-      final screen = await _open(tester);
-      await screen.player.open(_song);
-      await screen.settle();
-      await screen.player.setLoop(a, b);
-      await screen.settle();
-      // Just before 12 o'clock: the end of the margin after B.
-      await tester.tapAt(
-        onRing(tester, passage, passage.to - const Duration(seconds: 1)),
-      );
-      await screen.settle();
-      expect(screen.player.looping, isFalse);
-      expect(screen.player.loopStart, a);
-      expect(screen.player.position, greaterThan(b));
-      expect(shown(tester), whole);
-    });
-
-    testWidgets('a touch inside the passage moves the listening point and '
-        'keeps the loop', (tester) async {
-      final screen = await _open(tester);
-      await screen.player.open(_song);
-      await screen.settle();
-      await screen.player.setLoop(a, b);
-      await screen.settle();
-      await tester.tapAt(onRing(tester, passage, const Duration(seconds: 90)));
-      await screen.settle();
-      expect(screen.player.looping, isTrue);
-      expect(screen.player.position.inMilliseconds, closeTo(90000, 1500));
-    });
-
-    testWidgets('dragging a grip moves that end and does not change section, '
-        'and the ring waits for the finger', (tester) async {
-      final screen = await _open(tester);
-      await screen.player.open(_song);
-      await screen.settle();
-      await screen.player.setLoop(a, b);
-      await screen.settle();
-      expect(shown(tester), passage);
-
-      final drag = await tester.startGesture(
-        grip(tester, LoopEdge.end, passage, b),
-      );
-      await tester.pump();
-      for (final seconds in [122, 124, 126]) {
-        await drag.moveTo(onRing(tester, passage, Duration(seconds: seconds)));
-        await tester.pump(const Duration(milliseconds: 50));
-      }
-      // The ring stays still under the finger, and the number follows it.
-      expect(shown(tester), passage);
-      expect(screen.scope.navigation.section, AppSection.player);
-      expect(screen.player.loopEnd!.inMilliseconds, closeTo(126000, 1500));
-      // The middle shows the time of the end being dragged.
-      expect(find.textContaining('B 2:0'), findsWidgets);
-      await tester.pump(const Duration(seconds: 1));
-      expect(shown(tester), passage);
-
-      await drag.up();
-      await tester.pump();
-      await screen.settle();
-      expect(screen.scope.navigation.section, AppSection.player);
-      expect(screen.player.loopStart, a);
-      // After a moment of quiet the ring fits the new passage.
-      expect(
-        shown(tester),
-        RingWindow.passage(
-          a,
-          screen.player.loopEnd!,
-          const Duration(minutes: 6),
-        ),
-      );
-    });
-
-    testWidgets('a grip is taken a finger away from its disc, without a jump', (
+    testWidgets('dragging A from its corner onto the ring puts it there, '
+        'with its time in the middle, and does not change section', (
       tester,
     ) async {
-      final screen = await _open(tester);
-      await screen.player.open(_song);
-      await screen.settle();
-      await screen.player.setLoop(a, b);
-      await screen.settle();
-      final at = grip(tester, LoopEdge.start, passage, a) + const Offset(0, 14);
-      final drag = await tester.startGesture(at);
+      final screen = await track(tester);
+      final from = corner(tester, LoopEdge.start);
+      final gesture = await tester.startGesture(from);
       await tester.pump();
-      await drag.moveBy(const Offset(0.5, 0));
-      await tester.pump();
-      await drag.up();
-      await screen.settle();
-      // Moved by next to nothing: the end does not jump to the finger.
-      expect(screen.player.loopStart!.inMilliseconds, closeTo(60000, 600));
-    });
-
-    testWidgets('A cannot be dragged past B, nor out of the window', (
-      tester,
-    ) async {
-      final screen = await _open(tester);
-      await screen.player.open(_song);
-      await screen.settle();
-      await screen.player.setLoop(a, b);
-      await screen.settle();
-      final startAt = grip(tester, LoopEdge.start, passage, a);
-      final drag = await tester.startGesture(startAt);
-      await tester.pump();
-      for (final seconds in [70, 90, 110, 119]) {
-        final to = onRing(tester, passage, Duration(seconds: seconds));
-        await drag.moveTo(to);
+      for (var i = 1; i <= 6; i++) {
+        await gesture.moveTo(
+          Offset.lerp(
+            from,
+            onRing(tester, const Duration(seconds: 90)),
+            i / 6,
+          )!,
+        );
         await tester.pump(const Duration(milliseconds: 20));
       }
-      await drag.up();
+      // The middle shows the time of the flag held, to the hundredth.
+      expect(find.textContaining('A 1:3'), findsWidgets);
+      expect(screen.player.loopStart, isNull);
+      await gesture.up();
       await screen.settle();
-      expect(
-        screen.player.loopStart,
-        lessThanOrEqualTo(b - PlayerController.minLoop),
-      );
-      expect(screen.player.loopEnd, b);
+      expect(screen.scope.navigation.section, AppSection.player);
+      expect(screen.player.loopStart!.inMilliseconds, closeTo(90000, 1500));
+      expect(screen.player.loopEnd, isNull);
+      expect(screen.player.looping, isFalse);
+      expect(screen.player.activeEdge, LoopEdge.start);
     });
 
-    testWidgets('a swipe that does not start on a grip changes section, '
-        'also with a passage marked', (tester) async {
-      final screen = await _open(tester);
-      await screen.player.open(_song);
+    testWidgets('both flags dragged on turn the loop on', (tester) async {
+      final screen = await track(tester);
+      await drag(tester, corner(tester, LoopEdge.start), onRing(tester, a));
+      await drag(tester, corner(tester, LoopEdge.end), onRing(tester, b));
       await screen.settle();
+      expect(screen.player.loopStart!.inMilliseconds, closeTo(60000, 1500));
+      expect(screen.player.loopEnd!.inMilliseconds, closeTo(120000, 1500));
+      expect(screen.player.looping, isTrue);
+      expect(screen.output.loop, isNotNull);
+    });
+
+    testWidgets('a flag let go outside the ring goes back to its corner', (
+      tester,
+    ) async {
+      final screen = await track(tester);
+      final from = corner(tester, LoopEdge.start);
+      await drag(tester, from, from + const Offset(-10, 10));
+      await screen.settle();
+      expect(screen.player.loopStart, isNull);
+      expect(screen.scope.navigation.section, AppSection.player);
+    });
+
+    testWidgets('a flag dragged over the other sends it back', (tester) async {
+      final screen = await track(tester);
+      await screen.player.setLoop(a, b);
+      await screen.settle();
+      // A, from its corner, to just before B.
+      await drag(
+        tester,
+        corner(tester, LoopEdge.start),
+        onRing(tester, b - const Duration(milliseconds: 500)),
+      );
+      await screen.settle();
+      expect(screen.player.loopEnd, isNull);
+      expect(screen.player.looping, isFalse);
+      expect(screen.player.loopStart!.inMilliseconds, closeTo(119500, 1500));
+    });
+
+    testWidgets('two touches put a flag: its corner, then the ring', (
+      tester,
+    ) async {
+      final screen = await track(tester);
+      await screen.player.seek(const Duration(seconds: 200));
+      await tester.tapAt(corner(tester, LoopEdge.start));
+      await screen.settle();
+      expect(screen.player.armed, LoopEdge.start);
+      await tester.tapAt(onRing(tester, a));
+      await screen.settle();
+      expect(screen.player.armed, isNull);
+      expect(screen.player.loopStart!.inMilliseconds, closeTo(60000, 1500));
+      // The touch put the flag and did not move the listening point.
+      expect(screen.player.position, const Duration(seconds: 200));
+    });
+
+    testWidgets('a second touch on an armed flag disarms it, and the other '
+        'takes its place', (tester) async {
+      final screen = await track(tester);
+      await tester.tapAt(corner(tester, LoopEdge.start));
+      await tester.tapAt(corner(tester, LoopEdge.end));
+      expect(screen.player.armed, LoopEdge.end);
+      await tester.tapAt(corner(tester, LoopEdge.end));
+      expect(screen.player.armed, isNull);
+      // Unarmed, a touch on the ring is a seek.
+      await tester.tapAt(onRing(tester, b));
+      await screen.settle();
+      expect(screen.player.position.inMilliseconds, closeTo(120000, 1500));
+      expect(screen.player.hasLoop, isFalse);
+    });
+
+    testWidgets('leaving the tab disarms', (tester) async {
+      final screen = await track(tester);
+      await tester.tapAt(corner(tester, LoopEdge.start));
+      expect(screen.player.armed, LoopEdge.start);
+      screen.scope.navigation.open(AppSection.metronome);
+      await tester.pumpAndSettle();
+      expect(screen.player.armed, isNull);
+    });
+
+    testWidgets('dragging a flag on the ring moves it, stops a second from '
+        'the other and does not change section', (tester) async {
+      final screen = await track(tester);
+      await screen.player.setLoop(a, b);
+      await screen.settle();
+      await drag(
+        tester,
+        onRing(tester, b),
+        onRing(tester, const Duration(seconds: 150)),
+      );
+      await screen.settle();
+      expect(screen.scope.navigation.section, AppSection.player);
+      expect(screen.player.loopEnd!.inMilliseconds, closeTo(150000, 2500));
+      expect(screen.player.loopStart, a);
+      // Dragged back past A: it stops a second after it.
+      await drag(
+        tester,
+        onRing(tester, screen.player.loopEnd!),
+        onRing(tester, const Duration(seconds: 50)),
+      );
+      await screen.settle();
+      expect(
+        screen.player.loopEnd,
+        greaterThanOrEqualTo(a + PlayerController.minLoop),
+      );
+    });
+
+    testWidgets('a swipe that does not start on a flag changes section, '
+        'also with a passage marked', (tester) async {
+      final screen = await track(tester);
       await screen.player.setLoop(a, b);
       await screen.settle();
       await tester.flingFrom(ring(tester, 0, -0.4), const Offset(400, 0), 1000);
@@ -779,34 +765,34 @@ void main() {
       expect(screen.player.loopEnd, b);
     });
 
-    testWidgets('swiping between sections still works over the ring', (
-      tester,
-    ) async {
-      final screen = await _open(tester);
-      await screen.player.open(_song);
+    testWidgets('holding the ring does nothing any more', (tester) async {
+      final screen = await track(tester);
+      final slide = await tester.startGesture(ring(tester, 0.4, 0));
+      await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
+      await slide.moveTo(ring(tester, 0, 0.4));
+      await tester.pump();
+      await slide.up();
       await screen.settle();
-      expect(screen.scope.navigation.section, AppSection.player);
-      await tester.flingFrom(ring(tester, 0, -0.4), const Offset(400, 0), 1000);
-      await tester.pumpAndSettle();
-      expect(screen.scope.navigation.section, AppSection.drone);
       expect(screen.player.hasLoop, isFalse);
+      expect(screen.player.loopStart, isNull);
     });
 
-    testWidgets('with animations off the ring jumps to the passage', (
-      tester,
-    ) async {
-      final screen = await _open(tester);
-      tester.platformDispatcher.accessibilityFeaturesTestValue =
-          const FakeAccessibilityFeatures(disableAnimations: true);
-      addTearDown(
-        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
-      );
-      await tester.pump();
-      await screen.player.open(_song);
-      await screen.settle();
+    testWidgets('the ring is always the whole track', (tester) async {
+      final screen = await track(tester);
+      RingWindow shown() =>
+          (tester
+                      .widget<CustomPaint>(
+                        find.byWidgetPredicate(
+                          (w) => w is CustomPaint && w.painter is RingWave,
+                        ),
+                      )
+                      .painter!
+                  as RingWave)
+              .window;
+      expect(shown(), whole);
       await screen.player.setLoop(a, b);
-      await tester.pump();
-      expect(shown(tester), passage);
+      await screen.settle();
+      expect(shown(), whole);
     });
   });
 }
