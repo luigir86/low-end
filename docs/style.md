@@ -53,7 +53,7 @@ The app is always dark. Two palettes are selected internally with one constant, 
 | Strobe | Neutral `strobeIdle`, `strobeOuter`, `strobeInner`, independent of verdicts |
 | Tuner verdict | Common teal, yellow and pure red; words, tick/arrows and cents needle, never colour alone |
 
-In Anthracite & Red the institutional red `#A6282C` is a fill, while small accent text uses a lighter red. The root's light text, bold weight and neutral border identify the selected segment. Wood&Brass preserves its legacy mixtures; both gain the neutral strobe and shared startup background. `theme_test.dart` checks text at 4.5:1 and informative shapes at 3:1 for both variants. Beats left silent, weak pulses and receding beats retain named roles, with no theme conditionals in screens. Roman numerals stay on the notes they represent.
+In Anthracite & Red the institutional red `#A6282C` is a fill, while small accent text uses a lighter red. The root's light text, bold weight and neutral border identify the selected segment. Wood&Brass preserves its legacy mixtures; both gain the neutral strobe and shared red startup branding (see [icon and startup](icona-avvio.md)). `theme_test.dart` checks text at 4.5:1 and informative shapes at 3:1 for both variants. Beats left silent, weak pulses and receding beats retain named roles, with no theme conditionals in screens. Roman numerals stay on the notes they represent.
 
 ## Landscape
 

@@ -7,6 +7,7 @@ import 'app/licenses.dart';
 import 'app/low_end_app.dart';
 import 'app/settings.dart';
 import 'app/theme.dart';
+import 'app/startup_reveal.dart';
 import 'audio/web_audio_session.dart';
 
 Future<void> main() async {
@@ -35,5 +36,5 @@ Future<void> main() async {
     settings = AppSettings();
   }
   registerAssetLicenses();
-  runApp(LowEndApp(settings: settings));
+  runApp(StartupReveal(child: LowEndApp(settings: settings)));
 }

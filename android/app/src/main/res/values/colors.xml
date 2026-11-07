@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Same as Palette.startup in lib/app/theme.dart: a neutral pre-Flutter background shared by both dark variants. -->
-    <color name="launch_background">#181818</color>
+    <!-- LowEndBrand.red: brand splash, independent of the interface theme. -->
+    <color name="launch_background">#A6282C</color>
+    <color name="app_background">#181818</color>
 </resources>

@@ -22,17 +22,17 @@
   <title>Low End</title>
   <link rel="manifest" href="manifest.json">
   <style>
-    /* Palette.startup, as in the app, while the app loads. */
-    html, body { margin: 0; height: 100%; background: #181818; }
+    /* LowEndBrand.red: shared with Android and the first Flutter frame. */
+    html, body { margin: 0; height: 100%; background: #A6282C; }
     #loading {
       position: fixed; inset: 0;
       display: flex; align-items: center; justify-content: center;
     }
-    #loading img { width: 96px; height: 96px; border-radius: 22px; }
+    #loading img { width: min(288px, 100vw, 100vh); height: min(288px, 100vw, 100vh); object-fit: contain; }
   </style>
 </head>
 <body>
-  <div id="loading"><img src="icons/Icon-192.png" alt="Low End"></div>
+  <div id="loading"><img src="brand-mark.png" alt="Low End"></div>
   <noscript>Low End needs JavaScript.</noscript>
   <script src="flutter_bootstrap.js" async></script>
 </body>
