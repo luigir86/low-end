@@ -205,8 +205,9 @@ class _RecordingDialogState extends State<_RecordingDialog>
 }
 
 class TakeActions extends StatefulWidget {
-  const TakeActions({required this.take, super.key});
+  const TakeActions({required this.take, required this.source, super.key});
   final RecordedTrack take;
+  final Widget Function(String label) source;
   @override
   State<TakeActions> createState() => _TakeActionsState();
 }
@@ -238,20 +239,22 @@ class _TakeActionsState extends State<TakeActions> {
   @override
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
-    return Wrap(
-      alignment: WrapAlignment.center,
-      crossAxisAlignment: WrapCrossAlignment.center,
+    return Row(
       children: [
-        Text(widget.take.saved ? strings.takeSaved : strings.takeTemporary),
-        TextButton.icon(
+        Expanded(
+          child: widget.source(
+            widget.take.saved ? strings.takeSaved : strings.takeTemporary,
+          ),
+        ),
+        IconButton(
           onPressed: busy ? null : () => export(false),
           icon: const Icon(Icons.save_outlined),
-          label: Text(strings.takeSave),
+          tooltip: strings.takeSave,
         ),
-        TextButton.icon(
+        IconButton(
           onPressed: busy ? null : () => export(true),
           icon: const Icon(Icons.share_outlined),
-          label: Text(strings.takeShare),
+          tooltip: strings.takeShare,
         ),
       ],
     );

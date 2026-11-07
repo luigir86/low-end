@@ -109,7 +109,7 @@ void main() {
       expect(screen.player.isPlaying, isFalse);
       expect(screen.player.looping, isTrue);
       expect(screen.player.setup, isNull);
-      await tester.tap(find.text('Share'));
+      await tester.tap(find.byTooltip('Share'));
       await screen.settle();
       expect(exports, ['share']);
       await tester.tap(find.byTooltip('Record'));
@@ -117,7 +117,7 @@ void main() {
       await tester.tap(find.text('Keep'));
       await screen.settle();
       expect(find.text('Temporary'), findsOneWidget);
-      await tester.tap(find.text('Save'));
+      await tester.tap(find.byTooltip('Save'));
       await screen.settle();
       expect(exports, ['share', 'save']);
       expect(find.text('Saved'), findsOneWidget);

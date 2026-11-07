@@ -137,8 +137,9 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     final track = _track;
     if (track == null ||
         track is RecordedTrack ||
-        _status != PlayerStatus.ready)
+        _status != PlayerStatus.ready) {
       return null;
+    }
     return PlayerSetup(
       track: track,
       duration: _duration,

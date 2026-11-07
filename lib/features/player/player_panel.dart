@@ -36,40 +36,42 @@ class PlayerPanel extends StatelessWidget {
     return ListenableBuilder(
       listenable: player,
       builder: (context, _) {
+        Widget source(String label) => Row(
+          children: [
+            Expanded(
+              child: LabeledField(
+                key: trackFieldKey,
+                label: label,
+                value: player.title ?? l10n.playerChoose,
+                onTap: () async {
+                  if (player.track is RecordedTrack &&
+                      !await confirmReplace(context, player.track)) {
+                    return;
+                  }
+                  await player.pick();
+                },
+              ),
+            ),
+            const SizedBox(width: rowGap),
+            IconButton.outlined(
+              tooltip: l10n.takeRecord,
+              icon: const Icon(Icons.mic_none),
+              onPressed: () => recordForPlayer(context, player),
+            ),
+          ],
+        );
         return DialLayout(
           dial: PlayerDial(player: player),
           header: _FirstRow(player: player),
           upper: _ControlRow(player: player),
-          lower: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: LabeledField(
-                      key: trackFieldKey,
-                      label: l10n.playerTrack,
-                      value: player.title ?? l10n.playerChoose,
-                      onTap: () async {
-                        if (player.track is RecordedTrack &&
-                            !await confirmReplace(context, player.track))
-                          return;
-                        await player.pick();
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: rowGap),
-                  IconButton.outlined(
-                    tooltip: l10n.takeRecord,
-                    icon: const Icon(Icons.mic_none),
-                    onPressed: () => recordForPlayer(context, player),
-                  ),
-                ],
-              ),
-              if (player.track case final RecordedTrack take)
-                TakeActions(key: ValueKey(take.uri), take: take),
-            ],
-          ),
+          lower: switch (player.track) {
+            final RecordedTrack take => TakeActions(
+              key: ValueKey(take.uri),
+              take: take,
+              source: source,
+            ),
+            _ => source(l10n.playerTrack),
+          },
         );
       },
     );
