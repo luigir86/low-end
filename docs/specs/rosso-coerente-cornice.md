@@ -8,7 +8,7 @@ Proposta approvata il 7 novembre 2026. Integra `varianti-tema.md` e la proposta 
 - Beat secondari neutri: grigi distinguibili, senza rosa.
 - Pulsanti +/− con riempimento grigio chiaro, simboli antracite e senza bordo. Restano disabilitati agli estremi. Edit e Choose Library come TAP: fondo rosso, simbolo chiaro.
 - Fascia superiore sottile rossa, Settings chiaro allineato a destra, target di almeno 48 dp. Nessun nuovo titolo. Il contenuto parte sotto la fascia, senza sovrapposizioni.
-- Barra di navigazione inferiore **rossa**, icone e testi chiari. In landscape resta il rail rosso.
+- Revisione approvata della navigazione inferiore: fondo quasi bianco `#ECECE9`, icona e nome selezionati nel rosso TAP con nome in grassetto; altre icone e nomi antracite `#3D3D3D`. Nessuna pillola selezionata. Linea continua rossa di 2 dp alla base, sotto l’area di sicurezza. Il pallino delle sezioni che suonano resta rosso TAP, anche su tab non selezionate; nessun pallino per l’accordatore. Fascia superiore e rail landscape restano rossi.
 - Tutti i centri dei quadranti e il fondo dei controlli restano scuri. Il pannello grigio chiarissimo e i centri chiari sono stati esplicitamente esclusi.
 - Ghiera esterna sottile: soltanto tacche, senza freccia né +/−. Nessuna modifica a gesti, tastiera, semantica o pulsanti +/− separati.
 - Accordatore: rosso TAP, verde salvia `#8FA891`, giallo ocra `#C5A35A`; strobo neutro. Le soglie, le parole e i simboli di intonazione restano invariati.

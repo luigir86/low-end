@@ -276,6 +276,16 @@ class _HomeShellState extends State<HomeShell> {
             toolbarHeight: kMinInteractiveDimension,
             backgroundColor: LowEndColors.of(context).navigationBackground,
             foregroundColor: LowEndColors.of(context).navigationInk,
+            systemOverlayStyle: LowEndTheme.systemBars.copyWith(
+              systemNavigationBarIconBrightness:
+                  !landscape &&
+                      ThemeData.estimateBrightnessForColor(
+                            LowEndColors.of(context).bottomNavigationBackground,
+                          ) ==
+                          Brightness.light
+                  ? Brightness.dark
+                  : Brightness.light,
+            ),
             actions: [
               IconButton(
                 style: IconButton.styleFrom(
@@ -335,23 +345,44 @@ class _HomeShellState extends State<HomeShell> {
           // sound (the middle of the dial).
           bottomNavigationBar: landscape
               ? null
-              : NavigationBar(
-                  animationDuration: MediaQuery.disableAnimationsOf(context)
-                      ? Duration.zero
-                      : Durations.medium1,
-                  selectedIndex: section.index,
-                  onDestinationSelected: _onDestination,
-                  destinations: [
-                    for (final e in entries)
-                      NavigationDestination(
-                        icon: _TabIcon(section: e.section, icon: e.icon),
-                        selectedIcon: _TabIcon(
-                          section: e.section,
-                          icon: e.selectedIcon,
-                        ),
-                        label: e.label,
+              : Container(
+                  key: const Key('bottomNavigationFrame'),
+                  decoration: BoxDecoration(
+                    color: LowEndColors.of(context).bottomNavigationBackground,
+                    border: Border(
+                      bottom: BorderSide(
+                        color: LowEndColors.of(context).bottomNavigationBorder,
+                        width:
+                            LowEndColors.of(context).bottomNavigationBorder.a ==
+                                0
+                            ? 0
+                            : LowEndShape.navigationBaseLine,
                       ),
-                  ],
+                    ),
+                  ),
+                  child: NavigationBar(
+                    animationDuration: MediaQuery.disableAnimationsOf(context)
+                        ? Duration.zero
+                        : Durations.medium1,
+                    selectedIndex: section.index,
+                    onDestinationSelected: _onDestination,
+                    destinations: [
+                      for (final e in entries)
+                        NavigationDestination(
+                          icon: _TabIcon(
+                            section: e.section,
+                            icon: e.icon,
+                            badgeColor: LowEndColors.of(context).activeFill,
+                          ),
+                          selectedIcon: _TabIcon(
+                            section: e.section,
+                            icon: e.selectedIcon,
+                            badgeColor: LowEndColors.of(context).activeFill,
+                          ),
+                          label: e.label,
+                        ),
+                    ],
+                  ),
                 ),
         );
       },
@@ -363,10 +394,11 @@ class _HomeShellState extends State<HomeShell> {
 /// the other section, the click, the harmony or the track going on is seen,
 /// not only heard. The tuner makes no sound, so its tab never has one.
 class _TabIcon extends StatelessWidget {
-  const _TabIcon({required this.section, required this.icon});
+  const _TabIcon({required this.section, required this.icon, this.badgeColor});
 
   final AppSection section;
   final Widget icon;
+  final Color? badgeColor;
 
   @override
   Widget build(BuildContext context) {
@@ -390,7 +422,11 @@ class _TabIcon extends StatelessWidget {
         };
         return Semantics(
           value: playing ? AppLocalizations.of(context).sectionPlaying : null,
-          child: Badge(isLabelVisible: playing, child: icon),
+          child: Badge(
+            backgroundColor: badgeColor,
+            isLabelVisible: playing,
+            child: icon,
+          ),
         );
       },
     );
