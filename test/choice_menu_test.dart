@@ -4,7 +4,7 @@ import 'package:low_end/app/theme.dart';
 import 'package:low_end/widgets/choice_menu.dart';
 
 void main() {
-  testWidgets('the chosen line has no square band, only accent and tick', (
+  testWidgets('the chosen line uses a rounded accent and a tick', (
     tester,
   ) async {
     final theme = LowEndTheme.dark;

@@ -36,14 +36,16 @@ void main() {
   List<Rect> geometry(WidgetTester tester) {
     final layouts = find.byType(DialLayout);
     // Sideways pages in portrait, one above the other in landscape (beside
-    // the tab rail): the one on screen is at the origin of its axis.
+    // the tab rail): the visible page starts at the page viewport origin,
+    // below the shared header in landscape.
     final wide = tester.view.physicalSize.aspectRatio > 1;
+    final viewport = tester.getRect(find.byType(PageView));
     final onScreen = [
       for (var i = 0; i < layouts.evaluate().length; i++)
         if ((wide
                 ? tester.getRect(layouts.at(i)).top
                 : tester.getRect(layouts.at(i)).left) ==
-            0)
+            (wide ? viewport.top : viewport.left))
           i,
     ];
     expect(onScreen, hasLength(1), reason: 'one section on screen');
