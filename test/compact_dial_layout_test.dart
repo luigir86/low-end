@@ -65,7 +65,7 @@ void main() {
         final nav = tester.getRect(find.byType(NavigationBar));
         // The system inset and 2 dp red baseline are outside the tab row.
         expect(nav.height, closeTo(64 + 20, 0.01));
-        expect(rows[2].bottom, closeTo(nav.top, 0.01));
+        expect(nav.top - rows[2].bottom, closeTo(8, 0.01));
         expect(dial.center.dy, closeTo((page.top + rows[0].top) / 2, 0.01));
         expect(dial.center.dx, closeTo(page.center.dx, 0.01));
         expect(dial, tester.getRect(find.byKey(DialBackdrop.discKey)));
