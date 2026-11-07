@@ -347,8 +347,10 @@ abstract final class LowEndTheme {
     const ground = Color(0xFF242424);
     const disc = Color(0xFF202020);
     const ink = Color(0xFFEFEDEA);
-    const chord = Color(0xFF999999);
     const outline = Color(0xFF999999);
+    // Soften the accent for chord tones and ordinary beats while keeping
+    // their fill visible against the dial.
+    final chord = _accentInk(Color.lerp(accent, outline, 0.3)!, disc, 3);
     const navigation = Color(0xFFECECE9);
     final onAccent = _readableOn(accent);
     return _build(
@@ -360,7 +362,7 @@ abstract final class LowEndTheme {
         primaryContainer: accent,
         onPrimaryContainer: onAccent,
         secondary: chord,
-        onSecondary: ground,
+        onSecondary: _readableOn(chord),
         secondaryContainer: accent,
         onSecondaryContainer: onAccent,
         error: Palette.error,
@@ -405,7 +407,7 @@ abstract final class LowEndTheme {
         disc: disc,
         downbeat: accent,
         beatReceded: Color.lerp(disc, ground, 0.6)!,
-        beatSilent: Color.alphaBlend(outline.withValues(alpha: 0.35), disc),
+        beatSilent: Color.alphaBlend(chord.withValues(alpha: 0.35), disc),
         beatWeak: Color.alphaBlend(chord.withValues(alpha: 0.6), disc),
       ),
     );
@@ -592,7 +594,7 @@ Color _readableOn(Color background) {
 
 /// Keep the hue, but increase contrast for accent text on a light/dark surface.
 /// Fills still use the exact chosen accent (not this accessible ink).
-Color _accentInk(Color accent, Color surface) {
+Color _accentInk(Color accent, Color surface, [double minimumContrast = 4.5]) {
   final target = _readableOn(surface);
   final background = surface.computeLuminance();
   for (var step = 0; step <= 100; step++) {
@@ -600,7 +602,7 @@ Color _accentInk(Color accent, Color surface) {
     final luminance = candidate.computeLuminance();
     final hi = luminance > background ? luminance : background;
     final lo = luminance > background ? background : luminance;
-    if ((hi + 0.05) / (lo + 0.05) >= 4.5) return candidate;
+    if ((hi + 0.05) / (lo + 0.05) >= minimumContrast) return candidate;
   }
   return target;
 }
