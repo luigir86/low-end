@@ -50,6 +50,12 @@ class LowEndColors extends ThemeExtension<LowEndColors> {
     required this.navigationBackground,
     required this.navigationIndicator,
     required this.navigationInk,
+    required this.bottomNavigationBackground,
+    required this.bottomNavigationInk,
+    required this.bottomNavigationSelectedInk,
+    required this.bottomNavigationIndicator,
+    required this.bottomNavigationBorder,
+
     required this.inTune,
     required this.close,
     required this.off,
@@ -72,6 +78,13 @@ class LowEndColors extends ThemeExtension<LowEndColors> {
   final Color navigationBackground;
   final Color navigationIndicator;
   final Color navigationInk;
+
+  /// Bottom navigation is independent of the header and landscape rail.
+  final Color bottomNavigationBackground;
+  final Color bottomNavigationInk;
+  final Color bottomNavigationSelectedInk;
+  final Color bottomNavigationIndicator;
+  final Color bottomNavigationBorder;
 
   /// Within a few cents.
   final Color inTune;
@@ -118,6 +131,12 @@ class LowEndColors extends ThemeExtension<LowEndColors> {
     Color? navigationBackground,
     Color? navigationIndicator,
     Color? navigationInk,
+    Color? bottomNavigationBackground,
+    Color? bottomNavigationInk,
+    Color? bottomNavigationSelectedInk,
+    Color? bottomNavigationIndicator,
+    Color? bottomNavigationBorder,
+
     Color? inTune,
     Color? close,
     Color? off,
@@ -138,6 +157,16 @@ class LowEndColors extends ThemeExtension<LowEndColors> {
     navigationBackground: navigationBackground ?? this.navigationBackground,
     navigationIndicator: navigationIndicator ?? this.navigationIndicator,
     navigationInk: navigationInk ?? this.navigationInk,
+    bottomNavigationBackground:
+        bottomNavigationBackground ?? this.bottomNavigationBackground,
+    bottomNavigationInk: bottomNavigationInk ?? this.bottomNavigationInk,
+    bottomNavigationSelectedInk:
+        bottomNavigationSelectedInk ?? this.bottomNavigationSelectedInk,
+    bottomNavigationIndicator:
+        bottomNavigationIndicator ?? this.bottomNavigationIndicator,
+    bottomNavigationBorder:
+        bottomNavigationBorder ?? this.bottomNavigationBorder,
+
     inTune: inTune ?? this.inTune,
     close: close ?? this.close,
     off: off ?? this.off,
@@ -171,6 +200,32 @@ class LowEndColors extends ThemeExtension<LowEndColors> {
         t,
       )!,
       navigationInk: Color.lerp(navigationInk, other.navigationInk, t)!,
+      bottomNavigationBackground: Color.lerp(
+        bottomNavigationBackground,
+        other.bottomNavigationBackground,
+        t,
+      )!,
+      bottomNavigationInk: Color.lerp(
+        bottomNavigationInk,
+        other.bottomNavigationInk,
+        t,
+      )!,
+      bottomNavigationSelectedInk: Color.lerp(
+        bottomNavigationSelectedInk,
+        other.bottomNavigationSelectedInk,
+        t,
+      )!,
+      bottomNavigationIndicator: Color.lerp(
+        bottomNavigationIndicator,
+        other.bottomNavigationIndicator,
+        t,
+      )!,
+      bottomNavigationBorder: Color.lerp(
+        bottomNavigationBorder,
+        other.bottomNavigationBorder,
+        t,
+      )!,
+
       inTune: Color.lerp(inTune, other.inTune, t)!,
       close: Color.lerp(close, other.close, t)!,
       off: Color.lerp(off, other.off, t)!,
@@ -264,6 +319,11 @@ abstract final class LowEndTheme {
         strobeIdle: const Color(0xFF777777),
         strobeOuter: const Color(0xFF999999),
         strobeInner: const Color(0xFFEFEDEA),
+        bottomNavigationBackground: Palette.ebonyShade1,
+        bottomNavigationInk: Palette.inkOnDark,
+        bottomNavigationSelectedInk: Palette.inkOnDark,
+        bottomNavigationIndicator: container,
+        bottomNavigationBorder: Colors.transparent,
         navigationBackground: Palette.ebonyShade1,
         navigationIndicator: container,
         navigationInk: Palette.inkOnDark,
@@ -322,6 +382,11 @@ abstract final class LowEndTheme {
         strobeIdle: const Color(0xFF777777),
         strobeOuter: outline,
         strobeInner: ink,
+        bottomNavigationBackground: const Color(0xFFECECE9),
+        bottomNavigationInk: const Color(0xFF3D3D3D),
+        bottomNavigationSelectedInk: red,
+        bottomNavigationIndicator: Colors.transparent,
+        bottomNavigationBorder: red,
         navigationBackground: red,
         navigationIndicator: const Color(0xFF69191C),
         navigationInk: ink,
@@ -371,20 +436,26 @@ abstract final class LowEndTheme {
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        iconTheme: WidgetStatePropertyAll(
-          IconThemeData(color: colors.navigationInk),
+        iconTheme: WidgetStateProperty.resolveWith(
+          (states) => IconThemeData(
+            color: states.contains(WidgetState.selected)
+                ? colors.bottomNavigationSelectedInk
+                : colors.bottomNavigationInk,
+          ),
         ),
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => TextStyle(
             fontSize: LowEndType.small,
-            color: colors.navigationInk,
+            color: states.contains(WidgetState.selected)
+                ? colors.bottomNavigationSelectedInk
+                : colors.bottomNavigationInk,
             fontWeight: states.contains(WidgetState.selected)
                 ? FontWeight.w700
                 : FontWeight.w400,
           ),
         ),
-        backgroundColor: colors.navigationBackground,
-        indicatorColor: colors.navigationIndicator,
+        backgroundColor: colors.bottomNavigationBackground,
+        indicatorColor: colors.bottomNavigationIndicator,
         surfaceTintColor: Colors.transparent,
       ),
       // The tabs in landscape, the same destinations as the bottom

@@ -5,6 +5,8 @@ import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/home_shell.dart';
 import 'package:low_end/app/low_end_app.dart';
 import 'package:low_end/app/settings.dart';
+import 'package:low_end/app/theme.dart';
+import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/audio_scope.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/tone_output.dart';
@@ -25,6 +27,7 @@ void main() {
     await tester.pumpWidget(
       LowEndApp(
         toneOutput: SilentToneOutput(),
+        clickOutput: SilentClickOutput(),
         micInput: FakeMicInput(),
         settings: settings,
       ),
@@ -32,6 +35,75 @@ void main() {
     await tester.pumpAndSettle();
     return AudioScope.of(tester.element(find.byType(HomeShell))).navigation;
   }
+
+  testWidgets('light navigation keeps a red playing dot on another tab', (
+    tester,
+  ) async {
+    final navigation = await open(tester, const Size(900, 1600));
+    final scope = AudioScope.of(tester.element(find.byType(HomeShell)));
+    final colors = LowEndColors.of(tester.element(find.byType(HomeShell)));
+    final theme = Theme.of(tester.element(find.byType(HomeShell)));
+    final selected = theme.navigationBarTheme.iconTheme!.resolve({
+      WidgetState.selected,
+    })!;
+    final idle = theme.navigationBarTheme.iconTheme!.resolve({})!;
+    expect(selected.color, colors.activeFill);
+    expect(idle.color, colors.bottomNavigationInk);
+    expect(theme.navigationBarTheme.indicatorColor, Colors.transparent);
+    expect(
+      tester.widget<AppBar>(find.byKey(const Key('appFrame'))).backgroundColor,
+      colors.navigationBackground,
+    );
+
+    await scope.metronome.start();
+    navigation.open(AppSection.player);
+    await tester.pumpAndSettle();
+    expect(navigation.section, AppSection.player);
+    final metro = find.byWidgetPredicate(
+      (w) => w is NavigationDestination && w.label == 'Metronome',
+    );
+    final dot = find.descendant(of: metro, matching: find.byType(Badge));
+    expect(dot, findsOneWidget);
+    final badge = tester.widget<Badge>(dot);
+    expect(badge.isLabelVisible, isTrue);
+    expect(badge.backgroundColor, colors.activeFill);
+    final tuner = find.byWidgetPredicate(
+      (w) => w is NavigationDestination && w.label == 'Tuner',
+    );
+    expect(
+      find.descendant(of: tuner, matching: find.byType(Badge)),
+      findsNothing,
+    );
+    await scope.metronome.stop();
+    await tester.pump();
+    expect(tester.widget<Badge>(dot).isLabelVisible, isFalse);
+  });
+
+  testWidgets('the red base line sits below the bottom safe area', (
+    tester,
+  ) async {
+    await open(tester, const Size(900, 1600));
+    tester.view.viewPadding = const FakeViewPadding(bottom: 24);
+    await tester.pumpAndSettle();
+    final frame = find.byKey(const Key('bottomNavigationFrame'));
+    final rect = tester.getRect(frame);
+    final barRect = tester.getRect(find.byType(NavigationBar));
+    final decoration =
+        tester.widget<Container>(frame).decoration! as BoxDecoration;
+    final border = decoration.border! as Border;
+    expect(rect.bottom, 1600);
+    expect(rect.bottom - barRect.bottom, 2);
+    expect(border.bottom.width, 2);
+    expect(
+      border.bottom.color,
+      LowEndColors.of(tester.element(frame)).activeFill,
+    );
+    final appBar = tester.widget<AppBar>(find.byKey(const Key('appFrame')));
+    expect(
+      appBar.systemOverlayStyle!.systemNavigationBarIconBrightness,
+      Brightness.dark,
+    );
+  });
 
   /// A mouse click on [at] that moves [by] while the button is down.
   Future<void> click(

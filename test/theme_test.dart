@@ -124,6 +124,12 @@ void main() {
           x.navigationBackground,
           x.navigationIndicator,
           x.navigationInk,
+          x.bottomNavigationBackground,
+          x.bottomNavigationInk,
+          x.bottomNavigationSelectedInk,
+          x.bottomNavigationIndicator,
+          x.bottomNavigationBorder,
+
           x.inTune,
           x.close,
           x.off,
@@ -165,14 +171,31 @@ void main() {
     }
   });
 
-  test('Anthracite & Red uses FFM red for fills and navigation', () {
-    final theme = LowEndTheme.forVariant(LowEndThemeVariant.anthraciteAndRed);
-    final c = theme.colorScheme;
-    final e = theme.extension<LowEndColors>()!;
-    expect(_hex(c.primaryContainer), '#A6282C');
-    expect(e.activeFill, c.primaryContainer);
-    expect(theme.navigationBarTheme.backgroundColor, e.navigationBackground);
-    expect(theme.navigationRailTheme.backgroundColor, e.navigationBackground);
-    expect(_hex(e.navigationBackground), '#A6282C');
-  });
+  test(
+    'Anthracite & Red keeps the header red and lightens bottom navigation',
+    () {
+      final theme = LowEndTheme.forVariant(LowEndThemeVariant.anthraciteAndRed);
+      final c = theme.colorScheme;
+      final e = theme.extension<LowEndColors>()!;
+      expect(_hex(c.primaryContainer), '#A6282C');
+      expect(e.activeFill, c.primaryContainer);
+      expect(
+        theme.navigationBarTheme.backgroundColor,
+        e.bottomNavigationBackground,
+      );
+      expect(e.bottomNavigationBorder, e.activeFill);
+      expect(e.bottomNavigationIndicator, Colors.transparent);
+      expect(e.bottomNavigationSelectedInk, e.activeFill);
+      expect(
+        contrast(e.bottomNavigationSelectedInk, e.bottomNavigationBackground),
+        greaterThanOrEqualTo(4.5),
+      );
+      expect(
+        contrast(e.bottomNavigationInk, e.bottomNavigationBackground),
+        greaterThanOrEqualTo(4.5),
+      );
+      expect(theme.navigationRailTheme.backgroundColor, e.navigationBackground);
+      expect(_hex(e.navigationBackground), '#A6282C');
+    },
+  );
 }
