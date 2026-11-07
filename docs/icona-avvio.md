@@ -8,7 +8,7 @@ Proposta approvata da Luigi il 7 novembre 2026. Il riferimento visivo originale
 ## Aggiornamento cromatico corrente
 
 Il [colore d’accento unico](specs/colore-accento.md) sostituisce il rosso fisso
-con `LowEndBrand.accent`: ottone `#B69A58` predefinito, `ffmRed` conservato.
+con `LowEndBrand.accent`: rosso FFM `#A6282C` predefinito, ottone disponibile.
 Generatore, icone e tutti i livelli dell’avvio seguono questa costante.
 Il disegno avorio approvato resta identico. Le indicazioni sul rosso seguenti
 descrivono il riferimento originale.
