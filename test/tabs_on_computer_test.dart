@@ -36,7 +36,7 @@ void main() {
     return AudioScope.of(tester.element(find.byType(HomeShell))).navigation;
   }
 
-  testWidgets('light navigation keeps a red playing dot on another tab', (
+  testWidgets('light navigation keeps an accent playing dot on another tab', (
     tester,
   ) async {
     final navigation = await open(tester, const Size(900, 1600));
@@ -47,7 +47,7 @@ void main() {
       WidgetState.selected,
     })!;
     final idle = theme.navigationBarTheme.iconTheme!.resolve({})!;
-    expect(selected.color, colors.activeFill);
+    expect(selected.color, colors.bottomNavigationSelectedInk);
     expect(idle.color, colors.bottomNavigationInk);
     expect(theme.navigationBarTheme.indicatorColor, Colors.transparent);
     expect(
@@ -79,7 +79,7 @@ void main() {
     expect(tester.widget<Badge>(dot).isLabelVisible, isFalse);
   });
 
-  testWidgets('the red base line sits below the bottom safe area', (
+  testWidgets('the accent base line sits below the bottom safe area', (
     tester,
   ) async {
     await open(tester, const Size(900, 1600));

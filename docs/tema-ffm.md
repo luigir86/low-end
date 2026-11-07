@@ -1,5 +1,7 @@
 # Anthracite & Red — revisione estetica Low End
 
+**Aggiornamento:** il [colore d’accento unico](specs/colore-accento.md) mantiene questa struttura con ottone predefinito e rosso FFM disponibile.
+
 Specifica della proposta approvata il 7 novembre 2026. La gestione interna è descritta in [varianti-tema](specs/varianti-tema.md).
 
 L'antracite domina; rosso FFM `#A6282C` su barra di navigazione, TAP e selezioni, con testo quasi bianco. Controlli inattivi e contorni sono grigi, leggibili senza riempire la schermata di rosso. Edwin, geometrie, dimensioni, disposizione, gesti, testi e comportamento dei quattro strumenti rimangono invariati. Icona e immagini del negozio restano separate da questa modifica.

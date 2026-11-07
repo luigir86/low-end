@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'brand.dart';
 import 'style.dart';
 
 /// Low End's look, in one place: change a colour, a radius or a font weight
 /// here and every screen follows, like the variables of a CSS stylesheet.
 ///
 /// Two internal palettes, selected at build time without a user setting.
-enum LowEndThemeVariant { woodAndBrass, anthraciteAndRed }
+enum LowEndThemeVariant { woodAndBrass, anthraciteAndAccent }
 
 abstract final class Palette {
   /// The warm accent of the original Wood&Brass palette.
@@ -20,7 +21,7 @@ abstract final class Palette {
   static const ebonyShade3 = Color(0xFF312F2C);
   static const walnutDeep = Color(0xFF2B1D16);
 
-  /// Neutral app surface and browser chrome; the brand splash uses LowEndBrand.red.
+  /// Neutral app surface and browser chrome; the brand splash uses LowEndBrand.accent.
   static const startup = Color(0xFF181818);
 
   // Text.
@@ -242,13 +243,13 @@ class LowEndColors extends ThemeExtension<LowEndColors> {
 }
 
 abstract final class LowEndTheme {
-  /// The only product switch. Change this and rebuild to roll back.
-  static const variant = LowEndThemeVariant.anthraciteAndRed;
+  /// Legacy palette rollback; the current accent is chosen in LowEndBrand.
+  static const variant = LowEndThemeVariant.anthraciteAndAccent;
   static final dark = forVariant(variant);
 
   static ThemeData forVariant(LowEndThemeVariant variant) => switch (variant) {
     LowEndThemeVariant.woodAndBrass => _woodAndBrass,
-    LowEndThemeVariant.anthraciteAndRed => _anthraciteAndRed,
+    LowEndThemeVariant.anthraciteAndAccent => _anthraciteAndAccent,
   };
 
   static const radius = LowEndShape.radius;
@@ -341,68 +342,76 @@ abstract final class LowEndTheme {
     );
   }();
 
-  static final _anthraciteAndRed = () {
+  static final _anthraciteAndAccent = withAccent(LowEndBrand.accent);
+
+  /// Preview another accent without changing the neutral surfaces or geometry.
+  static ThemeData withAccent(Color accent) {
     const ground = Color(0xFF242424);
     const disc = Color(0xFF202020);
-    const red = Color(0xFFA6282C);
     const ink = Color(0xFFEFEDEA);
     const chord = Color(0xFF999999);
     const outline = Color(0xFF999999);
+    const navigation = Color(0xFFECECE9);
+    final onAccent = _readableOn(accent);
     return _build(
-      const ColorScheme(
+      ColorScheme(
         brightness: Brightness.dark,
-        // Readable Material text; action fills use the red semantic role.
+        // Readable Material text; action fills use the shared accent.
         primary: ink,
         onPrimary: ground,
-        primaryContainer: red,
-        onPrimaryContainer: ink,
+        primaryContainer: accent,
+        onPrimaryContainer: onAccent,
         secondary: chord,
         onSecondary: ground,
-        secondaryContainer: red,
-        onSecondaryContainer: ink,
+        secondaryContainer: accent,
+        onSecondaryContainer: onAccent,
         error: Palette.off,
-        onError: Color(0xFF242424),
+        onError: const Color(0xFF242424),
         surface: ground,
         onSurface: ink,
-        onSurfaceVariant: Color(0xFFB8B8B8),
+        onSurfaceVariant: const Color(0xFFB8B8B8),
         surfaceContainerLowest: Palette.startup,
-        surfaceContainerLow: Color(0xFF282828),
-        surfaceContainer: Color(0xFF282828),
-        surfaceContainerHigh: Color(0xFF303030),
-        surfaceContainerHighest: Color(0xFF383838),
+        surfaceContainerLow: const Color(0xFF282828),
+        surfaceContainer: const Color(0xFF282828),
+        surfaceContainerHigh: const Color(0xFF303030),
+        surfaceContainerHighest: const Color(0xFF383838),
         outline: outline,
-        outlineVariant: Color(0xFF484848),
+        outlineVariant: const Color(0xFF484848),
       ),
       LowEndColors(
         stepFill: const Color(0xFFD6D6D6),
         onStepFill: const Color(0xFF242424),
         filledSteps: true,
-        activeFill: red,
-        onActiveFill: ink,
+        activeFill: accent,
+        onActiveFill: onAccent,
         strobeIdle: const Color(0xFF777777),
         strobeOuter: outline,
         strobeInner: ink,
-        bottomNavigationBackground: const Color(0xFFECECE9),
+        bottomNavigationBackground: navigation,
         bottomNavigationInk: const Color(0xFF3D3D3D),
-        bottomNavigationSelectedInk: red,
+        bottomNavigationSelectedInk: _accentInk(accent, navigation),
         bottomNavigationIndicator: Colors.transparent,
-        bottomNavigationBorder: red,
-        navigationBackground: red,
-        navigationIndicator: const Color(0xFF69191C),
-        navigationInk: ink,
+        bottomNavigationBorder: accent,
+        navigationBackground: accent,
+        navigationIndicator: Color.lerp(
+          accent,
+          onAccent.computeLuminance() < 0.5 ? Colors.white : Colors.black,
+          0.18,
+        )!,
+        navigationInk: onAccent,
         // Pitch verdicts stay bright on the disc, independently of the
-        // institutional red used for controls and navigation.
+        // accent used for controls and navigation.
         inTune: Palette.inTune,
         close: Palette.close,
         off: Palette.off,
         disc: disc,
-        downbeat: red,
+        downbeat: accent,
         beatReceded: Color.lerp(disc, ground, 0.6)!,
         beatSilent: Color.alphaBlend(outline.withValues(alpha: 0.35), disc),
         beatWeak: Color.alphaBlend(chord.withValues(alpha: 0.6), disc),
       ),
     );
-  }();
+  }
 
   static ThemeData _build(ColorScheme scheme, LowEndColors colors) {
     final shape = RoundedRectangleBorder(
@@ -486,8 +495,8 @@ abstract final class LowEndTheme {
       // The dot on the tab of a section that is playing: the accent, not
       // the red of an error.
       badgeTheme: BadgeThemeData(
-        backgroundColor: scheme.primary,
-        textColor: scheme.onPrimary,
+        backgroundColor: colors.activeFill,
+        textColor: colors.onActiveFill,
       ),
       radioTheme: RadioThemeData(
         fillColor: WidgetStateProperty.resolveWith(
@@ -571,8 +580,29 @@ Color _readableOn(Color background) {
     return (hi + 0.05) / (lo + 0.05);
   }
 
-  return ratio(background, Palette.inkOnLight) >=
+  final ink =
+      ratio(background, Palette.inkOnLight) >=
           ratio(background, Palette.inkOnDark)
       ? Palette.inkOnLight
       : Palette.inkOnDark;
+  if (ratio(background, ink) >= 4.5) return ink;
+  // Mid-tone accents sometimes need full black/white to meet text contrast.
+  return ratio(background, Colors.black) >= ratio(background, Colors.white)
+      ? Colors.black
+      : Colors.white;
+}
+
+/// Keep the hue, but increase contrast for accent text on a light/dark surface.
+/// Fills still use the exact chosen accent (not this accessible ink).
+Color _accentInk(Color accent, Color surface) {
+  final target = _readableOn(surface);
+  final background = surface.computeLuminance();
+  for (var step = 0; step <= 100; step++) {
+    final candidate = Color.lerp(accent, target, step / 100)!;
+    final luminance = candidate.computeLuminance();
+    final hi = luminance > background ? luminance : background;
+    final lo = luminance > background ? background : luminance;
+    if ((hi + 0.05) / (lo + 0.05) >= 4.5) return candidate;
+  }
+  return target;
 }

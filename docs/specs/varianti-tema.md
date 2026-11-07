@@ -1,5 +1,13 @@
 # Varianti interne del tema
 
+## Aggiornamento corrente — accento unico
+
+La [specifica del colore d’accento](colore-accento.md) aggiorna questa proposta:
+il tema corrente si chiama **Anthracite & Accent**, con ottone predefinito e
+rosso FFM conservato. `LowEndBrand.accent` governa anche marchio e avvio;
+`LowEndThemeVariant.anthraciteAndAccent` è la variante corrente. Le descrizioni
+Anthracite & Red seguenti documentano la decisione iniziale.
+
 ## Obiettivo
 
 Rendere reversibile la revisione estetica con **Wood&Brass** e **Anthracite & Red**, selezionabili solo via codice. Nessuna scelta nelle impostazioni, azione per assistenti, preferenza salvata o configurazione per schermata.
@@ -27,4 +35,4 @@ Contrasto e tipografia verificati per entrambe le varianti; copyWith/lerp preser
 
 ## Selezione corrente e rollback
 
-Anthracite & Red è il tema predefinito. Per tornare al precedente: impostare `LowEndTheme.variant = LowEndThemeVariant.woodAndBrass` in `lib/app/theme.dart` e ricompilare. Per ripristinare Anthracite & Red usare `LowEndThemeVariant.anthraciteAndRed`. Non cambiano preferenze, schermate o risorse di avvio.
+Anthracite & Accent è il tema predefinito. Per tornare al precedente: impostare `LowEndTheme.variant = LowEndThemeVariant.woodAndBrass` in `lib/app/theme.dart` e ricompilare. Per ripristinare il tema corrente usare `LowEndThemeVariant.anthraciteAndAccent`. Non cambiano preferenze, schermate o risorse di avvio.

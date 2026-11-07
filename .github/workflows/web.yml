@@ -28,6 +28,8 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
+      # Generate native/web colours and icons from the single Dart accent.
+      - run: flutter test tool/make_icons_test.dart
       # Everything from the site itself, nothing from Google's servers.
       # --wasm: Chrome and Edge get the app in WebAssembly, drawn on its own
       # thread (smoother); Safari and Firefox the JavaScript build as before.

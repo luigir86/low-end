@@ -48,7 +48,7 @@ With the screen off or the app in the background the metronome and the harmony k
 - **Private**: no account, no internet, no ads, no tracking; the microphone is used only while the tuner is on screen. See [PRIVACY.md](PRIVACY.md).
 - **Light**: a handful of packages ([flutter_soloud](https://pub.dev/packages/flutter_soloud) for sound, [record](https://pub.dev/packages/record) for the microphone, [audio_service](https://pub.dev/packages/audio_service) for playing with the screen off, plus `shared_preferences`, `wakelock_plus`, `url_launcher` and `intl`), and the audio codecs the app doesn't need are left out of the build.
 - **LLM first**: everything on screen is also an action an assistant can call, with a JSON answer, through `lowend://action/...` links. See [docs/llm.md](docs/llm.md).
-- **Fast to open**: nothing heavy runs at launch. The audio engine starts only the first time a sound plays and the microphone only after the first frame is drawn (`test/startup_test.dart` checks this), and a red launch screen with the approved ivory lion dissolves into the active theme in 180 ms, without a minimum wait or blocked input (immediate with reduced motion). Android, web and store icons share the same mark; see [brand and startup](docs/icona-avvio.md).
+- **Fast to open**: nothing heavy runs at launch. The audio engine starts only the first time a sound plays and the microphone only after the first frame is drawn (`test/startup_test.dart` checks this), and an accent-coloured launch screen (brass by default) with the approved ivory lion dissolves into the active theme in 180 ms, without a minimum wait or blocked input (immediate with reduced motion). Android, web and store icons share the same mark; see [brand and startup](docs/icona-avvio.md).
 - **Accessible**: built to follow WCAG 2.1 level AA. Every control has a screen-reader label, the tuner announces the note and whether it is flat, sharp or in tune, colours keep a 3:1 contrast or better and are never the only cue, text can be enlarged, and the strobe stops turning and shows a still marker when the phone asks for fewer animations. `test/accessibility_test.dart` checks this automatically.
 
 ## Thanks
@@ -87,7 +87,7 @@ store/                      Google Play listing: texts, graphics, checklist
 docs/                       user guide, architecture, style sheet, internal themes, offline check, assistant actions
 ```
 
-All colours, shapes and text styles live in `lib/app/theme.dart` (always dark: Anthracite & Red by default, with Wood&Brass retained internally; see [docs/specs/varianti-tema.md](docs/specs/varianti-tema.md) and [docs/tema-ffm.md](docs/tema-ffm.md)).
+All colours, shapes and text styles live in `lib/app/theme.dart` (always dark: Anthracite & Accent, with Wood&Brass retained internally). `LowEndBrand.accent` in `lib/app/brand.dart` chooses one accent for the interface, icons and startup: brass by default, with `ffmRed` preserved. See [the accent specification](docs/specs/colore-accento.md) for regeneration and previews.
 
 ## Run it
 
@@ -95,6 +95,7 @@ With Flutter installed and an Android phone connected (USB debugging on):
 
 ```
 flutter pub get
+flutter test tool/make_icons_test.dart # sync icons/startup with LowEndBrand.accent
 flutter run
 ```
 
@@ -129,7 +130,7 @@ What the app does is written once, with a code for each behaviour (`RF-ARM-07`, 
 | [docs/user-guide.md](docs/user-guide.md) (English), [docs/manuale-utente.md](docs/manuale-utente.md) (Italiano) | Players: what every control does |
 | [docs/architecture.md](docs/architecture.md) | Developers: how the app is built |
 | [docs/specs/](docs/specs/README.md) (in Italian) | Everyone who changes the app: the requirements, the architecture as it is, its evaluation and the improvement plan |
-| [docs/style.md](docs/style.md), [docs/tema-ffm.md](docs/tema-ffm.md) (the second in Italian) | Developers and designers: sizes, shapes and the Anthracite & Red colours |
+| [docs/style.md](docs/style.md), [docs/tema-ffm.md](docs/tema-ffm.md) (the second in Italian) | Developers and designers: sizes, shapes and the original Anthracite & Red proposal |
 | [docs/offline.md](docs/offline.md) | Proof that the app needs no internet, and how to check it |
 | [docs/llm.md](docs/llm.md) | Assistants and automation: the `lowend://` actions |
 | [docs/web.md](docs/web.md) | The web app for iPhone: installing it, its limits, how it is built |

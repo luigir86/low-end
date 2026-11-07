@@ -199,6 +199,9 @@ class _ControlRow extends StatelessWidget {
               key: PlayerPanel.loopSwitchKey,
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(48, 52),
+                // Change fill and contrasting ink together: a light accent
+                // must not briefly keep the inactive white label.
+                animationDuration: Duration.zero,
                 backgroundColor: active
                     ? colors.activeFill
                     : theme.colorScheme.surface,

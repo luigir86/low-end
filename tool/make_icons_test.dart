@@ -1,5 +1,6 @@
 // Rebuild every brand surface from the approved drawing (not a new drawing).
 // flutter test tool/make_icons_test.dart
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -78,11 +79,56 @@ void _lion(
   );
 }
 
+// Native and pre-Flutter surfaces cannot read Dart at runtime. Generate them
+// from the same constant as the UI, alongside the raster icon variants.
+void _writeBrandColors() {
+  final hex =
+      '#${(LowEndBrand.accent.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
+  const res = 'android/app/src/main/res/values';
+  for (final entry in {
+    'colors.xml': 'launch_background',
+    'ic_launcher_background.xml': 'ic_launcher_background',
+  }.entries) {
+    final file = File('$res/${entry.key}');
+    final source = file.readAsStringSync();
+    final colour = RegExp(
+      '(<color name="${entry.value}">)#[0-9A-Fa-f]{6}(</color>)',
+    );
+    if (!colour.hasMatch(source)) {
+      throw StateError('Missing ${entry.value} in ${file.path}');
+    }
+    file.writeAsStringSync(
+      source.replaceFirstMapped(
+        colour,
+        (match) => '${match[1]}$hex${match[2]}',
+      ),
+    );
+  }
+  final html = File('web/index.html');
+  final source = html.readAsStringSync();
+  final background = RegExp(
+    r'(html, body \{ margin: 0; height: 100%; background: )#[0-9A-Fa-f]{6}',
+  );
+  if (!background.hasMatch(source)) {
+    throw StateError('Missing pre-Flutter background in web/index.html');
+  }
+  html.writeAsStringSync(
+    source.replaceFirstMapped(background, (match) => '${match[1]}$hex'),
+  );
+  final manifest = File('web/manifest.json');
+  final json = jsonDecode(manifest.readAsStringSync()) as Map<String, dynamic>;
+  json['background_color'] = hex;
+  manifest.writeAsStringSync(
+    '${const JsonEncoder.withIndent('    ').convert(json)}\n',
+  );
+}
+
 void main() {
   testWidgets(
     'generate the approved lion across launcher, splash, web and store',
     (tester) async {
       await tester.runAsync(() async {
+        _writeBrandColors();
         final master = await _master();
         await _save('design/lion-mark.png', master);
         const res = 'android/app/src/main/res';
@@ -104,7 +150,7 @@ void main() {
                   Radius.circular(s * .22),
                 ),
               );
-              c.drawColor(LowEndBrand.red, BlendMode.src);
+              c.drawColor(LowEndBrand.accent, BlendMode.src);
               _lion(c, master, s, .80);
             }),
           );
@@ -117,7 +163,7 @@ void main() {
               ),
             );
           }
-          // No icon background circle: Android 12+ supplies its own red window.
+          // No icon background circle: Android 12+ supplies its own accent window.
           await _save(
             '$res/drawable-${e.key}/brand_splash.png',
             await _render(
@@ -135,7 +181,7 @@ void main() {
           await _save(
             path,
             await _render(size, (c, s) {
-              c.drawColor(LowEndBrand.red, BlendMode.src);
+              c.drawColor(LowEndBrand.accent, BlendMode.src);
               _lion(c, master, s, .80);
             }),
           );
@@ -144,7 +190,7 @@ void main() {
           await _save(
             'web/icons/Icon-maskable-$size.png',
             await _render(size, (c, s) {
-              c.drawColor(LowEndBrand.red, BlendMode.src);
+              c.drawColor(LowEndBrand.accent, BlendMode.src);
               _lion(c, master, s, .60);
             }),
           );
@@ -163,7 +209,7 @@ void main() {
                 Radius.circular(s * .22),
               ),
             );
-            c.drawColor(LowEndBrand.red, BlendMode.src);
+            c.drawColor(LowEndBrand.accent, BlendMode.src);
             _lion(c, master, s, .80);
           }),
         );
@@ -192,7 +238,7 @@ void main() {
               }
               c.drawRect(
                 const Rect.fromLTWH(0, 0, 288, 288),
-                Paint()..color = LowEndBrand.red,
+                Paint()..color = LowEndBrand.accent,
               );
               _lion(c, master, 288, i == 0 ? .60 : .80);
               c.restore();
@@ -201,7 +247,7 @@ void main() {
             c.translate(320, 400);
             c.drawRect(
               const Rect.fromLTWH(0, 0, 384, 560),
-              Paint()..color = LowEndBrand.red,
+              Paint()..color = LowEndBrand.accent,
             );
             c.translate(48, 136);
             _lion(c, master, 288, .50);
@@ -210,7 +256,7 @@ void main() {
             c.translate(60, 450);
             c.drawRect(
               const Rect.fromLTWH(0, 0, 48, 48),
-              Paint()..color = LowEndBrand.red,
+              Paint()..color = LowEndBrand.accent,
             );
             _lion(c, master, 48, .80);
             c.restore();
