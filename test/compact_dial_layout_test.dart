@@ -60,8 +60,8 @@ void main() {
         for (final row in rows) {
           expect(row.height, closeTo(64, 0.01), reason: section.name);
         }
-        expect(rows[0].bottom, closeTo(rows[1].top, 0.01));
-        expect(rows[1].bottom, closeTo(rows[2].top, 0.01));
+        expect(rows[1].top - rows[0].bottom, closeTo(8, 0.01));
+        expect(rows[2].top - rows[1].bottom, closeTo(8, 0.01));
         final nav = tester.getRect(find.byType(NavigationBar));
         // The system inset and 2 dp red baseline are outside the tab row.
         expect(nav.height, closeTo(64 + 20, 0.01));

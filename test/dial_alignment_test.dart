@@ -117,15 +117,15 @@ void main() {
   testWidgets('the three rows are equal, slider row included', (tester) async {
     await open(tester, const Size(390, 844), 1.0);
     for (final g in await allTabs(tester)) {
-      // The same height and no space between them, whatever is in them:
+      // The same height and spacing, whatever is in them:
       // the rows of controls and the slider's are one measure. Global rects
       // subtract transformed coordinates, so allow floating-point roundoff
       // while still rejecting even a tiny visible height or spacing change.
       for (var i = 1; i < 4; i++) {
         expect(g[i].height, closeTo(DialLayout.rowHeight, 1e-6));
       }
-      expect(g[2].top, closeTo(g[1].bottom, 1e-6));
-      expect(g[3].top, closeTo(g[2].bottom, 1e-6));
+      expect(g[2].top - g[1].bottom, closeTo(8, 1e-6));
+      expect(g[3].top - g[2].bottom, closeTo(8, 1e-6));
     }
   });
 
@@ -185,8 +185,8 @@ void main() {
         expect(g[i].left, greaterThanOrEqualTo(g[0].right));
         expect(g[i].width, greaterThanOrEqualTo(DialLayout.columnMinWidth));
       }
-      expect(g[2].top, closeTo(g[1].bottom, 1e-6));
-      expect(g[3].top, closeTo(g[2].bottom, 1e-6));
+      expect(g[2].top - g[1].bottom, closeTo(8, 1e-6));
+      expect(g[3].top - g[2].bottom, closeTo(8, 1e-6));
     }
   });
 
