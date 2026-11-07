@@ -360,6 +360,7 @@ class _HomeShellState extends State<HomeShell> {
               ? null
               : Container(
                   key: const Key('bottomNavigationFrame'),
+                  margin: const EdgeInsets.only(top: 8),
                   decoration: BoxDecoration(
                     color: LowEndColors.of(context).bottomNavigationBackground,
                     border: Border(
