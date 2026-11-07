@@ -36,7 +36,7 @@ void main() {
     final rail = find.byKey(const Key('tabRail'));
     await tester.tap(
       rail.evaluate().isEmpty
-          ? find.text(tab).last
+          ? find.byTooltip(tab)
           : find.descendant(of: rail, matching: find.text(tab)),
     );
     await tester.pump(const Duration(milliseconds: 400));

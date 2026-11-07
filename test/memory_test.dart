@@ -209,7 +209,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: find.byType(NavigationBar),
-          matching: find.text('Tuner'),
+          matching: find.byTooltip('Tuner'),
         ),
       );
       await tester.pumpAndSettle();

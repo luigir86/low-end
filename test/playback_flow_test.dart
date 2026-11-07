@@ -23,19 +23,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 final _harmonyTab = find.descendant(
   of: find.byType(NavigationBar),
-  matching: find.text('Harmony'),
+  matching: find.byTooltip('Harmony'),
 );
 final _playerTab = find.descendant(
   of: find.byType(NavigationBar),
-  matching: find.text('Player'),
+  matching: find.byTooltip('Player'),
 );
 final _playerTabItem = find.ancestor(
-  of: find.text('Player'),
+  of: find.byTooltip('Player'),
   matching: find.byType(NavigationDestination),
 );
 final _metronomeTab = find.descendant(
   of: find.byType(NavigationBar),
-  matching: find.text('Metronome'),
+  matching: find.byTooltip('Metronome'),
 );
 
 /// A [BackgroundAudio] that remembers what the notification shows.
@@ -251,7 +251,7 @@ void main() {
       tester,
     ) async {
       final app = await _open(tester);
-      await tester.tap(find.text('Tuner'));
+      await tester.tap(find.byTooltip('Tuner'));
       await app.settle();
       expect(app.mic.isCapturing, isTrue);
       expect(find.byType(SnackBar), findsNothing);
@@ -269,7 +269,7 @@ void main() {
         if (drone) await app.scope.drone.start();
         await app.settle();
 
-        await tester.tap(find.text('Tuner'));
+        await tester.tap(find.byTooltip('Tuner'));
         await app.settle();
         expect(app.scope.metronome.isPlaying, metronome);
         expect(app.scope.drone.isPlaying, drone);
@@ -336,7 +336,7 @@ void main() {
       expect(find.text('3'), findsOneWidget);
 
       // The tuner pausing it ends the countdown.
-      await tester.tap(find.text('Tuner'));
+      await tester.tap(find.byTooltip('Tuner'));
       await app.settle();
       await tester.tap(find.byKey(const Key('tunerHub')));
       await app.settle();
@@ -470,7 +470,7 @@ void main() {
       expect(app.tone.frequencies, isNotEmpty);
 
       // The pause for the tuner is not a gesture.
-      await tester.tap(find.text('Tuner'));
+      await tester.tap(find.byTooltip('Tuner'));
       await app.settle();
       await tester.tap(find.byKey(const Key('tunerHub')));
       await app.settle();
@@ -608,7 +608,7 @@ void main() {
     ) async {
       final app = await openWithTrack(tester);
       await app.scope.player.start();
-      await tester.tap(find.text('Tuner'));
+      await tester.tap(find.byTooltip('Tuner'));
       await app.settle();
       // Entering the tuner stops nothing.
       expect(app.scope.player.isPlaying, isTrue);

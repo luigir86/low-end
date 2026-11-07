@@ -118,7 +118,7 @@ void main() {
     await tester.pumpAndSettle();
     // The app opens on the metronome, with the microphone off.
     expect(mic.isCapturing, isFalse);
-    await tester.tap(find.text('Tuner'));
+    await tester.tap(find.byTooltip('Tuner'));
     await tester.pumpAndSettle();
     // Opening the tuner starts listening right away.
     expect(mic.isCapturing, isTrue);
@@ -133,7 +133,7 @@ void main() {
     expect(find.text('G2'), findsWidgets);
 
     // Leaving the tuner turns the microphone off.
-    await tester.tap(find.text('Metronome'));
+    await tester.tap(find.byTooltip('Metronome'));
     await tester.pumpAndSettle();
     expect(mic.isCapturing, isFalse);
   });

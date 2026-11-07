@@ -79,7 +79,7 @@ void main() {
       final rail = find.byKey(const Key('tabRail'));
       await tester.tap(
         rail.evaluate().isEmpty
-            ? find.text(tab).last
+            ? find.byTooltip(tab)
             : find.descendant(of: rail, matching: find.text(tab)),
       );
       await tester.pump(const Duration(milliseconds: 400));
@@ -146,7 +146,7 @@ void main() {
       tester.getRect(find.byType(ReferencePitchRow).last).center.dy,
       inInclusiveRange(tuner[3].top, tuner[3].bottom),
     );
-    await tester.tap(find.text('Metronome').last);
+    await tester.tap(find.byTooltip('Metronome').last);
     await tester.pumpAndSettle();
     final metro = tabs[0];
     expect(

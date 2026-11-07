@@ -46,7 +46,7 @@ Future<void> pumpApp(
   );
   await tester.pumpAndSettle();
   // The app opens on the metronome; these checks start from the tuner.
-  await tester.tap(find.text('Tuner'));
+  await tester.tap(find.byTooltip('Tuner'));
   await tester.pumpAndSettle();
 }
 
@@ -54,15 +54,15 @@ Future<void> pumpApp(
 /// else on the screen.
 final _harmonyTab = find.descendant(
   of: find.byType(NavigationBar),
-  matching: find.text('Harmony'),
+  matching: find.byTooltip('Harmony'),
 );
 final _playerTab = find.descendant(
   of: find.byType(NavigationBar),
-  matching: find.text('Player'),
+  matching: find.byTooltip('Player'),
 );
 final _metronomeTab = find.descendant(
   of: find.byType(NavigationBar),
-  matching: find.text('Metronome'),
+  matching: find.byTooltip('Metronome'),
 );
 
 /// Does the ring's custom action called [label], as a screen reader would.

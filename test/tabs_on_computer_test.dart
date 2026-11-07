@@ -141,7 +141,9 @@ void main() {
         await click(
           tester,
           mouse,
-          tester.getCenter(find.text(tab).last),
+          tester.getCenter(
+            name == 'rail' ? find.text(tab) : find.byTooltip(tab),
+          ),
           const Offset(1, 3),
         );
         expect(navigation.section, section);
@@ -188,7 +190,7 @@ void main() {
         ('Metronome', AppSection.metronome),
         ('Harmony', AppSection.drone),
       ]) {
-        await tester.tap(find.text(tab).last);
+        await tester.tap(name == 'rail' ? find.text(tab) : find.byTooltip(tab));
         await tester.pumpAndSettle();
         expect(navigation.section, section);
         expect(pages.page, section.index.toDouble());

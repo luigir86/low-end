@@ -122,7 +122,7 @@ void main() {
   group('the reference A on the tuner', () {
     Future<AudioScope> openTuner(WidgetTester tester) async {
       final scope = await _pump(tester, AppSettings());
-      await tester.tap(find.text('Tuner'));
+      await tester.tap(find.byTooltip('Tuner'));
       await tester.pumpAndSettle();
       return scope;
     }
@@ -211,7 +211,7 @@ void main() {
 
   testWidgets('the circle writes the chord out, not "II of C"', (tester) async {
     final scope = await _pump(tester, AppSettings());
-    await tester.tap(find.text('Harmony').last);
+    await tester.tap(find.byTooltip('Harmony').last);
     await tester.pumpAndSettle();
     scope.drone
       ..setProgression(Progression.twoFiveOne)
@@ -229,7 +229,7 @@ void main() {
     tester,
   ) async {
     await _pump(tester, AppSettings());
-    await tester.tap(find.text('Tuner'));
+    await tester.tap(find.byTooltip('Tuner'));
     await tester.pumpAndSettle();
     final instrument = tester.getSize(find.byKey(const Key('instrumentMenu')));
     final reference = tester.getSize(

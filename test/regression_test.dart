@@ -181,7 +181,7 @@ void main() {
       expect(lit(), hasLength(1), reason: 'only the harmony plays');
       final harmonyTab = tester.getSemantics(
         find.ancestor(
-          of: find.text('Harmony'),
+          of: find.byTooltip('Harmony'),
           matching: find.byType(NavigationDestination),
         ),
       );
