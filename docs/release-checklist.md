@@ -5,11 +5,12 @@ marks anything that cannot be confirmed from the code.
 
 ## 1. Version and build
 
-- [ ] `pubspec.yaml`: `version: 1.5.0+9` (name `1.5.0`, versionCode `9`),
+- [ ] `pubspec.yaml`: `version: 1.6.0+10` (name `1.6.0`, versionCode `10`),
       and the same in `lib/app/version.dart` (shown in About; `version_test` checks it).
       1.0.0+1 went to the closed test on 2026-10-19, 1.3.0+4 on 2026-10-29;
       1.4.0+5 (2026-11-05) stayed on "Preparing sounds", fixed in 1.4.1+6;
-      1.4.2+7 and 1.4.3+8 built on 2026-11-05. The number after `+`
+      1.4.2+7 and 1.4.3+8 built on 2026-11-05, 1.5.0+9 on 2026-11-06;
+      1.6.0+10 (Player, recording, Ebony & Bronze) on 2026-11-08. The number after `+`
       must grow with every upload to Play.
 - [ ] Target SDK: `flutter.targetSdkVersion` (36 with the current Flutter
       stable; minSdk 24, compileSdk 36). TO VERIFY in Play Console that 36 meets
@@ -40,7 +41,7 @@ marks anything that cannot be confirmed from the code.
 
 | Permission | Why | Play declaration |
 | --- | --- | --- |
-| `RECORD_AUDIO` | The tuner listens to the instrument. Audio is analysed on the phone, never recorded or sent. Asked at run time, only for the tuner. | Data safety: no audio collected (processed on device only). |
+| `RECORD_AUDIO` | The tuner listens to the instrument (analysed on the phone, never recorded or sent), and REC in the Player records a take into the app's private storage. Asked at run time, the first time either is used. | Data safety: no audio collected: it stays on the device, and leaves it only by the person's own Save or Share. |
 | `FOREGROUND_SERVICE` + `FOREGROUND_SERVICE_MEDIA_PLAYBACK` | Metronome and harmony keep playing with the screen off (audio_service, type `mediaPlayback`). | Foreground-service form: type "Media playback"; core feature, user-started, shows a notification with the controls. |
 | `POST_NOTIFICATIONS` | The foreground-service notification (Android 13+). | Nothing to declare beyond the above. |
 | `WAKE_LOCK` | Keeps audio running with the screen off / screen on while playing. | Normal permission. |
@@ -67,7 +68,8 @@ marks anything that cannot be confirmed from the code.
       language, phone screenshots in `store/graphics/phone/<locale>/`.
       Regenerate with
       `flutter test test_screenshots/store_screenshots_test.dart --update-goldens`
-      only if the UI changes. TO VERIFY by eye that all screenshots (en, it, es, fr)
+      only if the UI changes (five per language since 1.6.0, the fifth the
+      Player). TO VERIFY by eye that all screenshots (en, it, es, fr)
       match the final UI.
 - [ ] Privacy policy URL: Play needs a public URL. `PRIVACY.md` is in the
       repository; TO VERIFY that the repository (or a published page) is
@@ -80,8 +82,9 @@ marks anything that cannot be confirmed from the code.
 Consistent with PRIVACY.md and the code (to be filled in by the owner):
 
 - Data collected: **none**. Data shared: **none**.
-- Microphone: processed on device, not stored, not sent: answer "no data
-  collected".
+- Microphone: the tuner processes it on device, not stored, not sent; a
+  Player recording stays on the device and leaves it only by the person's
+  own Save or Share: answer "no data collected".
 - No accounts, no analytics, no ads, no crash reporting, no network.
 - Settings kept in the app's own storage, removed with the app.
 - Two links open outside the app (source code, the orchestra's Instagram);
@@ -93,7 +96,8 @@ Consistent with PRIVACY.md and the code (to be filled in by the owner):
       `flutter test` green (CI runs the same).
 - [ ] Release build installed on a real phone (Galaxy S20 FE tested by the
       developer): metronome, harmony (with the countdown), tuner and its
-      "Resume" snackbar, screen off for a few minutes with sound playing,
+      "Resume" snackbar, Player (open a track, speed, passage loop, REC,
+      Save, Share, delete the take and the studied track comes back), screen off for a few minutes with sound playing,
       incoming call / headphones unplugged, in each of the four languages.
 - [ ] Internal testing track first, then closed/open per Play's requirements
       for new personal accounts (TO VERIFY: the current testing requirements

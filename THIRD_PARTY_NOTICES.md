@@ -10,7 +10,7 @@ Exact versions of every package are in [pubspec.lock](pubspec.lock). Keep this f
 | --- | --- | --- | --- |
 | [Flutter](https://flutter.dev) (framework and engine) | 3.47 | The whole app | BSD-3-Clause |
 | [flutter_soloud](https://pub.dev/packages/flutter_soloud) | 5.2.1 | Audio engine: metronome, drone, piano | MIT |
-| [record](https://pub.dev/packages/record) (+ `record_android`) | 7.1.2 | Microphone for the tuner | BSD-3-Clause |
+| [record](https://pub.dev/packages/record) (+ `record_android`) | 7.1.2 | Microphone for the tuner and the Player's recordings | BSD-3-Clause |
 | [just_audio](https://pub.dev/packages/just_audio) (+ `just_audio_web`, `just_audio_platform_interface`) | 0.10.6 | The Player: plays the person's own audio files (ExoPlayer on Android, the browser's audio element on the web) | MIT |
 | [audio_service](https://pub.dev/packages/audio_service) (+ `audio_session`, `rxdart`) | 0.18.19 | Playing with the screen off, media notification | MIT (`rxdart`: Apache-2.0) |
 | [shared_preferences](https://pub.dev/packages/shared_preferences) | 2.5.6 | Settings kept on the phone | BSD-3-Clause |
@@ -50,4 +50,4 @@ The Android build also contains AndroidX, Kotlin (`kotlin-stdlib`, `kotlinx-coro
 
 ## Checks made
 
-On 16 October 2026 every package in `pubspec.lock` (108) and every external Android library of the release build (88) was checked against the [OSV](https://osv.dev) vulnerability database, with no known vulnerability found.
+On 8 November 2026 every package in `pubspec.lock` (113) was checked against the security advisories that pub.dev publishes (the GitHub Advisory Database): two packages have old advisories (`http` before 0.13.3, `shared_preferences_android` 2.3.3), and the versions in the app (1.6.0 and 2.4.28) are not affected. The external Android libraries of the release build were last checked against [OSV](https://osv.dev) on 16 October 2026 (88 libraries, none affected); the Player added AndroidX Media3 since then.

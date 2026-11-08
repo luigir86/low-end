@@ -1,6 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <!-- The tuner listens to the instrument through the microphone. -->
+    <!-- The tuner listens to the instrument through the microphone, and REC
+         in the Player records a take. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- The drone and the metronome keep playing with the screen off, kept
          alive by a foreground service with a notification. -->

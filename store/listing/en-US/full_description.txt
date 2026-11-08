@@ -1,37 +1,39 @@
-Low End gives you a band to practise with. Pick a key and a progression and a real grand piano plays it for you, in time with a metronome, while you play over it: scales, improvisation, your part of a song, or simply training your ear. From pop to the blues and jazz standards, with a walking double bass. A chromatic tuner completes it. Made by an amateur double bass player with the friends from the orchestra in mind, it is useful to everyone who plays. It is free, has no ads, needs no account and works fully offline.
+Low End gives you a band to practise with. Pick a key and a progression and a real grand piano plays it for you, in time with a metronome, while you play over it: scales, improvisation, your part of a song, or simply training your ear. From pop to the blues and jazz standards, with a walking double bass. A chromatic tuner and a player for your own tracks complete it. Made by an amateur double bass player with the friends from the orchestra in mind, it is useful to everyone who plays. It is free, has no ads, needs no account and works fully offline.
 
 HARMONY: YOUR PIANO PLAYER
 • Twelve keys on a dial: touch a note and it plays on a real grand piano, recorded in stereo, in time with the metronome.
-• Nine progressions to play over, from the easiest, in sections for pop and rock, blues and jazz: I–VI–IV–V, I–V–VI–IV, the Andalusian cadence, the twelve-bar blues (major and minor), II–V–I (major and minor), I–VI–II–V and the circle of fifths of Autumn Leaves. One chord per bar, in phrases of 4, 8 or 12 bars, in any key, with the Roman numerals on the keys.
+• Nine progressions, from the easiest, for pop and rock, blues and jazz: I–VI–IV–V, I–V–VI–IV, the Andalusian cadence, the twelve-bar blues (major and minor), II–V–I (major and minor), I–VI–II–V and the circle of fifths. One chord per bar, in any key, with the Roman numerals on the keys.
 • Example songs (Stand by Me, Sweet Home Chicago, Blue Bossa, Autumn Leaves and more) set the key, the progression, the tempo and the piano style in one tap.
 • Four ways to play: chords held for the bar, struck on every beat, arpeggiated, or a walking bass: a jazz line on a plucked double bass, with the piano comping lightly above it.
-• Or a single chord to hold (nine kinds, from major to sus4), the note alone, or a held tone instead of the piano. While it sounds, the notes not heard fade on the dial.
-• Start the harmony while the click is running and it comes in on the next bar, with a countdown on the dial.
-• Change song, progression or style while it plays: the old one fades and the new one comes in on the "one" of the next bar, as in a band.
+• Or a single chord to hold (nine kinds, from major to sus4), the note alone, or a held tone instead of the piano.
+• Start the harmony while the click is running and it comes in on the next bar, with a countdown on the dial. Change song or style while it plays and the new one comes in on the "one" of the next bar, as in a band.
 
 METRONOME
-• Tempo from 30 to 250 BPM: type it with the pencil, hold − or + to run through it, or use TAP.
+• Tempo from 30 to 250 BPM: turn the outer dial, type it with the pencil, hold − or + to run through it, or use TAP.
 • Time signatures 1/1, 2/4, 3/4, 4/4, 5/4, 6/8, 7/8, 9/8 and 12/8, with the beats grouped the way you count them.
-• A ring that lights up beat by beat and a short, dry click that stays steady. Subdivisions in eighths, triplets, sixteenths and swing (as MuseScore plays "Swing"), or a click on 2 and 4 only.
+• A ring that lights up beat by beat and a short, dry click that stays steady. Subdivisions in eighths, triplets, sixteenths and swing, or a click on 2 and 4 only.
 
 TUNER
 • Chromatic, with a round strobe and the note in the middle: play any note and it shows up, no string to choose first. Or pick guitar, violin, viola, cello, ukulele or bass strings.
-• Hears low and high notes alike, from 28 to 2800 Hz (a low B on a five-string bass up to the top of the violin and the flute).
+• From 28 to 2800 Hz, from a low B on a five-string bass to the top of the violin and the flute.
 • For B♭, E♭ and F instruments it can name the written note.
-• Reference A: every hertz from 415 to 445 (415, 432, 440 and 442 in one tap). The sound is analysed on the phone and never recorded.
-• If the metronome or the harmony is playing, touch the tuner's dial and they pause, with a Resume button.
+• Reference A: every hertz from 415 to 445. The sound is analysed on the phone and never recorded.
+
+PLAYER: STUDY YOUR TRACKS
+• Open a track from your phone (MP3, M4A, WAV, FLAC…) and find your way on its waveform round the dial.
+• Slow it down to 50% or speed it up to 125% without changing the pitch.
+• Loop a passage with two taps and refine it on the waveform.
+• Record yourself with REC, over the click if you like, listen back, then save or share the take.
 
 MADE FOR PLAYING
+• The Player plays alone: it pauses the metronome and the harmony, with a Resume button.
 • Swipe left and right to change section; for rehearsals, lock the gestures in the settings.
-• Keeps playing with the screen off, with a notification that says what is sounding. The screen can stay on while you play.
-• Unplug the headphones and the sound stops, instead of carrying on from the phone's speaker.
-• A dark look in bronze and ebony, easy on the eyes on stage; in four languages; note names as C D E or Do Re Mi.
+• Keeps playing with the screen off, with a notification that says what is sounding. Unplug the headphones and the sound stops.
+• A dark look in ebony and bronze, easy on the eyes on stage; in four languages; note names as C D E or Do Re Mi.
 • Built to be accessible: screen-reader labels, enlargeable text, and colours that are never the only cue.
 
 PRIVATE AND OPEN
 • No account, no ads, no tracking, no internet connection needed.
-• The microphone is used only while the tuner is on screen.
+• The microphone is used only while the tuner is on screen or while you record. Your recordings stay on the phone unless you save or share them.
 • Free and open-source software under the MIT License: https://github.com/luigir86/low-end
 • Sounds: Salamander Grand Piano by Alexander Holm, Meatbass double bass by Karoryfer Lecolds (public domain).
-
-Questions or ideas? Write to ribaluigi@gmail.com or open an issue on GitHub.

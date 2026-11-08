@@ -2,7 +2,7 @@
 
 *English: [user-guide.md](user-guide.md).* Che cosa fa ogni comando è scritto anche, con un codice ciascuno, nei [requisiti](specs/requisiti.md); dove questo manuale dice altro, valgono i requisiti.
 
-Low End è un metronomo, una sezione di armonia al pianoforte, un accordatore e un lettore per le tue registrazioni in un'unica app. L'ha realizzata un contrabbassista amatoriale pensando agli amici dell'orchestra, ma è pensata per ogni musicista. È gratuita, senza pubblicità, non raccoglie nulla e non ha bisogno di internet. Ha un aspetto scuro antracite, con accenti rossi e testi chiari: non c'è un tema da scegliere.
+Low End è un metronomo, una sezione di armonia al pianoforte, un accordatore e un lettore per le tue registrazioni in un'unica app. L'ha realizzata un contrabbassista amatoriale pensando agli amici dell'orchestra, ma è pensata per ogni musicista. È gratuita, senza pubblicità, non raccoglie nulla e non ha bisogno di internet. Ha un aspetto scuro color ebano, con accenti bronzo e testi chiari: non c'è un tema da scegliere.
 
 ## Le quattro sezioni
 
@@ -92,9 +92,10 @@ Metronomo e armonia continuano a suonare se blocchi il telefono o passi a un'alt
 
 Se **stacchi le cuffie** (o si scollegano quelle Bluetooth), il suono si ferma subito invece di passare all'altoparlante del telefono, con l'avviso *In pausa: cuffie scollegate* e un pulsante **Riprendi**. La notifica resta, in pausa: il suo tasto play fa ripartire il suono, come in un lettore musicale.
 
+## Com'è fatta
+
+Ebano e bronzo: una linea bronzo sottilissima incornicia il bordo superiore e l'ingranaggio delle Impostazioni sta in alto a destra sul fondo ebano, lasciando più spazio al quadrante. La barra in basso è avorio, con le sole icone (il lettore di schermo ne legge il nome, e tenendole premute compare); la sezione scelta ha l'icona più scura e un pallino bronzo indica una sezione che sta suonando, anche da un'altra scheda. L'accordatore non ha il pallino. Centri e fondo dei controlli restano scuri. La ghiera del tempo ha soltanto tacche: trascinala oppure usa i pulsanti chiari −/+. TAP, i brani d'esempio e il pulsante dello stile sono bronzo. Il verdetto dell'accordatore combina salvia, paglia e rosso mattone con simboli e parole.
+
 ## Domande e problemi
 
 Scrivi a ribaluigi@gmail.com oppure apri una segnalazione su https://github.com/luigir86/low-end/issues.
-
-
-Una linea rossa sottilissima incornicia il bordo superiore. Le Impostazioni sono in alto a destra sul fondo antracite, lasciando più spazio al quadrante. La navigazione inferiore è quasi bianca con una linea rossa alla base: icona e nome rossi in grassetto indicano la tab selezionata; un pallino rosso indica invece una sezione che sta suonando, anche se è aperta un’altra tab. L’accordatore non ha il pallino di riproduzione. Centri e fondo dei controlli restano scuri. La ghiera del tempo ha soltanto tacche: trascinarla oppure usare i pulsanti chiari −/+. Modifica e libreria usano pulsanti rossi. Il verdetto dell’accordatore combina salvia, ocra e rosso con simboli e parole.

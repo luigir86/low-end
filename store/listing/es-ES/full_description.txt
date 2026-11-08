@@ -1,37 +1,39 @@
-Low End te da una banda con la que practicar. Elige una tonalidad y una progresión y un piano de cola de verdad la toca para ti, a tempo con un metrónomo, mientras tú tocas encima: escalas, improvisación, tu parte de un tema o simplemente entrenar el oído. Del pop al blues y los standards de jazz, con un contrabajo en walking. Lo completa un afinador cromático. Hecha por un contrabajista aficionado pensando en los amigos de la orquesta, es útil para todo el que toca. Es gratuita, sin anuncios, sin cuenta y funciona totalmente sin conexión.
+Low End te da una banda con la que practicar. Elige una tonalidad y una progresión y un piano de cola de verdad la toca para ti, a tempo con un metrónomo, mientras tú tocas encima: escalas, improvisación, tu parte de un tema o simplemente entrenar el oído. Del pop al blues y los standards de jazz, con un contrabajo en walking. Lo completan un afinador cromático y un reproductor para tus propias pistas. Hecha por un contrabajista aficionado pensando en los amigos de la orquesta, es útil para todo el que toca. Es gratuita, sin anuncios, sin cuenta y funciona totalmente sin conexión.
 
 ARMONÍA: TU PIANISTA
-• Doce tonalidades en un círculo: toca una nota y suena en un piano de cola real, grabado en estéreo, a tempo con el metrónomo.
-• Nueve progresiones sobre las que tocar, en secciones de pop y rock, blues y jazz: I–VI–IV–V, I–V–VI–IV, la cadencia andaluza, el blues de doce compases (mayor y menor), II–V–I (mayor y menor), I–VI–II–V y el círculo de quintas de Autumn Leaves. Un acorde por compás, en frases de 4, 8 o 12 compases, en cualquier tonalidad, con los números romanos sobre las notas.
-• Temas de ejemplo (Stand by Me, Sweet Home Chicago, Blue Bossa, Autumn Leaves y más) fijan la tonalidad, la progresión, el tempo y el estilo del piano con un toque.
+• Doce tonalidades en un círculo: toca una nota y suena en un piano de cola real a tempo con el metrónomo.
+• Nueve progresiones para pop y rock, blues y jazz: I–VI–IV–V, I–V–VI–IV, la cadencia andaluza, el blues de doce compases (mayor y menor), II–V–I (mayor y menor), I–VI–II–V y el círculo de quintas. Un acorde por compás, en cualquier tonalidad, con los números romanos sobre las notas.
+• Temas de ejemplo (Stand by Me, Blue Bossa, Autumn Leaves…) fijan la tonalidad, la progresión, el tempo y el estilo del piano con un toque.
 • Cuatro maneras de tocar: acordes tenidos durante el compás, en cada tiempo, arpegiados, o un walking bass: una línea de jazz en un contrabajo en pizzicato, con el piano acompañando suavemente encima.
-• O un solo acorde tenido (nueve tipos, de mayor a sus4), la nota sola, o un sonido continuo en lugar del piano. Mientras suena, las notas que no se oyen se atenúan en el círculo.
-• Inicia la armonía mientras suena el clic y entra en el compás siguiente, con una cuenta atrás en el círculo.
-• Cambia de tema, progresión o estilo mientras suena: el anterior se apaga y el nuevo entra en el "uno" del compás siguiente, como en una banda.
+• O un solo acorde tenido (nueve tipos, de mayor a sus4), la nota sola, o un sonido continuo en lugar del piano.
+• Inicia la armonía mientras suena el clic y entra en el compás siguiente, con una cuenta atrás en el círculo. Cambia de tema o de estilo mientras suena: el nuevo entra en el "uno" del compás siguiente, como en una banda.
 
 METRÓNOMO
-• Tempo de 30 a 250 BPM: escríbelo con el lápiz, mantén pulsado − o + para recorrerlo, o usa TAP.
+• Tempo de 30 a 250 BPM: gira el anillo exterior, escríbelo con el lápiz, mantén pulsado − o + para recorrerlo, o usa TAP.
 • Compases 1/1, 2/4, 3/4, 4/4, 5/4, 6/8, 7/8, 9/8 y 12/8, con los tiempos agrupados como los cuentas.
-• Un anillo que se ilumina tiempo a tiempo y un clic corto y seco que no se mueve. Subdivisiones en corcheas, tresillos, semicorcheas y swing, o un clic solo en 2 y 4.
+• Un anillo que se ilumina tiempo a tiempo y un clic corto y seco. Subdivisiones en corcheas, tresillos, semicorcheas y swing, o un clic solo en 2 y 4.
 
 AFINADOR
 • Cromático, con un estroboscopio redondo y la nota en el centro: toca cualquier nota y aparece, sin elegir antes la cuerda. O elige las cuerdas de guitarra, violín, viola, violonchelo, ukelele o bajo.
-• Oye por igual graves y agudos, de 28 a 2800 Hz (del Si grave de un bajo de cinco cuerdas a lo más alto del violín y la flauta).
+• De 28 a 2800 Hz, del Si grave de un bajo de cinco cuerdas a lo más alto del violín y la flauta.
 • Para instrumentos en Si♭, Mi♭ y Fa puede indicar la nota escrita.
-• La de referencia: cada hercio de 415 a 445 (415, 432, 440 y 442 con un toque). El sonido se analiza en el teléfono y nunca se graba.
-• Si suenan el metrónomo o la armonía, toca el círculo del afinador y se ponen en pausa, con un botón Reanudar.
+• La de referencia: cada hercio de 415 a 445. El sonido se analiza en el teléfono y nunca se graba.
+
+ESCUCHA: ESTUDIA TUS PISTAS
+• Abre una pista del teléfono (MP3, M4A, WAV, FLAC…) y muévete por su forma de onda alrededor del círculo.
+• Ralentízala hasta el 50% o acelérala hasta el 125% sin cambiar la afinación.
+• Repite un pasaje con dos toques y ajústalo sobre la forma de onda.
+• Grábate con REC, también sobre el clic, escúchate y guarda o comparte la toma.
 
 HECHA PARA TOCAR
+• Escucha suena sola: pausa el metrónomo y la armonía, con un botón Reanudar.
 • Desliza a izquierda y derecha para cambiar de sección; para los ensayos, bloquea los gestos en los ajustes.
-• Sigue sonando con la pantalla apagada, con una notificación que dice lo que suena. La pantalla puede quedarse encendida mientras tocas.
-• Desconecta los auriculares y el sonido se detiene, en lugar de seguir por el altavoz del teléfono.
-• Un aspecto oscuro en bronce y ébano; en español, inglés, italiano y francés; nombres de las notas Do Re Mi o C D E.
+• Sigue sonando con la pantalla apagada, con una notificación que dice lo que suena. Si desconectas los auriculares, el sonido se detiene.
+• Un aspecto oscuro en ébano y bronce; en cuatro idiomas; notas Do Re Mi o C D E.
 • Pensada para ser accesible: etiquetas para lectores de pantalla, texto ampliable y colores que nunca son la única señal.
 
 PRIVADA Y ABIERTA
 • Sin cuenta, sin anuncios, sin rastreo, sin necesidad de conexión a internet.
-• El micrófono solo se usa mientras el afinador está en pantalla.
+• El micrófono solo se usa mientras el afinador está en pantalla o mientras grabas. Tus grabaciones se quedan en el teléfono salvo que las guardes o compartas.
 • Software libre y de código abierto con licencia MIT: https://github.com/luigir86/low-end
 • Sonidos: Salamander Grand Piano de Alexander Holm, contrabajo Meatbass de Karoryfer Lecolds (dominio público).
-
-¿Preguntas o ideas? Escribe a ribaluigi@gmail.com o abre un issue en GitHub.

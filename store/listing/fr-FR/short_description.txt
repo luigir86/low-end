@@ -1,1 +1,1 @@
-Jouez sur des accords et progressions au piano, avec métronome et accordeur.
+Jouez sur des accords de piano, avec métronome, accordeur et lecteur audio.
