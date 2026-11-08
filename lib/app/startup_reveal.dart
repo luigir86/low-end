@@ -61,7 +61,7 @@ class _StartupRevealState extends State<StartupReveal>
             child: FadeTransition(
               opacity: ReverseAnimation(_controller),
               child: ColoredBox(
-                color: LowEndBrand.accent,
+                color: LowEndBrand.palette.brand,
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final extent = math.min(

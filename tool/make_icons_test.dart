@@ -24,7 +24,7 @@ Future<ui.Image> _render(int size, void Function(Canvas, double) draw) async {
 
 // The large approved icon, excluding its red tile and the phone mockup.
 // Green separates ivory (~245) from red (~35). Unmix edge coverage; flatten
-// the mockup's lighting to one ivory ink. No flip, rotation or reshaping.
+// the mockup's lighting to one ink, the palette's mark colour. No flip, rotation or reshaping.
 Future<ui.Image> _master() async {
   final codec = await ui.instantiateImageCodec(
     File('docs/images/lion-brand-approved.png').readAsBytesSync(),
@@ -34,6 +34,7 @@ Future<ui.Image> _master() async {
   final bytes = (await source.toByteData())!;
   const left = 292, top = 116, width = 350, height = 532;
   final rgba = Uint8List(width * height * 4);
+  final ink = LowEndBrand.palette.mark;
   for (var y = 0; y < height; y++) {
     for (var x = 0; x < width; x++) {
       final green = bytes.getUint8(
@@ -41,9 +42,9 @@ Future<ui.Image> _master() async {
       );
       final alpha = ((green - 40) / 202).clamp(0.0, 1.0);
       final i = (y * width + x) * 4;
-      rgba[i] = 255;
-      rgba[i + 1] = 245;
-      rgba[i + 2] = 227;
+      rgba[i] = (ink.r * 255).round();
+      rgba[i + 1] = (ink.g * 255).round();
+      rgba[i + 2] = (ink.b * 255).round();
       rgba[i + 3] = (alpha * 255).round();
     }
   }
@@ -81,26 +82,32 @@ void _lion(
 
 // Native and pre-Flutter surfaces cannot read Dart at runtime. Generate them
 // from the same constant as the UI, alongside the raster icon variants.
+String _hex(Color c) =>
+    '#${(c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
+
 void _writeBrandColors() {
-  final hex =
-      '#${(LowEndBrand.accent.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
+  final hex = _hex(LowEndBrand.palette.brand);
+  final startup = _hex(LowEndBrand.palette.startup);
   const res = 'android/app/src/main/res/values';
-  for (final entry in {
-    'colors.xml': 'launch_background',
-    'ic_launcher_background.xml': 'ic_launcher_background',
-  }.entries) {
-    final file = File('$res/${entry.key}');
+  for (final (file: name, colour: role, value: value) in [
+    (file: 'colors.xml', colour: 'launch_background', value: hex),
+    (file: 'colors.xml', colour: 'app_background', value: startup),
+    (
+      file: 'ic_launcher_background.xml',
+      colour: 'ic_launcher_background',
+      value: hex,
+    ),
+  ]) {
+    final file = File('$res/$name');
     final source = file.readAsStringSync();
-    final colour = RegExp(
-      '(<color name="${entry.value}">)#[0-9A-Fa-f]{6}(</color>)',
-    );
+    final colour = RegExp('(<color name="$role">)#[0-9A-Fa-f]{6}(</color>)');
     if (!colour.hasMatch(source)) {
-      throw StateError('Missing ${entry.value} in ${file.path}');
+      throw StateError('Missing $role in ${file.path}');
     }
     file.writeAsStringSync(
       source.replaceFirstMapped(
         colour,
-        (match) => '${match[1]}$hex${match[2]}',
+        (match) => '${match[1]}$value${match[2]}',
       ),
     );
   }
@@ -112,12 +119,21 @@ void _writeBrandColors() {
   if (!background.hasMatch(source)) {
     throw StateError('Missing pre-Flutter background in web/index.html');
   }
+  final themeColour = RegExp(
+    r'(<meta name="theme-color" content=")#[0-9A-Fa-f]{6}',
+  );
+  if (!themeColour.hasMatch(source)) {
+    throw StateError('Missing theme-color in web/index.html');
+  }
   html.writeAsStringSync(
-    source.replaceFirstMapped(background, (match) => '${match[1]}$hex'),
+    source
+        .replaceFirstMapped(background, (match) => '${match[1]}$hex')
+        .replaceFirstMapped(themeColour, (match) => '${match[1]}$startup'),
   );
   final manifest = File('web/manifest.json');
   final json = jsonDecode(manifest.readAsStringSync()) as Map<String, dynamic>;
   json['background_color'] = hex;
+  json['theme_color'] = startup;
   manifest.writeAsStringSync(
     '${const JsonEncoder.withIndent('    ').convert(json)}\n',
   );
@@ -150,7 +166,7 @@ void main() {
                   Radius.circular(s * .22),
                 ),
               );
-              c.drawColor(LowEndBrand.accent, BlendMode.src);
+              c.drawColor(LowEndBrand.palette.brand, BlendMode.src);
               _lion(c, master, s, .80);
             }),
           );
@@ -181,7 +197,7 @@ void main() {
           await _save(
             path,
             await _render(size, (c, s) {
-              c.drawColor(LowEndBrand.accent, BlendMode.src);
+              c.drawColor(LowEndBrand.palette.brand, BlendMode.src);
               _lion(c, master, s, .80);
             }),
           );
@@ -190,7 +206,7 @@ void main() {
           await _save(
             'web/icons/Icon-maskable-$size.png',
             await _render(size, (c, s) {
-              c.drawColor(LowEndBrand.accent, BlendMode.src);
+              c.drawColor(LowEndBrand.palette.brand, BlendMode.src);
               _lion(c, master, s, .60);
             }),
           );
@@ -209,7 +225,7 @@ void main() {
                 Radius.circular(s * .22),
               ),
             );
-            c.drawColor(LowEndBrand.accent, BlendMode.src);
+            c.drawColor(LowEndBrand.palette.brand, BlendMode.src);
             _lion(c, master, s, .80);
           }),
         );
@@ -219,7 +235,7 @@ void main() {
         await _save(
           'docs/images/lion-brand-production.png',
           await _render(1024, (c, s) {
-            c.drawColor(const Color(0xFF181818), BlendMode.src);
+            c.drawColor(LowEndBrand.palette.startup, BlendMode.src);
             for (var i = 0; i < 3; i++) {
               c.save();
               c.translate(40.0 + i * 330, 40);
@@ -238,7 +254,7 @@ void main() {
               }
               c.drawRect(
                 const Rect.fromLTWH(0, 0, 288, 288),
-                Paint()..color = LowEndBrand.accent,
+                Paint()..color = LowEndBrand.palette.brand,
               );
               _lion(c, master, 288, i == 0 ? .60 : .80);
               c.restore();
@@ -247,7 +263,7 @@ void main() {
             c.translate(320, 400);
             c.drawRect(
               const Rect.fromLTWH(0, 0, 384, 560),
-              Paint()..color = LowEndBrand.accent,
+              Paint()..color = LowEndBrand.palette.brand,
             );
             c.translate(48, 136);
             _lion(c, master, 288, .50);
@@ -256,7 +272,7 @@ void main() {
             c.translate(60, 450);
             c.drawRect(
               const Rect.fromLTWH(0, 0, 48, 48),
-              Paint()..color = LowEndBrand.accent,
+              Paint()..color = LowEndBrand.palette.brand,
             );
             _lion(c, master, 48, .80);
             c.restore();

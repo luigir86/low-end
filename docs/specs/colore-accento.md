@@ -1,5 +1,7 @@
 # Colore d’accento unico
 
+**Superato l'8 novembre 2026:** vedi [temi a quattro colori](tema-ebano-ottone.md).
+
 Decisione di Luigi del 7 novembre 2026, successiva alla revisione Anthracite & Red.
 
 ## Scelta e superfici

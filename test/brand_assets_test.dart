@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/brand.dart';
 
 void main() {
-  testWidgets('generated icons use the same accent as Flutter startup', (
+  testWidgets('generated icons use the same brand colour as Flutter startup', (
     tester,
   ) async {
     await tester.runAsync(() async {
@@ -38,7 +38,7 @@ void main() {
             (bytes.getUint8(offset) << 16) |
             (bytes.getUint8(offset + 1) << 8) |
             bytes.getUint8(offset + 2);
-        expect(actual, LowEndBrand.accent.toARGB32(), reason: path);
+        expect(actual, LowEndBrand.palette.brand.toARGB32(), reason: path);
         image.dispose();
         codec.dispose();
       }
