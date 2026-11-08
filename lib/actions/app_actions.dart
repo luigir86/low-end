@@ -5,11 +5,13 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../app/app_navigation.dart';
 import '../app/settings.dart';
 import '../audio/pitch.dart';
+import '../audio/recorded_track.dart';
 import '../features/metronome/metronome_controller.dart';
 import '../features/metronome/subdivision.dart';
 import '../features/metronome/time_signature.dart';
 import '../features/harmony/drone_controller.dart';
 import '../features/player/player_controller.dart';
+import '../features/player/recording_controller.dart';
 import '../features/songs/example_song.dart';
 import '../features/harmony/harmony.dart';
 import '../features/tuner/tuner_controller.dart';
@@ -76,6 +78,7 @@ class AppActions {
     required this.metronome,
     required this.tuner,
     required this.player,
+    this.recording,
     required this.navigation,
     required this.settings,
   });
@@ -84,6 +87,9 @@ class AppActions {
   final MetronomeController metronome;
   final TunerController tuner;
   final PlayerController player;
+
+  /// The Player's recording; null where there is none (some tests).
+  final RecordingController? recording;
   final AppNavigation navigation;
   final AppSettings settings;
 
@@ -108,7 +114,9 @@ class AppActions {
           'tempo, time signature, subdivision, click on 2 and 4); the '
           'Player (the track open with its name and length in seconds, '
           'playing, position in seconds, and the problem if the last file '
-          'could not be opened: unreadable or missing); and the '
+          'could not be opened: unreadable or missing; whether it is a '
+          'recorded take, and the recording: idle, starting, recording or '
+          'finishing); and the '
           'settings (reference A, language, note and octave names, the '
           "tuner's instrument, in-tune zone and transposition, the circle, "
           'screen on, locked gestures). '
@@ -278,11 +286,11 @@ class AppActions {
       name: 'player_mark',
       description:
           'Marks the start or the end of the loop at the point being heard, '
-          'like the screen reader actions Mark the start here and Mark the '
-          'end here (on the ring and on the flags A and B); a reaction time '
-          'of 150 ms times the speed is taken off. A point marked past the '
-          'other one clears the other. Once both are marked the loop turns '
-          'on and plays from the start. Fails if no track is open.',
+          'like the Mark start and Mark end button under the dial while the '
+          'track plays; a reaction time of 150 ms times the speed is taken '
+          'off. A point marked past the other one clears the other. Once '
+          'both are marked the loop turns on and plays from the start. '
+          'Fails if no track is open.',
       parameters: {
         'edge': {
           'type': 'string',
@@ -295,7 +303,8 @@ class AppActions {
     const AppAction(
       name: 'player_loop_nudge',
       description:
-          'Moves the start or the end of the loop by some seconds, e.g. -0.01. '
+          'Moves the start or the end of the loop by some seconds, e.g. -0.01, '
+          'like dragging its line on the waveform strip. '
           'Each point stops at its limit: the ends of the track, or 1 s from '
           'the other point. Fails if that point is not marked.',
       parameters: {
@@ -321,6 +330,29 @@ class AppActions {
       name: 'player_loop_clear',
       description:
           'Clears both passage marks so a new passage can be captured.',
+    ),
+    const AppAction(
+      name: 'player_record',
+      description:
+          'Opens the Player and records a take from the microphone, like '
+          'REC; the track open pauses. Android asks for the microphone the '
+          'first time. Recording stops when the Player leaves the screen or '
+          'the app goes to the background, and the take is kept.',
+    ),
+    const AppAction(
+      name: 'player_record_stop',
+      description:
+          'Stops recording. The take opens in the Player from its start, '
+          'over the track that was open; that track comes back, with its '
+          'speed and passage, when the take is deleted. With discard the '
+          'take is thrown away. Saving or sharing a take is left to the '
+          "person, through the phone's own windows.",
+      parameters: {
+        'discard': {
+          'type': 'boolean',
+          'description': 'Throw the take away instead of keeping it.',
+        },
+      },
     ),
     AppAction(
       name: 'set_reference_pitch',
@@ -614,6 +646,12 @@ class AppActions {
     }
   }
 
+  RecordingController _requireRecording() {
+    final rec = recording;
+    if (rec == null) throw ActionError('Recording is not available here.');
+    return rec;
+  }
+
   Future<void> _run(String name, Map<String, Object?> args) async {
     switch (name) {
       case 'get_state':
@@ -714,6 +752,25 @@ class AppActions {
         await player.setLooping(false);
       case 'player_loop_clear':
         await player.clearPassage();
+      case 'player_record':
+        final rec = _requireRecording();
+        if (rec.active) throw ActionError('A take is already recording.');
+        navigation.open(AppSection.player);
+        await rec.start();
+        if (!rec.active) {
+          throw ActionError(
+            'The recording could not start: the microphone is not allowed or '
+            'is busy.',
+          );
+        }
+      case 'player_record_stop':
+        final rec = _requireRecording();
+        if (!rec.active) throw ActionError('Nothing is recording.');
+        final discard = args['discard'];
+        if (discard != null && discard is! bool) {
+          throw ActionError('"discard" must be true or false.');
+        }
+        await rec.finish(discard: discard == true);
       case 'drone_play':
         final change = _droneChange(args);
         // Each sound plays from its own section; on the tuner it would
@@ -982,6 +1039,8 @@ class AppActions {
                 'on': player.looping,
               },
         'problem': player.problem?.name,
+        'take': player.track is RecordedTrack,
+        'recording': recording?.status.name ?? 'idle',
       },
       'metronome': {
         'playing': metronome.isPlaying,

@@ -22,6 +22,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get takeRecord => 'Grabar';
 
   @override
+  String get takeRecordShort => 'REC';
+
+  @override
   String get takeStop => 'Detener';
 
   @override

@@ -3,6 +3,7 @@
   "takeDelete": "Delete recording",
   "takeRemove": "Remove from player",
   "takeRecord": "Record",
+  "takeRecordShort": "REC",
   "takeStop": "Stop",
   "takeRecording": "Recording",
   "takeTemporary": "Temporary",

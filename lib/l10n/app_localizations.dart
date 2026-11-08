@@ -126,6 +126,12 @@ abstract class AppLocalizations {
   /// **'Record'**
   String get takeRecord;
 
+  /// No description provided for @takeRecordShort.
+  ///
+  /// In en, this message translates to:
+  /// **'REC'**
+  String get takeRecordShort;
+
   /// No description provided for @takeStop.
   ///
   /// In en, this message translates to:

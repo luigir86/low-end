@@ -1,17 +1,12 @@
-import 'dart:async';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:record/record.dart';
 
-import '../../app/app_navigation.dart';
-import '../../audio/audio_scope.dart';
 import '../../audio/recorded_track.dart';
 import '../../audio/system_track_files.dart';
 import '../../audio/track_output.dart';
 import '../../l10n/app_localizations.dart';
 import 'clock_text.dart';
 import 'player_controller.dart';
+import 'recording_controller.dart';
 
 Future<bool> confirmReplace(BuildContext context, TrackRef? track) async {
   if (track is! RecordedTrack || track.saved) return true;
@@ -35,57 +30,39 @@ Future<bool> confirmReplace(BuildContext context, TrackRef? track) async {
       false;
 }
 
+/// The track row while recording: the red dot and the time, Stop and
+/// Discard (RF-PLY-20). The recording itself is [RecordingController].
 class RecordingRow extends StatefulWidget {
-  const RecordingRow({
-    required this.player,
-    required this.elapsed,
-    required this.onDone,
-    super.key,
-  });
-  final PlayerController player;
-  final ValueNotifier<Duration> elapsed;
-  final VoidCallback onDone;
+  const RecordingRow({required this.recording, super.key});
+  final RecordingController recording;
   @override
   State<RecordingRow> createState() => _RecordingRowState();
 }
 
 class _RecordingRowState extends State<RecordingRow>
-    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
-  final recorder = AudioRecorder();
-  final clock = Stopwatch();
+    with SingleTickerProviderStateMixin {
   late final pulse = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 800),
+    duration: Durations.extralong1,
     value: 1,
   );
-  AppNavigation? navigation;
-  late final Future<void> startup;
-  Future<void>? finishing;
-  Timer? timer;
-  bool started = false;
-  bool ending = false;
-  late String name;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    startup = Future.microtask(start);
+    widget.recording.addListener(syncPulse);
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final next = AudioScope.of(context).navigation;
-    if (navigation != next) {
-      navigation?.removeListener(checkVisible);
-      navigation = next..addListener(checkVisible);
-    }
     syncPulse();
   }
 
   void syncPulse() {
-    if (started && !ending && !MediaQuery.disableAnimationsOf(context)) {
+    if (!mounted) return;
+    final on = widget.recording.status == RecordingStatus.recording;
+    if (on && !MediaQuery.disableAnimationsOf(context)) {
       if (!pulse.isAnimating) pulse.repeat(min: .4, max: 1, reverse: true);
     } else {
       pulse.stop();
@@ -93,166 +70,60 @@ class _RecordingRowState extends State<RecordingRow>
     }
   }
 
-  void checkVisible() {
-    if (navigation?.section != AppSection.player || navigation!.covered) {
-      finish();
-    }
-  }
-
-  Future<void> start() async {
-    if (!mounted || ending) return;
-    final strings = AppLocalizations.of(context);
-    try {
-      await widget.player.stop();
-      if (!mounted || ending) return;
-      if (!await recorder.hasPermission()) {
-        if (mounted && !ending) {
-          fail(
-            kIsWeb
-                ? strings.micPermissionDeniedWeb
-                : strings.micPermissionDenied,
-          );
-        }
-        return;
-      }
-      if (!mounted || ending) return;
-      final stamp = DateTime.now().toIso8601String().replaceAll(':', '-');
-      name =
-          '${strings.takeRecording} ${stamp.replaceFirst('T', ' ')}.${kIsWeb ? 'wav' : 'm4a'}';
-      final path = await recordingPath(name);
-      if (!mounted || ending) return;
-      await recorder.start(
-        RecordConfig(
-          encoder: kIsWeb ? AudioEncoder.wav : AudioEncoder.aacLc,
-          numChannels: 1,
-        ),
-        path: path,
-      );
-      started = true;
-      if (!mounted || ending) return;
-      clock.start();
-      timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        widget.elapsed.value = clock.elapsed;
-      });
-      syncPulse();
-      setState(() {});
-    } catch (_) {
-      if (mounted && !ending) fail(strings.takeError);
-    }
-  }
-
-  void fail(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
-    widget.onDone();
-  }
-
-  void finish({bool discard = false}) {
-    if (ending) return;
-    ending = true;
-    if (discard && !started) {
-      widget.onDone();
-      return;
-    }
-    timer?.cancel();
-    clock.stop();
-    syncPulse();
-    setState(() {});
-    finishing = complete(discard);
-  }
-
-  Future<void> complete(bool discard) async {
-    final strings = AppLocalizations.of(context);
-    try {
-      await startup;
-      if (started) {
-        if (discard || !mounted) {
-          await recorder.cancel();
-        } else {
-          final path = await recorder.stop();
-          if (path == null) throw StateError('Missing recording');
-          final take = await recordedTrack(path, name);
-          if (mounted) {
-            await widget.player.open(take);
-          } else {
-            await systemTrackFiles().release(take);
-          }
-        }
-      }
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(strings.takeError)));
-      }
-    } finally {
-      if (mounted) widget.onDone();
-    }
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.hidden) {
-      finish();
-    }
-  }
-
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    navigation?.removeListener(checkVisible);
-    timer?.cancel();
+    widget.recording.removeListener(syncPulse);
     pulse.dispose();
-    unawaited(releaseRecorder());
     super.dispose();
-  }
-
-  Future<void> releaseRecorder() async {
-    try {
-      await startup;
-      if (finishing != null) {
-        await finishing;
-      } else if (started) {
-        await recorder.cancel();
-      }
-    } finally {
-      await recorder.dispose();
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
-    return Row(
-      children: [
-        if (started)
-          FadeTransition(
-            opacity: pulse,
-            child: const Icon(Icons.circle, color: Colors.red, size: 16),
-          ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: started
-              ? ValueListenableBuilder<Duration>(
-                  valueListenable: widget.elapsed,
-                  builder: (context, time, _) => Text(clockText(time)),
-                )
-              : Text(
-                  strings.takeStarting,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+    final recording = widget.recording;
+    return ListenableBuilder(
+      listenable: recording,
+      builder: (context, _) {
+        final started = recording.status == RecordingStatus.recording;
+        final ending = recording.status == RecordingStatus.finishing;
+        return Row(
+          children: [
+            if (started)
+              FadeTransition(
+                opacity: pulse,
+                child: Icon(
+                  Icons.circle,
+                  color: Theme.of(context).colorScheme.error,
+                  size: 16,
                 ),
-        ),
-        FilledButton(
-          onPressed: started && !ending ? finish : null,
-          child: Text(strings.takeStop),
-        ),
-        const SizedBox(width: 4),
-        TextButton(
-          onPressed: ending ? null : () => finish(discard: true),
-          child: Text(strings.takeDiscard),
-        ),
-      ],
+              ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: started
+                  ? ValueListenableBuilder<Duration>(
+                      valueListenable: recording.elapsed,
+                      builder: (context, time, _) => Text(clockText(time)),
+                    )
+                  : Text(
+                      strings.takeStarting,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+            ),
+            FilledButton(
+              key: const Key('takeStop'),
+              onPressed: started ? recording.finish : null,
+              child: Text(strings.takeStop),
+            ),
+            const SizedBox(width: 4),
+            TextButton(
+              key: const Key('takeDiscard'),
+              onPressed: ending ? null : () => recording.finish(discard: true),
+              child: Text(strings.takeDiscard),
+            ),
+          ],
+        );
+      },
     );
   }
 }

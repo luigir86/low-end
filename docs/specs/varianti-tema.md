@@ -8,6 +8,8 @@ ottone disponibile. `LowEndBrand.accent` governa anche marchio e avvio;
 `LowEndThemeVariant.anthraciteAndAccent` è la variante corrente. Le descrizioni
 Anthracite & Red seguenti documentano la decisione iniziale.
 
+Strobo: da PR #149 le bande prendono il colore del verdetto mentre una nota si sente e restano grigie a riposo; le righe seguenti che dicono "strobo neutro" valgono solo per lo stato a riposo.
+
 ## Obiettivo
 
 Rendere reversibile la revisione estetica con **Wood&Brass** e **Anthracite & Red**, selezionabili solo via codice. Nessuna scelta nelle impostazioni, azione per assistenti, preferenza salvata o configurazione per schermata.

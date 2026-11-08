@@ -33,14 +33,14 @@ Rules: pick a role, never a number; the three dials show their value in `display
 | --- | --- |
 | Corner radius of buttons, cards, menus | 16 (`LowEndShape.radius`) |
 | Round or rounded control | at least 48 × 48, the smallest touch target |
-| Rows under a dial | three rows of the same height (`DialLayout.rowHeight`, 80, spacing included) and no space between them, on every tab: a dial and three rows. Second row: one or two `LabeledField`s, as tall as the field under them: the metronome's Time signature and Subdivision, the harmony's Mode, the tuner's Instrument. Third row: the row of controls. First row: the tempo-dial hint on the metronome, empty on Harmony (the same height, so that their controls sit where the tuner's do); on the tuner a cents scale (a horizontal axis with a tick every 5 cents, taller at 0, ±25 and ±50, and a needle with its head over the ticks; "Flat", "Cents" and "Sharp" over it and −50, −25, 0, +25, +50 under it; the needle and the stretch of axis from 0 to it take the verdict's colour, however short, so the length says how far off the note is; no zone is marked round 0; the needle is in `outline` while a note is only held). The row of controls is the field, buttons and icon button of `row_controls.dart`, with one gap between them (`rowGap`, 8), all as tall as a line of text with the same padding (so they grow together with large text): TAP, −, +, pencil on the metronome; chord / progression, options on the harmony; reference A, −, +, pencil on the tuner |
+| Rows under a dial | three rows of the same height (`DialLayout.rowHeight`, 64) with 8 dp between them, on every tab: a dial and three rows. Second row: one or two `LabeledField`s, as tall as the field under them: the metronome's Time signature and Subdivision, the harmony's Mode, the tuner's Instrument. Third row: the row of controls. First row: the tempo-dial hint on the metronome, empty on Harmony (the same height, so that their controls sit where the tuner's do); on the tuner a cents scale (a horizontal axis with a tick every 5 cents, taller at 0, ±25 and ±50, and a needle with its head over the ticks; "Flat", "Cents" and "Sharp" over it and −50, −25, 0, +25, +50 under it; the needle and the stretch of axis from 0 to it take the verdict's colour, however short, so the length says how far off the note is; no zone is marked round 0; the needle is in `outline` while a note is only held). The row of controls is the field, buttons and icon button of `row_controls.dart`, with one gap between them (`rowGap`, 8), all as tall as a line of text with the same padding (so they grow together with large text): TAP, −, +, pencil on the metronome; chord / progression, options on the harmony; reference A, −, +, pencil on the tuner |
 | Dial and rows | the dial at the same height on every tab; the controls sit lower, nearer the thumb, with only a little room left under them for a row that grows (`DialLayout`) |
 | Dial | one disc, a ring from 0.64 to 0.97 of the radius, a hub of 0.61; the same position and size on every tab (`DialGeometry`, `dial_alignment_test.dart`) |
 | Ring segments | metronome: thinner band (0.22 to 0.92 of the ring), one segment per beat, the lit "one" wider (0.12 to 1), a bar of one beat is a whole ring; harmony: the whole ring, twelve keys; tuner: two bands of thin segments |
 
 ## Colour
 
-The app is always dark. Two palettes are selected internally with one constant, never by the player: **Wood&Brass** and **Anthracite & Red** ([variant contract](specs/varianti-tema.md), [redesign](tema-ffm.md), [legacy palette](tema-bronzo.md)). Both share the same component builder, Edwin, shapes, sizes and layouts. Flat fills, no gradients or sheen.
+The app is always dark. The theme in use is **Anthracite & Accent**: anthracite with the FFM red `#A6282C` as its one accent (`LowEndBrand.accent`, decided on 7 November 2026; [current theme](tema-ffm.md), [accent](specs/colore-accento.md)). **Wood&Brass**, the old bronze theme ([legacy palette](tema-bronzo.md)), is kept in code as a fallback selected by one constant, never by the player ([variant contract](specs/varianti-tema.md)). Both share the same component builder, Edwin, shapes, sizes and layouts. Flat fills, no gradients or sheen.
 
 | Meaning | Theme role |
 | --- | --- |
@@ -49,7 +49,7 @@ The app is always dark. Two palettes are selected internally with one constant, 
 | Other chord notes and lit beats | `secondary`; the first beat is `downbeat` and remains wider |
 | TAP / selected segmented controls | `primaryContainer` / `onPrimaryContainer` |
 | Inactive segments / borders | `outlineVariant` / `outline` |
-| Navigation bar and rail | `navigationBackground`, `navigationIndicator`, `navigationInk` |
+| Navigation bar and rail | `navigationBackground`, `navigationIndicator`, `navigationInk`; the bottom bar is red, 48 dp, icons only (their names are tooltips and screen-reader labels); the landscape rail keeps its labels; a 2 dp red frame line runs along the top |
 | Strobe | Grey `strobeIdle` without a live reading; both bands use the same `inTune`, `close`, `off` verdict as the symbol and cents scale |
 | Tuner verdict | Common sage green, straw yellow and brick red; words, tick/arrows and cents needle, never colour alone |
 
@@ -61,9 +61,9 @@ The strobe is grey while paused, waiting for a note, or holding the last note af
 
 When the screen is wider than tall (`DialLayout.isLandscape`) the same pieces are laid out in a row: **tab rail | dial | column of the three rows**. The portrait layout does not change.
 
-- **Rail**: on the left, inside the safe areas, Material's `NavigationRail` with its labels, 96 dp wide (`LowEndShape.railWidth`; names shrink to fit), configured by `navigationRailTheme`, the same three tabs as the bottom bar; a tab only goes to its section.
+- **Rail**: on the left, inside the safe areas, Material's `NavigationRail` with its labels, 96 dp wide (`LowEndShape.railWidth`; names shrink to fit), configured by `navigationRailTheme`, the same four tabs as the bottom bar; a tab only goes to its section.
 - **Dial**: nearly the whole height (height − 56, at most 420), next to the rail, so it is not centred on the screen. It gets smaller (down to 160) on narrow phones to leave the column its minimum width, `DialLayout.columnMinWidth` (320).
-- **Column**: the three rows of `DialLayout.rowHeight` (80), no space between them, at the same place on every tab (the tuner has all three: the cents scale, the Instrument field, the reference A); it scrolls with large text. The **settings gear** is above it, top right.
+- **Column**: the three rows of `DialLayout.rowHeight` (64), 8 dp apart, at the same place on every tab (the tuner has all three: the cents scale, the Instrument field, the reference A); it scrolls with large text. The **settings gear** is above it, top right.
 - **Swipe**: up or down on the dial or the rail changes section (up: the next one), like a vertical page view; not on the column of rows, and not from the strips the system keeps along the top and bottom edges (status bar, notification shade, home gesture: `MediaQuery.viewPadding` and `systemGestureInsets`). It must go two pan slops (72 dp) within a long press (`kLongPressTimeout`, 500 ms), so that a resting finger or a slow drag does not change section; with the gestures locked in the settings it does nothing. In portrait the swipe stays horizontal. See `FlipDetector`.
 - `dial_alignment_test.dart` and `test/review/` check this at 915 × 412, 640 × 360, 1280 × 800 and with large text.
 

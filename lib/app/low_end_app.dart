@@ -14,6 +14,7 @@ import '../audio/pitch.dart';
 import '../audio/just_audio_track_output.dart';
 import '../audio/soloud_engine.dart';
 import '../audio/system_track_files.dart';
+import '../audio/take_recorder.dart';
 import '../audio/tone_output.dart';
 import '../audio/track_files.dart';
 import '../audio/track_output.dart';
@@ -23,6 +24,7 @@ import '../features/harmony/drone_controller.dart';
 import '../features/harmony/harmony_names.dart'
     show chordSymbol, progressionName;
 import '../features/player/player_controller.dart';
+import '../features/player/recording_controller.dart';
 import '../features/tuner/tuner_controller.dart';
 import '../l10n/app_localizations.dart';
 import 'app_navigation.dart';
@@ -51,6 +53,7 @@ class LowEndApp extends StatefulWidget {
     this.audioRoute,
     this.trackOutput,
     this.trackFiles,
+    this.takeRecorder,
   });
 
   /// Audio output for the drone; defaults to the device's speakers.
@@ -87,6 +90,10 @@ class LowEndApp extends StatefulWidget {
   /// The Player's files (the file chooser); the system's by default, and
   /// finger-less ones when a test gives its own tone or click output.
   final TrackFiles? trackFiles;
+
+  /// The Player's recorder; the microphone by default, and one that records
+  /// nothing when a test gives its own tone or click output.
+  final TakeRecorder? takeRecorder;
 
   @override
   State<LowEndApp> createState() => _LowEndAppState();
@@ -126,6 +133,13 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
         (_testOutputs ? SilentTrackOutput() : JustAudioTrackOutput()),
     widget.trackFiles ?? (_testOutputs ? FakeTrackFiles() : systemTrackFiles()),
   );
+  // The microphone is opened only when REC is touched.
+  late final _recording = RecordingController(
+    widget.takeRecorder ??
+        (_testOutputs ? FakeTakeRecorder() : RecordTakeRecorder()),
+    player: _player,
+    navigation: _navigation,
+  );
   bool get _testOutputs =>
       widget.toneOutput != null || widget.clickOutput != null;
   late final BackgroundAudio _background =
@@ -161,6 +175,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     metronome: _metronome,
     tuner: _tuner,
     player: _player,
+    recording: _recording,
     navigation: _navigation,
     settings: _settings,
   );
@@ -510,6 +525,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     _drone.dispose();
     _metronome.dispose();
     _tuner.dispose();
+    _recording.dispose();
     _player.dispose();
     _navigation.dispose();
     if (widget.settings == null) _settings.dispose();
@@ -523,6 +539,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
       metronome: _metronome,
       tuner: _tuner,
       player: _player,
+      recording: _recording,
       navigation: _navigation,
       actions: _actions,
       settings: _settings,

@@ -3,6 +3,7 @@
   "takeDelete": "Eliminar grabación",
   "takeRemove": "Quitar del reproductor",
   "takeRecord": "Grabar",
+  "takeRecordShort": "REC",
   "takeStop": "Detener",
   "takeRecording": "Grabación",
   "takeTemporary": "Temporal",

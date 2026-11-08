@@ -101,6 +101,11 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   /// True once the file of a remembered track has been looked at.
   var _activated = true;
 
+  /// The track being studied when a take was opened over it, with its speed
+  /// and passage: kept (and remembered for the next launch) while the take
+  /// is open, and back when the take is removed (RF-PLY-20).
+  PlayerSetup? _beforeTake;
+
   /// The title and the artist in the tags of the file (RF-PLY-14).
   String? _title;
   String? _artist;
@@ -135,11 +140,9 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   /// What is kept for the next launch; null with no track.
   PlayerSetup? get setup {
     final track = _track;
-    if (track == null ||
-        track is RecordedTrack ||
-        _status != PlayerStatus.ready) {
-      return null;
-    }
+    // A take lasts only for this session: the track under it is kept.
+    if (track is RecordedTrack) return _beforeTake;
+    if (track == null || _status != PlayerStatus.ready) return null;
     return PlayerSetup(
       track: track,
       duration: _duration,
@@ -190,7 +193,9 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   }
 
   /// Opens [track], ready to play from its start; the one before is let go.
-  /// A problem leaves the Player empty and says why in [problem].
+  /// A take ([RecordedTrack]) is opened over the track being studied, which
+  /// is kept with its speed and passage and comes back when the take is
+  /// removed. A problem leaves the Player empty and says why in [problem].
   Future<void> open(TrackRef track) async {
     final generation = ++_generation;
     final old = _track;
@@ -201,7 +206,23 @@ class PlayerController extends ChangeNotifier implements SoundSection {
       _playing = false;
       unawaited(_output.pause());
     }
-    if (old != null && old.uri != track.uri) unawaited(_files.release(old));
+    if (track is RecordedTrack) {
+      // The first take over a track keeps it; the next ones replace the
+      // take, and the track under it stays the same.
+      if (old != null && old is! RecordedTrack) {
+        final kept = setup;
+        if (kept != null) {
+          _beforeTake = kept;
+        } else {
+          unawaited(_files.release(old));
+        }
+      } else if (old is RecordedTrack) {
+        unawaited(_files.release(old));
+      }
+    } else {
+      _dropBeforeTake(except: track);
+      if (old != null && old.uri != track.uri) unawaited(_files.release(old));
+    }
     _track = track;
     _duration = Duration.zero;
     _status = PlayerStatus.opening;
@@ -361,7 +382,9 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     return false;
   }
 
-  /// Only session recordings own a temporary file that can be removed here.
+  /// Removes the take open (its temporary file is deleted; a copy already
+  /// saved stays) and brings back the track that was being studied under
+  /// it, with its speed and passage (RF-PLY-20).
   Future<void> removeRecording(RecordedTrack take) async {
     if (!identical(_track, take)) return;
     await stop();
@@ -369,10 +392,37 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     ++_generation;
     _settle?.cancel();
     _clearTrack(null);
+    _backToTrack();
     notifyListeners();
   }
 
-  void _fail(TrackProblem problem) => _clearTrack(problem);
+  /// A take that cannot be played also gives the track back.
+  void _fail(TrackProblem problem) {
+    final take = _track is RecordedTrack;
+    _clearTrack(problem);
+    if (take) _backToTrack();
+  }
+
+  /// Brings back the track that was under the take, if there was one.
+  void _backToTrack() {
+    final before = _beforeTake;
+    _beforeTake = null;
+    if (before == null) return;
+    restore(before);
+    // The Player is on screen: the file is looked at again, and its wave
+    // and tags are read.
+    unawaited(activate());
+  }
+
+  /// Another track chosen while a take is open: the track under the take
+  /// is let go, unless it is the one chosen again.
+  void _dropBeforeTake({required TrackRef except}) {
+    final before = _beforeTake;
+    _beforeTake = null;
+    if (before != null && before.track.uri != except.uri) {
+      unawaited(_files.release(before.track));
+    }
+  }
 
   void _clearTrack(TrackProblem? problem) {
     final failed = _track;
