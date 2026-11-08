@@ -1,1 +1,1 @@
-New Player section: open your own tracks, slow them down without changing the pitch, loop a passage on the waveform, and record yourself with REC, over the click if you like, then save or share the take. A new look in ebony and bronze, with a new lion icon. Turn the metronome's outer dial to change the tempo. The tuner's strobe now takes the colour of how close you are.
+A new look in ebony and bronze, with a new lion icon. In the Player, recording yourself no longer replaces the track you are studying: delete the take and the track comes back, with its speed and passage.

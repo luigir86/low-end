@@ -5,12 +5,14 @@ marks anything that cannot be confirmed from the code.
 
 ## 1. Version and build
 
-- [ ] `pubspec.yaml`: `version: 1.6.0+10` (name `1.6.0`, versionCode `10`),
+- [ ] `pubspec.yaml`: `version: 1.6.1+11` (name `1.6.1`, versionCode `11`),
       and the same in `lib/app/version.dart` (shown in About; `version_test` checks it).
       1.0.0+1 went to the closed test on 2026-10-19, 1.3.0+4 on 2026-10-29;
       1.4.0+5 (2026-11-05) stayed on "Preparing sounds", fixed in 1.4.1+6;
       1.4.2+7 and 1.4.3+8 built on 2026-11-05, 1.5.0+9 on 2026-11-06;
-      1.6.0+10 (Player, recording, Ebony & Bronze) on 2026-11-08. The number after `+`
+      1.6.0+10 (Player, recording) built and uploaded by the owner;
+      1.6.1+11 (Ebony & Bronze, take over the studied track) on 2026-11-08.
+      The number after `+`
       must grow with every upload to Play.
 - [ ] Target SDK: `flutter.targetSdkVersion` (36 with the current Flutter
       stable; minSdk 24, compileSdk 36). TO VERIFY in Play Console that 36 meets
