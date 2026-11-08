@@ -1,5 +1,7 @@
 # Varianti interne del tema
 
+**Superato (Wood&Brass tolto dal codice) l'8 novembre 2026:** vedi [temi a quattro colori](tema-ebano-bronzo.md).
+
 ## Aggiornamento corrente — accento unico
 
 La [specifica del colore d’accento](colore-accento.md) aggiorna questa proposta:

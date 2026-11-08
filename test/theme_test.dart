@@ -16,8 +16,43 @@ double contrast(Color a, Color b) {
 }
 
 void main() {
-  test('the product theme is selected by the central constant', () {
-    expect(LowEndTheme.dark, same(LowEndTheme.forVariant(LowEndTheme.variant)));
+  test('the product theme is built from the central palette', () {
+    final active = LowEndTheme.forPalette(LowEndBrand.palette).colorScheme;
+    expect(LowEndTheme.dark.colorScheme, active);
+    expect(LowEndBrand.palettes, contains(LowEndBrand.palette));
+  });
+
+  test('the red palette keeps the anthracite theme of 7 November', () {
+    final theme = LowEndTheme.forPalette(LowEndBrand.red);
+    final c = theme.colorScheme;
+    final e = theme.extension<LowEndColors>()!;
+    expect(_hex(c.surface), '#242424');
+    expect(_hex(e.disc), '#202020');
+    expect(_hex(c.surfaceContainerHigh), '#303030');
+    expect(_hex(LowEndBrand.red.startup), '#181818');
+    expect(_hex(e.bottomNavigationBackground), '#ECECE9');
+    expect(e.activeFill, LowEndBrand.ffmRed);
+  });
+
+  test('Ebony & Bronze uses the four approved colours', () {
+    const p = LowEndBrand.ebonyAndBronze;
+    expect(_hex(p.brand), '#141312');
+    expect(_hex(p.accent), '#D4A373');
+    expect(_hex(p.dark), '#141312');
+    expect(_hex(p.light), '#F1E8D5');
+    expect(p.mark, p.light);
+    final theme = LowEndTheme.forPalette(p);
+    final e = theme.extension<LowEndColors>()!;
+    expect(theme.colorScheme.surface, p.dark);
+    expect(e.bottomNavigationBackground, p.light);
+    // Ebony ink on bronze buttons; a darker bronze on the ivory bar.
+    expect(e.onActiveFill, Palette.inkOnLight);
+    expect(contrast(e.onActiveFill, p.accent), greaterThanOrEqualTo(4.5));
+    expect(e.bottomNavigationSelectedInk, isNot(p.accent));
+    expect(
+      contrast(e.bottomNavigationSelectedInk, p.light),
+      greaterThanOrEqualTo(4.5),
+    );
   });
 
   test('Android and web share a variant-independent launch background', () {
@@ -26,7 +61,7 @@ void main() {
           File('android/app/src/main/res/values/colors.xml').readAsStringSync(),
         )![0]!
         .toUpperCase();
-    expect(launch, _hex(LowEndBrand.accent));
+    expect(launch, _hex(LowEndBrand.palette.brand));
     expect(
       File('android/app/src/main/res/values/ic_launcher_background.xml')
           .readAsStringSync(),
@@ -34,19 +69,23 @@ void main() {
     );
     expect(
       File('android/app/src/main/res/values/colors.xml').readAsStringSync(),
-      contains('<color name="app_background">${_hex(Palette.startup)}</color>'),
+      contains(
+        '<color name="app_background">${_hex(LowEndBrand.palette.startup)}</color>',
+      ),
     );
     final manifest = jsonDecode(File('web/manifest.json').readAsStringSync());
     expect((manifest['background_color'] as String).toUpperCase(), launch);
     expect(
       (manifest['theme_color'] as String).toUpperCase(),
-      _hex(Palette.startup),
+      _hex(LowEndBrand.palette.startup),
     );
     final html = File('web/index.html').readAsStringSync();
     expect(html, contains('background: $launch'));
     expect(
       html,
-      contains('name="theme-color" content="${_hex(Palette.startup)}"'),
+      contains(
+        'name="theme-color" content="${_hex(LowEndBrand.palette.startup)}"',
+      ),
     );
     expect(
       Directory('android/app/src/main/res/values-night').existsSync(),
@@ -54,9 +93,9 @@ void main() {
     );
   });
 
-  for (final variant in LowEndThemeVariant.values) {
-    group(variant.name, () {
-      final theme = LowEndTheme.forVariant(variant);
+  for (final palette in LowEndBrand.palettes) {
+    group(palette.name, () {
+      final theme = LowEndTheme.forPalette(palette);
       final c = theme.colorScheme;
       final e = theme.extension<LowEndColors>()!;
       test('text and informative shapes retain WCAG contrast', () {
@@ -86,7 +125,6 @@ void main() {
         for (final shape in [
           c.outline,
           c.secondary,
-          if (variant == LowEndThemeVariant.woodAndBrass) e.downbeat,
           e.strobeIdle,
           e.strobeOuter,
           e.strobeInner,
@@ -109,13 +147,11 @@ void main() {
         expect(e.inTune, Palette.inTune);
         expect(e.close, Palette.close);
         expect(e.off, Palette.off);
-        if (variant == LowEndThemeVariant.anthraciteAndAccent) {
-          expect(e.off, isNot(e.activeFill));
-          expect(e.downbeat, e.activeFill);
-          expect(contrast(c.outline, e.disc), greaterThanOrEqualTo(3));
-          expect(contrast(e.onStepFill, e.stepFill), greaterThanOrEqualTo(4.5));
-          expect(e.filledSteps, isTrue);
-        }
+        expect(e.off, isNot(e.activeFill));
+        expect(e.downbeat, e.activeFill);
+        expect(contrast(c.outline, e.disc), greaterThanOrEqualTo(3));
+        expect(contrast(e.onStepFill, e.stepFill), greaterThanOrEqualTo(4.5));
+        expect(e.filledSteps, isTrue);
         expect(e.strobeInner, isNot(e.off));
       });
       test('extension copies and interpolates all semantic roles', () {
@@ -147,10 +183,10 @@ void main() {
         ];
         expect(roles(e.copyWith()), roles(e));
         expect(e.copyWith().filledSteps, e.filledSteps);
-        final other = LowEndTheme.forVariant(
-          variant == LowEndThemeVariant.woodAndBrass
-              ? LowEndThemeVariant.anthraciteAndAccent
-              : LowEndThemeVariant.woodAndBrass,
+        final other = LowEndTheme.forPalette(
+          palette == LowEndBrand.red
+              ? LowEndBrand.ebonyAndBronze
+              : LowEndBrand.red,
         ).extension<LowEndColors>()!;
         expect(roles(e.lerp(other, 0)), roles(e));
         expect(roles(e.lerp(other, 1)), roles(other));
@@ -162,25 +198,10 @@ void main() {
     });
   }
 
-  test('Wood&Brass preserves the legacy ground and accent', () {
-    final c = LowEndTheme.forVariant(LowEndThemeVariant.woodAndBrass)
-        .colorScheme;
-    expect(c.primary, Palette.bronze);
-    expect(c.surface, Palette.ebony);
-    for (final verdict in [Palette.inTune, Palette.close, Palette.off]) {
-      final delta =
-          (HSLColor.fromColor(verdict).hue - HSLColor.fromColor(c.primary).hue)
-              .abs();
-      expect(math.min(delta, 360 - delta), greaterThanOrEqualTo(20));
-    }
-  });
-
   test(
     'the current accent colours the frame with readable light navigation',
     () {
-      final theme = LowEndTheme.forVariant(
-        LowEndThemeVariant.anthraciteAndAccent,
-      );
+      final theme = LowEndTheme.dark;
       final c = theme.colorScheme;
       final e = theme.extension<LowEndColors>()!;
       expect(c.primaryContainer, LowEndBrand.accent);
@@ -206,21 +227,23 @@ void main() {
 
   for (final accent in [
     LowEndBrand.ffmRed,
-    LowEndBrand.brass,
+    LowEndBrand.bronze,
     const Color(0xFFB97858),
     const Color(0xFF438C87),
     const Color(0xFF608DB4),
     const Color(0xFF987493),
   ]) {
     test('accent ${_hex(accent)} preserves neutrals and readable controls', () {
-      final theme = LowEndTheme.withAccent(accent);
+      // On the neutral anthracite, where a hue shift would show.
+      final theme = LowEndTheme.withAccent(accent, on: LowEndBrand.red);
       final c = theme.colorScheme;
       final e = theme.extension<LowEndColors>()!;
-      final base = LowEndTheme.dark.colorScheme;
+      final red = LowEndTheme.forPalette(LowEndBrand.red);
+      final base = red.colorScheme;
       expect(c.surface, base.surface);
       expect(c.surfaceContainerHighest, base.surfaceContainerHighest);
       expect(c.outline, base.outline);
-      expect(e.stepFill, const Color(0xFFD6D6D6));
+      expect(e.stepFill, red.extension<LowEndColors>()!.stepFill);
       expect(e.activeFill, accent);
       expect(e.downbeat, accent);
       for (final shade in [c.secondary, e.beatWeak, e.beatSilent]) {
@@ -250,12 +273,12 @@ void main() {
     });
   }
 
-  test('brass and FFM red keep their values and choose readable ink', () {
+  test('bronze and FFM red keep their values and choose readable ink', () {
     expect(_hex(LowEndBrand.ffmRed), '#A6282C');
-    expect(_hex(LowEndBrand.brass), '#B69A58');
-    final brass = LowEndTheme.withAccent(LowEndBrand.brass)
+    expect(_hex(LowEndBrand.bronze), '#D4A373');
+    final bronze = LowEndTheme.withAccent(LowEndBrand.bronze)
         .extension<LowEndColors>()!;
-    expect(brass.onActiveFill, Palette.inkOnLight);
+    expect(bronze.onActiveFill, Palette.inkOnLight);
     final red = LowEndTheme.withAccent(LowEndBrand.ffmRed)
         .extension<LowEndColors>()!;
     expect(red.onActiveFill, Palette.inkOnDark);

@@ -7,31 +7,16 @@ import 'style.dart';
 /// Low End's look, in one place: change a colour, a radius or a font weight
 /// here and every screen follows, like the variables of a CSS stylesheet.
 ///
-/// Two internal palettes, selected at build time without a user setting.
-enum LowEndThemeVariant { woodAndBrass, anthraciteAndAccent }
-
+/// The colours come from one [BrandPalette] (four colours), chosen in
+/// `LowEndBrand.palette` at build time, without a user setting.
 abstract final class Palette {
-  /// The warm accent of the original Wood&Brass palette.
-  static const bronze = Color(0xFFD4A373);
-
-  // The ground, from the darkest up.
-  static const ebony = Color(0xFF141312);
-  static const ebonyShade1 = Color(0xFF1C1B19);
-  static const ebonyShade2 = Color(0xFF262422);
-  static const ebonyShade3 = Color(0xFF312F2C);
-  static const walnutDeep = Color(0xFF2B1D16);
-
-  /// Neutral app surface and browser chrome; the brand splash uses LowEndBrand.accent.
-  static const startup = Color(0xFF181818);
-
   // Text.
   static const inkOnLight = Color(0xFF1E1C1A);
   static const inkOnDark = Color(0xFFEFEDEA);
-  static const inkOnDarkMuted = Color(0xFFC9C5BF);
 
   static const error = Color(0xFFFF5F56);
 
-  // Warm tuner colours against the ebony dial.
+  // Warm tuner colours against the dark dial, the same in every palette.
   static const inTune = Color(0xFFA4BF89);
   static const close = Color(0xFFDCCB79);
   static const off = Color(0xFFD98376);
@@ -241,20 +226,12 @@ class LowEndColors extends ThemeExtension<LowEndColors> {
 }
 
 abstract final class LowEndTheme {
-  /// Legacy palette rollback; the current accent is chosen in LowEndBrand.
-  static const variant = LowEndThemeVariant.anthraciteAndAccent;
-  static final dark = forVariant(variant);
-
-  static ThemeData forVariant(LowEndThemeVariant variant) => switch (variant) {
-    LowEndThemeVariant.woodAndBrass => _woodAndBrass,
-    LowEndThemeVariant.anthraciteAndAccent => _anthraciteAndAccent,
-  };
+  static final dark = forPalette(LowEndBrand.palette);
 
   static const radius = LowEndShape.radius;
 
-  /// Wood&Brass mixtures, preserved independently of the active variant.
-  static Color tint(double amount) =>
-      Color.lerp(Palette.ebony, Palette.bronze, amount)!;
+  /// The neutral grey of the strobe, also used to soften the accent.
+  static const _grey = Color(0xFF999999);
 
   /// The status bar and the navigation bar: see-through, the app drawn
   /// under them from edge to edge, light icons on the dark screen. The same on
@@ -269,89 +246,20 @@ abstract final class LowEndTheme {
     systemNavigationBarContrastEnforced: false,
   );
 
-  /// Legacy palette; component geometry is shared by both variants.
-  static final _woodAndBrass = () {
-    final container = tint(0.2);
-    // 3 : 1 on the disc (the strobe and the beats are drawn in it too) and
-    // 4.5 : 1 under the light ink of the note names.
-    final chord = tint(0.58);
-    final disc = tint(0.1);
-    final outline = tint(0.75);
-    return _build(
-      ColorScheme(
-        brightness: Brightness.dark,
-        primary: Palette.bronze,
-        onPrimary: Palette.walnutDeep,
-        // TAP and the indicator of the selected tab.
-        primaryContainer: container,
-        onPrimaryContainer: Palette.inkOnDark,
-        // The rest of a chord on the circle of fifths, and the beats after
-        // the "one" on the metronome.
-        secondary: chord,
-        onSecondary: _readableOn(chord),
-        secondaryContainer: container,
-        onSecondaryContainer: Palette.inkOnDark,
-        error: Palette.error,
-        onError: Palette.walnutDeep,
-        surface: Palette.ebony,
-        onSurface: Palette.inkOnDark,
-        onSurfaceVariant: Color.lerp(
-          Palette.inkOnDarkMuted,
-          Palette.bronze,
-          0.25,
-        )!,
-        surfaceContainerLowest: Colors.black,
-        surfaceContainerLow: Palette.ebonyShade1,
-        surfaceContainer: Palette.ebonyShade1,
-        surfaceContainerHigh: Palette.ebonyShade2,
-        surfaceContainerHighest: Palette.ebonyShade3,
-        // Borders: 3 : 1 on the disc.
-        outline: outline,
-        // Keys and beats that are off.
-        outlineVariant: tint(0.26),
-      ),
-      LowEndColors(
-        stepFill: Palette.ebony,
-        onStepFill: Palette.inkOnDark,
-        activeFill: Palette.bronze,
-        onActiveFill: Palette.walnutDeep,
-        strobeIdle: const Color(0xFF777777),
-        strobeOuter: const Color(0xFF999999),
-        strobeInner: const Color(0xFFEFEDEA),
-        bottomNavigationBackground: Palette.ebonyShade1,
-        bottomNavigationInk: Palette.inkOnDark,
-        bottomNavigationSelectedInk: Palette.inkOnDark,
-        bottomNavigationIndicator: container,
-        bottomNavigationBorder: Colors.transparent,
-        navigationBackground: Palette.ebonyShade1,
-        navigationIndicator: container,
-        navigationInk: Palette.inkOnDark,
-        inTune: Palette.inTune,
-        close: Palette.close,
-        off: Palette.off,
-        disc: disc,
-        // The "one" is the accent at full strength, drawn thicker; the other
-        // beats take the colour of a chord's other notes (secondary).
-        downbeat: Palette.bronze,
-        beatReceded: Color.lerp(disc, Palette.ebony, 0.6)!,
-        beatSilent: Color.alphaBlend(outline.withValues(alpha: 0.35), disc),
-        beatWeak: Color.alphaBlend(chord.withValues(alpha: 0.6), disc),
-      ),
-    );
-  }();
-
-  static final _anthraciteAndAccent = withAccent(LowEndBrand.accent);
-
-  /// Preview another accent without changing the neutral surfaces or geometry.
-  static ThemeData withAccent(Color accent) {
-    const ground = Color(0xFF242424);
-    const disc = Color(0xFF202020);
-    const ink = Color(0xFFEFEDEA);
-    const outline = Color(0xFF999999);
-    // Soften the accent for chord tones and ordinary beats while keeping
-    // their fill visible against the dial.
-    final chord = _accentInk(Color.lerp(accent, outline, 0.3)!, disc, 3);
-    const navigation = Color(0xFFECECE9);
+  /// The whole theme from the four colours of [p]. Every neutral is a
+  /// mixture of the dark and light colours, so a warm palette has warm greys.
+  static ThemeData forPalette(BrandPalette p) {
+    final accent = p.accent;
+    Color shade(double amount) => Color.lerp(p.dark, p.light, amount)!;
+    final ground = p.dark;
+    final disc = Color.lerp(p.dark, Colors.black, 0.11)!;
+    const ink = Palette.inkOnDark;
+    // Borders: 3 : 1 on the disc.
+    final outline = shade(0.585);
+    // Soften the accent with a neutral grey (so it keeps its hue) for chord
+    // tones and ordinary beats, keeping their fill visible against the dial.
+    final chord = _accentInk(Color.lerp(accent, _grey, 0.3)!, disc, 3);
+    final navigation = p.light;
     final onAccent = _readableOn(accent);
     return _build(
       ColorScheme(
@@ -366,29 +274,31 @@ abstract final class LowEndTheme {
         secondaryContainer: accent,
         onSecondaryContainer: onAccent,
         error: Palette.error,
-        onError: const Color(0xFF242424),
+        onError: ground,
         surface: ground,
         onSurface: ink,
-        onSurfaceVariant: const Color(0xFFB8B8B8),
-        surfaceContainerLowest: Palette.startup,
-        surfaceContainerLow: const Color(0xFF282828),
-        surfaceContainer: const Color(0xFF282828),
-        surfaceContainerHigh: const Color(0xFF303030),
-        surfaceContainerHighest: const Color(0xFF383838),
+        onSurfaceVariant: shade(0.74),
+        surfaceContainerLowest: p.startup,
+        surfaceContainerLow: shade(0.02),
+        surfaceContainer: shade(0.02),
+        surfaceContainerHigh: shade(0.06),
+        surfaceContainerHighest: shade(0.1),
         outline: outline,
-        outlineVariant: const Color(0xFF484848),
+        // Keys and beats that are off.
+        outlineVariant: shade(0.18),
       ),
       LowEndColors(
-        stepFill: const Color(0xFFD6D6D6),
-        onStepFill: const Color(0xFF242424),
+        stepFill: shade(0.89),
+        onStepFill: ground,
         filledSteps: true,
         activeFill: accent,
         onActiveFill: onAccent,
+        // The strobe stays neutral grey in every palette.
         strobeIdle: const Color(0xFF777777),
-        strobeOuter: outline,
+        strobeOuter: _grey,
         strobeInner: ink,
         bottomNavigationBackground: navigation,
-        bottomNavigationInk: const Color(0xFF3D3D3D),
+        bottomNavigationInk: Color.lerp(navigation, p.dark, 0.875)!,
         bottomNavigationSelectedInk: _accentInk(accent, navigation),
         bottomNavigationIndicator: Colors.transparent,
         bottomNavigationBorder: accent,
@@ -409,6 +319,21 @@ abstract final class LowEndTheme {
         beatReceded: Color.lerp(disc, ground, 0.6)!,
         beatSilent: Color.alphaBlend(chord.withValues(alpha: 0.35), disc),
         beatWeak: Color.alphaBlend(chord.withValues(alpha: 0.6), disc),
+      ),
+    );
+  }
+
+  /// Preview another accent on the neutrals of a palette (the active one
+  /// unless [on] says otherwise).
+  static ThemeData withAccent(Color accent, {BrandPalette? on}) {
+    final base = on ?? LowEndBrand.palette;
+    return forPalette(
+      BrandPalette(
+        name: 'Preview',
+        brand: accent,
+        accent: accent,
+        dark: base.dark,
+        light: base.light,
       ),
     );
   }

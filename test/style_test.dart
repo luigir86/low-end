@@ -1,12 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:low_end/app/brand.dart';
 import 'package:low_end/app/style.dart';
 import 'package:low_end/app/theme.dart';
 
 void main() {
   test('no text in the theme is smaller than the style sheet allows', () {
-    for (final theme in LowEndThemeVariant.values.map(LowEndTheme.forVariant)) {
+    for (final theme in LowEndBrand.palettes.map(LowEndTheme.forPalette)) {
       final t = theme.textTheme;
       for (final style in [
         t.displayMedium,

@@ -100,7 +100,12 @@ void main() {
       await settle();
 
       // 4. The tuner, a little flat on an E.
-      await tester.tap(find.text(l10n.tunerTab).last);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.byTooltip(l10n.tunerTab),
+        ),
+      );
       await settle();
       for (var i = 0; i < 20; i++) {
         mic.add(
@@ -118,7 +123,12 @@ void main() {
       await shot('4_tuner');
 
       // 3. The metronome, running, with swung eighths.
-      await tester.tap(find.text(l10n.metronomeTab).last);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.byTooltip(l10n.metronomeTab),
+        ),
+      );
       await settle();
       await tester.tap(find.byKey(const Key('subdivisionMenu')));
       await settle();
