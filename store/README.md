@@ -7,7 +7,7 @@ store/
   listing/<locale>/      en-US, it-IT, es-ES, fr-FR: title, short and full description, release notes
   graphics/icon-512.png  app icon (512 × 512)
   graphics/<locale>/feature-graphic-1024x500.png  (text: tool/feature_graphic_text_test.dart)
-  graphics/phone/<locale>/*.png   phone screenshots (1156 × 2312), four per language
+  graphics/phone/<locale>/*.png   phone screenshots (1156 × 2312), five per language: Harmony, progressions, metronome, tuner, Player
 ```
 
 Default language of the listing: English (United States), with Italian (Italy), Spanish (Spain, es-ES) and French (France, fr-FR) as translations. Spanish and French were written by Claude: have a musician who speaks each language read them before publishing.
@@ -40,8 +40,8 @@ The texts in `listing/` describe the app to the people on Google Play; what it d
 
 ## App content (declarations)
 
-- **Data safety**: the app collects **no data** and shares none. The microphone is processed on the phone and never stored or sent; the app has no network access (no `INTERNET` permission). Answer "No" to "Does your app collect or share any of the required user data types?". Data is not encrypted in transit because nothing is in transit.
-- **Permissions to explain**: `RECORD_AUDIO` (tuner), `FOREGROUND_SERVICE` + `FOREGROUND_SERVICE_MEDIA_PLAYBACK` (metronome and harmony keep playing with the screen off, with a notification), `POST_NOTIFICATIONS` (that notification), `WAKE_LOCK` (keeps playback running; keeps the screen on if the player asks).
+- **Data safety**: the app collects **no data** and shares none. The tuner's sound is processed on the phone and never stored; a Player recording stays in the app's private storage on the phone and leaves it only when the person chooses Save or Share themselves (Play does not count data that never leaves the device, or that the user sends on with their own explicit action through the system share sheet, as collected). The app has no network access (no `INTERNET` permission). Answer "No" to "Does your app collect or share any of the required user data types?". Data is not encrypted in transit because nothing is in transit.
+- **Permissions to explain**: `RECORD_AUDIO` (the tuner, and recording yourself in the Player when you tap REC), `FOREGROUND_SERVICE` + `FOREGROUND_SERVICE_MEDIA_PLAYBACK` (metronome and harmony keep playing with the screen off, with a notification), `POST_NOTIFICATIONS` (that notification), `WAKE_LOCK` (keeps playback running; keeps the screen on if the player asks).
 - **Foreground service declaration**: type *Media playback*. Short video to attach: start the metronome, lock the screen, show the notification.
 - **Content rating** (IARC questionnaire): no violence, no sexual content, no gambling, no user-generated content, no sharing of location. Expected result: PEGI 3 / Everyone.
 - **Target audience**: 13 and over is the simplest choice (no ads, no data, but it is not aimed at children). Choosing "under 13" would add the Families policy requirements.
@@ -66,7 +66,7 @@ New personal developer accounts must run a **closed test with at least 12 tester
 ## Checks made
 
 - Licences of all dependencies: permissive (MIT, BSD, Apache-2.0, zlib, public domain); see THIRD_PARTY_NOTICES.md.
-- Known vulnerabilities (OSV database): none in the 108 Dart packages or the 88 external Android libraries.
+- Known vulnerabilities: none in the 113 Dart packages (pub.dev advisories, 8 November 2026); the external Android libraries were checked against OSV on 16 October 2026 (see THIRD_PARTY_NOTICES.md).
 - Manifest: no `INTERNET`, backup off, only the launcher activity, the `lowend://` action link, the media service and its button receiver are exported.
 - The `lowend://action/...` links can start the sound or bring up the tuner from any web page or app. They do only what the buttons do, the microphone needs the permission the player gave and a visible tuner screen, and nothing leaves the phone, so this is documented rather than blocked (docs/llm.md).
 

@@ -1,12 +1,13 @@
 # Low End
 
-Low End is a free, open-source practice app for musicians, built around **Harmony**: a real grand piano that plays chords and progressions in any key for you to play over, from pop and blues to jazz standards with a walking double bass, always in time with its **metronome**. A chromatic **tuner** completes it. It is one light Android app, also usable on iPhone as a [web app](docs/web.md). It was made by an amateur double bass player with the friends from the orchestra in mind, and it is useful to everyone who plays: scales, improvisation, your part of a song, or ear training, with a band that never gets tired. It is built with [Flutter](https://flutter.dev), works fully offline and is available in English, Italian, Spanish and French.
+Low End is a free, open-source practice app for musicians, built around **Harmony**: a real grand piano that plays chords and progressions in any key for you to play over, from pop and blues to jazz standards with a walking double bass, always in time with its **metronome**. A chromatic **tuner** and a **Player** for your own tracks (slow a passage down, loop it, record yourself over it) complete it. It is one light Android app, also usable on iPhone as a [web app](docs/web.md). It was made by an amateur double bass player with the friends from the orchestra in mind, and it is useful to everyone who plays: scales, improvisation, your part of a song, or ear training, with a band that never gets tired. It is built with [Flutter](https://flutter.dev), works fully offline and is available in English, Italian, Spanish and French.
 
 <p>
-  <img src="store/graphics/phone/en-US/1_harmony.png" alt="Harmony playing a progression" width="24%">
-  <img src="store/graphics/phone/en-US/2_progressions.png" alt="The progressions menu" width="24%">
-  <img src="store/graphics/phone/en-US/3_metronome.png" alt="Metronome" width="24%">
-  <img src="store/graphics/phone/en-US/4_tuner.png" alt="Tuner" width="24%">
+  <img src="store/graphics/phone/en-US/1_harmony.png" alt="Harmony playing a progression" width="19%">
+  <img src="store/graphics/phone/en-US/2_progressions.png" alt="The progressions menu" width="19%">
+  <img src="store/graphics/phone/en-US/3_metronome.png" alt="Metronome" width="19%">
+  <img src="store/graphics/phone/en-US/4_tuner.png" alt="Tuner" width="19%">
+  <img src="store/graphics/phone/en-US/5_player.png" alt="The Player looping a passage at 80%" width="19%">
 </p>
 
 ## What it does
@@ -54,9 +55,9 @@ With the screen off or the app in the background the metronome and the harmony k
 
 - **Open source** under the [MIT License](LICENSE). Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). The components it uses and their licences are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - **Private**: no account, no internet, no ads, no tracking; the microphone is used only while the tuner is on screen or while you record in the Player, and recordings stay on the phone unless you save or share them. See [PRIVACY.md](PRIVACY.md).
-- **Light**: a handful of packages ([flutter_soloud](https://pub.dev/packages/flutter_soloud) for sound, [record](https://pub.dev/packages/record) for the microphone, [audio_service](https://pub.dev/packages/audio_service) for playing with the screen off, plus `shared_preferences`, `wakelock_plus`, `url_launcher` and `intl`), and the audio codecs the app doesn't need are left out of the build.
+- **Light**: a handful of packages ([flutter_soloud](https://pub.dev/packages/flutter_soloud) for sound, [record](https://pub.dev/packages/record) for the microphone, [audio_service](https://pub.dev/packages/audio_service) for playing with the screen off, [just_audio](https://pub.dev/packages/just_audio) for your own tracks in the Player, plus `audio_session`, `shared_preferences`, `wakelock_plus`, `url_launcher` and `intl`), and the audio codecs the app doesn't need are left out of the build.
 - **LLM first**: everything on screen is also an action an assistant can call, with a JSON answer, through `lowend://action/...` links. See [docs/llm.md](docs/llm.md).
-- **Fast to open**: nothing heavy runs at launch. The audio engine starts only the first time a sound plays and the microphone only after the first frame is drawn (`test/startup_test.dart` checks this), and an accent-coloured launch screen (FFM red by default) with the approved ivory lion dissolves into the active theme in 180 ms, without a minimum wait or blocked input (immediate with reduced motion). Android, web and store icons share the same mark; see [brand and startup](docs/icona-avvio.md).
+- **Fast to open**: nothing heavy runs at launch. The audio engine starts only the first time a sound plays and the microphone only after the first frame is drawn (`test/startup_test.dart` checks this), and an ebony launch screen with the ivory lion dissolves into the app in 180 ms, without a minimum wait or blocked input (immediate with reduced motion). Android, web and store icons share the same mark; see [brand and startup](docs/icona-avvio.md).
 - **Accessible**: built to follow WCAG 2.1 level AA. Every control has a screen-reader label, the tuner announces the note and whether it is flat, sharp or in tune, colours keep a 3:1 contrast or better and are never the only cue, text can be enlarged, and the strobe stops turning and shows a still marker when the phone asks for fewer animations. `test/accessibility_test.dart` checks this automatically.
 
 ## Thanks
@@ -70,7 +71,6 @@ Nothing here is promised.
 - Metronome: more time signatures, a tempo trainer.
 - Harmony: more progressions and chords.
 - More languages (German, with its own note names H and B, Portuguese, Japanese).
-- A PDF library for sheet music, set lists and annotations, and later PDF to MusicXML and MIDI playback.
 
 ## Project structure
 
@@ -84,7 +84,8 @@ lib/
     songs/                  a song sets Harmony and the metronome together
     metronome/              metronome screen and logic
     tuner/                  tuner screen and logic
-  audio/                    pitch maths and sound output
+    player/                 the Player: your own tracks, speed, passage loop and recording
+  audio/                    pitch maths, sound output, microphone, track files and recorder
   widgets/                  shared UI pieces
   l10n/                     translations (app_en.arb, app_it.arb, app_es.arb, app_fr.arb)
 test/                       automated tests (test/review: layouts, languages, text sizes)
@@ -138,7 +139,7 @@ What the app does is written once, with a code for each behaviour (`RF-ARM-07`, 
 | [docs/user-guide.md](docs/user-guide.md) (English), [docs/manuale-utente.md](docs/manuale-utente.md) (Italiano) | Players: what every control does |
 | [docs/architecture.md](docs/architecture.md) | Developers: how the app is built |
 | [docs/specs/](docs/specs/README.md) (in Italian) | Everyone who changes the app: the requirements, the architecture as it is, its evaluation and the improvement plan |
-| [docs/style.md](docs/style.md), [docs/tema-ffm.md](docs/tema-ffm.md) (the second in Italian) | Developers and designers: sizes, shapes and the current anthracite and red theme |
+| [docs/style.md](docs/style.md), [docs/specs/tema-ebano-bronzo.md](docs/specs/tema-ebano-bronzo.md) (the second in Italian) | Developers and designers: sizes, shapes and the Ebony & Bronze theme (the earlier red one is in [docs/tema-ffm.md](docs/tema-ffm.md)) |
 | [docs/offline.md](docs/offline.md) | Proof that the app needs no internet, and how to check it |
 | [docs/llm.md](docs/llm.md) | Assistants and automation: the `lowend://` actions |
 | [docs/web.md](docs/web.md) | The web app for iPhone: installing it, its limits, how it is built |

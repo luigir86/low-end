@@ -20,6 +20,10 @@ import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/piano_output.dart';
 import 'package:low_end/audio/tone_output.dart';
+import 'package:low_end/audio/track_files.dart';
+import 'package:low_end/audio/track_output.dart';
+import 'package:low_end/app/home_shell.dart';
+import 'package:low_end/audio/audio_scope.dart';
 
 Future<ByteData> _file(String path) async =>
     ByteData.sublistView(await File(path).readAsBytes());
@@ -42,11 +46,11 @@ void main() {
     await load('MaterialIcons', ['test/fonts/materialicons-regular.otf']);
   });
 
-  for (final (locale, lang) in [
-    ('en-US', 'en'),
-    ('it-IT', 'it'),
-    ('es-ES', 'es'),
-    ('fr-FR', 'fr'),
+  for (final (locale, lang, track) in [
+    ('en-US', 'en', 'Band rehearsal'),
+    ('it-IT', 'it', 'Prova con la band'),
+    ('es-ES', 'es', 'Ensayo con la banda'),
+    ('fr-FR', 'fr', 'Répétition du groupe'),
   ]) {
     testWidgets('store screenshots $locale', (tester) async {
       final l10n = lookupAppLocalizations(Locale(lang));
@@ -60,12 +64,17 @@ void main() {
       addTearDown(tester.view.reset);
       addTearDown(tester.platformDispatcher.clearAllTestValues);
       final mic = FakeMicInput();
+      final files = FakeTrackFiles(
+        next: TrackRef(uri: 'content://rehearsal', name: '$track.m4a'),
+      );
       await tester.pumpWidget(
         LowEndApp(
           toneOutput: SilentToneOutput(),
           clickOutput: SilentClickOutput(),
           pianoOutput: SilentPianoOutput(),
           micInput: mic,
+          trackOutput: SilentTrackOutput(length: const Duration(minutes: 4)),
+          trackFiles: files,
         ),
       );
       Future<void> settle() async {
@@ -138,6 +147,52 @@ void main() {
       await settle();
       await tester.pump(const Duration(milliseconds: 600));
       await shot('3_metronome');
+
+      // 5. The Player: a rehearsal of the person's own, slowed to 80%, with a
+      // passage looping on its waveform.
+      final scope = AudioScope.of(tester.element(find.byType(HomeShell)));
+      final player = scope.player;
+      await scope.metronome.stop();
+      await settle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.byTooltip(l10n.playerTab),
+        ),
+      );
+      await settle();
+      await player.open(files.next!);
+      await settle();
+      // A made-up wave: phrases that swell and fade, with beats, 10 ms a
+      // value.
+      final rng = math.Random(7);
+      files.peakStreams.last.add(
+        Uint16List.fromList([
+          for (var i = 0; i < 24000; i++)
+            (32767 *
+                    math.pow(
+                      10,
+                      -(30 * (1 - math.sin(math.pi * (i % 2300) / 2300)) +
+                              10 * (1 - math.sin(math.pi * (i % 170) / 170)) +
+                              6 * rng.nextDouble()) /
+                          20,
+                    ))
+                .round(),
+        ]),
+      );
+      await files.peakStreams.last.close();
+      player.setSpeed(80);
+      await player.setLoop(
+        const Duration(minutes: 1, seconds: 4),
+        const Duration(minutes: 1, seconds: 36),
+      );
+      await player.seek(const Duration(minutes: 1, seconds: 17));
+      await player.start();
+      await settle();
+      await tester.pump(const Duration(milliseconds: 600));
+      await shot('5_player');
+      await player.stop();
+      await settle();
     });
   }
 }
