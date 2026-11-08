@@ -322,6 +322,8 @@ void main() {
         'speed_percent': 100,
         'loop': null,
         'problem': null,
+        'take': false,
+        'recording': 'idle',
       });
       await actions.call('player_open');
       state = player(await actions.call('get_state'));

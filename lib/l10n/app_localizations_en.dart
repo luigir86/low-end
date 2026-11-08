@@ -22,6 +22,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get takeRecord => 'Record';
 
   @override
+  String get takeRecordShort => 'REC';
+
+  @override
   String get takeStop => 'Stop';
 
   @override

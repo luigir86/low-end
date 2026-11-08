@@ -18,6 +18,7 @@ import 'package:low_end/app/settings.dart';
 import 'package:low_end/audio/audio_scope.dart';
 import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/mic_input.dart';
+import 'package:low_end/audio/take_recorder.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/audio/track_files.dart';
 import 'package:low_end/audio/track_output.dart';
@@ -51,6 +52,7 @@ class _Screen {
 Future<_Screen> _open(
   WidgetTester tester, {
   FakeTrackFiles? files,
+  FakeTakeRecorder? recorder,
   Size size = const Size(1080, 2400),
 }) async {
   tester.view.physicalSize = size;
@@ -65,6 +67,7 @@ Future<_Screen> _open(
       micInput: FakeMicInput(),
       trackOutput: output,
       trackFiles: chooser,
+      takeRecorder: recorder,
       screenAwake: FakeScreenAwake(),
       settings: AppSettings()..rememberSection(AppSection.player),
     ),
@@ -84,24 +87,13 @@ void main() {
     (tester) async {
       final screen = await _open(tester);
       final messenger = tester.binding.defaultBinaryMessenger;
-      const microphone = MethodChannel('com.llfbandit.record/messages');
       const takes = MethodChannel('low_end/takes');
-      const path = '/tmp/lesson.m4a';
       final exports = <String>[];
-      messenger.setMockMethodCallHandler(microphone, (call) async {
-        if (call.method == 'hasPermission') return true;
-        if (call.method == 'stop') return path;
-        return null;
-      });
       messenger.setMockMethodCallHandler(takes, (call) async {
-        if (call.method == 'path') return path;
         exports.add(call.method);
         return true;
       });
-      addTearDown(() {
-        messenger.setMockMethodCallHandler(microphone, null);
-        messenger.setMockMethodCallHandler(takes, null);
-      });
+      addTearDown(() => messenger.setMockMethodCallHandler(takes, null));
       await screen.player.open(_song);
       const at = Duration(seconds: 43);
       await screen.player.seek(at);
@@ -123,7 +115,8 @@ void main() {
       expect(screen.player.isPlaying, isFalse);
       expect(screen.player.looping, isFalse);
       expect(screen.player.position, Duration.zero);
-      expect(screen.player.setup, isNull);
+      // The track being studied stays the one remembered (RF-PLY-20).
+      expect(screen.player.setup?.track, _song);
       await tester.tap(find.byTooltip('Share'));
       await screen.settle();
       expect(exports, ['share']);
@@ -142,8 +135,10 @@ void main() {
       final take = screen.player.track;
       await tester.tap(find.byTooltip('Remove from player'));
       await screen.settle();
-      expect(screen.player.track, isNull);
+      // The track studied before the take comes back.
+      expect(screen.player.track, _song);
       expect(screen.files.released, contains(take));
+      expect(screen.files.released, isNot(contains(_song)));
       expect(find.byIcon(Icons.delete_outline), findsNothing);
     },
   );
@@ -151,26 +146,17 @@ void main() {
   testWidgets(
     'discard during a microphone prompt cannot start a late recording',
     (tester) async {
-      final screen = await _open(tester);
       final permission = Completer<bool>();
-      final calls = <String>[];
-      const microphone = MethodChannel('com.llfbandit.record/messages');
-      final messenger = tester.binding.defaultBinaryMessenger;
-      messenger.setMockMethodCallHandler(microphone, (call) async {
-        calls.add(call.method);
-        if (call.method == 'hasPermission') return permission.future;
-        return null;
-      });
-      addTearDown(() => messenger.setMockMethodCallHandler(microphone, null));
+      final recorder = FakeTakeRecorder()..prompt = permission.future;
+      final screen = await _open(tester, recorder: recorder);
       await screen.player.open(_song);
       await screen.settle();
       await tester.tap(find.text('REC'));
       await screen.settle();
-      expect(calls, contains('hasPermission'));
       await tester.tap(find.text('Discard'));
       permission.complete(true);
       await screen.settle();
-      expect(calls, isNot(contains('start')));
+      expect(recorder.starts, 0);
       expect(screen.player.track, same(_song));
       expect(find.text('REC'), findsOneWidget);
       expect(find.byIcon(Icons.delete_outline), findsNothing);
