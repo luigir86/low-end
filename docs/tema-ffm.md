@@ -1,6 +1,6 @@
 # Anthracite & Red — revisione estetica Low End
 
-**8 novembre 2026:** resta disponibile come tema `LowEndBrand.red`; il tema attivo è Ebony & Brass ([temi a quattro colori](specs/tema-ebano-ottone.md)).
+**8 novembre 2026:** resta disponibile come tema `LowEndBrand.red`; il tema attivo è Ebony & Bronze ([temi a quattro colori](specs/tema-ebano-bronzo.md)).
 
 **Aggiornamento:** il [colore d’accento unico](specs/colore-accento.md) mantiene questa struttura con rosso FFM predefinito e ottone disponibile.
 

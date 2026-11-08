@@ -34,10 +34,10 @@ void main() {
     expect(e.activeFill, LowEndBrand.ffmRed);
   });
 
-  test('Ebony & Brass uses the four approved colours', () {
-    const p = LowEndBrand.ebonyAndBrass;
+  test('Ebony & Bronze uses the four approved colours', () {
+    const p = LowEndBrand.ebonyAndBronze;
     expect(_hex(p.brand), '#141312');
-    expect(_hex(p.accent), '#B8924E');
+    expect(_hex(p.accent), '#D4A373');
     expect(_hex(p.dark), '#141312');
     expect(_hex(p.light), '#F1E8D5');
     expect(p.mark, p.light);
@@ -45,7 +45,7 @@ void main() {
     final e = theme.extension<LowEndColors>()!;
     expect(theme.colorScheme.surface, p.dark);
     expect(e.bottomNavigationBackground, p.light);
-    // Ebony ink on brass buttons; a darker brass on the ivory bar.
+    // Ebony ink on bronze buttons; a darker bronze on the ivory bar.
     expect(e.onActiveFill, Palette.inkOnLight);
     expect(contrast(e.onActiveFill, p.accent), greaterThanOrEqualTo(4.5));
     expect(e.bottomNavigationSelectedInk, isNot(p.accent));
@@ -185,7 +185,7 @@ void main() {
         expect(e.copyWith().filledSteps, e.filledSteps);
         final other = LowEndTheme.forPalette(
           palette == LowEndBrand.red
-              ? LowEndBrand.ebonyAndBrass
+              ? LowEndBrand.ebonyAndBronze
               : LowEndBrand.red,
         ).extension<LowEndColors>()!;
         expect(roles(e.lerp(other, 0)), roles(e));
@@ -227,7 +227,7 @@ void main() {
 
   for (final accent in [
     LowEndBrand.ffmRed,
-    LowEndBrand.brass,
+    LowEndBrand.bronze,
     const Color(0xFFB97858),
     const Color(0xFF438C87),
     const Color(0xFF608DB4),
@@ -273,12 +273,12 @@ void main() {
     });
   }
 
-  test('brass and FFM red keep their values and choose readable ink', () {
+  test('bronze and FFM red keep their values and choose readable ink', () {
     expect(_hex(LowEndBrand.ffmRed), '#A6282C');
-    expect(_hex(LowEndBrand.brass), '#B8924E');
-    final brass = LowEndTheme.withAccent(LowEndBrand.brass)
+    expect(_hex(LowEndBrand.bronze), '#D4A373');
+    final bronze = LowEndTheme.withAccent(LowEndBrand.bronze)
         .extension<LowEndColors>()!;
-    expect(brass.onActiveFill, Palette.inkOnLight);
+    expect(bronze.onActiveFill, Palette.inkOnLight);
     final red = LowEndTheme.withAccent(LowEndBrand.ffmRed)
         .extension<LowEndColors>()!;
     expect(red.onActiveFill, Palette.inkOnDark);

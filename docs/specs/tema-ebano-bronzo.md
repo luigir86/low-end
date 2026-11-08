@@ -1,6 +1,6 @@
-# Temi a quattro colori: Rosso e Ebony & Brass
+# Temi a quattro colori: Rosso e Ebony & Bronze
 
-Decisione di Luigi dell'8 novembre 2026 (proposta "Simula tema colori"). Sostituisce
+Decisione di Luigi dell'8 novembre 2026 (proposta "Simula tema colori"). L'accento proposto era l'ottone `#B8924E`; dopo il confronto delle anteprime Luigi ha scelto il bronzo originale dell'app `#D4A373`, più caldo (anteprime in `preview/ebony-brass/confronto_accenti.png` dei file di progetto). Sostituisce
 la scelta del solo accento ([colore-accento](colore-accento.md)) e le varianti
 interne Wood&Brass / Anthracite ([varianti-tema](varianti-tema.md)): il vecchio
 codice Wood&Brass è stato tolto.
@@ -9,10 +9,10 @@ codice Wood&Brass è stato tolto.
 
 Un tema è un `BrandPalette` in `lib/app/brand.dart`, fatto di quattro colori:
 
-| Ruolo | Rosso (7 novembre) | Ebony & Brass (attivo) |
+| Ruolo | Rosso (7 novembre) | Ebony & Bronze (attivo) |
 | --- | --- | --- |
 | `brand`: fondo di icona e avvio | Rosso FFM `#A6282C` | Ebano `#141312` |
-| `accent`: TAP, selezioni, primo battito, rail | Rosso FFM `#A6282C` | Ottone `#B8924E` |
+| `accent`: TAP, selezioni, primo battito, rail | Rosso FFM `#A6282C` | Bronzo `#D4A373` |
 | `dark`: fondo delle schermate | Antracite `#242424` | Ebano `#141312` |
 | `light`: barra in basso, pulsanti +/−, leone | Grigio chiaro `#ECECE9` | Avorio `#F1E8D5` |
 
@@ -25,16 +25,16 @@ superfici, bordi, tasti spenti e testo attenuato sono miscele di `dark` e
 `light` (grigi caldi con l'ebano, neutri con l'antracite); il disco è `dark`
 scurito dell'11%; il fondo prima di Flutter (`startup`) è `dark` scurito del
 33%. Testo sui riempimenti: l'inchiostro chiaro o scuro più leggibile, quindi
-ebano sull'ottone. La scheda scelta sulla barra chiara usa l'accento scurito fino
-a 4,5:1 (ottone scuro sull'avorio).
+ebano sul bronzo. La scheda scelta sulla barra chiara usa l'accento scurito fino
+a 4,5:1 (bronzo scuro sull'avorio).
 
 Restano uguali in ogni tema: i colori del verdetto dell'accordatore (salvia,
 paglia, mattone), lo strobo grigio a riposo, il testo quasi bianco, Edwin,
 forme, misure e disposizione.
 
-## Contrasti (Ebony & Brass)
+## Contrasti (Ebony & Bronze)
 
-Ebano su ottone 6,4:1; avorio su ebano 15:1; ottone sul disco 5,9:1; scheda
+Testo ebano sul bronzo 7,5:1; avorio su ebano 15:1; bronzo sul disco 8,3:1; scheda
 scelta sull'avorio almeno 4,5:1; verdetti sull'ebano tra 6,6:1 e 11:1.
 `test/theme_test.dart` controlla entrambi i temi.
 

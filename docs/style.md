@@ -40,7 +40,7 @@ Rules: pick a role, never a number; the three dials show their value in `display
 
 ## Colour
 
-The app is always dark. Its colours come from one four-colour palette (`BrandPalette`: brand, accent, dark, light) chosen with one constant, `LowEndBrand.palette`, never by the player: **Ebony & Brass** (active) or **Red** ([four-colour themes](specs/tema-ebano-ottone.md), [Red redesign](tema-ffm.md)). Both share the same component builder, Edwin, shapes, sizes and layouts. Flat fills, no gradients or sheen.
+The app is always dark. Its colours come from one four-colour palette (`BrandPalette`: brand, accent, dark, light) chosen with one constant, `LowEndBrand.palette`, never by the player: **Ebony & Bronze** (active) or **Red** ([four-colour themes](specs/tema-ebano-bronzo.md), [Red redesign](tema-ffm.md)). Both share the same component builder, Edwin, shapes, sizes and layouts. Flat fills, no gradients or sheen.
 
 | Meaning | Theme role |
 | --- | --- |
@@ -53,7 +53,7 @@ The app is always dark. Its colours come from one four-colour palette (`BrandPal
 | Strobe | Grey `strobeIdle` without a live reading; both bands use the same `inTune`, `close`, `off` verdict as the symbol and cents scale |
 | Tuner verdict | Common sage green, straw yellow and brick red; words, tick/arrows and cents needle, never colour alone |
 
-`LowEndTheme.forPalette` derives every other shade: surfaces, borders, keys that are off and muted text are mixtures of the dark and light colours. Active fills use the exact accent; their labels choose dark or light ink (ebony on brass), and selected text on the light bottom bar derives a readable accent shade. Tuner verdicts and the idle strobe stay independent. The icon and every startup surface use the palette's brand colour; run `flutter test tool/make_icons_test.dart` before a local build (CI does so automatically). `theme_test.dart` checks both palettes and six accent previews for contrast. Beats left silent, weak pulses and receding beats retain named roles, with no theme conditionals in screens. Roman numerals stay on the notes they represent.
+`LowEndTheme.forPalette` derives every other shade: surfaces, borders, keys that are off and muted text are mixtures of the dark and light colours. Active fills use the exact accent; their labels choose dark or light ink (ebony on bronze), and selected text on the light bottom bar derives a readable accent shade. Tuner verdicts and the idle strobe stay independent. The icon and every startup surface use the palette's brand colour; run `flutter test tool/make_icons_test.dart` before a local build (CI does so automatically). `theme_test.dart` checks both palettes and six accent previews for contrast. Beats left silent, weak pulses and receding beats retain named roles, with no theme conditionals in screens. Roman numerals stay on the notes they represent.
 
 The strobe is grey while paused, waiting for a note, or holding the last note after the sound fades. With a live reading, both bands are sage green within the configured tolerance (default ±5 cents), yellow beyond that up to ±15 cents, and red further off. Colour transitions use `Durations.short4` and `Easing.standard`, or are immediate with reduced motion. Rotation still indicates flat/sharp and the exact offset; it stops only at zero cents, on a held note, or when listening stops. Reduced motion retains the static cents marker. Note names and verdict words stay light and readable.
 

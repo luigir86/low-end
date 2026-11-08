@@ -41,7 +41,7 @@ final class BrandPalette {
 /// runs it automatically, including the Pages publication.
 abstract final class LowEndBrand {
   static const ffmRed = Color(0xFFA6282C);
-  static const brass = Color(0xFFB8924E);
+  static const bronze = Color(0xFFD4A373);
   static const ebony = Color(0xFF141312);
   static const ivory = Color(0xFFF1E8D5);
 
@@ -55,19 +55,19 @@ abstract final class LowEndBrand {
     mark: Color(0xFFFFF5E3),
   );
 
-  /// Ebony & Brass (8 November 2026): brass on ebony, ivory light surfaces.
-  static const ebonyAndBrass = BrandPalette(
-    name: 'Ebony & Brass',
+  /// Ebony & Bronze (8 November 2026): bronze on ebony, ivory light surfaces.
+  static const ebonyAndBronze = BrandPalette(
+    name: 'Ebony & Bronze',
     brand: ebony,
-    accent: brass,
+    accent: bronze,
     dark: ebony,
     light: ivory,
   );
 
-  static const palettes = [red, ebonyAndBrass];
+  static const palettes = [red, ebonyAndBronze];
 
   /// The one place that chooses the theme, the icon and the startup.
-  static const palette = ebonyAndBrass;
+  static const palette = ebonyAndBronze;
 
   static Color get accent => palette.accent;
 

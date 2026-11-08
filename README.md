@@ -87,7 +87,7 @@ store/                      Google Play listing: texts, graphics, checklist
 docs/                       user guide, architecture, style sheet, internal themes, offline check, assistant actions
 ```
 
-All colours, shapes and text styles live in `lib/app/theme.dart` (always dark). `LowEndBrand.palette` in `lib/app/brand.dart` chooses one four-colour palette (brand, accent, dark, light) for the interface, icons and startup: Ebony & Brass, with the earlier red theme available. See [the four-colour themes](docs/specs/tema-ebano-ottone.md) for regeneration and previews.
+All colours, shapes and text styles live in `lib/app/theme.dart` (always dark). `LowEndBrand.palette` in `lib/app/brand.dart` chooses one four-colour palette (brand, accent, dark, light) for the interface, icons and startup: Ebony & Bronze, with the earlier red theme available. See [the four-colour themes](docs/specs/tema-ebano-bronzo.md) for regeneration and previews.
 
 ## Run it
 
