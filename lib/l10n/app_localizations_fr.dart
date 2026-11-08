@@ -22,6 +22,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get takeRecord => 'Enregistrer';
 
   @override
+  String get takeRecordShort => 'REC';
+
+  @override
   String get takeStop => 'Arrêter';
 
   @override

@@ -3,6 +3,7 @@
   "takeDelete": "Supprimer la prise",
   "takeRemove": "Retirer du lecteur",
   "takeRecord": "Enregistrer",
+  "takeRecordShort": "REC",
   "takeStop": "Arrêter",
   "takeRecording": "Enregistrement",
   "takeTemporary": "Temporaire",

@@ -1,7 +1,7 @@
 [
   {
     "name": "get_state",
-    "description": "Returns what the app is doing now, without changing anything: the section on screen (metronome, drone, tuner, player); the tuner (status idle, starting, listening, permissionDenied or failed, and the last note heard with its cents off); the Harmony section, called drone (playing, note, voicing, chord, progression, style, held tone, current step of a progression); the metronome (playing, tempo, time signature, subdivision, click on 2 and 4); the Player (the track open with its name and length in seconds, playing, position in seconds, and the problem if the last file could not be opened: unreadable or missing); and the settings (reference A, language, note and octave names, the tuner's instrument, in-tune zone and transposition, the circle, screen on, locked gestures). \"playing\" is true as soon as a start is asked, also while the sound waits for the other one's next bar line. Notes are always written with letters and octave (Bb4), whatever the note names setting. Loudness follows the phone's media volume.",
+    "description": "Returns what the app is doing now, without changing anything: the section on screen (metronome, drone, tuner, player); the tuner (status idle, starting, listening, permissionDenied or failed, and the last note heard with its cents off); the Harmony section, called drone (playing, note, voicing, chord, progression, style, held tone, current step of a progression); the metronome (playing, tempo, time signature, subdivision, click on 2 and 4); the Player (the track open with its name and length in seconds, playing, position in seconds, and the problem if the last file could not be opened: unreadable or missing; whether it is a recorded take, and the recording: idle, starting, recording or finishing); and the settings (reference A, language, note and octave names, the tuner's instrument, in-tune zone and transposition, the circle, screen on, locked gestures). \"playing\" is true as soon as a start is asked, also while the sound waits for the other one's next bar line. Notes are always written with letters and octave (Bb4), whatever the note names setting. Loudness follows the phone's media volume.",
     "input_schema": {
       "type": "object",
       "properties": {},
@@ -420,7 +420,7 @@
   },
   {
     "name": "player_mark",
-    "description": "Marks the start or the end of the loop at the point being heard, like the screen reader actions Mark the start here and Mark the end here (on the ring and on the flags A and B); a reaction time of 150 ms times the speed is taken off. A point marked past the other one clears the other. Once both are marked the loop turns on and plays from the start. Fails if no track is open.",
+    "description": "Marks the start or the end of the loop at the point being heard, like the Mark start and Mark end button under the dial while the track plays; a reaction time of 150 ms times the speed is taken off. A point marked past the other one clears the other. Once both are marked the loop turns on and plays from the start. Fails if no track is open.",
     "input_schema": {
       "type": "object",
       "properties": {
@@ -441,7 +441,7 @@
   },
   {
     "name": "player_loop_nudge",
-    "description": "Moves the start or the end of the loop by some seconds, e.g. -0.01. Each point stops at its limit: the ends of the track, or 1 s from the other point. Fails if that point is not marked.",
+    "description": "Moves the start or the end of the loop by some seconds, e.g. -0.01, like dragging its line on the waveform strip. Each point stops at its limit: the ends of the track, or 1 s from the other point. Fails if that point is not marked.",
     "input_schema": {
       "type": "object",
       "properties": {
@@ -482,6 +482,29 @@
     "input_schema": {
       "type": "object",
       "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "player_record",
+    "description": "Opens the Player and records a take from the microphone, like REC; the track open pauses. Android asks for the microphone the first time. Recording stops when the Player leaves the screen or the app goes to the background, and the take is kept.",
+    "input_schema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "player_record_stop",
+    "description": "Stops recording. The take opens in the Player from its start, over the track that was open; that track comes back, with its speed and passage, when the take is deleted. With discard the take is thrown away. Saving or sharing a take is left to the person, through the phone's own windows.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "discard": {
+          "type": "boolean",
+          "description": "Throw the take away instead of keeping it."
+        }
+      },
       "additionalProperties": false
     }
   },

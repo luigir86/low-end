@@ -30,11 +30,19 @@ The four tabs are **Metronome**, **Harmony**, **Player** and **Tuner**, and the 
 ### Tuner
 
 - Chromatic, with a round strobe and the note in the middle: play any note and it shows up, no string to choose first.
-- Under the strobe, a cents scale shows how far off the note is: a needle on an axis marked every 5 cents, coloured from 0 to the needle. In tune is teal, close yellow, far off red, always with words and arrows too (one arrow when close, two when far off), so colour is never the only cue.
+- Under the strobe, a cents scale shows how far off the note is: a needle on an axis marked every 5 cents, coloured from 0 to the needle. In tune is sage green, close straw yellow, far off brick red, always with words and arrows too (one arrow when close, two when far off), so colour is never the only cue.
 - Finds the note with the YIN algorithm ([`lib/audio/pitch_detector.dart`](lib/audio/pitch_detector.dart)), from 28 to 2800 Hz (700 Hz with the bass chosen): from the lowest strings to the top of the violin and the flute. For B♭, E♭ and F instruments it can name the written note.
 - The instrument menu switches from Chromatic to the strings of guitar, violin, viola, cello, ukulele or bass, with the string number shown.
 - Reference A under the dial: − and + move by one hertz, the pencil types it or picks 415, 432, 440 or 442 Hz.
 - It listens only while it is on screen (and you can pause it from the middle of the dial). Coming to the tuner stops nothing: if the metronome or the harmony is playing, the tuner waits, and touching its dial pauses them (a notice with a **Resume** button brings them back), so the microphone hears only your instrument.
+
+### Player
+
+- Plays a track of your own (MP3, M4A, WAV, FLAC; Ogg and Opus on Android) chosen with the phone's file chooser, with no permission asked. The ring is the clock of the whole track, with its waveform; touch it to move.
+- Speed from 50 to 125% without changing the pitch.
+- Loop a passage with two taps (**Mark start**, **Mark end**) while it plays; drag its two lines on the waveform strip to refine it.
+- **REC** records you from the microphone over the click if you like; the take opens in the Player to listen back, and can be saved or shared. The track you were studying comes back when the take is deleted.
+- Track, speed and passage are kept for the next launch.
 
 ### Settings
 
@@ -45,7 +53,7 @@ With the screen off or the app in the background the metronome and the harmony k
 ## Free, light and accessible
 
 - **Open source** under the [MIT License](LICENSE). Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). The components it uses and their licences are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-- **Private**: no account, no internet, no ads, no tracking; the microphone is used only while the tuner is on screen. See [PRIVACY.md](PRIVACY.md).
+- **Private**: no account, no internet, no ads, no tracking; the microphone is used only while the tuner is on screen or while you record in the Player, and recordings stay on the phone unless you save or share them. See [PRIVACY.md](PRIVACY.md).
 - **Light**: a handful of packages ([flutter_soloud](https://pub.dev/packages/flutter_soloud) for sound, [record](https://pub.dev/packages/record) for the microphone, [audio_service](https://pub.dev/packages/audio_service) for playing with the screen off, plus `shared_preferences`, `wakelock_plus`, `url_launcher` and `intl`), and the audio codecs the app doesn't need are left out of the build.
 - **LLM first**: everything on screen is also an action an assistant can call, with a JSON answer, through `lowend://action/...` links. See [docs/llm.md](docs/llm.md).
 - **Fast to open**: nothing heavy runs at launch. The audio engine starts only the first time a sound plays and the microphone only after the first frame is drawn (`test/startup_test.dart` checks this), and an accent-coloured launch screen (FFM red by default) with the approved ivory lion dissolves into the active theme in 180 ms, without a minimum wait or blocked input (immediate with reduced motion). Android, web and store icons share the same mark; see [brand and startup](docs/icona-avvio.md).
@@ -95,7 +103,7 @@ With Flutter installed and an Android phone connected (USB debugging on):
 
 ```
 flutter pub get
-flutter test tool/make_icons_test.dart # sync icons/startup with LowEndBrand.accent
+flutter test tool/make_icons_test.dart # sync icons/startup with LowEndBrand.palette
 flutter run
 ```
 
@@ -130,7 +138,7 @@ What the app does is written once, with a code for each behaviour (`RF-ARM-07`, 
 | [docs/user-guide.md](docs/user-guide.md) (English), [docs/manuale-utente.md](docs/manuale-utente.md) (Italiano) | Players: what every control does |
 | [docs/architecture.md](docs/architecture.md) | Developers: how the app is built |
 | [docs/specs/](docs/specs/README.md) (in Italian) | Everyone who changes the app: the requirements, the architecture as it is, its evaluation and the improvement plan |
-| [docs/style.md](docs/style.md), [docs/tema-ffm.md](docs/tema-ffm.md) (the second in Italian) | Developers and designers: sizes, shapes and the original Anthracite & Red proposal |
+| [docs/style.md](docs/style.md), [docs/tema-ffm.md](docs/tema-ffm.md) (the second in Italian) | Developers and designers: sizes, shapes and the current anthracite and red theme |
 | [docs/offline.md](docs/offline.md) | Proof that the app needs no internet, and how to check it |
 | [docs/llm.md](docs/llm.md) | Assistants and automation: the `lowend://` actions |
 | [docs/web.md](docs/web.md) | The web app for iPhone: installing it, its limits, how it is built |

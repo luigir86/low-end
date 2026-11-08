@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
@@ -12,6 +15,7 @@ import '../../widgets/row_controls.dart';
 import 'player_controller.dart';
 import 'passage_strip.dart';
 import 'player_dial.dart';
+import 'recording_controller.dart';
 import 'recording_controls.dart';
 
 /// The full-track dial and three fixed rows: waveform, transport, track.
@@ -25,6 +29,7 @@ class PlayerPanel extends StatefulWidget {
   static const speedFieldKey = Key('playerSpeed');
   static const loopSwitchKey = Key('playerLoop');
   static const messageKey = Key('playerMessage');
+  static const recordKey = Key('playerRecord');
 
   /// The speeds offered in the sheet, in percent.
   static const speedShortcuts = [50, 60, 70, 75, 80, 90, 100, 110, 125];
@@ -54,21 +59,53 @@ class PlayerPanel extends StatefulWidget {
 
 class _PlayerPanelState extends State<PlayerPanel>
     with AutomaticKeepAliveClientMixin {
-  bool recording = false;
-  final elapsed = ValueNotifier<Duration>(Duration.zero);
+  RecordingController? _recording;
+  StreamSubscription<RecordingProblem>? _problems;
+  bool _keepAlive = false;
+
+  /// Kept alive while recording, so that sliding away finishes the take
+  /// instead of losing the panel under it.
+  @override
+  bool get wantKeepAlive => _keepAlive;
 
   @override
-  bool get wantKeepAlive => recording;
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final next = AudioScope.of(context).recording;
+    if (next == _recording) return;
+    _recording?.removeListener(_syncKeepAlive);
+    _problems?.cancel();
+    _recording = next..addListener(_syncKeepAlive);
+    _problems = next.problems.listen(_showProblem);
+  }
 
-  void setRecording(bool value) {
-    elapsed.value = Duration.zero;
-    setState(() => recording = value);
+  void _syncKeepAlive() {
+    final active = _recording!.active;
+    if (active == _keepAlive) return;
+    _keepAlive = active;
     updateKeepAlive();
+  }
+
+  void _showProblem(RecordingProblem problem) {
+    if (!mounted) return;
+    final strings = AppLocalizations.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(switch (problem) {
+          RecordingProblem.permissionDenied =>
+            kIsWeb
+                ? strings.micPermissionDeniedWeb
+                : strings.micPermissionDenied,
+          RecordingProblem.failed => strings.takeError,
+        }),
+      ),
+    );
   }
 
   @override
   void dispose() {
-    elapsed.dispose();
+    _recording?.removeListener(_syncKeepAlive);
+    _problems?.cancel();
     super.dispose();
   }
 
@@ -76,10 +113,12 @@ class _PlayerPanelState extends State<PlayerPanel>
   Widget build(BuildContext context) {
     super.build(context);
     final player = AudioScope.of(context).player;
+    final recorder = _recording!;
     final strings = AppLocalizations.of(context);
     return ListenableBuilder(
-      listenable: player,
+      listenable: Listenable.merge([player, recorder]),
       builder: (context, _) {
+        final recording = recorder.active;
         Widget source(String label) => LabeledField(
           key: PlayerPanel.trackFieldKey,
           label: label,
@@ -95,16 +134,21 @@ class _PlayerPanelState extends State<PlayerPanel>
         final rec = Tooltip(
           message: strings.takeRecord,
           child: OutlinedButton.icon(
-            onPressed: () => setRecording(true),
-            icon: const Icon(Icons.circle, color: Colors.red, size: 14),
-            label: const Text('REC'),
+            key: PlayerPanel.recordKey,
+            onPressed: () => recorder.start(label: strings.takeRecording),
+            icon: Icon(
+              Icons.circle,
+              color: Theme.of(context).colorScheme.error,
+              size: 14,
+            ),
+            label: Text(strings.takeRecordShort),
           ),
         );
         final track = player.track;
         return DialLayout(
           dial: PlayerDial(
             player: player,
-            recordingTime: recording ? elapsed : null,
+            recordingTime: recording ? recorder.elapsed : null,
           ),
           header: IgnorePointer(
             ignoring: recording,
@@ -121,11 +165,7 @@ class _PlayerPanelState extends State<PlayerPanel>
             ),
           ),
           lower: recording
-              ? RecordingRow(
-                  player: player,
-                  elapsed: elapsed,
-                  onDone: () => setRecording(false),
-                )
+              ? RecordingRow(recording: recorder)
               : track is RecordedTrack
               ? TakeActions(
                   key: ValueKey(track.uri),
