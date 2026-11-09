@@ -688,7 +688,7 @@ void main() {
       expect(screen.player.loopStart, a);
     });
 
-    testWidgets('the passage button is filled like TAP and names its flag', (
+    testWidgets('the passage button is filled like TAP and names its point', (
       tester,
     ) async {
       final screen = await track(tester);
@@ -697,8 +697,8 @@ void main() {
         find.descendant(of: button, matching: find.byType(FilledButton)),
         findsOneWidget,
       );
-      LetterFlag flag() => tester.widget<LetterFlag>(
-        find.descendant(of: button, matching: find.byType(LetterFlag)),
+      LetterBadge flag() => tester.widget<LetterBadge>(
+        find.descendant(of: button, matching: find.byType(LetterBadge)),
       );
       expect(flag().letter, 'A');
       await tester.tap(find.text('Mark start'));

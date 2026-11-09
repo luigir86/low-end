@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -309,9 +308,9 @@ class _ControlRow extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (capturing)
-                    // The flag it sets, with its letter, as on the strip
-                    // and the ring.
-                    LetterFlag(pending ? 'B' : 'A')
+                    // The point it sets, with its letter, as the handle on
+                    // the ring.
+                    LetterBadge(pending ? 'B' : 'A')
                   else
                     const Icon(Icons.repeat, size: 20),
                   const SizedBox(width: 6),
@@ -350,10 +349,11 @@ class _ControlRow extends StatelessWidget {
   }
 }
 
-/// A flag with its [letter] in the pennant, in the ink of the button it sits
-/// in: the button says which flag a touch sets.
-class LetterFlag extends StatelessWidget {
-  const LetterFlag(this.letter, {super.key});
+/// A circle with its [letter] cut out, in the ink of the button it sits in:
+/// the button says which point a touch sets, drawn like the handle that then
+/// appears on the ring.
+class LetterBadge extends StatelessWidget {
+  const LetterBadge(this.letter, {super.key});
 
   final String letter;
 
@@ -365,8 +365,8 @@ class LetterFlag extends StatelessWidget {
     final size = MediaQuery.textScalerOf(context).scale(22);
     return ExcludeSemantics(
       child: CustomPaint(
-        size: Size(size * 0.9, size),
-        painter: _LetterFlagPainter(
+        size: Size.square(size),
+        painter: _LetterBadgePainter(
           letter: letter,
           ink: ink,
           style: Theme.of(context).textTheme.labelLarge,
@@ -376,8 +376,8 @@ class LetterFlag extends StatelessWidget {
   }
 }
 
-class _LetterFlagPainter extends CustomPainter {
-  _LetterFlagPainter({
+class _LetterBadgePainter extends CustomPainter {
+  _LetterBadgePainter({
     required this.letter,
     required this.ink,
     required this.style,
@@ -389,46 +389,29 @@ class _LetterFlagPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final pole = size.width * 0.12;
-    final paint = Paint()
-      ..color = ink
-      ..strokeWidth = math.max(1.5, size.width * 0.09)
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(Offset(pole, 1), Offset(pole, size.height - 1), paint);
-    final pennant = Rect.fromLTRB(pole, 1, size.width, size.height * 0.68);
+    final centre = size.center(Offset.zero);
+    final radius = size.shortestSide / 2;
     final text = TextPainter(
       text: TextSpan(
         text: letter,
         style: (style ?? const TextStyle()).copyWith(
-          // The letter is cut out of the pennant: drawn in the clear.
+          // The letter is cut out of the circle: drawn in the clear.
           foreground: Paint()..blendMode = BlendMode.clear,
           fontWeight: FontWeight.w700,
-          fontSize: pennant.height * 0.82,
+          fontSize: radius * 1.2,
           height: 1,
         ),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
     canvas.saveLayer(Offset.zero & size, Paint());
-    canvas.drawRRect(
-      RRect.fromRectAndCorners(
-        pennant,
-        topRight: const Radius.circular(2),
-        bottomRight: const Radius.circular(2),
-      ),
-      Paint()..color = ink,
-    );
-    text.paint(
-      canvas,
-      pennant.center -
-          Offset(text.width, text.height) / 2 +
-          Offset(size.width * 0.03, 0),
-    );
+    canvas.drawCircle(centre, radius, Paint()..color = ink);
+    text.paint(canvas, centre - Offset(text.width, text.height) / 2);
     canvas.restore();
     text.dispose();
   }
 
   @override
-  bool shouldRepaint(_LetterFlagPainter old) =>
+  bool shouldRepaint(_LetterBadgePainter old) =>
       old.letter != letter || old.ink != ink || old.style != style;
 }
