@@ -144,14 +144,21 @@ class _PlayerPanelState extends State<PlayerPanel>
             ignoring: recording,
             child: ExcludeSemantics(
               excluding: recording,
-              child: _FirstRow(player: player),
+              // Off while recording, and seen to be off.
+              child: Opacity(
+                opacity: recording ? 0.38 : 1,
+                child: _FirstRow(player: player),
+              ),
             ),
           ),
           upper: AbsorbPointer(
             absorbing: recording,
             child: ExcludeSemantics(
               excluding: recording,
-              child: _ControlRow(player: player),
+              child: Opacity(
+                opacity: recording ? 0.38 : 1,
+                child: _ControlRow(player: player),
+              ),
             ),
           ),
           lower: recording
