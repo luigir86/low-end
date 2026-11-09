@@ -2,5 +2,5 @@
 <resources>
     <!-- Generated from LowEndBrand.palette by tool/make_icons_test.dart. -->
     <color name="launch_background">#18140F</color>
-    <color name="app_background">#100D0A</color>
+    <color name="app_background">#18140F</color>
 </resources>
