@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/low_end_app.dart';
 import 'package:low_end/app/settings.dart';
 import 'package:low_end/audio/mic_input.dart';
+import 'package:low_end/audio/pitch.dart' show OctaveNumbering;
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/l10n/app_localizations.dart';
 
@@ -105,6 +106,51 @@ void main() {
     await tester.pumpAndSettle();
     expect(settings.languageCode, isNull);
     expect(find.text('Impostazioni'), findsWidgets);
+  });
+
+  testWidgets('octave numbers and the harmony circle are menus too', (
+    tester,
+  ) async {
+    final settings = AppSettings();
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+    await open(tester, const [Locale('en', 'GB')], settings: settings);
+    await tester.tap(find.byTooltip('Settings'));
+    await tester.pumpAndSettle();
+    final octaves = find.byKey(const Key('octaveNumberingMenu'));
+    // The field says the short word; the menu the whole name, with its
+    // examples.
+    expect(
+      find.descendant(of: octaves, matching: find.text('Scientific')),
+      findsOneWidget,
+    );
+    await tester.tap(octaves);
+    await tester.pumpAndSettle();
+    expect(find.text('Scientific (default)'), findsOneWidget);
+    await tester.tap(find.text('Italian'));
+    await tester.pumpAndSettle();
+    expect(settings.octaveNumbering, OctaveNumbering.italian);
+
+    final circle = find.byKey(const Key('circleLayoutMenu'));
+    await tester.scrollUntilVisible(
+      circle,
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(
+      find.descendant(of: circle, matching: find.text('Fifths')),
+      findsOneWidget,
+    );
+    await tester.tap(circle);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('In semitones (C, C♯, D…)'));
+    await tester.pumpAndSettle();
+    expect(settings.circleLayout, CircleLayout.chromatic);
+    expect(
+      find.descendant(of: circle, matching: find.text('Semitones')),
+      findsOneWidget,
+    );
   });
 
   // On the phone, Android tells the app about the phone's languages only as

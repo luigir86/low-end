@@ -238,7 +238,7 @@ void main() {
         await tester.tap(find.byIcon(Icons.settings_outlined));
         await h.settle('open settings');
         // Every field of the page ends on the same line (they were 8 dp
-        // apart).
+        // apart; under a pixel is the page still sliding in).
         final pitch = find.byKey(const Key('referencePitchMenu'));
         await tester.scrollUntilVisible(
           pitch,
@@ -254,7 +254,7 @@ void main() {
           scrollable: find.byType(Scrollable).last,
           maxScrolls: 60,
         );
-        expect(tester.getRect(language).right, pitchEnd);
+        expect(tester.getRect(language).right, closeTo(pitchEnd, 1));
         // The page is long, longer still with the text twice as big.
         await tester.scrollUntilVisible(
           find.byIcon(Icons.info_outline),

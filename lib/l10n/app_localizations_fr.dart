@@ -377,7 +377,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get circleLayoutFifths => 'Cycle des quintes';
 
   @override
+  String get circleLayoutFifthsShort => 'Quintes';
+
+  @override
   String get circleLayoutChromatic => 'Par demi-tons (Do, Do♯, Ré…)';
+
+  @override
+  String get circleLayoutChromaticShort => 'Demi-tons';
 
   @override
   String get aboutTooltip => 'À propos de Low End';
@@ -470,6 +476,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get octaveScientific => 'Scientifique (par défaut)';
+
+  @override
+  String get octaveScientificShort => 'Scientifique';
 
   @override
   String get octaveItalian => 'Franco-belge';

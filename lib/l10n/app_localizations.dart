@@ -756,11 +756,23 @@ abstract class AppLocalizations {
   /// **'Circle of fifths'**
   String get circleLayoutFifths;
 
+  /// In the Harmony circle field of the settings: the circle of fifths, in one word.
+  ///
+  /// In en, this message translates to:
+  /// **'Fifths'**
+  String get circleLayoutFifthsShort;
+
   /// No description provided for @circleLayoutChromatic.
   ///
   /// In en, this message translates to:
   /// **'In semitones (C, C♯, D…)'**
   String get circleLayoutChromatic;
+
+  /// In the Harmony circle field of the settings: the keys in semitones, in one word.
+  ///
+  /// In en, this message translates to:
+  /// **'Semitones'**
+  String get circleLayoutChromaticShort;
 
   /// No description provided for @aboutTooltip.
   ///
@@ -923,6 +935,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Scientific (default)'**
   String get octaveScientific;
+
+  /// In the Octave numbers field of the settings: the scientific numbering, in one word (the menu says it is the default).
+  ///
+  /// In en, this message translates to:
+  /// **'Scientific'**
+  String get octaveScientificShort;
 
   /// No description provided for @octaveItalian.
   ///

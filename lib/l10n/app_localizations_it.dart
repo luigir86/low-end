@@ -379,7 +379,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get circleLayoutFifths => 'Cerchio delle quinte';
 
   @override
+  String get circleLayoutFifthsShort => 'Quinte';
+
+  @override
   String get circleLayoutChromatic => 'In semitoni (Do, Do♯, Re…)';
+
+  @override
+  String get circleLayoutChromaticShort => 'Semitoni';
 
   @override
   String get aboutTooltip => 'Informazioni su Low End';
@@ -471,6 +477,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get octaveScientific => 'Scientifica (predefinita)';
+
+  @override
+  String get octaveScientificShort => 'Scientifica';
 
   @override
   String get octaveItalian => 'Italiana';

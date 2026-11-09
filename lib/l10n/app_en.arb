@@ -249,7 +249,15 @@
   "noteNamesLetters": "C D E",
   "circleLayoutLabel": "Harmony circle",
   "circleLayoutFifths": "Circle of fifths",
+  "circleLayoutFifthsShort": "Fifths",
+  "@circleLayoutFifthsShort": {
+    "description": "In the Harmony circle field of the settings: the circle of fifths, in one word."
+  },
   "circleLayoutChromatic": "In semitones (C, C♯, D…)",
+  "circleLayoutChromaticShort": "Semitones",
+  "@circleLayoutChromaticShort": {
+    "description": "In the Harmony circle field of the settings: the keys in semitones, in one word."
+  },
   "aboutTooltip": "About Low End",
   "aboutLegalese": "Free and open-source software, released under the MIT License.",
   "aboutDescription": "Metronome, harmony and tuner for musicians. Made by an amateur double bass player with the friends from the orchestra in mind, and useful to everyone. Low End works offline. The tuner listens on your device. In the Player you can record, save and share your own audio.",
@@ -305,6 +313,10 @@
   "octaveNumberingLabel": "Octave numbers",
   "octaveNumberingHint": "Only the number after the note name: the same note, a different number.",
   "octaveScientific": "Scientific (default)",
+  "octaveScientificShort": "Scientific",
+  "@octaveScientificShort": {
+    "description": "In the Octave numbers field of the settings: the scientific numbering, in one word (the menu says it is the default)."
+  },
   "octaveItalian": "Italian",
   "octaveExamples": "{a4} = 440 Hz, the bass low E is {e1}",
   "@octaveExamples": {
