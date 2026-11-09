@@ -1,87 +1,74 @@
-// Sets the title and the line under it of the feature graphics in Edwin,
-// the app's own font, over the same ebony and glow as the picture. It wipes
-// the old text (right of the lion) and writes it again, so it can be run as
-// often as the text changes.
+// Draws the Google Play feature graphics (1024 x 500), one per language,
+// from the active palette (LowEndBrand.palette): the lion mark of the app
+// icon on the left, "Low End" in the accent and a line under it in the light
+// colour, in Edwin, the app's own font, over the dark colour with a soft
+// glow behind the lion. Run it again when the palette or the text changes:
 //   flutter test tool/feature_graphic_text_test.dart
 import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-const _ebony = [0x1B, 0x14, 0x11];
-const _glow = [0x2B, 0x1D, 0x16]; // Palette.walnutDeep
-const _cx = 285.0, _cy = 240.0, _radius = 330.0;
-
-/// Everything right of this x is text.
-const _textLeft = 480;
+import 'package:low_end/app/brand.dart';
 
 const _tagline = {
-  'en-US':
-      'Piano chords and progressions to play over, with metronome and tuner.',
-  'it-IT': 'Accordi e progressioni al piano su cui suonare, con metronomo e accordatore.',
-  'es-ES': 'Acordes y progresiones de piano sobre los que tocar, con metrónomo y afinador.',
-  'fr-FR': 'Accords et progressions au piano pour jouer dessus, avec métronome et accordeur.',
+  'en-US': 'Piano chords to play over, with metronome, tuner and a player for your tracks.',
+  'it-IT': 'Accordi al piano su cui suonare, con metronomo, accordatore e lettore di brani.',
+  'es-ES': 'Acordes de piano sobre los que tocar, con metrónomo, afinador y reproductor.',
+  'fr-FR': 'Des accords au piano pour jouer dessus, avec métronome, accordeur et lecteur.',
 };
 
 void main() {
-  testWidgets('write the feature graphic text in Edwin', (tester) async {
-    TestWidgetsFlutterBinding.ensureInitialized();
-    final loader = FontLoader('Edwin');
-    for (final file in ['Edwin-Roman.otf']) {
-      loader.addFont(
+  testWidgets('draw the feature graphics', (tester) async {
+    final loader = FontLoader('Edwin')
+      ..addFont(
         Future.value(
-          ByteData.sublistView(File('assets/fonts/$file').readAsBytesSync()),
+          ByteData.sublistView(
+            File('assets/fonts/Edwin-Roman.otf').readAsBytesSync(),
+          ),
         ),
       );
-    }
     await loader.load();
+    final palette = LowEndBrand.palette;
     await tester.runAsync(() async {
+      final mark = (await (await ui.instantiateImageCodec(
+        File(LowEndBrand.mark).readAsBytesSync(),
+      )).getNextFrame()).image;
       for (final locale in _tagline.keys) {
-        final path = 'store/graphics/$locale/feature-graphic-1024x500.png';
-        final codec = await ui.instantiateImageCodec(
-          File(path).readAsBytesSync(),
-        );
-        final image = (await codec.getNextFrame()).image;
-        final w = image.width, h = image.height;
-        final data = (await image.toByteData())!;
-        final out = Uint8List(w * h * 4);
-        for (var y = 0; y < h; y++) {
-          for (var x = 0; x < w; x++) {
-            final i = (y * w + x) * 4;
-            if (x >= _textLeft) {
-              final dx = x - _cx, dy = (y - _cy) * 1.1;
-              final d = (dx * dx + dy * dy) / (_radius * _radius);
-              final k = d >= 1 ? 0.0 : (1 - d) * (1 - d);
-              for (var c = 0; c < 3; c++) {
-                out[i + c] = (_ebony[c] + (_glow[c] - _ebony[c]) * k).round();
-              }
-              out[i + 3] = 255;
-            } else {
-              for (var c = 0; c < 4; c++) {
-                out[i + c] = data.getUint8(i + c);
-              }
-            }
-          }
-        }
-        final buffer = await ui.ImmutableBuffer.fromUint8List(out);
-        final wiped = await (await ui.ImageDescriptor.raw(
-          buffer,
-          width: w,
-          height: h,
-          pixelFormat: ui.PixelFormat.rgba8888,
-        ).instantiateCodec()).getNextFrame();
-
+        const w = 1024, h = 500;
         final recorder = ui.PictureRecorder();
         final canvas = ui.Canvas(recorder);
-        canvas.drawImage(wiped.image, ui.Offset.zero, ui.Paint());
+        canvas.drawRect(
+          const ui.Rect.fromLTWH(0, 0, 1024, 500),
+          ui.Paint()..color = palette.dark,
+        );
+        // A soft glow of the accent behind the lion.
+        canvas.drawRect(
+          const ui.Rect.fromLTWH(0, 0, 1024, 500),
+          ui.Paint()
+            ..shader = ui.Gradient.radial(
+              const ui.Offset(260, 250),
+              520,
+              [
+                ui.Color.lerp(palette.dark, palette.accent, 0.16)!,
+                ui.Color.lerp(palette.dark, palette.accent, 0.06)!,
+                palette.dark,
+              ],
+              [0, 0.55, 1],
+            ),
+        );
+        const side = 640.0;
+        canvas.drawImageRect(
+          mark,
+          ui.Rect.fromLTWH(0, 0, mark.width.toDouble(), mark.height.toDouble()),
+          const ui.Rect.fromLTWH(260 - side / 2, 250 - side / 2, side, side),
+          ui.Paint()..filterQuality = ui.FilterQuality.high,
+        );
 
         ui.Paragraph paragraph(
           String text,
           double size,
-          ui.FontWeight weight,
           ui.Color color,
-          double width,
           double height,
         ) {
           final builder =
@@ -92,38 +79,25 @@ void main() {
                   ui.TextStyle(
                     fontFamily: 'Edwin',
                     fontSize: size,
-                    fontWeight: weight,
                     color: color,
                   ),
                 )
                 ..addText(text);
-          return builder.build()..layout(ui.ParagraphConstraints(width: width));
+          return builder.build()
+            ..layout(const ui.ParagraphConstraints(width: 450));
         }
 
-        final title = paragraph(
-          'Low End',
-          92,
-          ui.FontWeight.w400,
-          const ui.Color(0xFFE2BFA9), // Palette.mochaLight
-          440,
-          1.0,
-        );
-        final line = paragraph(
-          _tagline[locale]!,
-          36,
-          ui.FontWeight.w400,
-          const ui.Color(0xFFF1E6DD), // Palette.inkOnDark
-          440,
-          1.25,
-        );
+        final title = paragraph('Low End', 92, palette.accent, 1.0);
+        final line = paragraph(_tagline[locale]!, 34, palette.light, 1.25);
         const gap = 18.0;
         final top = (h - (title.height + gap + line.height)) / 2;
-        canvas.drawParagraph(title, ui.Offset(528, top));
-        canvas.drawParagraph(line, ui.Offset(528, top + title.height + gap));
+        canvas.drawParagraph(title, ui.Offset(520, top));
+        canvas.drawParagraph(line, ui.Offset(520, top + title.height + gap));
 
         final result = await recorder.endRecording().toImage(w, h);
         final png = await result.toByteData(format: ui.ImageByteFormat.png);
-        File(path).writeAsBytesSync(png!.buffer.asUint8List());
+        File('store/graphics/$locale/feature-graphic-1024x500.png')
+            .writeAsBytesSync(png!.buffer.asUint8List());
       }
     });
   });
