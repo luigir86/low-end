@@ -300,8 +300,9 @@ abstract final class LowEndTheme {
         strobeInner: ink,
         bottomNavigationBackground: navigation,
         bottomNavigationInk: Color.lerp(navigation, p.dark, 0.875)!,
-        bottomNavigationSelectedInk: _accentInk(accent, navigation),
-        bottomNavigationIndicator: Colors.transparent,
+        // Material 3: the pill marks the tab, the ink stays dark on it.
+        bottomNavigationSelectedInk: p.dark,
+        bottomNavigationIndicator: Color.lerp(navigation, accent, 0.55)!,
         bottomNavigationBorder: accent,
         navigationBackground: accent,
         navigationIndicator: Color.lerp(

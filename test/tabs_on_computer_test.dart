@@ -49,7 +49,11 @@ void main() {
     final idle = theme.navigationBarTheme.iconTheme!.resolve({})!;
     expect(selected.color, colors.bottomNavigationSelectedInk);
     expect(idle.color, colors.bottomNavigationInk);
-    expect(theme.navigationBarTheme.indicatorColor, Colors.transparent);
+    // Material 3: a pill behind the icon of the open section.
+    expect(
+      theme.navigationBarTheme.indicatorColor,
+      colors.bottomNavigationIndicator,
+    );
     expect(
       tester.widget<AppBar>(find.byKey(const Key('appFrame'))).backgroundColor,
       colors.navigationBackground,
