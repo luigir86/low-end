@@ -31,6 +31,7 @@ import 'package:low_end/features/player/player_dial.dart';
 import 'package:low_end/features/player/player_panel.dart';
 import 'package:low_end/features/player/ring_wave.dart';
 import 'package:low_end/features/player/ring_window.dart';
+import 'package:low_end/features/player/time_scale.dart';
 import 'package:low_end/widgets/dial.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -654,7 +655,7 @@ void main() {
       await screen.player.setLoop(a, b);
       await screen.settle();
       final dial = dialRect(tester);
-      final geometry = DialGeometry(dial.size);
+      final geometry = PlayerDialGeometry(dial.size);
       Offset at(Duration time) {
         final angle = whole.angleOf(time);
         return dial.topLeft +

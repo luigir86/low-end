@@ -8,7 +8,7 @@ Il terzo tab di Low End: un brano proprio, rallentato senza cambiare intonazione
 
 1. **Brano** (terza riga) apre il selettore di sistema; il centro del quadrante, senza brano, fa lo stesso.
 2. Il **centro** avvia e mette in pausa; mostra tempo trascorso, durata e il simbolo di riproduzione o pausa, e sopra titolo e autore se il file ha i tag.
-3. Il **toro** è l'orologio del brano intero: dentro la forma d'onda, sul bordo le tacche, il cursore dove si ascolta. Toccarlo sposta l'ascolto; il passaggio vi appare come arco. A e B vi compaiono come **maniglie** (cerchietti con la lettera) che si trascinano lungo il cerchio: è il modo normale di spostare il passaggio.
+3. Il **toro** è l'orologio del brano intero: dentro la forma d'onda; fuori, in una fascia sottile, le tacche a tempi tondi con i numeri (0:00, 1:00, 2:00…: al massimo 8, il passo si adatta alla durata); il cursore dove si ascolta. Toccarlo sposta l'ascolto; il passaggio vi appare come arco. A e B vi compaiono come **maniglie** (cerchietti con la lettera) che si trascinano lungo il cerchio: è il modo normale di spostare il passaggio.
 4. **Segna inizio → Segna fine → Loop attivo** (seconda riga, a sinistra, pieno d'accento come TAP, con la bandierina A o B finché si segna): il primo tocco segna A dove si sente, il secondo B; il passaggio si ripete subito da A. Lo stesso pulsante poi spegne e riaccende il loop ("Riattiva loop"); A e B restano.
 5. La **striscia** (prima riga) mostra la forma d'onda dritta: il brano intero finché il passaggio non è completo, poi il passaggio con un margine per parte. Le due aste si trascinano per rifinire (al centesimo); un'asta tenuta contro un bordo allarga la striscia da quella parte finché il dito resta lì; il tocco altrove sposta l'ascolto. Il pulsante **Nuovo passaggio** accanto (icona, sempre al suo posto, spento finché non c'è A o B) cancella A e B.
 6. **Velocità** (seconda riga, a destra): un tocco apre una lista corta, 50, 60, 70, 75, 80, 85, 90, 100, 110, 125%. Diversa da 100% il valore e il bordo sono nell'accento. Le azioni accettano ogni valore intero dal 50 al 125.
@@ -20,7 +20,7 @@ Stesso `DialLayout` degli altri tab: quadrante con il centro allineato tra i qua
 
 | Posto | Senza brano | Brano aperto | Durante la registrazione |
 | --- | --- | --- | --- |
-| Toro | Anello spento | Forma d'onda, tacche, cursore, arco del passaggio | Come prima, spento |
+| Toro | Anello spento | Forma d'onda, tacche e tempi fuori dal toro, cursore, arco del passaggio | Come prima, spento |
 | Centro | Cartella e "Scegli un brano" | Titolo/autore, tempo, durata, play/pausa | Pallino e tempo della ripresa |
 | Prima riga | Vuota, o l'errore del file | Striscia e Nuovo passaggio (spento senza A né B) | Inattiva |
 | Seconda riga | Spenta | Pulsante del passaggio, Velocità | Inattiva |
@@ -75,6 +75,7 @@ Luigi, 9/11: trascinare le aste sulla striscia ingrandita era scomodo, la strisc
 | Test | Cosa verifica |
 | --- | --- |
 | `player_controller_test`, `player_loop_test`, `player_memory_test` | Apertura, errori, velocità, A/B e loop, memoria |
+| `player_ring_test` | Tempi sul cerchio: passo tondo, al massimo 8 numeri, niente numero accanto a 0:00, numero sempre fuori dalla sua tacca, fascia del Player nello stesso cerchio |
 | `player_panel_test` | Centro, toro, striscia, righe; REC, Scarta durante la richiesta del permesso, Stop, Salva, Condividi, Rimuovi, Elimina con Annulla, lista delle velocità, maniglie del cerchio, striscia che si allarga, pulsante pieno con la lettera |
 | `recording_test` | Ripresa sopra il brano studiato e ritorno, seconda ripresa, altro file, Scarta, permesso negato, microfono occupato, stop lasciando il tab o le impostazioni o avviando il Player, azioni |
 | `player_ring_test`, `track_peaks_test`, `marquee_test`, `track_tags_test` | Geometria, forma d'onda, titolo che scorre, tag |

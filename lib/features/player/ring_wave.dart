@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../widgets/dial.dart';
 import 'ring_window.dart';
+import 'time_scale.dart';
 import 'track_peaks.dart';
 
 /// The wave of the track inside the ring (RF-PLY-03, RF-PLY-15): the
@@ -86,7 +87,7 @@ class RingWave extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final dial = DialGeometry(size);
+    final dial = PlayerDialGeometry(size);
     final count = slicesFor(window.length);
     if (count == 0 || peaks.length == 0) return;
     // The slices are worked out again only when the peaks, the window or
