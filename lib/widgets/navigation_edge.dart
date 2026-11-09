@@ -70,7 +70,7 @@ class _NavigationEdgePainter extends BoxPainter {
       from = rtl ? Alignment.centerLeft : Alignment.centerRight;
       to = rtl ? Alignment.centerRight : Alignment.centerLeft;
     }
-    final strength = NavigationEdge.glowStrength;
+    const strength = NavigationEdge.glowStrength;
     canvas.drawRect(
       glowRect,
       Paint()

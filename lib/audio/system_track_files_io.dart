@@ -5,8 +5,8 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:flutter/services.dart';
 
-import 'track_files.dart';
 import 'recorded_track.dart';
+import 'track_files.dart';
 import 'track_output.dart';
 
 /// See system_track_files.dart.

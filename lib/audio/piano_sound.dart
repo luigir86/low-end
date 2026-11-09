@@ -334,7 +334,7 @@ abstract final class PianoSound {
   /// a recording rings.
   @visibleForTesting
   static List<int> droneStrikes(int barLength) {
-    final limit = _droneRenew * ClickSound.sampleRate;
+    const limit = _droneRenew * ClickSound.sampleRate;
     final count = barLength <= limit * 1.25 ? 1 : (barLength / limit).ceil();
     return [for (var i = 0; i < count; i++) (i * barLength / count).round()];
   }
@@ -345,7 +345,7 @@ abstract final class PianoSound {
   /// the pulses of [beat] samples allow, starting with [from].
   @visibleForTesting
   static List<int> chordStrikes(int from, int to, int beat) {
-    final limit = _chordRenew * ClickSound.sampleRate;
+    const limit = _chordRenew * ClickSound.sampleRate;
     final span = to - from;
     for (var count = 1; count < span; count++) {
       final at = [for (var i = 0; i < count; i++) from + i * span ~/ count];
@@ -689,7 +689,7 @@ abstract final class PianoSound {
       _playBass(samples.bass, stroke, out, a4, origin: origin, wrap: wrap);
       return;
     }
-    final rate = ClickSound.sampleRate;
+    const rate = ClickSound.sampleRate;
     final length = out.left.length;
     final root = samples.nearest(stroke.midi);
     final takes = samples.notes[root]!;
@@ -1027,12 +1027,12 @@ abstract final class PianoSound {
     required StepResult<Uint8List> out,
     double a4 = 440,
   }) sync* {
-    final rate = ClickSound.sampleRate;
+    const rate = ClickSound.sampleRate;
     final bars = barsOf(chords, style, signature);
     final beat = pulseFrames(bpm);
     final length = beat * signature.beats * bars.length;
     // Enough before it for the room to be full, as it is in the loop.
-    final before = rate * 2;
+    const before = rate * 2;
     final after = tailLength.inMicroseconds * rate ~/ 1000000;
     final dry = (
       left: Float32List(before + after),

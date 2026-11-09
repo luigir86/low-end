@@ -16,6 +16,7 @@ class Choice<T> {
     this.leading,
     this.section,
     this.divided = false,
+    this.short,
   });
 
   final T value;
@@ -24,6 +25,10 @@ class Choice<T> {
   final Widget? leading;
   final String? section;
   final bool divided;
+
+  /// What the field shows once this line is chosen, when the [title] is too
+  /// long for it ("Scientific" for "Scientific (default)").
+  final String? short;
 }
 
 /// The one menu of the app, for every short list of choices: the

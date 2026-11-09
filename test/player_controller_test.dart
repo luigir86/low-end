@@ -242,14 +242,6 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       expect(interrupted, 1);
     });
-
-    test('the message about a file is cleared on demand', () async {
-      output.failWith = TrackOpenException(TrackProblem.unreadable);
-      await player.open(_other);
-      expect(player.problem, isNotNull);
-      player.clearProblem();
-      expect(player.problem, isNull);
-    });
   });
 
   test(

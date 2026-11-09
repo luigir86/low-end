@@ -4,27 +4,30 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:low_end/actions/app_actions.dart';
+import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/home_shell.dart';
 import 'package:low_end/app/low_end_app.dart';
 import 'package:low_end/app/screen_awake.dart';
-import 'package:low_end/audio/audio_scope.dart';
-import 'package:low_end/features/player/player_panel.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:low_end/actions/app_actions.dart';
-import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/settings.dart';
+import 'package:low_end/audio/audio_scope.dart';
+import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/recorded_track.dart';
 import 'package:low_end/audio/take_recorder.dart';
+import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/audio/track_files.dart';
 import 'package:low_end/audio/track_output.dart';
-import 'package:low_end/audio/click_output.dart';
-import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/features/harmony/drone_controller.dart';
 import 'package:low_end/features/metronome/metronome_controller.dart';
 import 'package:low_end/features/player/player_controller.dart';
+import 'package:low_end/features/player/player_panel.dart';
 import 'package:low_end/features/player/recording_controller.dart';
+import 'package:low_end/features/player/player_dial.dart';
+import 'package:low_end/features/player/ring_wave.dart';
+import 'package:low_end/features/player/track_peaks.dart';
 import 'package:low_end/features/tuner/tuner_controller.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const _song = TrackRef(uri: 'content://song', name: 'Blue Bossa.mp3');
 const _other = TrackRef(uri: 'content://other', name: 'Other.m4a');
@@ -204,6 +207,32 @@ void main() {
       expect(player.track, isA<RecordedTrack>());
     });
 
+    test('the wave of the take grows while it records', () async {
+      expect(recording.levels, isNull);
+      recorder.loudness = 0.5;
+      await recording.start(label: 'Take');
+      final levels = recording.levels!;
+      expect(levels.fullScale, isTrue);
+      await Future<void>.delayed(const Duration(milliseconds: 350));
+      expect(levels.length, greaterThan(0));
+      // Half the loudest sample is 6 dB down, of 48.
+      final height = levels.heights(Duration.zero, TrackPeaks.frame, 1)[0];
+      expect(height, closeTo(1 - 6.02 / TrackPeaks.rangeDb, 0.01));
+      await recording.finish();
+      expect(recording.levels, isNull);
+    });
+
+    test('the ring of a take grows by round lengths', () {
+      expect(recordingTurn(Duration.zero), const Duration(minutes: 1));
+      expect(recordingTurn(_s(59.9)), const Duration(minutes: 1));
+      expect(recordingTurn(_s(60)), const Duration(minutes: 2));
+      expect(recordingTurn(_s(4 * 60 + 30)), const Duration(minutes: 5));
+      expect(
+        recordingTurn(const Duration(minutes: 61)),
+        const Duration(minutes: 90),
+      );
+    });
+
     test('a take is never remembered without a track under it', () async {
       final empty = PlayerController(SilentTrackOutput(), FakeTrackFiles());
       final rec = RecordingController(FakeTakeRecorder(), player: empty);
@@ -299,6 +328,16 @@ void main() {
     await tester.pump();
     expect(mic.recording, isNotNull);
     expect(find.byKey(const Key('takeStop')), findsOne);
+    // The ring draws the take in red as it is recorded.
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w is CustomPaint &&
+            w.painter is RingWave &&
+            (w.painter! as RingWave).color == theme.colorScheme.error,
+      ),
+      findsOne,
+    );
     await tester.pump(const Duration(seconds: 2));
     await tester.tap(find.byKey(const Key('takeStop')));
     await tester.pump();

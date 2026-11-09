@@ -176,7 +176,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get thanksText =>
-      'Grazie alla Power Flower Orchestra di Fossano, che ha ispirato e provato quest’app.';
+      'Grazie alla Power Flower Orchestra di Fossano, che ha ispirato e provato quest\'app.';
 
   @override
   String droneChordDiminished(String note) {
@@ -379,7 +379,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get circleLayoutFifths => 'Cerchio delle quinte';
 
   @override
+  String get circleLayoutFifthsShort => 'Quinte';
+
+  @override
   String get circleLayoutChromatic => 'In semitoni (Do, Do♯, Re…)';
+
+  @override
+  String get circleLayoutChromaticShort => 'Semitoni';
 
   @override
   String get aboutTooltip => 'Informazioni su Low End';
@@ -390,7 +396,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get aboutDescription =>
-      'Metronomo, armonia e accordatore per musicisti. Realizzata da un contrabbassista amatoriale pensando agli amici dell\'orchestra, ma utile a tutti. Low End funziona offline. L’accordatore ascolta sul dispositivo. In Ascolto puoi registrare, salvare e condividere il tuo audio.';
+      'Metronomo, armonia e accordatore per musicisti. Realizzata da un contrabbassista amatoriale pensando agli amici dell\'orchestra, ma utile a tutti. Low End funziona offline. L\'accordatore ascolta sul dispositivo. In Ascolto puoi registrare, salvare e condividere il tuo audio.';
 
   @override
   String get aboutPiano =>
@@ -471,6 +477,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get octaveScientific => 'Scientifica (predefinita)';
+
+  @override
+  String get octaveScientificShort => 'Scientifica';
 
   @override
   String get octaveItalian => 'Italiana';
@@ -705,9 +714,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get playerChoose => 'Scegli un brano';
 
   @override
-  String get playerHubHint => 'Tocca per avviare';
-
-  @override
   String get playerPlay => 'Riproduci';
 
   @override
@@ -765,40 +771,6 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get playerStartEarlier => 'Inizio prima';
-
-  @override
-  String get playerStartLater => 'Inizio dopo';
-
-  @override
-  String get playerEndEarlier => 'Fine prima';
-
-  @override
-  String get playerEndLater => 'Fine dopo';
-
-  @override
   String get guidePlayerLoop =>
-      'In Ascolto tocca Segna inizio e Segna fine mentre ascolti. Trascina A e B lungo il cerchio per spostarli; sulla forma d’onda sotto per rifinire.';
-
-  @override
-  String get playerHintFlags =>
-      'Porta A e B sull\'anello per scegliere il passaggio da ripetere';
-
-  @override
-  String get playerHintPlaceStart => 'Tocca l\'anello dove inizia il passaggio';
-
-  @override
-  String get playerHintPlaceEnd => 'Tocca l\'anello dove finisce il passaggio';
-
-  @override
-  String get playerHintNeedStart => 'Ora porta A dove inizia il passaggio';
-
-  @override
-  String get playerHintNeedEnd => 'Ora porta B dove finisce il passaggio';
-
-  @override
-  String get playerFlagStart => 'Bandiera A, inizio del passaggio';
-
-  @override
-  String get playerFlagEnd => 'Bandiera B, fine del passaggio';
+      'In Ascolto tocca Segna inizio e Segna fine mentre ascolti. Trascina A e B lungo il cerchio per spostarli; sulla forma d\'onda sotto per rifinire.';
 }

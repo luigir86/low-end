@@ -20,8 +20,8 @@ Stesso `DialLayout` degli altri tab: quadrante con il centro allineato tra i qua
 
 | Posto | Senza brano | Brano aperto | Durante la registrazione |
 | --- | --- | --- | --- |
-| Toro | Anello spento | Forma d'onda, tacche e tempi fuori dal toro, cursore, arco del passaggio | Come prima, spento |
-| Centro | Cartella e "Scegli un brano" | Titolo/autore, tempo, durata, play/pausa | Pallino e tempo della ripresa |
+| Toro | Anello spento | Forma d'onda, tacche e tempi fuori dal toro, cursore, arco del passaggio | L'onda rossa della ripresa che cresce col volume del microfono e la linea dove si è arrivati; giro di 1 minuto, poi 2, 5, 10… quando è pieno; il brano aperto prima non si vede |
+| Centro | Cartella e "Scegli un brano" | Titolo/autore, tempo, durata, play/pausa | Tempo della ripresa |
 | Prima riga | Vuota, o l'errore del file | Striscia e Nuovo passaggio (spento senza A né B) | Inattiva |
 | Seconda riga | Spenta | Pulsante del passaggio, Velocità | Inattiva |
 | Terza riga | Brano e REC | Brano e REC; con una ripresa: durata, REC, Salva, Condividi, Elimina | Campo Registrazione con pallino e tempo, Stop, Scarta |
@@ -63,6 +63,7 @@ Luigi, 9/11: trascinare le aste sulla striscia ingrandita era scomodo, la strisc
 
 - REC mette in pausa il Player; metronomo e Armonia continuano (ci si può registrare sul click).
 - Il microfono si apre solo dopo il permesso; un permesso negato o un microfono occupato si dicono con un avviso.
+- Il volume del microfono si legge 10 volte al secondo (`TakeRecorder.level`: `getAmplitude` del pacchetto record, su Android e sul web) e riempie un `TrackPeaks` misurato sul fondo scala; il cerchio lo disegna come l'onda di un brano. Allo Stop la ripresa aperta ha la sua onda vera.
 - Lasciare il tab, aprire le impostazioni, andare in background o avviare il Player fermano la registrazione **tenendo** la ripresa, come Stop.
 - Le riprese stanno nella cache dell'app (`takes/<sessione>`), cancellate all'avvio successivo; le copie condivise in `shared-takes` per 24 ore, perché l'app che le riceve possa leggerle.
 

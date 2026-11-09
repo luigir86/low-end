@@ -108,7 +108,7 @@ void main() {
     ),
     (
       'it',
-      'Grazie alla Power Flower Orchestra di Fossano, che ha ispirato e provato quest’app.',
+      "Grazie alla Power Flower Orchestra di Fossano, che ha ispirato e provato quest'app.",
     ),
   ]) {
     testWidgets('the settings thank the Power Flower Orchestra ($language)', (

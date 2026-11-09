@@ -1,5 +1,5 @@
-import 'package:flutter/widgets.dart' show Key;
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/widgets.dart' show Key;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/low_end_app.dart';
 import 'package:low_end/audio/mic_input.dart';

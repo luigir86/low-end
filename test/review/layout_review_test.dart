@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/app_navigation.dart';
@@ -195,11 +196,65 @@ void main() {
         h.expectClean();
       });
 
+      testWidgets('the menus of the metronome\'s fields', (tester) async {
+        final h = _H(tester, c);
+        await h.start();
+        await h.tab(AppSection.metronome);
+        for (final menu in ['signatureMenu', 'subdivisionMenu']) {
+          await tester.tap(find.byKey(Key(menu)));
+          await h.settle('open $menu');
+          await tester.tapAt(Offset.zero);
+          await h.settle('close $menu');
+        }
+        h.expectClean();
+      });
+
+      testWidgets('short values are whole, never cut', (tester) async {
+        final h = _H(tester, c);
+        await h.start();
+        for (final section in [
+          AppSection.metronome,
+          AppSection.player,
+          AppSection.tuner,
+        ]) {
+          await h.tab(section);
+          for (final value in ['4/4', '100%', '440 Hz']) {
+            for (final text in find.text(value).hitTestable().evaluate()) {
+              final paragraph = text.renderObject! as RenderParagraph;
+              expect(
+                paragraph.didExceedMaxLines,
+                isFalse,
+                reason: '$value in ${section.name}',
+              );
+            }
+          }
+        }
+        h.expectClean();
+      });
+
       testWidgets('settings page and about dialog', (tester) async {
         final h = _H(tester, c);
         await h.start();
         await tester.tap(find.byIcon(Icons.settings_outlined));
         await h.settle('open settings');
+        // Every field of the page ends on the same line (they were 8 dp
+        // apart; under a pixel is the page still sliding in).
+        final pitch = find.byKey(const Key('referencePitchMenu'));
+        await tester.scrollUntilVisible(
+          pitch,
+          200,
+          scrollable: find.byType(Scrollable).last,
+          maxScrolls: 60,
+        );
+        final pitchEnd = tester.getRect(pitch).right;
+        final language = find.byKey(const Key('languageMenu'));
+        await tester.scrollUntilVisible(
+          language,
+          -200,
+          scrollable: find.byType(Scrollable).last,
+          maxScrolls: 60,
+        );
+        expect(tester.getRect(language).right, closeTo(pitchEnd, 1));
         // The page is long, longer still with the text twice as big.
         await tester.scrollUntilVisible(
           find.byIcon(Icons.info_outline),

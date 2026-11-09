@@ -220,7 +220,7 @@ enum ProgressionSection { popRock, blues, jazz }
 /// plays it, and the metronome's time signature and tempo, with its
 /// subdivision and its click on 2 and 4 when the song asks for them. The
 /// example songs are written here; a song can also be read from and written
-/// to JSON ([fromJson], [toJson]), so that one made elsewhere (by an
+/// to JSON ([ExampleSong.fromJson], [ExampleSong.toJson]), so that one made elsewhere (by an
 /// assistant, or one day by the player) is the same object. The names are
 /// the songs' own and are not translated.
 class ExampleSong {

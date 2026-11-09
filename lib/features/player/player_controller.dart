@@ -3,8 +3,8 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 
-import '../../audio/sound_section.dart';
 import '../../audio/recorded_track.dart';
+import '../../audio/sound_section.dart';
 import '../../audio/track_files.dart';
 import '../../audio/track_output.dart';
 import 'player_setup.dart';
@@ -525,7 +525,7 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     _looping = false;
     _active = LoopEdge.start;
     notifyListeners();
-    await _queue(() => _applyLoop());
+    await _queue(_applyLoop);
   }
 
   /// Marks an endpoint. Replacing it discards an incompatible opposite
@@ -554,7 +554,7 @@ class PlayerController extends ChangeNotifier implements SoundSection {
       await _queue(() => _applyLoop(jumpTo: _playing ? _loopStart : null));
     } else if (wasLooping) {
       // A loop that was on is told that it is off.
-      await _queue(() => _applyLoop());
+      await _queue(_applyLoop);
     }
   }
 
@@ -646,7 +646,7 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     _looping = on;
     _settle?.cancel();
     notifyListeners();
-    await _queue(() => _applyLoop());
+    await _queue(_applyLoop);
   }
 
   Future<void> _queue(Future<void> Function() work) =>
@@ -669,13 +669,6 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     await _output.setLoop(on ? a : null, on ? b : null);
     await _output.seek(to);
     if (!_disposed) notifyListeners();
-  }
-
-  /// Clears the message about the last track.
-  void clearProblem() {
-    if (_problem == null) return;
-    _problem = null;
-    notifyListeners();
   }
 
   void _onEvent(TrackEvent event) {

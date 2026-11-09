@@ -16,7 +16,7 @@ class TunerController extends ChangeNotifier {
 
   late final _detector = PitchDetector(sampleRate: sampleRate);
 
-  /// The highest note listened for (see [TunerTuning.highestHz]).
+  /// The highest note listened for (see `TunerTuning.highestHz`).
   double get highestHz => _detector.maxFrequency;
   set highestHz(double hz) => _detector.maxFrequency = hz;
 

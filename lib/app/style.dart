@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// The style sheet of Low End: the few sizes the screens are made from.
 ///
-/// Colours live in `theme.dart` ([Palette]); the written version of all of
+/// Colours live in `theme.dart` (`Palette`); the written version of all of
 /// it, with where each size is used, is `docs/style.md`. A test
 /// (`style_test.dart`) keeps font sizes from being written anywhere else,
 /// so a new screen picks one of these instead of inventing a size.
@@ -31,7 +31,7 @@ abstract final class LowEndType {
   static const octaveScale = 0.4;
 
   /// The sizes above in the roles of Material's text theme, which every
-  /// `Text` picks up (see [LowEndTheme]).
+  /// `Text` picks up (see `LowEndTheme`).
   static const textTheme = TextTheme(
     displayMedium: TextStyle(fontSize: display),
     headlineSmall: TextStyle(fontSize: headline),

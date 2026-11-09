@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import '../../app/app_navigation.dart';
 import '../../audio/take_recorder.dart';
 import 'player_controller.dart';
+import 'track_peaks.dart';
 
 /// Where a recording is (RF-PLY-20).
 enum RecordingStatus {
@@ -50,6 +52,9 @@ class RecordingController extends ChangeNotifier {
   final _elapsed = ValueNotifier<Duration>(Duration.zero);
   final _problems = StreamController<RecordingProblem>.broadcast();
   Timer? _tick;
+  Timer? _sampler;
+  var _sampling = false;
+  TrackPeaks? _levels;
   Future<void>? _startup;
   var _started = false;
   var _ending = false;
@@ -62,6 +67,14 @@ class RecordingController extends ChangeNotifier {
 
   /// How long the take is so far, updated every second.
   ValueListenable<Duration> get elapsed => _elapsed;
+
+  /// How often the microphone's loudness is read for the wave.
+  static const sampleEvery = Duration(milliseconds: 100);
+
+  /// The loudness of the take so far, drawn in the ring while it records;
+  /// null before the microphone records and once the take is kept or thrown
+  /// away.
+  TrackPeaks? get levels => _levels;
 
   /// A recording that did not start (no microphone allowed, microphone
   /// busy) or a take that could not be kept; the screen says it.
@@ -104,10 +117,34 @@ class RecordingController extends ChangeNotifier {
         const Duration(seconds: 1),
         (_) => _elapsed.value = _clock.elapsed,
       );
+      _levels = TrackPeaks(fullScale: true);
+      _sampler = Timer.periodic(sampleEvery, (_) => _sample());
       notifyListeners();
     } catch (error) {
       debugPrint('The recording could not start: $error');
       if (!_ending && !_disposed) _fail(RecordingProblem.failed);
+    }
+  }
+
+  /// Reads how loud the microphone is and adds it to [levels] up to the
+  /// time on the clock, so that the wave keeps pace with it.
+  Future<void> _sample() async {
+    final levels = _levels;
+    if (_sampling || levels == null) return;
+    _sampling = true;
+    try {
+      final level = await _recorder.level();
+      if (levels != _levels || _status != RecordingStatus.recording) return;
+      final frames =
+          _clock.elapsed.inMicroseconds ~/ TrackPeaks.frame.inMicroseconds -
+          levels.length;
+      if (frames <= 0) return;
+      final peak = (level.clamp(0.0, 1.0) * TrackPeaks.maxValue).round();
+      levels.add(Uint16List(frames)..fillRange(0, frames, peak));
+    } catch (error) {
+      // No reading this time: the wave waits for the next one.
+    } finally {
+      _sampling = false;
     }
   }
 
@@ -124,6 +161,7 @@ class RecordingController extends ChangeNotifier {
     _ending = true;
     _status = RecordingStatus.finishing;
     _tick?.cancel();
+    _sampler?.cancel();
     _clock.stop();
     notifyListeners();
     try {
@@ -145,6 +183,8 @@ class RecordingController extends ChangeNotifier {
 
   void _reset() {
     _tick?.cancel();
+    _sampler?.cancel();
+    _levels = null;
     _clock
       ..stop()
       ..reset();
@@ -179,6 +219,7 @@ class RecordingController extends ChangeNotifier {
     player.removeListener(_checkPlayer);
     _lifecycle.dispose();
     _tick?.cancel();
+    _sampler?.cancel();
     final startup = _startup;
     unawaited(() async {
       try {

@@ -3,8 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../audio/audio_scope.dart';
-import '../features/metronome/metronome_screen.dart';
 import '../features/harmony/drone_panel.dart';
+import '../features/metronome/metronome_screen.dart';
 import '../features/player/player_panel.dart';
 import '../features/tuner/tuner_panel.dart';
 import '../l10n/app_localizations.dart';

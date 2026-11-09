@@ -1,4 +1,4 @@
-/// The real [TrackFiles] of the platform: the system's document chooser on
+/// The real `TrackFiles` of the platform: the system's document chooser on
 /// Android, an `<input type="file">` in a web page. Elsewhere (the tests)
 /// there is no chooser.
 library;

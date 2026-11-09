@@ -14,16 +14,16 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:low_end/app/home_shell.dart';
 import 'package:low_end/app/low_end_app.dart';
-import 'package:low_end/l10n/app_localizations.dart';
+import 'package:low_end/audio/audio_scope.dart';
 import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/piano_output.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/audio/track_files.dart';
 import 'package:low_end/audio/track_output.dart';
-import 'package:low_end/app/home_shell.dart';
-import 'package:low_end/audio/audio_scope.dart';
+import 'package:low_end/l10n/app_localizations.dart';
 
 Future<ByteData> _file(String path) async =>
     ByteData.sublistView(await File(path).readAsBytes());

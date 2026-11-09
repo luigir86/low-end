@@ -6,9 +6,9 @@ import 'package:low_end/app/settings.dart';
 import 'package:low_end/audio/audio_scope.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/tone_output.dart';
+import 'package:low_end/features/harmony/drone_controller.dart';
 import 'package:low_end/features/metronome/metronome_screen.dart';
 import 'package:low_end/features/metronome/time_signature.dart';
-import 'package:low_end/features/harmony/drone_controller.dart';
 import 'package:low_end/features/tuner/tuner_reading.dart';
 import 'package:low_end/widgets/flip_detector.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -44,7 +44,7 @@ void main() {
   group('the in-tune zone', () {
     test('is 5 cents wide unless chosen otherwise', () {
       // 8 cents sharp of A4.
-      final hz = 440 * 1.00463;
+      const hz = 440 * 1.00463;
       expect(TunerReading.of(hz).inTune, isFalse);
       expect(TunerReading.of(hz, tolerance: 10).inTune, isTrue);
       expect(TunerReading.of(440 * 1.001, tolerance: 2).inTune, isTrue);

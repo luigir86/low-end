@@ -104,45 +104,33 @@ class SettingsPage extends StatelessWidget {
               ListTile(
                 title: Text(l10n.octaveNumberingLabel),
                 subtitle: Text(l10n.octaveNumberingHint),
-              ),
-              RadioGroup<OctaveNumbering>(
-                groupValue: settings.octaveNumbering,
-                onChanged: (n) => settings.setOctaveNumbering(n!),
-                child: Column(
-                  children: [
-                    RadioListTile(
-                      value: OctaveNumbering.scientific,
-                      title: Text(l10n.octaveScientific),
-                      subtitle: Text(
-                        l10n.octaveExamples(
-                          const Note(
-                            9,
-                            4,
-                          ).label(names, numbering: OctaveNumbering.scientific),
-                          const Note(
-                            4,
-                            1,
-                          ).label(names, numbering: OctaveNumbering.scientific),
+                trailing: _MenuField<OctaveNumbering>(
+                  key: const Key('octaveNumberingMenu'),
+                  label: l10n.octaveNumberingLabel,
+                  width: _MenuField.wide,
+                  selected: settings.octaveNumbering,
+                  choices: [
+                    // Each with what it calls the A of 440 Hz and a bass's
+                    // low E.
+                    for (final (numbering, title, short) in [
+                      (
+                        OctaveNumbering.scientific,
+                        l10n.octaveScientific,
+                        l10n.octaveScientificShort,
+                      ),
+                      (OctaveNumbering.italian, l10n.octaveItalian, null),
+                    ])
+                      Choice(
+                        value: numbering,
+                        title: title,
+                        short: short,
+                        subtitle: l10n.octaveExamples(
+                          const Note(9, 4).label(names, numbering: numbering),
+                          const Note(4, 1).label(names, numbering: numbering),
                         ),
                       ),
-                    ),
-                    RadioListTile(
-                      value: OctaveNumbering.italian,
-                      title: Text(l10n.octaveItalian),
-                      subtitle: Text(
-                        l10n.octaveExamples(
-                          const Note(
-                            9,
-                            4,
-                          ).label(names, numbering: OctaveNumbering.italian),
-                          const Note(
-                            4,
-                            1,
-                          ).label(names, numbering: OctaveNumbering.italian),
-                        ),
-                      ),
-                    ),
                   ],
+                  onSelected: settings.setOctaveNumbering,
                 ),
               ),
               const Divider(),
@@ -218,21 +206,27 @@ class SettingsPage extends StatelessWidget {
               ),
               const Divider(),
               _Section(title: l10n.harmonyTab),
-              ListTile(title: Text(l10n.circleLayoutLabel)),
-              RadioGroup<CircleLayout>(
-                groupValue: settings.circleLayout,
-                onChanged: (c) => settings.setCircleLayout(c!),
-                child: Column(
-                  children: [
-                    RadioListTile(
+              ListTile(
+                contentPadding: _MenuField.tilePadding,
+                title: Text(l10n.circleLayoutLabel),
+                trailing: _MenuField<CircleLayout>(
+                  key: const Key('circleLayoutMenu'),
+                  label: l10n.circleLayoutLabel,
+                  width: _MenuField.wide,
+                  selected: settings.circleLayout,
+                  choices: [
+                    Choice(
                       value: CircleLayout.fifths,
-                      title: Text(l10n.circleLayoutFifths),
+                      title: l10n.circleLayoutFifths,
+                      short: l10n.circleLayoutFifthsShort,
                     ),
-                    RadioListTile(
+                    Choice(
                       value: CircleLayout.chromatic,
-                      title: Text(l10n.circleLayoutChromatic),
+                      title: l10n.circleLayoutChromatic,
+                      short: l10n.circleLayoutChromaticShort,
                     ),
                   ],
+                  onSelected: settings.setCircleLayout,
                 ),
               ),
               const Divider(),
@@ -324,8 +318,10 @@ class _MenuField<T> extends StatelessWidget {
   static const double wide = 176;
 
   /// Around a tile whose only line is its title, so that two such fields
-  /// one under the other do not touch.
-  static const tilePadding = EdgeInsets.symmetric(horizontal: 16, vertical: 4);
+  /// one under the other do not touch. Across, the Material 3 list tile's
+  /// own (16 dp before, 24 after), so that every field and switch of the
+  /// page ends on the same line.
+  static const tilePadding = EdgeInsetsDirectional.fromSTEB(16, 4, 24, 4);
 
   final String label;
   final double width;
@@ -333,13 +329,15 @@ class _MenuField<T> extends StatelessWidget {
   final List<Choice<T>> choices;
   final ValueChanged<T> onSelected;
 
+  static String _shown<T>(Choice<T> c) => c.short ?? c.title;
+
   @override
   Widget build(BuildContext context) => SizedBox(
     width: width,
     child: LabeledField(
       label: label,
       showLabel: false,
-      value: choices.firstWhere((c) => c.value == selected).title,
+      value: _shown(choices.firstWhere((c) => c.value == selected)),
       onTap: () async {
         final picked = await showChoiceMenu(
           anchor: context,

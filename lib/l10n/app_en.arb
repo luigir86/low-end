@@ -249,7 +249,15 @@
   "noteNamesLetters": "C D E",
   "circleLayoutLabel": "Harmony circle",
   "circleLayoutFifths": "Circle of fifths",
+  "circleLayoutFifthsShort": "Fifths",
+  "@circleLayoutFifthsShort": {
+    "description": "In the Harmony circle field of the settings: the circle of fifths, in one word."
+  },
   "circleLayoutChromatic": "In semitones (C, C♯, D…)",
+  "circleLayoutChromaticShort": "Semitones",
+  "@circleLayoutChromaticShort": {
+    "description": "In the Harmony circle field of the settings: the keys in semitones, in one word."
+  },
   "aboutTooltip": "About Low End",
   "aboutLegalese": "Free and open-source software, released under the MIT License.",
   "aboutDescription": "Metronome, harmony and tuner for musicians. Made by an amateur double bass player with the friends from the orchestra in mind, and useful to everyone. Low End works offline. The tuner listens on your device. In the Player you can record, save and share your own audio.",
@@ -305,6 +313,10 @@
   "octaveNumberingLabel": "Octave numbers",
   "octaveNumberingHint": "Only the number after the note name: the same note, a different number.",
   "octaveScientific": "Scientific (default)",
+  "octaveScientificShort": "Scientific",
+  "@octaveScientificShort": {
+    "description": "In the Octave numbers field of the settings: the scientific numbering, in one word (the menu says it is the default)."
+  },
   "octaveItalian": "Italian",
   "octaveExamples": "{a4} = 440 Hz, the bass low E is {e1}",
   "@octaveExamples": {
@@ -452,7 +464,6 @@
   },
   "playerTrack": "Track",
   "playerChoose": "Choose a track",
-  "playerHubHint": "Tap to start",
   "playerPlay": "Play",
   "playerPause": "Pause",
   "playerTimeOf": "{position} of {duration}",
@@ -512,52 +523,8 @@
       }
     }
   },
-  "playerStartEarlier": "Start earlier",
-  "@playerStartEarlier": {
-    "description": "Screen reader name of the − button when the start of the loop is chosen: it moves point A earlier."
-  },
-  "playerStartLater": "Start later",
-  "@playerStartLater": {
-    "description": "Screen reader name of the + button when the start of the loop is chosen: it moves point A later."
-  },
-  "playerEndEarlier": "End earlier",
-  "@playerEndEarlier": {
-    "description": "Screen reader name of the − button when the end of the loop is chosen: it moves point B earlier."
-  },
-  "playerEndLater": "End later",
-  "@playerEndLater": {
-    "description": "Screen reader name of the + button when the end of the loop is chosen: it moves point B later."
-  },
   "guidePlayerLoop": "In Player, tap Mark start and Mark end while listening. Drag A and B round the dial to move them; on the waveform below for fine adjustments.",
   "@guidePlayerLoop": {
     "description": "A line of the first-launch guide. The name of the Player tab (Ascolto in Italian) must match playerTab."
-  },
-  "playerHintFlags": "Drag A and B onto the ring to choose the passage to repeat",
-  "@playerHintFlags": {
-    "description": "Hint under the Player dial while no flag is on the ring: how to choose the passage that repeats. The flags A and B wait in the lower corners of the dial; the ring is the circle round its middle."
-  },
-  "playerHintPlaceStart": "Touch the ring where the passage starts",
-  "@playerHintPlaceStart": {
-    "description": "Hint under the Player dial after flag A was touched in its corner: the next touch on the ring puts it there."
-  },
-  "playerHintPlaceEnd": "Touch the ring where the passage ends",
-  "@playerHintPlaceEnd": {
-    "description": "Hint under the Player dial after flag B was touched in its corner: the next touch on the ring puts it there."
-  },
-  "playerHintNeedStart": "Now bring A to where the passage starts",
-  "@playerHintNeedStart": {
-    "description": "Hint under the Player dial when only flag B is on the ring: flag A is still to be placed."
-  },
-  "playerHintNeedEnd": "Now bring B to where the passage ends",
-  "@playerHintNeedEnd": {
-    "description": "Hint under the Player dial when only flag A is on the ring: flag B is still to be placed."
-  },
-  "playerFlagStart": "Flag A, start of the passage",
-  "@playerFlagStart": {
-    "description": "Screen reader name of flag A in the corner of the Player dial; activating it marks the start of the passage where the track is heard."
-  },
-  "playerFlagEnd": "Flag B, end of the passage",
-  "@playerFlagEnd": {
-    "description": "Screen reader name of flag B in the corner of the Player dial; activating it marks the end of the passage where the track is heard."
   }
 }

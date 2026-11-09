@@ -19,6 +19,7 @@ import 'player_controller.dart';
 import 'ring_wave.dart';
 import 'ring_window.dart';
 import 'time_scale.dart';
+import 'track_peaks.dart';
 
 /// The angle of a touch at [offset] on a dial of [size].
 double touchAngle(Offset offset, Size size) {
@@ -28,11 +29,22 @@ double touchAngle(Offset offset, Size size) {
 
 /// The full-track clock; tap the ring to seek or the hub to play and pause.
 class PlayerDial extends StatefulWidget {
-  const PlayerDial({super.key, required this.player, this.recordingTime});
+  const PlayerDial({
+    super.key,
+    required this.player,
+    this.recordingTime,
+    this.takeLevels,
+  });
 
   final PlayerController player;
 
+  /// How long the take is so far, while recording: the ring then shows the
+  /// take, not the track.
   final ValueListenable<Duration>? recordingTime;
+
+  /// The loudness of the take so far, drawn as a wave that grows round the
+  /// ring while recording (RF-PLY-20).
+  final TrackPeaks? takeLevels;
 
   /// Marks the middle of the dial, for tests.
   static const hubKey = Key('playerHub');
@@ -118,6 +130,10 @@ class _PlayerDialState extends State<PlayerDial>
   }
 
   RingWindow get _window {
+    final recorded = widget.recordingTime;
+    if (recorded != null) {
+      return RingWindow.whole(recordingTurn(recorded.value));
+    }
     final player = widget.player;
     return RingWindow.whole(
       player.status == PlayerStatus.ready ? player.duration : Duration.zero,
@@ -208,11 +224,32 @@ class _PlayerDialState extends State<PlayerDial>
     _moved = false;
   }
 
+  /// The take being recorded as a time on its ring, for the line that
+  /// shows where the recording is.
+  _TakeTime? _takeTime;
+
   @override
   Widget build(BuildContext context) {
+    final recorded = widget.recordingTime;
+    if (recorded == null) return _dial(context);
+    // While recording, the ring grows to the next round length when the
+    // take reaches the end of the turn.
+    return ValueListenableBuilder<Duration>(
+      valueListenable: recorded,
+      builder: (context, _, _) => _dial(context),
+    );
+  }
+
+  Widget _dial(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final player = widget.player;
+    final recording = widget.recordingTime != null;
+    final take = widget.takeLevels;
+    if (take != _takeTime?.levels) {
+      _takeTime = take == null ? null : _TakeTime(take);
+    }
+    final takeTime = _takeTime;
     _reduce = MediaQuery.disableAnimationsOf(context);
     final ready = player.status == PlayerStatus.ready;
     final duration = player.duration;
@@ -266,7 +303,7 @@ class _PlayerDialState extends State<PlayerDial>
             ),
             // The wave fills in as the file is read (RF-PLY-15); a track
             // with none (too long for a web page) has none.
-            if (ready && peaks != null)
+            if (!recording && ready && peaks != null)
               RepaintBoundary(
                 child: ExcludeSemantics(
                   child: ListenableBuilder(
@@ -288,7 +325,7 @@ class _PlayerDialState extends State<PlayerDial>
                   ),
                 ),
               ),
-            if (ready)
+            if (!recording && ready)
               RepaintBoundary(
                 child: ExcludeSemantics(
                   child: CustomPaint(
@@ -304,7 +341,33 @@ class _PlayerDialState extends State<PlayerDial>
                   ),
                 ),
               ),
-            if (ready)
+            // The take as it is recorded, and where the recording is.
+            if (take != null && takeTime != null) ...[
+              RepaintBoundary(
+                child: ExcludeSemantics(
+                  child: CustomPaint(
+                    painter: RingWave(
+                      peaks: take,
+                      window: window,
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
+                ),
+              ),
+              RepaintBoundary(
+                child: ExcludeSemantics(
+                  child: CustomPaint(
+                    painter: _PlayheadPainter(
+                      position: takeTime,
+                      window: window,
+                      color: theme.colorScheme.onSurface,
+                      outline: theme.colorScheme.surface,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+            if (!recording && ready)
               RepaintBoundary(
                 child: ExcludeSemantics(
                   child: CustomPaint(
@@ -667,6 +730,45 @@ class _PassageArc extends CustomPainter {
       old.window != window ||
       old.color != color ||
       old.position != position;
+}
+
+/// The round lengths the ring takes while recording: a turn is the first
+/// of them longer than the take.
+const recordingTurns = [
+  Duration(minutes: 1),
+  Duration(minutes: 2),
+  Duration(minutes: 5),
+  Duration(minutes: 10),
+  Duration(minutes: 15),
+  Duration(minutes: 20),
+  Duration(minutes: 30),
+  Duration(minutes: 45),
+  Duration(minutes: 60),
+];
+
+/// How long a whole turn of the ring is for a take [recorded] long so far.
+Duration recordingTurn(Duration recorded) {
+  for (final turn in recordingTurns) {
+    if (recorded < turn) return turn;
+  }
+  const half = Duration(minutes: 30);
+  return half * (recorded.inMicroseconds ~/ half.inMicroseconds + 1);
+}
+
+/// The end of the take being recorded, as a time: grows as [levels] does.
+class _TakeTime implements ValueListenable<Duration> {
+  _TakeTime(this.levels);
+
+  final TrackPeaks levels;
+
+  @override
+  Duration get value => TrackPeaks.frame * levels.length;
+
+  @override
+  void addListener(VoidCallback listener) => levels.addListener(listener);
+
+  @override
+  void removeListener(VoidCallback listener) => levels.removeListener(listener);
 }
 
 /// The playhead: a line across the whole ring where the track is heard, like

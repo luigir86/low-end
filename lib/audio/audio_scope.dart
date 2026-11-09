@@ -3,10 +3,10 @@ import 'package:flutter/widgets.dart';
 import '../actions/app_actions.dart';
 import '../app/app_navigation.dart';
 import '../app/settings.dart';
+import '../features/harmony/drone_controller.dart';
 import '../features/metronome/metronome_controller.dart';
 import '../features/player/player_controller.dart';
 import '../features/player/recording_controller.dart';
-import '../features/harmony/drone_controller.dart';
 import '../features/tuner/tuner_controller.dart';
 
 /// Makes the app's sound sources, the tuner listening to the microphone,

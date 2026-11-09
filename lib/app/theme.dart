@@ -435,15 +435,6 @@ abstract final class LowEndTheme {
         backgroundColor: colors.activeFill,
         textColor: colors.onActiveFill,
       ),
-      radioTheme: RadioThemeData(
-        fillColor: WidgetStateProperty.resolveWith(
-          (states) => states.contains(WidgetState.disabled)
-              ? null
-              : states.contains(WidgetState.selected)
-              ? colors.activeFill
-              : scheme.outline,
-        ),
-      ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.disabled)

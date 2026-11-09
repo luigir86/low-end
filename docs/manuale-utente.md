@@ -58,8 +58,8 @@ Dodici tasti intorno a un cerchio (di norma nel cerchio delle quinte; nelle impo
 Suona un brano tuo: la registrazione della prova, una parte mandata dal direttore, un brano che hai comprato. Lo scegli con il selettore di file del telefono; l'app non chiede permessi e non manda il file da nessuna parte. MP3, M4A, WAV e FLAC si aprono ovunque (Ogg e Opus anche su Android). I brani di un abbonamento in streaming non si possono aprire: non sono file.
 
 - **Scegliere un brano:** tocca il centro del cerchio (dice *Scegli un brano*) o il campo **Brano** sotto. Il brano si apre pronto, senza suonare.
-- **L'anello è l'orologio del brano:** un giro intero è la sua durata, da ore 12 in senso orario, con dodici tacche equidistanti (una al minuto per un brano di dodici minuti) e un punto dove stai ascoltando. **Tocca l'anello** per andare in quel punto. Il centro mostra il tempo trascorso e la durata. Tocca il tempo al centro per avviare o fermare il brano; se il file ha un titolo o un autore sono scritti sopra il tempo, e uno lungo scorre una sola volta quando il brano si apre e a ogni avvio, poi resta fermo.
-- **Velocità:** il campo **Velocità** (da 50% a 125%) rallenta o accelera il brano senza cambiare l'intonazione. Toccalo e scegli un valore comune o scrivilo.
+- **L'anello è l'orologio del brano:** un giro intero è la sua durata, da ore 12 in senso orario, con tacche a tempi tondi tutt'intorno, numerate quelle lunghe (ogni 5 secondi su una registrazione breve, ogni minuto su un brano di sei minuti, al massimo otto numeri; su un quadrante piccolo solo le tacche), e una linea attraverso l'anello dove stai ascoltando. **Tocca l'anello** per andare in quel punto. Il centro mostra il tempo trascorso e la durata. Tocca il tempo al centro per avviare o fermare il brano; se il file ha un titolo o un autore sono scritti sopra il tempo, e uno lungo scorre una sola volta quando il brano si apre e a ogni avvio, poi resta fermo.
+- **Velocità:** il campo **Velocità** (da 50% a 125%) rallenta o accelera il brano senza cambiare l'intonazione. Toccalo e scegli dalla lista corta (50, 60, 70, 75, 80, 85, 90, 100, 110, 125%); diverso da 100% il valore è in bronzo.
 - **Loop per studiare un passaggio:** tocca **Segna inizio** e poi **Segna fine** mentre ascolti, oppure posiziona il cursore a brano fermo. Il passaggio deve durare almeno un secondo. La prima riga sotto il quadrante mostra la forma d’onda dell’intero brano e si ingrandisce sul passaggio appena lo completi. Trascina le aste per rifinire gli estremi. Il pulsante **Nuovo passaggio** accanto alla forma d’onda azzera gli estremi. **Loop attivo** spegne la ripetizione conservando gli estremi e **Riattiva loop** la riprende.
 - **L'Ascolto suona da solo.** Avviarlo mette in pausa metronomo e Armonia, con il pulsante *Riprendi*; avviare metronomo o Armonia mette in pausa l'Ascolto. Entrare nella scheda non ferma niente. L'accordatore in ascolto, una chiamata, le cuffie staccate e un'altra app che prende il suono lo mettono in pausa come le altre sezioni. Suona anche con lo schermo spento, con la notifica che mostra il titolo.
 - Se un file non si apre, o non c'è più, l'app lo dice sotto il campo e l'Ascolto resta vuoto.
@@ -68,7 +68,7 @@ Suona un brano tuo: la registrazione della prova, una parte mandata dal direttor
 
 ## Impostazioni
 
-L'ingranaggio in alto apre le impostazioni, divise in tre gruppi:
+L'ingranaggio in alto apre le impostazioni, divise in gruppi:
 
 | Gruppo | Impostazione | Scelte |
 | --- | --- | --- |
@@ -94,7 +94,7 @@ Se **stacchi le cuffie** (o si scollegano quelle Bluetooth), il suono si ferma s
 
 ## Com'è fatta
 
-Ebano e bronzo: tutto lo schermo è ebano, con l'ingranaggio delle Impostazioni in alto a destra. Le schede in basso hanno solo le icone, sotto una sottile riga bronzo che sfuma nell'ebano; la sezione aperta è avorio con l'icona piena, e un pallino bronzo indica una sezione che sta suonando, anche da un'altra scheda. L'accordatore non ha il pallino. Centri e fondo dei controlli restano scuri. La ghiera del tempo ha soltanto tacche: trascinala oppure usa i pulsanti −/+, color avorio caldo come la ghiera. TAP, i brani d'esempio e il pulsante dello stile sono bronzo. Il verdetto dell'accordatore combina salvia, paglia e rosso mattone con simboli e parole.
+Ebano e bronzo: tutto lo schermo è ebano, con l'ingranaggio delle Impostazioni in alto a destra. Le schede in basso hanno solo le icone, sotto una sottile riga bronzo che sfuma nell'ebano; la sezione aperta è avorio con l'icona piena, le altre più tenui, e un pallino bronzo indica una sezione che sta suonando, anche da un'altra scheda. In orizzontale anche la colonna delle schede a sinistra è ebano e tiene i nomi. L'accordatore non ha il pallino. Centri e fondo dei controlli restano scuri. La ghiera del tempo ha soltanto tacche: trascinala oppure usa i pulsanti −/+, color avorio caldo come la ghiera. TAP, i brani d'esempio e il pulsante dello stile sono bronzo. Il verdetto dell'accordatore combina salvia, paglia e rosso mattone con simboli e parole.
 
 ## Domande e problemi
 
