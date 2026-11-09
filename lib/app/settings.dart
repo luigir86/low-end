@@ -490,4 +490,30 @@ class AppSettings extends ChangeNotifier {
           : _prefs?.setString(_playerKey, json),
     );
   }
+
+  static const _takesKey = 'takes_today';
+  String? _takeDay;
+  var _takeCount = 0;
+
+  /// The number of the next take recorded on [day], from 1 each day: it
+  /// names the take (Take1_9_nov_2026). Kept between launches, so two takes
+  /// of the same day never get the same name.
+  int nextTakeNumber(DateTime day) {
+    final today = '${day.year}-${day.month}-${day.day}';
+    if (_takeDay == null) {
+      final saved = _prefs == null ? null : _read<String>(_prefs, _takesKey);
+      final parts = saved?.split('|');
+      if (parts != null && parts.length == 2) {
+        _takeDay = parts[0];
+        _takeCount = int.tryParse(parts[1]) ?? 0;
+      }
+    }
+    if (_takeDay != today) {
+      _takeDay = today;
+      _takeCount = 0;
+    }
+    _takeCount++;
+    _save(_prefs?.setString(_takesKey, '$today|$_takeCount'));
+    return _takeCount;
+  }
 }

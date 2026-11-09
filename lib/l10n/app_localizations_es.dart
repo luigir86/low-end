@@ -66,6 +66,20 @@ class AppLocalizationsEs extends AppLocalizations {
   String get takeStarting => 'Activando el micrófono…';
 
   @override
+  String takeFileName(int number, String date) {
+    return 'Toma${number}_$date';
+  }
+
+  @override
+  String get takeNameLabel => 'Nombre del archivo';
+
+  @override
+  String get takeShareWhatsApp => 'WhatsApp';
+
+  @override
+  String get takeShareOther => 'Otras apps';
+
+  @override
   String get appTitle => 'Low End';
 
   @override

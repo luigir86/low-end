@@ -396,6 +396,15 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     notifyListeners();
   }
 
+  /// Gives the take open the name it is shared and saved with (without its
+  /// extension); does nothing without a take.
+  void renameTake(String name) {
+    final take = _track;
+    if (take is! RecordedTrack || take.fileName == name) return;
+    take.fileName = name;
+    notifyListeners();
+  }
+
   /// A take that cannot be played also gives the track back.
   void _fail(TrackProblem problem) {
     final take = _track is RecordedTrack;

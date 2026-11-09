@@ -210,6 +210,30 @@ abstract class AppLocalizations {
   /// **'Starting microphone…'**
   String get takeStarting;
 
+  /// Default file name of a recording: number of the take that day, then the date (like 9_nov_2026). No spaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Take{number}_{date}'**
+  String takeFileName(int number, String date);
+
+  /// No description provided for @takeNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'File name'**
+  String get takeNameLabel;
+
+  /// No description provided for @takeShareWhatsApp.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp'**
+  String get takeShareWhatsApp;
+
+  /// No description provided for @takeShareOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other apps'**
+  String get takeShareOther;
+
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:

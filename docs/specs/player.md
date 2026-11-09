@@ -70,7 +70,7 @@ Luigi, 9/11: trascinare le aste sulla striscia ingrandita era scomodo, la strisc
 
 ## 4. Azioni per assistenti
 
-`player_open`, `player_play`, `player_pause`, `player_seek`, `player_speed`, `player_loop`, `player_mark`, `player_loop_nudge`, `player_loop_off`, `player_loop_clear`, `player_record`, `player_record_stop` (con `discard`); `get_state` ha il blocco `player` con `take` e `recording`. Salva e Condividi aprono finestre del telefono e restano alla persona. Descrizioni in `lib/actions/app_actions.dart`, golden `docs/llm-actions.json`, guida `docs/llm.md`.
+`player_open`, `player_play`, `player_pause`, `player_seek`, `player_speed`, `player_loop`, `player_mark`, `player_loop_nudge`, `player_loop_off`, `player_loop_clear`, `player_record`, `player_record_stop` (con `discard`), `player_take_rename` (con `name`); `get_state` ha il blocco `player` con `take`, `take_name` e `recording`. Salva e Condividi aprono finestre del telefono e restano alla persona. Descrizioni in `lib/actions/app_actions.dart`, golden `docs/llm-actions.json`, guida `docs/llm.md`.
 
 ## 5. Test
 

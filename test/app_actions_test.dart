@@ -322,6 +322,7 @@ void main() {
         'loop': null,
         'problem': null,
         'take': false,
+        'take_name': null,
         'recording': 'idle',
       });
       await actions.call('player_open');

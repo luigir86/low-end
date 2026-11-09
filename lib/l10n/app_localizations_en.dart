@@ -65,6 +65,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get takeStarting => 'Starting microphone…';
 
   @override
+  String takeFileName(int number, String date) {
+    return 'Take${number}_$date';
+  }
+
+  @override
+  String get takeNameLabel => 'File name';
+
+  @override
+  String get takeShareWhatsApp => 'WhatsApp';
+
+  @override
+  String get takeShareOther => 'Other apps';
+
+  @override
   String get appTitle => 'Low End';
 
   @override

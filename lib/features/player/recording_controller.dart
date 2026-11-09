@@ -36,7 +36,12 @@ enum RecordingProblem { permissionDenied, failed }
 /// take, like Stop. The Player is paused while it records, and playing it
 /// stops the recording.
 class RecordingController extends ChangeNotifier {
-  RecordingController(this._recorder, {required this.player, this.navigation}) {
+  RecordingController(
+    this._recorder, {
+    required this.player,
+    this.navigation,
+    this.nameTake,
+  }) {
     navigation?.addListener(_checkVisible);
     player.addListener(_checkPlayer);
     _lifecycle = AppLifecycleListener(onStateChange: _onLifecycle);
@@ -45,6 +50,11 @@ class RecordingController extends ChangeNotifier {
   final TakeRecorder _recorder;
   final PlayerController player;
   final AppNavigation? navigation;
+
+  /// The name a kept take starts with, without its extension
+  /// (Take1_9_nov_2026, see take_name.dart); asked once per take kept.
+  final String Function(DateTime now)? nameTake;
+  var _takesKept = 0;
   late final AppLifecycleListener _lifecycle;
 
   var _status = RecordingStatus.idle;
@@ -80,18 +90,18 @@ class RecordingController extends ChangeNotifier {
   /// busy) or a take that could not be kept; the screen says it.
   Stream<RecordingProblem> get problems => _problems.stream;
 
-  /// Starts recording a take; its file is called [label] and the time.
+  /// Starts recording a take into a temporary file named after the time.
   /// Pauses the Player first. Does nothing if a recording is under way.
-  Future<void> start({String label = 'Low End'}) {
+  Future<void> start() {
     if (active || _disposed) return Future.value();
     _status = RecordingStatus.starting;
     _started = _ending = false;
     _elapsed.value = Duration.zero;
     notifyListeners();
-    return _startup = _start(label);
+    return _startup = _start();
   }
 
-  Future<void> _start(String label) async {
+  Future<void> _start() async {
     try {
       await player.stop();
       if (_ending || _disposed) return;
@@ -106,7 +116,7 @@ class RecordingController extends ChangeNotifier {
           .first
           .replaceAll(':', '-')
           .replaceFirst('T', ' ');
-      await _recorder.start('$label $stamp.${_recorder.extension}');
+      await _recorder.start('take $stamp.${_recorder.extension}');
       _started = true;
       if (_ending || _disposed) return;
       _status = RecordingStatus.recording;
@@ -170,7 +180,10 @@ class RecordingController extends ChangeNotifier {
         if (discard || _disposed) {
           await _recorder.cancel();
         } else {
-          await player.open(await _recorder.stop());
+          final take = await _recorder.stop();
+          final now = DateTime.now();
+          take.fileName = nameTake?.call(now) ?? 'Take${++_takesKept}';
+          await player.open(take);
         }
       }
     } catch (error) {

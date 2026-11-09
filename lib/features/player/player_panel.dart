@@ -122,7 +122,7 @@ class _PlayerPanelState extends State<PlayerPanel>
               return;
             }
             if (!context.mounted) return;
-            await recorder.start(label: strings.takeRecording);
+            await recorder.start();
           },
           // A small dot in the room of a full icon: as wide as the others.
           label: SizedBox.square(

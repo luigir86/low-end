@@ -13,6 +13,7 @@ import '../features/metronome/subdivision.dart';
 import '../features/metronome/time_signature.dart';
 import '../features/player/player_controller.dart';
 import '../features/player/recording_controller.dart';
+import '../features/player/take_name.dart';
 import '../features/songs/example_song.dart';
 import '../features/tuner/tuner_controller.dart';
 import '../features/tuner/tuner_reading.dart';
@@ -115,8 +116,8 @@ class AppActions {
           'Player (the track open with its name and length in seconds, '
           'playing, position in seconds, and the problem if the last file '
           'could not be opened: unreadable or missing; whether it is a '
-          'recorded take, and the recording: idle, starting, recording or '
-          'finishing); and the '
+          'recorded take and the name it is shared and saved with, and the '
+          'recording: idle, starting, recording or finishing); and the '
           'settings (reference A, language, note and octave names, the '
           "tuner's instrument, in-tune zone and transposition, the circle, "
           'screen on, locked gestures). '
@@ -345,14 +346,31 @@ class AppActions {
           'Stops recording. The take opens in the Player from its start, '
           'over the track that was open; that track comes back, with its '
           'speed and passage, when the take is deleted. With discard the '
-          'take is thrown away. Saving or sharing a take is left to the '
-          "person, through the phone's own windows.",
+          'take is thrown away. A kept take is named after its number that '
+          'day and the date (Take1_9_nov_2026, in the app language). Saving '
+          "or sharing a take is left to the person, through the phone's own "
+          'windows, where WhatsApp comes first when it is installed.',
       parameters: {
         'discard': {
           'type': 'boolean',
           'description': 'Throw the take away instead of keeping it.',
         },
       },
+    ),
+    const AppAction(
+      name: 'player_take_rename',
+      description:
+          'Renames the take open in the Player: the name its file gets when '
+          'the person shares or saves it. The extension (m4a, or wav in the '
+          'web app) is kept. Characters a file name cannot hold become _.',
+      parameters: {
+        'name': {
+          'type': 'string',
+          'description':
+              'The new name, without extension; at most 80 characters.',
+        },
+      },
+      required: ['name'],
     ),
     AppAction(
       name: 'set_reference_pitch',
@@ -771,6 +789,16 @@ class AppActions {
           throw ActionError('"discard" must be true or false.');
         }
         await rec.finish(discard: discard == true);
+      case 'player_take_rename':
+        if (player.track is! RecordedTrack) {
+          throw ActionError('No take is open in the Player.');
+        }
+        final name = args['name'];
+        final clean = name is String ? cleanTakeName(name) : '';
+        if (clean.isEmpty) {
+          throw ActionError('"name" must be a text with letters or digits.');
+        }
+        player.renameTake(clean);
       case 'drone_play':
         final change = _droneChange(args);
         // Each sound plays from its own section; on the tuner it would
@@ -1040,6 +1068,10 @@ class AppActions {
               },
         'problem': player.problem?.name,
         'take': player.track is RecordedTrack,
+        'take_name': switch (player.track) {
+          final RecordedTrack take => take.exportName,
+          _ => null,
+        },
         'recording': recording?.status.name ?? 'idle',
       },
       'metronome': {

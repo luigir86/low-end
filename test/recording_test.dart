@@ -72,10 +72,10 @@ void main() {
   group('recording (RF-PLY-20)', () {
     test('REC pauses the Player and records', () async {
       await player.start();
-      await recording.start(label: 'Take');
+      await recording.start();
       expect(player.isPlaying, isFalse);
       expect(recording.status, RecordingStatus.recording);
-      expect(recorder.recording, startsWith('Take '));
+      expect(recorder.recording, startsWith('take '));
       expect(recorder.recording, endsWith('.m4a'));
     });
 
@@ -94,6 +94,31 @@ void main() {
       expect(player.setup?.track, _song);
       expect(player.setup?.speed, 70);
       expect(player.setup?.loopStart, _s(10));
+    });
+
+    test('a kept take is named by nameTake, a discarded one is not', () async {
+      final names = <DateTime>[];
+      final named = RecordingController(
+        recorder,
+        player: player,
+        nameTake: (now) {
+          names.add(now);
+          return 'Take${names.length}_9_nov_2026';
+        },
+      );
+      addTearDown(named.dispose);
+      await named.start();
+      await named.finish(discard: true);
+      expect(names, isEmpty);
+      await named.start();
+      await named.finish();
+      final take = player.track! as RecordedTrack;
+      expect(take.fileName, 'Take1_9_nov_2026');
+      expect(take.exportName, 'Take1_9_nov_2026.m4a');
+      expect(player.title, 'Take1_9_nov_2026');
+      player.renameTake('Scales in C');
+      expect(take.exportName, 'Scales in C.m4a');
+      expect(player.title, 'Scales in C');
     });
 
     test('deleting the take brings the track back as it was', () async {
@@ -210,7 +235,7 @@ void main() {
     test('the wave of the take grows while it records', () async {
       expect(recording.levels, isNull);
       recorder.loudness = 0.5;
-      await recording.start(label: 'Take');
+      await recording.start();
       final levels = recording.levels!;
       expect(levels.fullScale, isTrue);
       await Future<void>.delayed(const Duration(milliseconds: 350));
@@ -276,8 +301,24 @@ void main() {
       final after = (result['state']! as Map)['player'] as Map;
       expect(after['recording'], 'idle');
       expect(after['take'], isTrue);
+      expect(after['take_name'], 'Take1.m4a');
       result = await actions.call('player_record_stop');
       expect(result['ok'], isFalse);
+    });
+
+    test('player_take_rename names the take open', () async {
+      var result = await actions.call('player_take_rename', {'name': 'x'});
+      expect(result['ok'], isFalse);
+      await actions.call('player_record');
+      await actions.call('player_record_stop');
+      result = await actions.call('player_take_rename', {'name': '   '});
+      expect(result['ok'], isFalse);
+      result = await actions.call('player_take_rename', {
+        'name': 'Blue Bossa: chorus 2',
+      });
+      expect(result['ok'], isTrue);
+      final state = (result['state']! as Map)['player'] as Map;
+      expect(state['take_name'], 'Blue Bossa_ chorus 2.m4a');
     });
 
     test('player_record_stop with discard keeps the track', () async {
