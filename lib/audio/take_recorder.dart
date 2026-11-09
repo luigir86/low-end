@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:record/record.dart';
@@ -23,6 +24,10 @@ abstract class TakeRecorder {
 
   /// Stops and throws the take away.
   Future<void> cancel();
+
+  /// How loud the microphone is right now, 0 (silence) to 1 (the loudest
+  /// sample it can take), for the wave drawn while recording.
+  Future<double> level();
 
   /// The file extension of a take: compressed on Android, WAV on the web.
   String get extension;
@@ -58,6 +63,17 @@ class RecordTakeRecorder implements TakeRecorder {
       path: path,
     );
     _name = name;
+  }
+
+  @override
+  Future<double> level() async {
+    final recorder = _recorder;
+    if (recorder == null || _name == null) return 0;
+    // The strongest sample since the last reading, in decibels below full
+    // scale (-160 for none).
+    final db = (await recorder.getAmplitude()).current;
+    if (!db.isFinite || db <= -160) return 0;
+    return math.pow(10, math.min(0.0, db) / 20).toDouble();
   }
 
   @override
@@ -98,6 +114,9 @@ class FakeTakeRecorder implements TakeRecorder {
   /// Makes [start] fail, as a microphone taken by another app does.
   bool failStart = false;
 
+  /// What [level] answers while recording.
+  double loudness = 0.5;
+
   /// The take being recorded, or null.
   String? recording;
   var takes = 0;
@@ -106,6 +125,9 @@ class FakeTakeRecorder implements TakeRecorder {
 
   @override
   String get extension => 'm4a';
+
+  @override
+  Future<double> level() async => recording == null ? 0 : loudness;
 
   @override
   Future<bool> requestPermission() => prompt ?? Future.value(granted);
