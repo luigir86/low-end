@@ -126,11 +126,17 @@ abstract class AppLocalizations {
   /// **'Record'**
   String get takeRecord;
 
-  /// No description provided for @takeRecordShort.
+  /// No description provided for @takeDeleted.
   ///
   /// In en, this message translates to:
-  /// **'REC'**
-  String get takeRecordShort;
+  /// **'Recording deleted'**
+  String get takeDeleted;
+
+  /// No description provided for @takeUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get takeUndo;
 
   /// No description provided for @takeStop.
   ///
@@ -1373,12 +1379,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Speed'**
   String get playerSpeed;
-
-  /// Title of the sheet where the person types the listening speed in percent.
-  ///
-  /// In en, this message translates to:
-  /// **'Listening speed'**
-  String get playerSpeedTitle;
 
   /// No description provided for @playerCaptureStart.
   ///

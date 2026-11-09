@@ -3,7 +3,8 @@
   "takeDelete": "Delete recording",
   "takeRemove": "Remove from player",
   "takeRecord": "Record",
-  "takeRecordShort": "REC",
+  "takeDeleted": "Recording deleted",
+  "takeUndo": "Undo",
   "takeStop": "Stop",
   "takeRecording": "Recording",
   "takeTemporary": "Temporary",
@@ -475,10 +476,6 @@
   "playerSpeed": "Speed",
   "@playerSpeed": {
     "description": "Label of the field that sets how fast the track plays (50% to 125%), the pitch unchanged. Short."
-  },
-  "playerSpeedTitle": "Listening speed",
-  "@playerSpeedTitle": {
-    "description": "Title of the sheet where the person types the listening speed in percent."
   },
   "playerCaptureStart": "Mark start",
   "playerCaptureEnd": "Mark end",

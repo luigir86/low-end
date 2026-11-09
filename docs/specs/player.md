@@ -2,17 +2,17 @@
 
 Il terzo tab di Low End: un brano proprio, rallentato senza cambiare intonazione, con un passaggio che si ripete, e la registrazione di sé per riascoltarsi. Questo file dice **come** è costruito; **cosa** l'app deve fare sta in [requisiti.md](requisiti.md), sezione 2.10 (codici RF-PLY). Se i due file dicono cose diverse vale `requisiti.md`, e questo file va corretto.
 
-**Revisione 4, 7–8 novembre 2026.** Dopo la prova di Luigi la cattura del passaggio è passata da bandiere A e B negli angoli (revisione 3, PR #130–#133) a un solo pulsante con due tocchi (PR #148), con la forma d'onda sempre nella prima riga; si è aggiunta la registrazione (PR #154, #159; corretta l'8/11). Luigi l'ha provata sul telefono e la tiene. Le revisioni 1–3, con le loro alternative e le domande, sono nella storia di git di questo file.
+**Revisione 5, 9 novembre 2026: controlli riordinati** (sezione 2.1). **Revisione 4, 7–8 novembre 2026.** Dopo la prova di Luigi la cattura del passaggio è passata da bandiere A e B negli angoli (revisione 3, PR #130–#133) a un solo pulsante con due tocchi (PR #148), con la forma d'onda sempre nella prima riga; si è aggiunta la registrazione (PR #154, #159; corretta l'8/11). Luigi l'ha provata sul telefono e la tiene. Le revisioni 1–3, con le loro alternative e le domande, sono nella storia di git di questo file.
 
 ## 1. Come si usa
 
 1. **Brano** (terza riga) apre il selettore di sistema; il centro del quadrante, senza brano, fa lo stesso.
 2. Il **centro** avvia e mette in pausa; mostra tempo trascorso, durata e il simbolo di riproduzione o pausa, e sopra titolo e autore se il file ha i tag.
 3. Il **toro** è l'orologio del brano intero: dentro la forma d'onda, sul bordo le tacche, il cursore dove si ascolta. Toccarlo sposta l'ascolto; il passaggio vi appare come arco.
-4. **Segna inizio → Segna fine → Loop attivo** (seconda riga, a sinistra): il primo tocco segna A dove si sente, il secondo B; il passaggio si ripete subito da A. Lo stesso pulsante poi spegne e riaccende il loop ("Riattiva loop"); A e B restano.
-5. La **striscia** (prima riga) mostra la forma d'onda dritta: il brano intero finché il passaggio non è completo, poi il passaggio con un margine per parte. Le due aste si trascinano per rifinire; il tocco altrove sposta l'ascolto. Il pulsante **Nuovo passaggio** accanto cancella A e B.
-6. **Velocità** (seconda riga, a destra): dal 50 al 125%, con il foglio numerico.
-7. **REC** (terza riga, accanto a Brano) registra dal microfono; **Stop** apre la ripresa nel Player per riascoltarla, **Scarta** la butta. La ripresa ha **Salva**, **Condividi** ed **Elimina**; eliminata (o rimossa dopo il salvataggio), torna il brano che si stava studiando con passaggio e velocità.
+4. **Segna inizio → Segna fine → Loop attivo** (seconda riga, a sinistra, con la bandierina finché si segna): il primo tocco segna A dove si sente, il secondo B; il passaggio si ripete subito da A. Lo stesso pulsante poi spegne e riaccende il loop ("Riattiva loop"); A e B restano.
+5. La **striscia** (prima riga) mostra la forma d'onda dritta: il brano intero finché il passaggio non è completo, poi il passaggio con un margine per parte. Le due aste si trascinano per rifinire; il tocco altrove sposta l'ascolto. Il pulsante **Nuovo passaggio** accanto (icona, sempre al suo posto, spento finché non c'è A o B) cancella A e B.
+6. **Velocità** (seconda riga, a destra): un tocco apre una lista corta, 50, 60, 70, 75, 80, 85, 90, 100, 110, 125%. Diversa da 100% il valore e il bordo sono nell'accento. Le azioni accettano ogni valore intero dal 50 al 125.
+7. **REC** (terza riga, il pallino rosso accanto a Brano) registra dal microfono; **Stop** (al posto di REC) apre la ripresa nel Player per riascoltarla, **Scarta** la butta. Con una ripresa aperta il campo ne dice la durata e accanto a REC compaiono **Salva**, **Condividi** ed **Elimina**; eliminata (o rimossa dopo il salvataggio), torna il brano che si stava studiando con passaggio e velocità. Una ripresa non salvata eliminata si riprende per qualche secondo con **Annulla** nell'avviso; REC o un altro brano sopra una ripresa non salvata chiedono prima.
 
 ## 2. La schermata
 
@@ -22,9 +22,19 @@ Stesso `DialLayout` degli altri tab: quadrante con il centro allineato tra i qua
 | --- | --- | --- | --- |
 | Toro | Anello spento | Forma d'onda, tacche, cursore, arco del passaggio | Come prima, spento |
 | Centro | Cartella e "Scegli un brano" | Titolo/autore, tempo, durata, play/pausa | Pallino e tempo della ripresa |
-| Prima riga | Vuota, o l'errore del file | Striscia e, con A o B segnati, Nuovo passaggio | Inattiva |
+| Prima riga | Vuota, o l'errore del file | Striscia e Nuovo passaggio (spento senza A né B) | Inattiva |
 | Seconda riga | Spenta | Pulsante del passaggio, Velocità | Inattiva |
-| Terza riga | Brano e REC | Brano e REC; con una ripresa: Salva, Condividi, Elimina | Pallino, tempo, Stop, Scarta |
+| Terza riga | Brano e REC | Brano e REC; con una ripresa: durata, REC, Salva, Condividi, Elimina | Campo Registrazione con pallino e tempo, Stop, Scarta |
+
+### 2.1 Forma dei controlli (revisione 5)
+
+Dopo la prova di Luigi del 9/11 (REC e "Segna inizio" più bassi del campo accanto, cerchi solo nel Player, foglio della velocità ingombrante, pulsanti che comparivano e sparivano):
+
+- Ogni controllo delle righe è alto 56 dp come i campi e ogni pulsante è un `RowButton` (rettangolo arrotondato del tema, come − / + e TAP); le icone sono larghe 48 dp, con nome per TalkBack e suggerimento.
+- Il pulsante del passaggio è pallido e pieno mentre si segna (come − / +), nell'accento con il loop attivo, solo bordato con "Riattiva loop".
+- Nuovo passaggio sta accanto alla striscia, dove sono A e B: vicino a Velocità sembrava "torna a 100%".
+- Restano sempre al loro posto Nuovo passaggio e REC; Salva, Condividi ed Elimina compaiono solo con una ripresa (scelta di Luigi). Il campo della ripresa mostra la durata, che entra anche a 360 dp e nella colonna in orizzontale.
+- Anteprime: `preview/player-controlli/` nella cartella del progetto.
 
 ## 3. Il codice
 
@@ -57,7 +67,7 @@ Stesso `DialLayout` degli altri tab: quadrante con il centro allineato tra i qua
 | Test | Cosa verifica |
 | --- | --- |
 | `player_controller_test`, `player_loop_test`, `player_memory_test` | Apertura, errori, velocità, A/B e loop, memoria |
-| `player_panel_test` | Centro, toro, striscia, righe; REC, Scarta durante la richiesta del permesso, Stop, Salva, Condividi, Rimuovi |
+| `player_panel_test` | Centro, toro, striscia, righe; REC, Scarta durante la richiesta del permesso, Stop, Salva, Condividi, Rimuovi, Elimina con Annulla, lista delle velocità |
 | `recording_test` | Ripresa sopra il brano studiato e ritorno, seconda ripresa, altro file, Scarta, permesso negato, microfono occupato, stop lasciando il tab o le impostazioni o avviando il Player, azioni |
 | `player_ring_test`, `track_peaks_test`, `marquee_test`, `track_tags_test` | Geometria, forma d'onda, titolo che scorre, tag |
 | `accessibility_test`, `app_actions_test` | Nomi e bersagli; golden delle azioni |
