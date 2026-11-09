@@ -66,7 +66,7 @@ New personal developer accounts must run a **closed test with at least 12 tester
 ## Checks made
 
 - Licences of all dependencies: permissive (MIT, BSD, Apache-2.0, zlib, public domain); see THIRD_PARTY_NOTICES.md.
-- Known vulnerabilities: none in the 113 Dart packages (pub.dev advisories, 8 November 2026); the external Android libraries were checked against OSV on 16 October 2026 (see THIRD_PARTY_NOTICES.md).
+- Known vulnerabilities: none in the 111 Dart packages (pub.dev advisories, 9 November 2026); among the external Android libraries (OSV, 9 November 2026) only Guava, through the Player's ExoPlayer, had an advisory, and the Gradle file now raises it to a fixed version (see THIRD_PARTY_NOTICES.md).
 - Manifest: no `INTERNET`, backup off, only the launcher activity, the `lowend://` action link, the media service and its button receiver are exported.
 - The `lowend://action/...` links can start the sound or bring up the tuner from any web page or app. They do only what the buttons do, the microphone needs the permission the player gave and a visible tuner screen, and nothing leaves the phone, so this is documented rather than blocked (docs/llm.md).
 

@@ -38,7 +38,7 @@ Everything else that `pubspec.lock` lists comes from the Dart and Flutter teams 
 
 ## Android libraries
 
-The Android build also contains AndroidX, Kotlin (`kotlin-stdlib`, `kotlinx-coroutines`), Okio, ReLinker, JSpecify and Guava's `listenablefuture`, all under **Apache-2.0**. The Player adds **AndroidX Media3** (ExoPlayer, through `just_audio`), also **Apache-2.0**; its text is in `assets/licenses/Apache-2.0.txt` and in the licences page of the app. ExoPlayer declares the `ACCESS_NETWORK_STATE` permission to stream; the app removes it in its manifest (`tools:node="remove"`), see [docs/offline.md](docs/offline.md).
+The Android build also contains AndroidX, Kotlin (`kotlin-stdlib`, `kotlinx-coroutines`), Okio, ReLinker, JSpecify and Guava's `listenablefuture`, all under **Apache-2.0**. The Player adds **AndroidX Media3** (ExoPlayer, through `just_audio`) and with it **Guava**, both **Apache-2.0**; its text is in `assets/licenses/Apache-2.0.txt` and in the licences page of the app. ExoPlayer declares the `ACCESS_NETWORK_STATE` permission to stream; the app removes it in its manifest (`tools:node="remove"`), see [docs/offline.md](docs/offline.md).
 
 ## Sounds and images
 
@@ -50,4 +50,4 @@ The Android build also contains AndroidX, Kotlin (`kotlin-stdlib`, `kotlinx-coro
 
 ## Checks made
 
-On 8 November 2026 every package in `pubspec.lock` (113) was checked against the security advisories that pub.dev publishes (the GitHub Advisory Database): two packages have old advisories (`http` before 0.13.3, `shared_preferences_android` 2.3.3), and the versions in the app (1.6.0 and 2.4.28) are not affected. The external Android libraries of the release build were last checked against [OSV](https://osv.dev) on 16 October 2026 (88 libraries, none affected); the Player added AndroidX Media3 since then.
+On 8 November 2026 every package in `pubspec.lock` (113) was checked against the security advisories that pub.dev publishes (the GitHub Advisory Database): two packages have old advisories (`http` before 0.13.3, `shared_preferences_android` 2.3.3), and the versions in the app (1.6.0 and 2.4.28) are not affected. The external Android libraries of the release build were last checked against [OSV](https://osv.dev) on 16 October 2026 (88 libraries, none affected); the Player added AndroidX Media3 since then. On 9 November 2026 the Dart packages (111) were checked again with the same result, and the Android libraries of the 1.6.1 build (104) against OSV: only Guava 33.0.0-android, which Media3 asks for, has an advisory (GHSA-xxph-c9ww-hj94, fixed in 33.7.2). The app's Gradle file (`android/app/build.gradle.kts`) raises it to 33.7.2-android, so the releases after 1.6.1 no longer contain the affected version.
