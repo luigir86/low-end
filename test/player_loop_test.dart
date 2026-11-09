@@ -378,23 +378,55 @@ void main() {
       expect(output.loops, isEmpty);
       await tester.pump(PlayerController.settleAfter);
       expect(output.loops, [(_s(10.03), _s(20))]);
-      // A moved: it plays again from A.
+      // A moved past the track: it plays again from A.
       expect(player.position, _s(10.03));
     });
 
-    testWidgets('B moved: it plays again two seconds before B', (tester) async {
-      await player.setLoop(_s(10), _s(20));
-      await player.start();
-      player.nudge(LoopEdge.end, -PlayerController.fineStep);
+    testWidgets('B moved before the track: it plays again two seconds before '
+        'B', (tester) async {
+      await player.setLoop(_s(10), _s(30));
+      await listenAt(22, playing: true);
+      player.moveEdge(LoopEdge.end, _s(20));
       await tester.pump(PlayerController.settleAfter);
-      expect(output.loops.last, (_s(10), _s(19.99)));
-      expect(player.position, _s(17.99));
+      expect(output.loops.last, (_s(10), _s(20)));
+      expect(player.position, _s(18));
     });
 
-    testWidgets('B moved near A: it plays again from A', (tester) async {
-      await player.setLoop(_s(10), _s(11.5));
-      await player.start();
-      player.nudge(LoopEdge.end, PlayerController.fineStep);
+    testWidgets('A or B moved with the track still inside: it carries on', (
+      tester,
+    ) async {
+      // From A 10 s to B 30 s, listening at 22 s.
+      await player.setLoop(_s(10), _s(30));
+      await listenAt(22, playing: true);
+      for (final (edge, to, loop) in [
+        (LoopEdge.start, 5, (_s(5), _s(30))),
+        (LoopEdge.start, 21, (_s(21), _s(30))),
+        (LoopEdge.end, 23, (_s(21), _s(23))),
+        (LoopEdge.end, 60, (_s(21), _s(60))),
+      ]) {
+        player.moveEdge(edge, _s(to));
+        await tester.pump(PlayerController.settleAfter);
+        expect(output.loops.last, loop);
+        expect(player.position, _s(22), reason: '$edge to $to s');
+      }
+    });
+
+    testWidgets('A moved past the track: it plays again from A', (
+      tester,
+    ) async {
+      await player.setLoop(_s(10), _s(30));
+      await listenAt(22, playing: true);
+      player.moveEdge(LoopEdge.start, _s(25));
+      await tester.pump(PlayerController.settleAfter);
+      expect(player.position, _s(25));
+    });
+
+    testWidgets('B moved near A, before the track: it plays again from A', (
+      tester,
+    ) async {
+      await player.setLoop(_s(10), _s(20));
+      await listenAt(15, playing: true);
+      player.moveEdge(LoopEdge.end, _s(11.5));
       await tester.pump(PlayerController.settleAfter);
       expect(player.position, _s(10));
     });

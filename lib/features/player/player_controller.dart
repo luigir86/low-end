@@ -76,8 +76,8 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   /// How long the ends must be left alone before the sound follows.
   static const settleAfter = Duration(milliseconds: 300);
 
-  /// After the end B is moved, the track restarts this long before it, to
-  /// hear how the loop closes.
+  /// When B is moved before where the track is, it restarts this long
+  /// before B, to hear how the loop closes.
   static const preroll = Duration(seconds: 2);
 
   /// Chains what is asked of the output's loop, so that it is told in order.
@@ -562,7 +562,8 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   /// end stops at its limit and does not push the other: A between the start
   /// of the track and one [minLoop] before B, B between one [minLoop] after A
   /// and the end. The number changes at once; the sound follows when the
-  /// person has stopped touching for [settleAfter].
+  /// person has stopped touching for [settleAfter], carrying on if the track
+  /// is still inside the loop.
   void moveEdge(LoopEdge edge, Duration to) {
     final start = _loopStart, end = _loopEnd;
     if (_status != PlayerStatus.ready) return;
@@ -586,9 +587,13 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     _settle = Timer(settleAfter, () {
       if (_disposed || !looping) return;
       final a = _loopStart!, b = _loopEnd!;
-      final jump = !_playing
+      // Inside the new loop it carries on, to B and then from A. Before A it
+      // goes to A; past B it plays the last [preroll] before B, to hear how
+      // the loop closes, never before A.
+      final at = _output.position;
+      final jump = !_playing || (at >= a && at < b)
           ? null
-          : (edge == LoopEdge.start ? a : (b - preroll < a ? a : b - preroll));
+          : (at < a || b - preroll < a ? a : b - preroll);
       unawaited(_queue(() => _applyLoop(jumpTo: jump)));
     });
   }

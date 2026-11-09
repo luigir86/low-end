@@ -42,6 +42,7 @@ Luigi, 9/11: trascinare le aste sulla striscia ingrandita era scomodo, la strisc
 
 - **Cerchio = spostamenti.** Le maniglie A e B sul toro (raggio un quarto dello spessore dell'anello, 10–16 dp, bersaglio 48 dp, `FlagDrag` come sulla striscia: lo scorrimento tra i tab parte fuori dalle maniglie). L'angolo si conta di seguito, quindi le 12 sono un muro e non un salto dalla fine all'inizio. Toccata senza trascinarla, una maniglia diventa la bandiera attiva. Su 6 minuti un millimetro di cerchio vale circa 2–3 decimi di secondo.
 - **Striscia = ritocchi.** Un'asta tenuta a meno di 24 dp da un'estremità allarga la finestra da quella parte dell'1% ogni 16 ms (almeno 20 ms), portandosi dietro l'asta; lasciata, la finestra si riadatta al passaggio dopo 0,3 s.
+- **Spostare non fa ripartire.** Mentre suona, se dopo uno spostamento (0,3 s di quiete) il punto d'ascolto resta dentro il passaggio, la riproduzione continua fino a B e poi riparte dal nuovo A; se A lo supera riparte da A, se B gli passa davanti riparte 2 s prima di B (mai prima di A). Per ripartire da un punto si tocca il toro o la striscia.
 - Anteprima: `preview/player-controlli/passaggio-proposta.png` nella cartella del progetto.
 
 ## 3. Il codice
