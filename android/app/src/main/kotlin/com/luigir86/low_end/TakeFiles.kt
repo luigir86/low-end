@@ -27,7 +27,7 @@ object TakeFiles {
             try {
                 val arg = call.arguments as String
                 if (call.method == "path") {
-                    require(arg == File(arg).name)
+                    require(arg == File(arg).name && arg != "." && arg != "..")
                     result.success(File(working, arg).absolutePath)
                     return@setMethodCallHandler
                 }
