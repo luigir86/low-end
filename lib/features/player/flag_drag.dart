@@ -8,7 +8,7 @@ import 'player_controller.dart';
 class FlagDrag extends PanGestureRecognizer {
   FlagDrag({required this.flagAt});
 
-  /// The flag under [local] (a point of the widget), or null.
+  /// The flag under `local` (a point of the widget), or null.
   final LoopEdge? Function(Offset local) flagAt;
 
   @override

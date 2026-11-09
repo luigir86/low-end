@@ -3,13 +3,12 @@ import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:web/web.dart' as web;
 
-import 'package:flutter/foundation.dart';
-
 import '../features/player/track_tags.dart';
-import 'track_files.dart';
 import 'recorded_track.dart';
+import 'track_files.dart';
 import 'track_output.dart';
 import 'web_peaks_limits.dart';
 
@@ -144,7 +143,7 @@ class WebTrackFiles implements TrackFiles {
       throw StateError('no wave for this track');
     }
     try {
-      final data = (await file.arrayBuffer().toDart);
+      final data = await file.arrayBuffer().toDart;
       final promise = read.callAsFunction(null, data) as JSPromise;
       final peaks = (await promise.toDart) as JSUint16Array;
       yield peaks.toDart;

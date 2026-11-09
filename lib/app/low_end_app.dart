@@ -8,10 +8,10 @@ import '../actions/app_actions.dart';
 import '../audio/audio_route.dart';
 import '../audio/audio_scope.dart';
 import '../audio/click_output.dart';
+import '../audio/just_audio_track_output.dart';
 import '../audio/mic_input.dart';
 import '../audio/piano_output.dart';
 import '../audio/pitch.dart';
-import '../audio/just_audio_track_output.dart';
 import '../audio/soloud_engine.dart';
 import '../audio/system_track_files.dart';
 import '../audio/take_recorder.dart';
@@ -19,20 +19,20 @@ import '../audio/tone_output.dart';
 import '../audio/track_files.dart';
 import '../audio/track_output.dart';
 import '../audio/web_audio_engine.dart';
-import '../features/metronome/metronome_controller.dart';
 import '../features/harmony/drone_controller.dart';
 import '../features/harmony/harmony_names.dart'
     show chordSymbol, progressionName;
+import '../features/metronome/metronome_controller.dart';
 import '../features/player/player_controller.dart';
 import '../features/player/recording_controller.dart';
 import '../features/tuner/tuner_controller.dart';
 import '../l10n/app_localizations.dart';
 import 'app_navigation.dart';
 import 'background_audio.dart';
-import 'settings.dart';
 import 'home_shell.dart';
 import 'playback_rules.dart';
 import 'screen_awake.dart';
+import 'settings.dart';
 import 'theme.dart';
 
 class LowEndApp extends StatefulWidget {

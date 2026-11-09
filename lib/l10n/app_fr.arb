@@ -205,7 +205,6 @@
   "playerTab": "Écoute",
   "playerTrack": "Morceau",
   "playerChoose": "Choisissez un morceau",
-  "playerHubHint": "Touchez pour démarrer",
   "playerPlay": "Lire",
   "playerPause": "Pause",
   "playerTimeOf": "{position} sur {duration}",
@@ -223,16 +222,5 @@
   "playerMarkEnd": "Marquer la fin ici",
   "playerStartAt": "Début {time}",
   "playerEndAt": "Fin {time}",
-  "playerStartEarlier": "Début plus tôt",
-  "playerStartLater": "Début plus tard",
-  "playerEndEarlier": "Fin plus tôt",
-  "playerEndLater": "Fin plus tard",
-  "guidePlayerLoop": "Dans le lecteur, marquez le début puis la fin en écoutant. Faites glisser A et B le long du cercle pour les déplacer ; sur la forme d’onde en dessous pour affiner.",
-  "playerHintFlags": "Placez A et B sur l'anneau pour choisir le passage à répéter",
-  "playerHintPlaceStart": "Touchez l'anneau là où le passage commence",
-  "playerHintPlaceEnd": "Touchez l'anneau là où le passage se termine",
-  "playerHintNeedStart": "Placez maintenant A là où le passage commence",
-  "playerHintNeedEnd": "Placez maintenant B là où le passage se termine",
-  "playerFlagStart": "Drapeau A, début du passage",
-  "playerFlagEnd": "Drapeau B, fin du passage"
+  "guidePlayerLoop": "Dans le lecteur, marquez le début puis la fin en écoutant. Faites glisser A et B le long du cercle pour les déplacer ; sur la forme d’onde en dessous pour affiner."
 }

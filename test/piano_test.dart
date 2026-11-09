@@ -10,9 +10,9 @@ import 'package:low_end/audio/loop_transport.dart';
 import 'package:low_end/audio/piano_output.dart';
 import 'package:low_end/audio/piano_sound.dart';
 import 'package:low_end/audio/tone_output.dart';
-import 'package:low_end/features/metronome/time_signature.dart';
 import 'package:low_end/features/harmony/drone_controller.dart';
 import 'package:low_end/features/harmony/harmony.dart';
+import 'package:low_end/features/metronome/time_signature.dart';
 
 /// Pure tones in place of the piano: each recorded note a sine at its own
 /// pitch, a second long, so what is played can be told by its frequency.
@@ -105,7 +105,7 @@ void main() {
         bpm: 120,
         signature: TimeSignature.fourFour,
       );
-      final beat = ClickSound.sampleRate ~/ 2;
+      const beat = ClickSound.sampleRate ~/ 2;
       for (var b = 0; b < 4; b++) {
         expect(_energy(loop, b * beat, 2000), greaterThan(1));
       }
@@ -144,7 +144,7 @@ void main() {
         bpm: 240,
         signature: TimeSignature.fourFour,
       );
-      final beat = ClickSound.sampleRate ~/ 4;
+      const beat = ClickSound.sampleRate ~/ 4;
       // Sounding from the first beat to the last: struck once, held for the bar.
       for (var b = 0; b < 4; b++) {
         expect(_energy(loop, b * beat, 2000), greaterThan(1));
@@ -161,7 +161,7 @@ void main() {
         bpm: 240,
         signature: TimeSignature.fourFour,
       );
-      final beat = ClickSound.sampleRate ~/ 4;
+      const beat = ClickSound.sampleRate ~/ 4;
       // Sounding from the first beat to the last, with no new start between.
       for (var b = 0; b < 4; b++) {
         expect(_energy(loop, b * beat, 2000), greaterThan(1));
@@ -177,7 +177,7 @@ void main() {
         bpm: 60,
         signature: TimeSignature.fourFour,
       );
-      final beat = ClickSound.sampleRate;
+      const beat = ClickSound.sampleRate;
       // Root, third, fifth, third. Each note rings on into the next, so
       // the pitch just after a strike is somewhere between the new note
       // and the one before. The notes come a little off the beat, as a
@@ -205,7 +205,7 @@ void main() {
         bpm: 120,
         signature: TimeSignature.sixEight,
       );
-      final pulse = ClickSound.sampleRate ~/ 2;
+      const pulse = ClickSound.sampleRate ~/ 2;
       final first = _pitch(loop, 100, 600);
       final fourth = _pitch(loop, 3 * pulse + 100, 600);
       // Both groups open on the root (the fourth over the tail of the
@@ -236,7 +236,7 @@ void main() {
         bpm: 60,
         signature: TimeSignature.oneOne,
       );
-      final beat = ClickSound.sampleRate;
+      const beat = ClickSound.sampleRate;
       // Not the root alone: root | third | fifth | third, a bar each.
       expect(loop.length, beat * 4);
       const expected = [60, 64, 67, 64];
@@ -571,7 +571,7 @@ void main() {
         Float32List.fromList(List.filled(rate ~/ 10, 0.5)),
       );
       final s = PianoSamples(silent.notes, releases: {60: dampers});
-      final bar = rate * 2;
+      const bar = rate * 2;
       final change = play(s, const [
         cMajor,
         [62, 65, 69],
@@ -596,7 +596,7 @@ void main() {
         bpm: 120,
         signature: TimeSignature.fourFour,
       );
-      final position = rate * 3 ~/ 4;
+      const position = rate * 3 ~/ 4;
       final tail = pcm(
         PianoSound.tailWav(
           samples: samples,

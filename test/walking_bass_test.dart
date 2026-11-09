@@ -9,11 +9,11 @@ import 'package:low_end/audio/piano_output.dart';
 import 'package:low_end/audio/piano_sound.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/audio/walking_bass.dart';
+import 'package:low_end/features/harmony/drone_controller.dart';
+import 'package:low_end/features/harmony/harmony.dart';
 import 'package:low_end/features/metronome/metronome_controller.dart';
 import 'package:low_end/features/metronome/time_signature.dart';
-import 'package:low_end/features/harmony/drone_controller.dart';
 import 'package:low_end/features/songs/example_song.dart';
-import 'package:low_end/features/harmony/harmony.dart';
 
 double _hz(int midi) => 440 * math.pow(2, (midi - 69) / 12).toDouble();
 
@@ -200,7 +200,7 @@ void main() {
         bpm: 60,
         signature: four,
       );
-      final beat = ClickSound.sampleRate;
+      const beat = ClickSound.sampleRate;
       expect(loop.length, beat * 4 * blues.length);
       final line = WalkingBass.line(blues, four);
       // Each beat of the first bar: its own note, not a quarter tone off.

@@ -700,9 +700,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerChoose => 'Choose a track';
 
   @override
-  String get playerHubHint => 'Tap to start';
-
-  @override
   String get playerPlay => 'Play';
 
   @override
@@ -760,40 +757,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get playerStartEarlier => 'Start earlier';
-
-  @override
-  String get playerStartLater => 'Start later';
-
-  @override
-  String get playerEndEarlier => 'End earlier';
-
-  @override
-  String get playerEndLater => 'End later';
-
-  @override
   String get guidePlayerLoop =>
       'In Player, tap Mark start and Mark end while listening. Drag A and B round the dial to move them; on the waveform below for fine adjustments.';
-
-  @override
-  String get playerHintFlags =>
-      'Drag A and B onto the ring to choose the passage to repeat';
-
-  @override
-  String get playerHintPlaceStart => 'Touch the ring where the passage starts';
-
-  @override
-  String get playerHintPlaceEnd => 'Touch the ring where the passage ends';
-
-  @override
-  String get playerHintNeedStart => 'Now bring A to where the passage starts';
-
-  @override
-  String get playerHintNeedEnd => 'Now bring B to where the passage ends';
-
-  @override
-  String get playerFlagStart => 'Flag A, start of the passage';
-
-  @override
-  String get playerFlagEnd => 'Flag B, end of the passage';
 }

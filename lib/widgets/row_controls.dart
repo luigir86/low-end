@@ -163,7 +163,7 @@ class RowButton extends StatelessWidget {
     final named = tooltip == null
         ? content
         : Semantics(label: tooltip, child: content);
-    final padding = const EdgeInsets.symmetric(
+    const padding = EdgeInsets.symmetric(
       horizontal: rowButtonInset / 2,
       vertical: rowButtonPadding,
     );

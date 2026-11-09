@@ -98,7 +98,7 @@ class Freeverb {
     StepResult<Stereo> out,
   ) sync* {
     final n = dry.left.length;
-    final scale = ClickSound.sampleRate / 44100;
+    const scale = ClickSound.sampleRate / 44100;
     final delay = preDelay.inMicroseconds * ClickSound.sampleRate ~/ 1000000;
     final left = Float32List.fromList(dry.left);
     final right = Float32List.fromList(dry.right);

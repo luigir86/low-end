@@ -5,8 +5,8 @@ import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/click_sound.dart';
 import 'package:low_end/audio/loop_transport.dart';
 import 'package:low_end/audio/soloud_engine.dart';
-import 'package:low_end/features/metronome/subdivision.dart';
 import 'package:low_end/features/metronome/metronome_controller.dart';
+import 'package:low_end/features/metronome/subdivision.dart';
 import 'package:low_end/features/metronome/time_signature.dart';
 
 /// Number of samples in the WAV data of [wav] (16-bit mono).
@@ -32,7 +32,7 @@ void main() {
     final bar = output.bar!;
     // 80 BPM: a beat is 0.75 s, a bar 3 s.
     expect(_samples(bar), 3 * ClickSound.sampleRate);
-    final beat = ClickSound.sampleRate * 3 ~/ 4;
+    const beat = ClickSound.sampleRate * 3 ~/ 4;
     for (var b = 0; b < 4; b++) {
       // A click right after each beat starts, silence half way through.
       final peak = [for (var i = 0; i < 400; i++) _at(bar, b * beat + i).abs()]

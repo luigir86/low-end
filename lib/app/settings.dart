@@ -5,10 +5,10 @@ import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../audio/pitch.dart';
+import '../features/harmony/drone_controller.dart';
 import '../features/metronome/metronome_controller.dart';
 import '../features/metronome/subdivision.dart';
 import '../features/metronome/time_signature.dart';
-import '../features/harmony/drone_controller.dart';
 import '../features/player/player_setup.dart';
 import '../features/tuner/tuner_tuning.dart';
 import 'app_navigation.dart';

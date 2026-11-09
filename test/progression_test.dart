@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:low_end/features/metronome/time_signature.dart';
 import 'package:low_end/audio/pitch.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/features/harmony/drone_controller.dart';
 import 'package:low_end/features/harmony/harmony.dart';
+import 'package:low_end/features/metronome/time_signature.dart';
 
 /// A bar clock set by hand, as the metronome would be.
 class _Clock extends ChangeNotifier implements BarClock {
@@ -312,7 +312,7 @@ void main() {
       ..setVoicing(DroneVoicing.progression)
       ..setProgression(Progression.circleOfFifths)
       ..setPitchClass(7);
-    final p = Progression.circleOfFifths;
+    const p = Progression.circleOfFifths;
     expect(
       [
         for (var i = 0; i < p.steps.length; i++)
@@ -339,7 +339,7 @@ void main() {
       ..setProgression(Progression.minorBlues)
       ..setPitchClass(0);
     expect(drone.keyIsMinor, isTrue);
-    final p = Progression.minorBlues;
+    const p = Progression.minorBlues;
     expect(
       spell((0 + p.steps[8].offset) % 12, drone.letterAt(8), NoteNames.letters),
       'A♭',

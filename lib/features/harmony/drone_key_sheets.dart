@@ -6,9 +6,9 @@ import '../../audio/pitch.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/section_icons.dart';
 import '../metronome/time_signature.dart';
+import '../songs/example_song.dart';
 import 'drone_controller.dart';
 import 'drone_panel.dart';
-import '../songs/example_song.dart';
 import 'harmony.dart';
 import 'harmony_names.dart';
 

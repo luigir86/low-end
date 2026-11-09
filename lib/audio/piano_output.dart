@@ -56,7 +56,7 @@ abstract class PianoOutput {
 
   /// Starts letting the loop playing now down, for another to come in on
   /// the next bar line at least [lead] away (see BarLoopPlayer.beginHandOver):
-  /// a [play] with [handOver] then starts there. Says how long until that
+  /// a [play] with `handOver` then starts there. Says how long until that
   /// bar line, or null when nothing plays.
   Duration? beginHandOver({required Duration lead});
 
@@ -84,7 +84,7 @@ abstract class PianoOutput {
   });
 }
 
-/// A loop mixed by [SoLoudPianoOutput.prerender], for the settings in [key].
+/// A loop mixed by [PianoOutput.prerender], for the settings in `key`.
 typedef _Ahead = ({String key, Future<MixedLoop> loop, SlicedWork? work});
 
 /// Decodes a mono FLAC file of [frames] samples to its samples, from -1

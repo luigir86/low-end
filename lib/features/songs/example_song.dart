@@ -1,6 +1,6 @@
-import '../metronome/metronome_controller.dart';
 import '../harmony/drone_controller.dart';
 import '../harmony/harmony.dart';
+import '../metronome/metronome_controller.dart';
 
 /// Applies [song] as a preset: its key, progression and style on the piano
 /// (the held tone gives way to it), and on the metronome its time signature
@@ -34,9 +34,7 @@ void applySong(
     // The piano first: it picks the bar line, on the clicks still at the
     // old tempo; then the clicks are told to change there too. The piano's
     // new loop is mixed after this, at the new tempo.
-    drone.applyAll(() {
-      harmony();
-    });
+    drone.applyAll(harmony);
     metronome.changeAtBarLine(clicks);
     return;
   }

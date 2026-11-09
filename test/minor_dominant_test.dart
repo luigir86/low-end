@@ -5,10 +5,10 @@ import 'package:low_end/audio/piano_sound.dart';
 import 'package:low_end/audio/pitch.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/audio/walking_bass.dart';
-import 'package:low_end/features/metronome/time_signature.dart';
 import 'package:low_end/features/harmony/drone_controller.dart';
-import 'package:low_end/features/harmony/harmony_names.dart';
 import 'package:low_end/features/harmony/harmony.dart';
+import 'package:low_end/features/harmony/harmony_names.dart';
+import 'package:low_end/features/metronome/time_signature.dart';
 import 'package:low_end/l10n/app_localizations.dart';
 
 /// A bar clock set by hand, as the metronome would be.

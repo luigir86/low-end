@@ -3,7 +3,7 @@ import 'dart:async';
 /// A track the person chose: where the system reads it from, and its name.
 /// The uri is a `content://` address on Android and a `blob:` address in a
 /// web page, both valid only for as long as the system says (see
-/// [TrackFiles]).
+/// `TrackFiles`).
 class TrackRef {
   const TrackRef({required this.uri, required this.name, this.size});
 

@@ -18,7 +18,7 @@ class FakeLoopEngine implements LoopEngine {
 
   void advance(Duration time) => now += time;
 
-  /// The voices that play [source].
+  /// The voices that play [name].
   Iterable<FakeVoice> playing(String name) =>
       voices.values.where((v) => v.name == name && v.isValidAt(now));
 
