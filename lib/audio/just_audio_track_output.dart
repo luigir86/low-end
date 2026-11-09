@@ -16,9 +16,22 @@ class JustAudioTrackOutput implements TrackOutput {
   /// system player (gapless on Android). Without it the whole track plays
   /// and a timer jumps back at the end of the stretch: in a browser the clip
   /// would be checked only every 250 ms or so (just_audio_web).
-  JustAudioTrackOutput({this.useClipLoop = !kIsWeb});
+  JustAudioTrackOutput({
+    this.useClipLoop = !kIsWeb,
+    this.freshPlayerPerTrack = kIsWeb,
+  });
 
   final bool useClipLoop;
+
+  /// With [freshPlayerPerTrack] the browser's player is let go before
+  /// another track is opened, and the next load makes a new one.
+  /// just_audio_web keeps the player of the first track under the address
+  /// of just_audio's list, which never changes: without this a second track
+  /// would get the length and the sound of the first.
+  final bool freshPlayerPerTrack;
+
+  /// True once a track has been given to the player.
+  var _hasTrack = false;
 
   AudioPlayer? _player;
   StreamSubscription<PlayerState>? _state;
@@ -106,6 +119,8 @@ class JustAudioTrackOutput implements TrackOutput {
         _clipLooping = false;
         await player.setLoopMode(LoopMode.off);
       }
+      if (freshPlayerPerTrack && _hasTrack) await player.stop();
+      _hasTrack = true;
       duration = await player.setAudioSource(
         ProgressiveAudioSource(
           Uri.parse(track.uri),

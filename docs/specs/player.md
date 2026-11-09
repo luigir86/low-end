@@ -91,6 +91,7 @@ Valgono per il codice già unito e per chi lo tocca.
 
 - just_audio 0.10.6: su Android ExoPlayer (media3) con Sonic per la velocità; sul web un elemento `<audio>` con `preservesPitch`.
 - `just_audio_web` controlla la fine di una clip solo a ogni `timeupdate` (circa 250 ms): sul web il loop usa un timer proprio da 16 ms (`useClipLoop = !kIsWeb`).
+- `just_audio_web` 0.4.16 tiene il lettore del primo brano sotto l'indirizzo della lista di just_audio, che non cambia: un secondo brano avrebbe durata, forma d'onda e suono del primo. Sul web l'uscita ferma il lettore prima di ogni brano nuovo, e il caricamento ne crea uno nuovo (`freshPlayerPerTrack = kIsWeb`, test `just_audio_track_output_test.dart`).
 - `setClip` ricarica la sorgente e rende la posizione relativa alla clip: `TrackOutput.position` è sempre assoluta nel brano.
 - Il `Future` di `play()` finisce solo alla pausa; a fine brano just_audio resta "playing": il controller guarda lo stato `completed`.
 - Il manifest di media3 aggiunge `ACCESS_NETWORK_STATE`: si toglie con `tools:node="remove"` (RNF-PRIV-01).
