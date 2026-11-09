@@ -346,6 +346,14 @@ void main() {
     // The button shares its row with New passage and Speed: at the
     // usual text size its words fit in every language, portrait and
     // landscape.
+    setUpAll(() async {
+      // The app's own font, as on the phone: the words are measured in it.
+      final edwin = FontLoader('Edwin')
+        ..addFont(rootBundle.load('assets/fonts/Edwin-Roman.otf'))
+        ..addFont(rootBundle.load('assets/fonts/Edwin-Bold.otf'));
+      await edwin.load();
+    });
+
     for (final lang in ['en', 'it', 'es', 'fr']) {
       for (final size in const [Size(360, 640), Size(640, 360)]) {
         final name = '$lang ${size.width.round()}x${size.height.round()}';
