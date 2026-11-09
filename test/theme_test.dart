@@ -30,7 +30,8 @@ void main() {
     expect(_hex(e.disc), '#202020');
     expect(_hex(c.surfaceContainerHigh), '#303030');
     expect(_hex(LowEndBrand.red.startup), '#181818');
-    expect(_hex(e.bottomNavigationBackground), '#ECECE9');
+    // Since 9 November the tabs sit on the ground in every palette.
+    expect(e.bottomNavigationBackground, c.surface);
     expect(e.activeFill, LowEndBrand.ffmRed);
   });
 
@@ -44,13 +45,13 @@ void main() {
     final theme = LowEndTheme.forPalette(p);
     final e = theme.extension<LowEndColors>()!;
     expect(theme.colorScheme.surface, p.dark);
-    expect(e.bottomNavigationBackground, p.light);
-    // Ebony ink on bronze buttons; a darker bronze on the ivory bar.
+    // Ebony ink on bronze buttons; the tabs on ebony, the open one ivory.
+    expect(e.bottomNavigationBackground, p.dark);
     expect(e.onActiveFill, Palette.inkOnLight);
     expect(contrast(e.onActiveFill, p.accent), greaterThanOrEqualTo(4.5));
-    expect(e.bottomNavigationSelectedInk, isNot(p.accent));
+    expect(e.bottomNavigationSelectedInk, p.light);
     expect(
-      contrast(e.bottomNavigationSelectedInk, p.light),
+      contrast(e.bottomNavigationSelectedInk, p.dark),
       greaterThanOrEqualTo(4.5),
     );
   });
@@ -199,7 +200,7 @@ void main() {
   }
 
   test(
-    'the current accent colours the frame with readable light navigation',
+    'the current accent colours the frame with readable tabs on the ground',
     () {
       final theme = LowEndTheme.dark;
       final c = theme.colorScheme;
@@ -211,11 +212,14 @@ void main() {
         e.bottomNavigationBackground,
       );
       expect(e.bottomNavigationBorder, e.activeFill);
-      // Material 3: a pill marks the open tab, its dark ink readable on it.
-      expect(e.bottomNavigationIndicator, isNot(e.bottomNavigationBackground));
+      // No pill: the open tab is the light colour, clearly brighter than
+      // the others (and its icon is filled).
+      expect(e.bottomNavigationIndicator, Colors.transparent);
       expect(
-        contrast(e.bottomNavigationSelectedInk, e.bottomNavigationIndicator),
-        greaterThanOrEqualTo(4.5),
+        contrast(e.bottomNavigationSelectedInk, e.bottomNavigationBackground),
+        greaterThan(
+          2 * contrast(e.bottomNavigationInk, e.bottomNavigationBackground),
+        ),
       );
       expect(
         contrast(e.bottomNavigationSelectedInk, e.bottomNavigationBackground),
@@ -225,7 +229,12 @@ void main() {
         contrast(e.bottomNavigationInk, e.bottomNavigationBackground),
         greaterThanOrEqualTo(4.5),
       );
-      expect(theme.navigationRailTheme.backgroundColor, e.navigationBackground);
+      // The rail in landscape is the same ground as the bottom bar; the
+      // top frame keeps the accent.
+      expect(
+        theme.navigationRailTheme.backgroundColor,
+        e.bottomNavigationBackground,
+      );
       expect(e.navigationBackground, LowEndBrand.accent);
     },
   );

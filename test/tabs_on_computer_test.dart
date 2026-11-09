@@ -36,53 +36,82 @@ void main() {
     return AudioScope.of(tester.element(find.byType(HomeShell))).navigation;
   }
 
-  testWidgets('light navigation keeps an accent playing dot on another tab', (
-    tester,
-  ) async {
-    final navigation = await open(tester, const Size(900, 1600));
-    final scope = AudioScope.of(tester.element(find.byType(HomeShell)));
-    final colors = LowEndColors.of(tester.element(find.byType(HomeShell)));
-    final theme = Theme.of(tester.element(find.byType(HomeShell)));
-    final selected = theme.navigationBarTheme.iconTheme!.resolve({
-      WidgetState.selected,
-    })!;
-    final idle = theme.navigationBarTheme.iconTheme!.resolve({})!;
-    expect(selected.color, colors.bottomNavigationSelectedInk);
-    expect(idle.color, colors.bottomNavigationInk);
-    // Material 3: a pill behind the icon of the open section.
-    expect(
-      theme.navigationBarTheme.indicatorColor,
-      colors.bottomNavigationIndicator,
-    );
-    expect(
-      tester.widget<AppBar>(find.byKey(const Key('appFrame'))).backgroundColor,
-      colors.navigationBackground,
-    );
+  testWidgets(
+    'the tabs on the ground keep an accent playing dot on another tab',
+    (tester) async {
+      final navigation = await open(tester, const Size(900, 1600));
+      final scope = AudioScope.of(tester.element(find.byType(HomeShell)));
+      final colors = LowEndColors.of(tester.element(find.byType(HomeShell)));
+      final theme = Theme.of(tester.element(find.byType(HomeShell)));
+      final selected = theme.navigationBarTheme.iconTheme!.resolve({
+        WidgetState.selected,
+      })!;
+      final idle = theme.navigationBarTheme.iconTheme!.resolve({})!;
+      expect(selected.color, colors.bottomNavigationSelectedInk);
+      expect(idle.color, colors.bottomNavigationInk);
+      // No pill: the open section is the light colour, its icon filled.
+      expect(
+        theme.navigationBarTheme.indicatorColor,
+        colors.bottomNavigationIndicator,
+      );
+      expect(
+        tester
+            .widget<AppBar>(find.byKey(const Key('appFrame')))
+            .backgroundColor,
+        colors.navigationBackground,
+      );
 
-    await scope.metronome.start();
-    navigation.open(AppSection.player);
-    await tester.pumpAndSettle();
-    expect(navigation.section, AppSection.player);
-    final metro = find.byWidgetPredicate(
-      (w) => w is NavigationDestination && w.label == 'Metronome',
-    );
-    final dot = find.descendant(of: metro, matching: find.byType(Badge));
-    expect(dot, findsOneWidget);
-    final badge = tester.widget<Badge>(dot);
-    expect(badge.isLabelVisible, isTrue);
-    // Ebony like the icons: it reads on the ivory bar and on the pill.
-    expect(badge.backgroundColor, colors.bottomNavigationSelectedInk);
-    final tuner = find.byWidgetPredicate(
-      (w) => w is NavigationDestination && w.label == 'Tuner',
-    );
-    expect(
-      find.descendant(of: tuner, matching: find.byType(Badge)),
-      findsNothing,
-    );
-    await scope.metronome.stop();
-    await tester.pump();
-    expect(tester.widget<Badge>(dot).isLabelVisible, isFalse);
-  });
+      await scope.metronome.start();
+      navigation.open(AppSection.player);
+      await tester.pumpAndSettle();
+      expect(navigation.section, AppSection.player);
+      final metro = find.byWidgetPredicate(
+        (w) => w is NavigationDestination && w.label == 'Metronome',
+      );
+      final dot = find.descendant(of: metro, matching: find.byType(Badge));
+      expect(dot, findsOneWidget);
+      final badge = tester.widget<Badge>(dot);
+      expect(badge.isLabelVisible, isTrue);
+      // The accent, as TAP: it reads on the dark bar.
+      expect(
+        badge.backgroundColor ?? theme.badgeTheme.backgroundColor,
+        colors.activeFill,
+      );
+      final tuner = find.byWidgetPredicate(
+        (w) => w is NavigationDestination && w.label == 'Tuner',
+      );
+      expect(
+        find.descendant(of: tuner, matching: find.byType(Badge)),
+        findsNothing,
+      );
+      await scope.metronome.stop();
+      await tester.pump();
+      expect(tester.widget<Badge>(dot).isLabelVisible, isFalse);
+    },
+  );
+
+  for (final (inset, bar) in [(0.0, 48.0), (24.0, 64.0), (48.0, 96.0)]) {
+    testWidgets('icons centred in the dark band, system inset $inset', (
+      tester,
+    ) async {
+      tester.view.padding = FakeViewPadding(bottom: inset);
+      await open(tester, const Size(900, 1600));
+      final nav = tester.getRect(find.byType(NavigationBar));
+      final icon = tester.getRect(
+        find
+            .descendant(
+              of: find.byType(NavigationBar),
+              matching: find.byType(Icon),
+            )
+            .first,
+      );
+      expect(nav.height, closeTo(bar, 0.01));
+      // Gesture navigation: centred in the whole band. Three buttons:
+      // centred in the 48 dp above them, which are the system's.
+      final band = inset < 48 ? nav : nav.topLeft & Size(nav.width, 48);
+      expect(icon.center.dy, closeTo(band.center.dy, 0.01));
+    });
+  }
 
   testWidgets('the accent base line sits below the bottom safe area', (
     tester,
@@ -106,7 +135,7 @@ void main() {
     final appBar = tester.widget<AppBar>(find.byKey(const Key('appFrame')));
     expect(
       appBar.systemOverlayStyle!.systemNavigationBarIconBrightness,
-      Brightness.dark,
+      Brightness.light,
     );
   });
 

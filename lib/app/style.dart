@@ -59,9 +59,15 @@ abstract final class LowEndShape {
   /// Shared baseline height of the three control rows and bottom tabs.
   static const controlRowHeight = 64.0;
 
-  /// Height of the bottom tab bar, icons and names: the bar of Material 3
-  /// Expressive, lower than the old 80 dp one.
-  static const navigationBarHeight = 64.0;
+  /// Height of the bottom tab bar, icons only, over three-button navigation
+  /// or with no system bar: one touch target.
+  static const navigationBarHeight = 48.0;
+
+  /// With gesture navigation the bar reaches the bottom edge and its icons
+  /// centre in all of it: this much of the bar lies over the thin strip of
+  /// the home gesture, which is only swiped, so the band is lower than a
+  /// 48 dp bar above the strip.
+  static const navigationGestureOverlap = 8.0;
 
   /// Fine rule beneath the bottom navigation, including its safe area.
   static const navigationBaseLine = 2.0;

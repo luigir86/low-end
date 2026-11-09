@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../audio/audio_scope.dart';
@@ -132,6 +134,35 @@ class _HomeShellState extends State<HomeShell> {
         SnackBar(content: Text(AppLocalizations.of(context).swipeHint)),
       );
     });
+  }
+
+  /// The bottom bar built by [bar] at the height it gets. Over three-button
+  /// navigation (or no system bar) it is [LowEndShape.navigationBarHeight]
+  /// above the system's inset. With gesture navigation its icons centre in
+  /// the whole band down to the edge, part of it over the home strip (which
+  /// is only swiped): the band is lower and the icons do not float high.
+  static Widget _gestureBar(
+    BuildContext context,
+    Widget Function(double height) bar,
+  ) {
+    final inset = MediaQuery.paddingOf(context).bottom;
+    if (inset == 0 || inset >= kMinInteractiveDimension) {
+      return bar(LowEndShape.navigationBarHeight);
+    }
+    return MediaQuery.removePadding(
+      context: context,
+      // The screen's whole padding reaches here, the status bar's too.
+      removeTop: true,
+      removeBottom: true,
+      child: bar(
+        math.max(
+          LowEndShape.navigationBarHeight,
+          LowEndShape.navigationBarHeight +
+              inset -
+              LowEndShape.navigationGestureOverlap,
+        ),
+      ),
+    );
   }
 
   /// A tap on a tab goes to its section; what plays is started and stopped
@@ -298,8 +329,18 @@ class _HomeShellState extends State<HomeShell> {
                       ? Row(
                           children: [
                             FlipDetector(
-                              child: SizedBox(
+                              child: Container(
                                 width: LowEndShape.railWidth,
+                                // The thin light line that parts the tabs from the
+                                // dial, as above the bottom bar.
+                                decoration: BoxDecoration(
+                                  border: BorderDirectional(
+                                    end: BorderSide(
+                                      color: LowEndColors.of(context)
+                                          .bottomNavigationSelectedInk,
+                                    ),
+                                  ),
+                                ),
                                 child: NavigationRail(
                                   key: const Key('tabRail'),
                                   selectedIndex: section.index,
@@ -312,14 +353,10 @@ class _HomeShellState extends State<HomeShell> {
                                         icon: _TabIcon(
                                           section: e.section,
                                           icon: e.icon,
-                                          badgeColor: LowEndColors.of(context)
-                                              .navigationInk,
                                         ),
                                         selectedIcon: _TabIcon(
                                           section: e.section,
                                           icon: e.selectedIcon,
-                                          badgeColor: LowEndColors.of(context)
-                                              .navigationInk,
                                         ),
                                         label: FittedBox(
                                           fit: BoxFit.scaleDown,
@@ -368,6 +405,12 @@ class _HomeShellState extends State<HomeShell> {
                   decoration: BoxDecoration(
                     color: LowEndColors.of(context).bottomNavigationBackground,
                     border: Border(
+                      // A thin line of the light colour parts the tabs from
+                      // the controls, both on the ground.
+                      top: BorderSide(
+                        color: LowEndColors.of(context)
+                            .bottomNavigationSelectedInk,
+                      ),
                       bottom: BorderSide(
                         color: LowEndColors.of(context).bottomNavigationBorder,
                         width:
@@ -378,33 +421,29 @@ class _HomeShellState extends State<HomeShell> {
                       ),
                     ),
                   ),
-                  child: NavigationBar(
-                    height: LowEndShape.navigationBarHeight,
-                    labelBehavior:
-                        NavigationDestinationLabelBehavior.alwaysShow,
-                    animationDuration: MediaQuery.disableAnimationsOf(context)
-                        ? Duration.zero
-                        : Durations.medium1,
-                    selectedIndex: section.index,
-                    onDestinationSelected: _onDestination,
-                    destinations: [
-                      for (final e in entries)
-                        NavigationDestination(
-                          icon: _TabIcon(
-                            section: e.section,
-                            icon: e.icon,
-                            badgeColor: LowEndColors.of(context)
-                                .bottomNavigationSelectedInk,
+                  child: _gestureBar(
+                    context,
+                    (height) => NavigationBar(
+                      height: height,
+                      labelBehavior:
+                          NavigationDestinationLabelBehavior.alwaysHide,
+                      animationDuration: MediaQuery.disableAnimationsOf(context)
+                          ? Duration.zero
+                          : Durations.medium1,
+                      selectedIndex: section.index,
+                      onDestinationSelected: _onDestination,
+                      destinations: [
+                        for (final e in entries)
+                          NavigationDestination(
+                            icon: _TabIcon(section: e.section, icon: e.icon),
+                            selectedIcon: _TabIcon(
+                              section: e.section,
+                              icon: e.selectedIcon,
+                            ),
+                            label: e.label,
                           ),
-                          selectedIcon: _TabIcon(
-                            section: e.section,
-                            icon: e.selectedIcon,
-                            badgeColor: LowEndColors.of(context)
-                                .bottomNavigationSelectedInk,
-                          ),
-                          label: e.label,
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
         );
@@ -417,11 +456,10 @@ class _HomeShellState extends State<HomeShell> {
 /// the other section, the click, the harmony or the track going on is seen,
 /// not only heard. The tuner makes no sound, so its tab never has one.
 class _TabIcon extends StatelessWidget {
-  const _TabIcon({required this.section, required this.icon, this.badgeColor});
+  const _TabIcon({required this.section, required this.icon});
 
   final AppSection section;
   final Widget icon;
-  final Color? badgeColor;
 
   @override
   Widget build(BuildContext context) {
@@ -445,11 +483,7 @@ class _TabIcon extends StatelessWidget {
         };
         return Semantics(
           value: playing ? AppLocalizations.of(context).sectionPlaying : null,
-          child: Badge(
-            backgroundColor: badgeColor,
-            isLabelVisible: playing,
-            child: icon,
-          ),
+          child: Badge(isLabelVisible: playing, child: icon),
         );
       },
     );
