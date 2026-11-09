@@ -7,6 +7,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/semantics.dart' show CustomSemanticsAction;
 import 'package:flutter/services.dart' show HapticFeedback;
 
+import '../../app/style.dart';
 import '../../app/theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/dial.dart';
@@ -17,6 +18,7 @@ import 'marquee.dart';
 import 'player_controller.dart';
 import 'ring_wave.dart';
 import 'ring_window.dart';
+import 'time_scale.dart';
 
 /// The angle of a touch at [offset] on a dial of [size].
 double touchAngle(Offset offset, Size size) {
@@ -130,7 +132,7 @@ class _PlayerDialState extends State<PlayerDial>
   void _tap(Offset at) {
     final player = widget.player;
     if (player.status != PlayerStatus.ready || _size.isEmpty) return;
-    final dial = DialGeometry(_size);
+    final dial = PlayerDialGeometry(_size);
     final distance = (at - dial.center).distance;
     if (distance < dial.hub || distance > dial.radius) return;
     player.seek(_window.timeAt(touchAngle(at, _size)));
@@ -139,7 +141,7 @@ class _PlayerDialState extends State<PlayerDial>
   /// The centre of the grip of a flag at [time]: on the ring, inside its
   /// outer edge, so that the whole grip can be touched.
   Offset _gripCentre(Duration time) {
-    final dial = DialGeometry(_size);
+    final dial = PlayerDialGeometry(_size);
     final angle = _window.angleOf(time);
     return dial.center +
         Offset(math.sin(angle), -math.cos(angle)) *
@@ -234,6 +236,12 @@ class _PlayerDialState extends State<PlayerDial>
     return LayoutBuilder(
       builder: (context, constraints) {
         _size = constraints.biggest;
+        // The middle is smaller than on the other tabs: the times take a
+        // band outside the ring.
+        final geometry = PlayerDialGeometry(_size);
+        final hubFraction = _size.isEmpty
+            ? DialGeometry.hubFraction
+            : geometry.hub / geometry.radius;
         return Stack(
           fit: StackFit.expand,
           children: [
@@ -246,6 +254,12 @@ class _PlayerDialState extends State<PlayerDial>
                     fill: theme.colorScheme.outlineVariant,
                     edge: theme.colorScheme.outline,
                     tick: theme.colorScheme.onSurfaceVariant,
+                    label: theme.textTheme.bodySmall!.copyWith(
+                      fontSize: LowEndType.small,
+                      height: 1,
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                   ),
                 ),
               ),
@@ -377,8 +391,8 @@ class _PlayerDialState extends State<PlayerDial>
               ),
             Center(
               child: FractionallySizedBox(
-                widthFactor: DialGeometry.hubFraction,
-                heightFactor: DialGeometry.hubFraction,
+                widthFactor: hubFraction,
+                heightFactor: hubFraction,
                 // Keep the corners of the hub square available for seeking.
                 child: ClipOval(
                   child: widget.recordingTime != null
@@ -526,24 +540,33 @@ class _Hub extends StatelessWidget {
   }
 }
 
-/// The ring and its ticks: a whole ring, off, until a track is open. The
-/// ticks sit on the outer edge, clear of the wave (RF-PLY-03).
+/// The ring and the times of the track round it: a whole ring, off, until a
+/// track is open; then a tick at round times outside the ring, clear of the
+/// wave, with the time on the longer ones (RF-PLY-03).
 class _RingPainter extends CustomPainter {
   _RingPainter({
     required this.window,
     required this.fill,
     required this.edge,
     required this.tick,
+    required this.label,
   });
 
   final RingWindow window;
   final Color fill;
   final Color edge;
   final Color tick;
+  final TextStyle label;
+
+  /// The lengths of the ticks, from the ring outwards, and the room between
+  /// a long tick and its time.
+  static const _long = 7.0;
+  static const _short = 4.0;
+  static const _room = 3.0;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final dial = DialGeometry(size);
+    final dial = PlayerDialGeometry(size);
     dial.paintSegment(
       canvas,
       startAngle: 0,
@@ -551,19 +574,41 @@ class _RingPainter extends CustomPainter {
       color: fill,
       border: edge,
     );
-    if (window.length <= Duration.zero) return;
-    final paint = Paint()
-      ..color = tick
-      ..strokeWidth = 1.5
-      ..strokeCap = StrokeCap.round;
-    for (var tickIndex = 0; tickIndex < 12; tickIndex++) {
-      final a = tickIndex * math.pi / 6;
+    final length = window.length;
+    if (length <= Duration.zero) return;
+    final scale = TimeScale.of(length);
+    final from = dial.ringOuter + DialGeometry.edgeWidth;
+    void line(Duration at, double long, double width) {
+      final a = window.angleOf(window.from + at);
       final dir = Offset(math.sin(a), -math.cos(a));
       canvas.drawLine(
-        dial.center + dir * (dial.ringInner + dial.ringWidth * 0.92),
-        dial.center + dir * dial.ringOuter,
-        paint,
+        dial.center + dir * from,
+        dial.center + dir * (from + long),
+        Paint()
+          ..color = tick
+          ..strokeWidth = width
+          ..strokeCap = StrokeCap.round,
       );
+    }
+
+    for (final at in scale.ticks(length)) {
+      line(at, _short, 1.2);
+    }
+    for (final at in scale.labels(length)) {
+      line(at, _long, 2);
+      if (!dial.labelled) continue;
+      final text = TextPainter(
+        text: TextSpan(text: clockText(window.from + at), style: label),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      final centre = labelCentre(
+        dial.center,
+        from + _long + _room,
+        window.angleOf(window.from + at),
+        text.size,
+      );
+      text.paint(canvas, centre - Offset(text.width, text.height) / 2);
+      text.dispose();
     }
   }
 
@@ -572,7 +617,8 @@ class _RingPainter extends CustomPainter {
       old.window != window ||
       old.fill != fill ||
       old.edge != edge ||
-      old.tick != tick;
+      old.tick != tick ||
+      old.label != label;
 }
 
 /// The selected passage stays visible even for a track without peaks.
@@ -589,7 +635,7 @@ class _PassageArc extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final a = start;
     if (a == null || window.length <= Duration.zero) return;
-    final dial = DialGeometry(size);
+    final dial = PlayerDialGeometry(size);
     final from = window.angleOf(a);
     final sweep = math.max(0.0, window.angleOf(end ?? position.value) - from);
     final radius = dial.ringOuter - 3;
@@ -647,7 +693,7 @@ class _PlayheadPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final dial = DialGeometry(size);
+    final dial = PlayerDialGeometry(size);
     final angle = window.angleOf(position.value);
     final dir = Offset(math.sin(angle), -math.cos(angle));
     final from =
@@ -704,7 +750,7 @@ class _GripPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (window.length <= Duration.zero) return;
-    final dial = DialGeometry(size);
+    final dial = PlayerDialGeometry(size);
     final r = gripRadius(dial);
     for (final (edge, time, letter) in [
       (LoopEdge.start, start, 'A'),

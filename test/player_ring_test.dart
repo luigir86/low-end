@@ -9,10 +9,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/features/player/player_dial.dart';
 import 'package:low_end/features/player/ring_wave.dart';
 import 'package:low_end/features/player/ring_window.dart';
+import 'package:low_end/features/player/time_scale.dart';
+import 'package:low_end/features/player/clock_text.dart';
 import 'package:low_end/features/player/track_peaks.dart';
 import 'package:low_end/widgets/dial.dart';
 
 void main() {
+  timeScaleTests();
   group('the ticks', () {
     RingWindow whole(Duration d) => RingWindow.whole(d);
 
@@ -341,6 +344,90 @@ void main() {
         painter.paint(canvas, const Size(300, 300));
         recorder.endRecording().dispose();
       }
+    });
+  });
+}
+
+void timeScaleTests() {
+  group('the times round the ring (RF-PLY-03)', () {
+    List<String> labels(Duration length) => [
+      for (final t in TimeScale.of(length).labels(length)) clockText(t),
+    ];
+
+    test('a number every round step, never more than eight', () {
+      expect(labels(const Duration(minutes: 6, seconds: 3)), [
+        '0:00',
+        '1:00',
+        '2:00',
+        '3:00',
+        '4:00',
+        '5:00',
+      ]);
+      expect(labels(const Duration(seconds: 27)), [
+        '0:00',
+        '0:05',
+        '0:10',
+        '0:15',
+        '0:20',
+        '0:25',
+      ]);
+      expect(
+        TimeScale.of(const Duration(minutes: 12)).major,
+        const Duration(minutes: 2),
+      );
+      expect(
+        TimeScale.of(const Duration(seconds: 3)).major,
+        const Duration(seconds: 1),
+      );
+      expect(
+        TimeScale.of(const Duration(hours: 6)).major,
+        const Duration(hours: 1),
+      );
+      for (var s = 1; s < 4 * 3600; s += 7) {
+        final length = Duration(seconds: s);
+        expect(
+          TimeScale.of(length).labels(length).length,
+          lessThanOrEqualTo(TimeScale.maxLabels),
+          reason: '$length',
+        );
+      }
+    });
+
+    test('no number crowds the 0:00 at the end of the turn', () {
+      // 6:00 is 99% of the way round: left out.
+      expect(labels(const Duration(minutes: 6, seconds: 3)).last, '5:00');
+    });
+
+    test('short ticks fall between the numbers', () {
+      const length = Duration(minutes: 6, seconds: 3);
+      final scale = TimeScale.of(length);
+      final ticks = scale.ticks(length);
+      expect(ticks.first, const Duration(seconds: 15));
+      expect(ticks.every((t) => t.inSeconds % 60 != 0 && t < length), isTrue);
+    });
+
+    test('a time sits outside its tick on every side of the dial', () {
+      const centre = Offset(100, 100), size = Size(30, 14);
+      for (var a = 0.0; a < 2 * math.pi; a += 0.1) {
+        final at = labelCentre(centre, 80, a, size);
+        final box = Rect.fromCenter(
+          center: at,
+          width: size.width,
+          height: size.height,
+        );
+        final tick = centre + Offset(math.sin(a), -math.cos(a)) * 80;
+        expect(box.inflate(-0.5).contains(tick), isFalse, reason: '$a');
+      }
+    });
+
+    test('the Player keeps a band outside the ring on the same dial', () {
+      final player = PlayerDialGeometry(const Size(328, 328));
+      final other = DialGeometry(const Size(328, 328));
+      expect(player.radius, other.radius);
+      expect(player.labelled, isTrue);
+      expect(player.ringOuter, lessThan(other.ringOuter - 20));
+      expect(player.hub, lessThan(player.ringInner));
+      expect(PlayerDialGeometry(const Size(200, 200)).labelled, isFalse);
     });
   });
 }
