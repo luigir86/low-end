@@ -69,8 +69,15 @@ abstract final class LowEndShape {
   /// 48 dp bar above the strip.
   static const navigationGestureOverlap = 8.0;
 
-  /// Fine rule beneath the bottom navigation, including its safe area.
+  /// Height of the empty app bar at the top: it only sets the system bars.
   static const navigationBaseLine = 2.0;
+
+  /// The accent line between the tabs and the screen.
+  static const navigationLine = 1.0;
+
+  /// How far the accent of that line fades into the ground of the tabs,
+  /// ending before their icons.
+  static const navigationGlow = 12.0;
 
   /// Width of the rail of the tabs, in landscape, however long the names:
   /// they shrink to fit.

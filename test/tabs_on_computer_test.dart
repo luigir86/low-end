@@ -5,11 +5,14 @@ import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/home_shell.dart';
 import 'package:low_end/app/low_end_app.dart';
 import 'package:low_end/app/settings.dart';
+import 'package:low_end/app/style.dart';
 import 'package:low_end/app/theme.dart';
 import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/audio_scope.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/tone_output.dart';
+import 'package:low_end/widgets/navigation_edge.dart';
+import 'package:low_end/widgets/section_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// The web app on a computer: a mouse, and a window wider than tall, so the
@@ -101,7 +104,7 @@ void main() {
         find
             .descendant(
               of: find.byType(NavigationBar),
-              matching: find.byType(Icon),
+              matching: find.byType(SectionIcon),
             )
             .first,
       );
@@ -113,7 +116,7 @@ void main() {
     });
   }
 
-  testWidgets('the accent base line sits below the bottom safe area', (
+  testWidgets('one accent line fading into the ground tops the tabs', (
     tester,
   ) async {
     await open(tester, const Size(900, 1600));
@@ -122,15 +125,32 @@ void main() {
     final frame = find.byKey(const Key('bottomNavigationFrame'));
     final rect = tester.getRect(frame);
     final barRect = tester.getRect(find.byType(NavigationBar));
-    final decoration =
-        tester.widget<Container>(frame).decoration! as BoxDecoration;
-    final border = decoration.border! as Border;
+    final colors = LowEndColors.of(tester.element(frame));
+    final edge = tester.widget<Container>(frame).decoration! as NavigationEdge;
+    // The tabs reach the bottom edge: no second line under them.
     expect(rect.bottom, 1600);
-    expect(rect.bottom - barRect.bottom, 2);
-    expect(border.bottom.width, 2);
+    expect(barRect.bottom, 1600);
+    // 8 dp of the screen's ground, then the line over the tabs.
+    expect(barRect.top - rect.top, 8 + LowEndShape.navigationLine);
+    expect(edge.side, NavigationEdgeSide.top);
+    expect(edge.accent, colors.activeFill);
+    expect(edge.ground, colors.bottomNavigationBackground);
     expect(
-      border.bottom.color,
-      LowEndColors.of(tester.element(frame)).activeFill,
+      tester.widget<NavigationBar>(find.byType(NavigationBar)).backgroundColor,
+      Colors.transparent,
+    );
+    // The glow ends before the icons.
+    final icon = tester.getRect(
+      find
+          .descendant(
+            of: find.byType(NavigationBar),
+            matching: find.byType(SectionIcon),
+          )
+          .first,
+    );
+    expect(
+      icon.top,
+      greaterThanOrEqualTo(barRect.top + LowEndShape.navigationGlow),
     );
     final appBar = tester.widget<AppBar>(find.byKey(const Key('appFrame')));
     expect(

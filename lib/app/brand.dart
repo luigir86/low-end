@@ -13,6 +13,7 @@ final class BrandPalette {
     required this.dark,
     required this.light,
     Color? mark,
+    this.step,
   }) : mark = mark ?? light;
 
   final String name;
@@ -32,6 +33,10 @@ final class BrandPalette {
   /// The lion; the light colour unless a palette keeps its own.
   final Color mark;
 
+  /// The −/+ buttons and the metronome's wheel, when a palette keeps its
+  /// own; otherwise the light colour dimmed a little towards the dark one.
+  final Color? step;
+
   /// The surface before Flutter draws (Android window, browser chrome).
   Color get startup => Color.lerp(dark, Colors.black, 0.33)!;
 }
@@ -44,6 +49,10 @@ abstract final class LowEndBrand {
   static const bronze = Color(0xFFD4A373);
   static const ebony = Color(0xFF141312);
   static const ivory = Color(0xFFF1E8D5);
+
+  /// Ivory with 15% of bronze (9 November 2026): warm on the ebony, where
+  /// ivory dimmed towards it looked grey, and less glaring than ivory.
+  static const warmIvory = Color(0xFFEDDEC6);
 
   /// The theme of 7 November 2026: FFM red on anthracite.
   static const red = BrandPalette(
@@ -62,6 +71,7 @@ abstract final class LowEndBrand {
     accent: bronze,
     dark: ebony,
     light: ivory,
+    step: warmIvory,
   );
 
   static const palettes = [red, ebonyAndBronze];

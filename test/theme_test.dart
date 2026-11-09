@@ -230,12 +230,12 @@ void main() {
         greaterThanOrEqualTo(4.5),
       );
       // The rail in landscape is the same ground as the bottom bar; the
-      // top frame keeps the accent.
+      // top of the screen is the ground too, no accent band.
       expect(
         theme.navigationRailTheme.backgroundColor,
         e.bottomNavigationBackground,
       );
-      expect(e.navigationBackground, LowEndBrand.accent);
+      expect(e.navigationBackground, theme.colorScheme.surface);
     },
   );
 
@@ -269,7 +269,7 @@ void main() {
       expect(c.secondary, isNot(accent));
       expect(contrast(c.secondary, e.disc), greaterThanOrEqualTo(3));
       expect(c.primaryContainer, accent);
-      expect(e.navigationBackground, accent);
+      expect(e.navigationBackground, c.surface);
       expect(e.bottomNavigationBorder, accent);
       expect(theme.badgeTheme.backgroundColor, accent);
       for (final pair in [
@@ -286,6 +286,13 @@ void main() {
       expect(e.inTune, Palette.inTune);
     });
   }
+
+  test('Ebony & Bronze keeps a warm ivory on -/+ and the wheel', () {
+    final e = LowEndTheme.forPalette(LowEndBrand.ebonyAndBronze)
+        .extension<LowEndColors>()!;
+    expect(_hex(e.stepFill), '#EDDEC6');
+    expect(contrast(e.onStepFill, e.stepFill), greaterThanOrEqualTo(7));
+  });
 
   test('bronze and FFM red keep their values and choose readable ink', () {
     expect(_hex(LowEndBrand.ffmRed), '#A6282C');

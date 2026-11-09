@@ -289,7 +289,7 @@ abstract final class LowEndTheme {
         outlineVariant: shade(0.18),
       ),
       LowEndColors(
-        stepFill: shade(0.89),
+        stepFill: p.step ?? shade(0.89),
         onStepFill: ground,
         filledSteps: true,
         activeFill: accent,
@@ -299,20 +299,19 @@ abstract final class LowEndTheme {
         strobeOuter: _grey,
         strobeInner: ink,
         // The tabs on the ground, like the rest of the screen, under a thin
-        // line of the light colour: the open one is in the light colour
-        // with its icon filled, the others a warm grey (more than 4.5 : 1).
+        // line of the accent that fades into the ground: the open one is in
+        // the light colour with its icon filled, the others a warm grey (more
+        // than 4.5 : 1).
         bottomNavigationBackground: ground,
         bottomNavigationInk: Color.lerp(ground, navigation, 0.6)!,
         bottomNavigationSelectedInk: navigation,
         bottomNavigationIndicator: Colors.transparent,
         bottomNavigationBorder: accent,
-        navigationBackground: accent,
-        navigationIndicator: Color.lerp(
-          accent,
-          onAccent.computeLuminance() < 0.5 ? Colors.white : Colors.black,
-          0.18,
-        )!,
-        navigationInk: onAccent,
+        // The top of the screen is the ground too, up to the status bar:
+        // the accent is carried by the line over the tabs.
+        navigationBackground: ground,
+        navigationIndicator: Color.lerp(ground, Colors.white, 0.18)!,
+        navigationInk: navigation,
         // Pitch verdicts stay bright on the disc, independently of the
         // accent used for controls and navigation.
         inTune: Palette.inTune,
@@ -338,6 +337,7 @@ abstract final class LowEndTheme {
         accent: accent,
         dark: base.dark,
         light: base.light,
+        step: base.step,
       ),
     );
   }

@@ -14,10 +14,13 @@ Un tema è un `BrandPalette` in `lib/app/brand.dart`, fatto di quattro colori:
 | `brand`: fondo di icona e avvio | Rosso FFM `#A6282C` | Ebano `#141312` |
 | `accent`: TAP, selezioni, primo battito, rail | Rosso FFM `#A6282C` | Bronzo `#D4A373` |
 | `dark`: fondo delle schermate | Antracite `#242424` | Ebano `#141312` |
-| `light`: riga e scheda aperta della barra in basso, pulsanti +/−, ghiera del metronomo, leone | Grigio chiaro `#ECECE9` | Avorio `#F1E8D5` |
+| `light`: scheda aperta della barra in basso, pulsanti +/− e ghiera (in versione calda, vedi sotto), leone | Grigio chiaro `#ECECE9` | Avorio `#F1E8D5` |
 
 Il leone usa il colore chiaro. Il tema rosso conserva il suo leone avorio
 `#FFF5E3` con il campo facoltativo `mark` (il quinto colore, solo dove serve).
+Allo stesso modo il campo facoltativo `step` dà a +/− e alla ghiera un colore
+proprio: Ebony & Bronze usa l'avorio caldo `#EDDEC6` (avorio con il 15% di
+bronzo, 9 novembre 2026); senza `step` è `light` all'89% verso `dark`.
 
 `LowEndBrand.palette` è l'unico punto di scelta; nessuna impostazione per chi usa
 l'app. `LowEndTheme.forPalette` ricava tutto il resto in `lib/app/theme.dart`:
@@ -25,8 +28,10 @@ superfici, bordi, tasti spenti e testo attenuato sono miscele di `dark` e
 `light` (grigi caldi con l'ebano, neutri con l'antracite); il disco è `dark`
 scurito dell'11%; il fondo prima di Flutter (`startup`) è `dark` scurito del
 33%. Testo sui riempimenti: l'inchiostro chiaro o scuro più leggibile, quindi
-ebano sul bronzo. Le schede stanno sul fondo (ebano), sotto una riga sottile del colore chiaro,
-solo icone: quella aperta è avorio con l'icona piena, le altre grigio caldo
+ebano sul bronzo. Le schede stanno sul fondo (ebano), sotto una sola riga sottile
+dell'accento che sfuma verso il fondo per 12 dp (`NavigationEdge`, finisce
+prima delle icone); niente riga sotto le schede né fascia dell'accento in alto,
+dove il fondo arriva fino alla barra di stato (9 novembre 2026). Solo icone: quella aperta è avorio con l'icona piena, le altre grigio caldo
 (più di 4,5:1); il pallino di una sezione che suona è dell'accento, come TAP.
 Vale per la barra in basso e per il rail in orizzontale (dal 9 novembre 2026,
 dopo una barra avorio con pillola).
@@ -37,8 +42,8 @@ forme, misure e disposizione.
 
 ## Contrasti (Ebony & Bronze)
 
-La ghiera del metronomo ha l'avorio dei pulsanti +/− (`stepFill`, `light` all'89%):
-ghiera e +/− cambiano entrambi il tempo; tacche ebano sulla ghiera 12,2:1.
+La ghiera del metronomo ha l'avorio caldo dei pulsanti +/− (`stepFill`,
+`#EDDEC6`): ghiera e +/− cambiano entrambi il tempo; tacche e segni ebano 14:1.
 
 Testo ebano sul bronzo 7,5:1; avorio su ebano 15:1; bronzo sul disco 8,3:1; schede
 non scelte sull'ebano circa 6:1; verdetti sull'ebano tra 6,6:1 e 11:1.
