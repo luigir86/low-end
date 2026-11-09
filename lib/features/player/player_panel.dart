@@ -140,6 +140,7 @@ class _PlayerPanelState extends State<PlayerPanel>
           dial: PlayerDial(
             player: player,
             recordingTime: recording ? recorder.elapsed : null,
+            takeLevels: recorder.levels,
           ),
           header: IgnorePointer(
             ignoring: recording,

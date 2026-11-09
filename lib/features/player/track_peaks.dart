@@ -8,6 +8,14 @@ import 'package:flutter/foundation.dart';
 /// the file is read, so a screen draws what has arrived and asks again when
 /// [version] grows.
 class TrackPeaks extends ChangeNotifier {
+  /// With [fullScale] the heights are measured against the loudest sample
+  /// there can be, not the loudest arrived so far: a take being recorded,
+  /// whose wave must not change size as it grows, and stays small when the
+  /// microphone hears little.
+  TrackPeaks({this.fullScale = false});
+
+  final bool fullScale;
+
   /// Every value covers this much of the track.
   static const frame = Duration(milliseconds: 10);
 
@@ -102,8 +110,9 @@ class TrackPeaks extends ChangeNotifier {
   }
 
   double _height(int peak) {
-    if (peak <= 0 || _strongest <= 0) return 0;
-    final db = 20 * math.log(peak / _strongest) / math.ln10;
+    final top = fullScale ? maxValue : _strongest;
+    if (peak <= 0 || top <= 0) return 0;
+    final db = 20 * math.log(peak / top) / math.ln10;
     return (1 + db / rangeDb).clamp(0.0, 1.0);
   }
 }
