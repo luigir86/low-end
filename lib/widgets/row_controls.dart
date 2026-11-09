@@ -20,6 +20,7 @@ class LabeledField extends StatelessWidget {
     required this.onTap,
     this.showLabel = true,
     this.display,
+    this.accent = false,
   });
 
   final String label;
@@ -29,6 +30,10 @@ class LabeledField extends StatelessWidget {
   /// Shown in place of [value] (the notes of a subdivision); [value] is
   /// still what a screen reader says.
   final Widget? display;
+
+  /// The value and the border in the accent: a setting away from its usual
+  /// value (the Player slowed down), to be noticed at a glance.
+  final bool accent;
 
   /// Null: the field is dimmed and does nothing.
   final VoidCallback? onTap;
@@ -53,6 +58,13 @@ class LabeledField extends StatelessWidget {
               labelText: showLabel ? label : null,
               floatingLabelBehavior: FloatingLabelBehavior.always,
               border: const OutlineInputBorder(),
+              enabledBorder: accent
+                  ? OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: LowEndColors.of(context).activeFill,
+                      ),
+                    )
+                  : null,
               contentPadding: const EdgeInsets.fromLTRB(12, 16, 4, 16),
               suffixIcon: const Icon(Icons.arrow_drop_down),
               suffixIconConstraints: const BoxConstraints(
@@ -66,7 +78,9 @@ class LabeledField extends StatelessWidget {
                   value,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyLarge,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: accent ? LowEndColors.of(context).activeFill : null,
+                  ),
                 ),
           ),
         ),

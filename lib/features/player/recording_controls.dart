@@ -4,6 +4,7 @@ import '../../audio/recorded_track.dart';
 import '../../audio/system_track_files.dart';
 import '../../audio/track_output.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/row_controls.dart';
 import 'clock_text.dart';
 import 'player_controller.dart';
 import 'recording_controller.dart';
@@ -81,45 +82,86 @@ class _RecordingRowState extends State<RecordingRow>
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
     final recording = widget.recording;
+    final theme = Theme.of(context);
     return ListenableBuilder(
       listenable: recording,
       builder: (context, _) {
         final started = recording.status == RecordingStatus.recording;
         final ending = recording.status == RecordingStatus.finishing;
+        // The same slots as the track row: the field, then the buttons,
+        // REC's place taken by Stop.
         return Row(
           children: [
-            if (started)
-              FadeTransition(
-                opacity: pulse,
-                child: Icon(
-                  Icons.circle,
-                  color: Theme.of(context).colorScheme.error,
-                  size: 16,
+            Expanded(
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  labelText: strings.takeRecording,
+                  floatingLabelBehavior: FloatingLabelBehavior.always,
+                  border: const OutlineInputBorder(),
+                  contentPadding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
+                ),
+                child: Row(
+                  children: [
+                    if (started) ...[
+                      FadeTransition(
+                        opacity: pulse,
+                        child: Icon(
+                          Icons.circle,
+                          color: theme.colorScheme.error,
+                          size: 14,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                    ],
+                    Expanded(
+                      child: started
+                          ? ValueListenableBuilder<Duration>(
+                              valueListenable: recording.elapsed,
+                              builder: (context, time, _) => Text(
+                                clockText(time),
+                                style: theme.textTheme.bodyLarge,
+                              ),
+                            )
+                          : Text(
+                              strings.takeStarting,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodyLarge,
+                            ),
+                    ),
+                  ],
                 ),
               ),
-            const SizedBox(width: 6),
-            Expanded(
-              child: started
-                  ? ValueListenableBuilder<Duration>(
-                      valueListenable: recording.elapsed,
-                      builder: (context, time, _) => Text(clockText(time)),
-                    )
-                  : Text(
-                      strings.takeStarting,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(width: rowGap),
+            Tooltip(
+              message: strings.takeStop,
+              excludeFromSemantics: true,
+              child: Semantics(
+                label: strings.takeStop,
+                child: FilledButton(
+                  key: const Key('takeStop'),
+                  onPressed: started ? recording.finish : null,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: theme.colorScheme.error,
+                    foregroundColor: theme.colorScheme.onError,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: rowButtonInset / 2,
+                      vertical: rowButtonPadding,
                     ),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Icon(Icons.stop, size: 24),
+                ),
+              ),
             ),
-            FilledButton(
-              key: const Key('takeStop'),
-              onPressed: started ? recording.finish : null,
-              child: Text(strings.takeStop),
-            ),
-            const SizedBox(width: 4),
-            TextButton(
+            const SizedBox(width: rowGap),
+            RowButton(
               key: const Key('takeDiscard'),
+              tooltip: strings.takeDiscard,
               onPressed: ending ? null : () => recording.finish(discard: true),
-              child: Text(strings.takeDiscard),
+              label: const Icon(Icons.close, size: 24),
             ),
           ],
         );
@@ -168,38 +210,61 @@ class _TakeActionsState extends State<TakeActions> {
     }
   }
 
+  /// Takes the take off the Player. One not saved is lost with it, so
+  /// for a few seconds it can be brought back.
+  Future<void> remove() async {
+    final take = widget.take;
+    final player = widget.player;
+    final strings = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final saved = take.saved;
+    await player.removeRecording(take);
+    if (saved) return;
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(strings.takeDeleted),
+        action: SnackBarAction(
+          label: strings.takeUndo,
+          onPressed: () => player.open(take),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
+    final saved = widget.take.saved;
     return Row(
       children: [
         Expanded(
           child: IgnorePointer(
             ignoring: busy,
             child: widget.source(
-              widget.take.saved ? strings.takeSaved : strings.takeTemporary,
+              saved ? strings.takeSaved : strings.takeTemporary,
             ),
           ),
         ),
-        if (widget.take.saved)
-          IgnorePointer(ignoring: busy, child: widget.record)
-        else
-          IconButton.outlined(
-            onPressed: busy ? null : () => export(false),
-            icon: const Icon(Icons.save_outlined),
-            tooltip: strings.takeSave,
-          ),
-        IconButton.outlined(
-          onPressed: busy ? null : () => export(true),
-          icon: const Icon(Icons.share_outlined),
-          tooltip: strings.takeShare,
+        const SizedBox(width: rowGap),
+        IgnorePointer(ignoring: busy, child: widget.record),
+        const SizedBox(width: rowGap),
+        RowButton(
+          tooltip: strings.takeSave,
+          onPressed: busy || saved ? null : () => export(false),
+          label: const Icon(Icons.save_outlined, size: 24),
         ),
-        IconButton.outlined(
-          tooltip: widget.take.saved ? strings.takeRemove : strings.takeDelete,
-          icon: const Icon(Icons.delete_outline),
-          onPressed: busy
-              ? null
-              : () => widget.player.removeRecording(widget.take),
+        const SizedBox(width: rowGap),
+        RowButton(
+          tooltip: strings.takeShare,
+          onPressed: busy ? null : () => export(true),
+          label: const Icon(Icons.share_outlined, size: 24),
+        ),
+        const SizedBox(width: rowGap),
+        RowButton(
+          tooltip: saved ? strings.takeRemove : strings.takeDelete,
+          onPressed: busy ? null : remove,
+          label: const Icon(Icons.delete_outline, size: 24),
         ),
       ],
     );

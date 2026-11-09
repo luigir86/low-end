@@ -22,7 +22,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get takeRecord => 'Enregistrer';
 
   @override
-  String get takeRecordShort => 'REC';
+  String get takeDeleted => 'Enregistrement supprimé';
+
+  @override
+  String get takeUndo => 'Annuler';
 
   @override
   String get takeStop => 'Arrêter';
@@ -728,9 +731,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get playerSpeed => 'Vitesse';
-
-  @override
-  String get playerSpeedTitle => 'Vitesse d’écoute';
 
   @override
   String get playerCaptureStart => 'Marquer le début';

@@ -288,7 +288,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     final rec = find.byKey(PlayerPanel.recordKey);
-    expect(find.descendant(of: rec, matching: find.text('REC')), findsOne);
+    expect(find.byTooltip('Record'), findsOne);
     final dot = tester.widget<Icon>(
       find.descendant(of: rec, matching: find.byIcon(Icons.circle)),
     );

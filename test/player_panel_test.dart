@@ -15,6 +15,7 @@ import 'package:low_end/app/home_shell.dart';
 import 'package:low_end/app/low_end_app.dart';
 import 'package:low_end/app/screen_awake.dart';
 import 'package:low_end/app/settings.dart';
+import 'package:low_end/app/theme.dart';
 import 'package:low_end/audio/audio_scope.dart';
 import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/mic_input.dart';
@@ -22,6 +23,7 @@ import 'package:low_end/audio/take_recorder.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/audio/track_files.dart';
 import 'package:low_end/audio/track_output.dart';
+import 'package:low_end/features/player/clock_text.dart';
 import 'package:low_end/features/player/player_controller.dart';
 import 'package:low_end/features/player/passage_strip.dart';
 import 'package:low_end/features/player/player_panel.dart';
@@ -99,17 +101,17 @@ void main() {
       await screen.player.seek(at);
       await screen.settle();
       expect(find.byIcon(Icons.delete_outline), findsNothing);
-      await tester.tap(find.text('REC'));
+      await tester.tap(find.byTooltip('Record'));
       await screen.settle();
       expect(find.byType(AlertDialog), findsNothing);
       expect(find.byKey(DialLayout.rowKeys.last), findsOneWidget);
-      await tester.tap(find.text('Discard'));
+      await tester.tap(find.byTooltip('Discard'));
       await screen.settle();
       expect(screen.player.track, same(_song));
       expect(screen.player.position, at);
-      await tester.tap(find.text('REC'));
+      await tester.tap(find.byTooltip('Record'));
       await screen.settle();
-      await tester.tap(find.text('Stop'));
+      await tester.tap(find.byTooltip('Stop'));
       await screen.settle();
       expect(screen.player.status, PlayerStatus.ready);
       expect(screen.player.isPlaying, isFalse);
@@ -120,8 +122,17 @@ void main() {
       await tester.tap(find.byTooltip('Share'));
       await screen.settle();
       expect(exports, ['share']);
-      expect(find.text('REC'), findsNothing);
+      // REC stays in its place, next to the take's own buttons.
+      expect(find.byTooltip('Record'), findsOneWidget);
       expect(find.byTooltip('Delete recording'), findsOneWidget);
+      // The field gives the length of the take.
+      expect(
+        find.descendant(
+          of: find.byKey(PlayerPanel.trackFieldKey),
+          matching: find.text(clockText(screen.player.duration)),
+        ),
+        findsOneWidget,
+      );
       await tester.tap(find.byKey(PlayerPanel.trackFieldKey));
       await screen.settle();
       await tester.tap(find.text('Keep'));
@@ -131,7 +142,7 @@ void main() {
       await screen.settle();
       expect(exports, ['share', 'save']);
       expect(find.text('Saved'), findsOneWidget);
-      expect(find.text('REC'), findsOneWidget);
+      expect(find.byTooltip('Record'), findsOneWidget);
       final take = screen.player.track;
       await tester.tap(find.byTooltip('Remove from player'));
       await screen.settle();
@@ -151,17 +162,44 @@ void main() {
       final screen = await _open(tester, recorder: recorder);
       await screen.player.open(_song);
       await screen.settle();
-      await tester.tap(find.text('REC'));
+      await tester.tap(find.byTooltip('Record'));
       await screen.settle();
-      await tester.tap(find.text('Discard'));
+      await tester.tap(find.byTooltip('Discard'));
       permission.complete(true);
       await screen.settle();
       expect(recorder.starts, 0);
       expect(screen.player.track, same(_song));
-      expect(find.text('REC'), findsOneWidget);
+      expect(find.byTooltip('Record'), findsOneWidget);
       expect(find.byIcon(Icons.delete_outline), findsNothing);
     },
   );
+
+  testWidgets('an unsaved take deleted can be brought back, and REC over '
+      'it asks first', (tester) async {
+    final screen = await _open(tester);
+    await screen.player.open(_song);
+    await screen.settle();
+    await tester.tap(find.byTooltip('Record'));
+    await screen.settle();
+    await tester.tap(find.byTooltip('Stop'));
+    await screen.settle();
+    final take = screen.player.track;
+    // REC on a take not saved would replace it: it asks.
+    await tester.tap(find.byTooltip('Record'));
+    await screen.settle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    await tester.tap(find.text('Keep'));
+    await screen.settle();
+    expect(screen.player.track, same(take));
+    await tester.tap(find.byTooltip('Delete recording'));
+    await screen.settle();
+    expect(screen.player.track, _song);
+    expect(find.text('Recording deleted'), findsOneWidget);
+    await tester.tap(find.text('Undo'));
+    await screen.settle();
+    expect(screen.player.track, same(take));
+    expect(find.byTooltip('Delete recording'), findsOneWidget);
+  });
 
   testWidgets('with no track the middle asks for one, and a touch opens the '
       'chooser', (tester) async {
@@ -477,7 +515,15 @@ void main() {
     final whole = RingWindow.whole(const Duration(minutes: 6));
 
     bool enabled(WidgetTester tester, Key key) =>
-        tester.widget<OutlinedButton>(find.byKey(key)).onPressed != null;
+        tester
+            .widget<ButtonStyleButton>(
+              find.descendant(
+                of: find.byKey(key),
+                matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
+              ),
+            )
+            .onPressed !=
+        null;
 
     Rect dialRect(WidgetTester tester) =>
         tester.getRect(find.byKey(DialLayout.dialKey));
@@ -500,7 +546,7 @@ void main() {
       expect(find.byKey(PlayerPanel.messageKey), findsNothing);
       await tester.tap(find.byKey(PlayerPanel.speedFieldKey));
       await screen.settle();
-      expect(find.text('Listening speed'), findsNothing);
+      expect(find.text('85%'), findsNothing);
     });
 
     testWidgets('two taps capture a passage; the dial and button stay put', (
@@ -511,6 +557,8 @@ void main() {
       final button = find.byKey(PlayerPanel.loopSwitchKey);
       final center = tester.getCenter(button);
       expect(find.byKey(PassageStrip.stripKey), findsOneWidget);
+      // Always in its place, off until a flag is set.
+      expect(enabled(tester, PlayerPanel.newPassageKey), isFalse);
       await screen.player.seek(a);
       await tester.tap(find.text('Mark start'));
       await screen.settle();
@@ -692,7 +740,9 @@ void main() {
       );
     });
 
-    testWidgets('the speed field asks for a speed in a sheet', (tester) async {
+    testWidgets('the speed field offers a short list of speeds', (
+      tester,
+    ) async {
       final screen = await track(tester);
       expect(
         find.descendant(
@@ -703,11 +753,24 @@ void main() {
       );
       await tester.tap(find.byKey(PlayerPanel.speedFieldKey));
       await screen.settle();
-      expect(find.text('Listening speed'), findsOneWidget);
+      for (final p in PlayerPanel.speedChoices) {
+        expect(find.text('$p%'), findsWidgets);
+      }
       await tester.tap(find.text('70%'));
       await screen.settle();
       expect(screen.player.speed, 70);
       expect(screen.output.speed, 0.7);
+      // Away from 100% the value is in the accent, to be noticed.
+      final value = tester.widget<Text>(
+        find.descendant(
+          of: find.byKey(PlayerPanel.speedFieldKey),
+          matching: find.text('70%'),
+        ),
+      );
+      expect(
+        value.style?.color,
+        LowEndColors.of(tester.element(find.text('70%'))).activeFill,
+      );
     });
 
     testWidgets('the last row is the track field alone', (tester) async {

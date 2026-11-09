@@ -3,15 +3,14 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../../app/theme.dart';
 import '../../audio/audio_scope.dart';
 import '../../audio/recorded_track.dart';
 import '../../audio/track_output.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/dial.dart';
 import '../../widgets/choice_menu.dart';
-import '../../widgets/number_sheet.dart';
 import '../../widgets/row_controls.dart';
+import 'clock_text.dart';
 import 'player_controller.dart';
 import 'passage_strip.dart';
 import 'player_dial.dart';
@@ -30,31 +29,14 @@ class PlayerPanel extends StatefulWidget {
   static const loopSwitchKey = Key('playerLoop');
   static const messageKey = Key('playerMessage');
   static const recordKey = Key('playerRecord');
+  static const newPassageKey = Key('playerNewPassage');
 
-  /// The speeds offered in the sheet, in percent.
-  static const speedShortcuts = [50, 60, 70, 75, 80, 90, 100, 110, 125];
+  /// The speeds offered in the menu, in percent: the usual steps of study,
+  /// from half speed up, a little faster at the end.
+  static const speedChoices = [50, 60, 70, 75, 80, 85, 90, 100, 110, 125];
 
   @override
   State<PlayerPanel> createState() => _PlayerPanelState();
-
-  static Future<void> _askSpeed(
-    BuildContext context,
-    PlayerController player,
-  ) async {
-    final l10n = AppLocalizations.of(context);
-    final percent = await showNumberSheet(
-      context,
-      title: l10n.playerSpeedTitle,
-      unit: '%',
-      current: player.speed,
-      min: PlayerController.minSpeed,
-      max: PlayerController.maxSpeed,
-      shortcuts: [
-        for (final p in speedShortcuts) Choice(value: p, title: '$p%'),
-      ],
-    );
-    if (percent != null) player.setSpeed(percent);
-  }
 }
 
 class _PlayerPanelState extends State<PlayerPanel>
@@ -119,10 +101,10 @@ class _PlayerPanelState extends State<PlayerPanel>
       listenable: Listenable.merge([player, recorder]),
       builder: (context, _) {
         final recording = recorder.active;
-        Widget source(String label) => LabeledField(
+        Widget source(String label, {String? value}) => LabeledField(
           key: PlayerPanel.trackFieldKey,
           label: label,
-          value: player.title ?? strings.playerChoose,
+          value: value ?? player.title ?? strings.playerChoose,
           onTap: () async {
             if (player.track is RecordedTrack &&
                 !await confirmReplace(context, player.track)) {
@@ -131,17 +113,25 @@ class _PlayerPanelState extends State<PlayerPanel>
             await player.pick();
           },
         );
-        final rec = Tooltip(
-          message: strings.takeRecord,
-          child: OutlinedButton.icon(
-            key: PlayerPanel.recordKey,
-            onPressed: () => recorder.start(label: strings.takeRecording),
-            icon: Icon(
+        final rec = RowButton(
+          key: PlayerPanel.recordKey,
+          tooltip: strings.takeRecord,
+          onPressed: () async {
+            if (player.track is RecordedTrack &&
+                !await confirmReplace(context, player.track)) {
+              return;
+            }
+            if (!context.mounted) return;
+            await recorder.start(label: strings.takeRecording);
+          },
+          // A small dot in the room of a full icon: as wide as the others.
+          label: SizedBox.square(
+            dimension: 24,
+            child: Icon(
               Icons.circle,
               color: Theme.of(context).colorScheme.error,
-              size: 14,
+              size: 18,
             ),
-            label: Text(strings.takeRecordShort),
           ),
         );
         final track = player.track;
@@ -154,14 +144,21 @@ class _PlayerPanelState extends State<PlayerPanel>
             ignoring: recording,
             child: ExcludeSemantics(
               excluding: recording,
-              child: _FirstRow(player: player),
+              // Off while recording, and seen to be off.
+              child: Opacity(
+                opacity: recording ? 0.38 : 1,
+                child: _FirstRow(player: player),
+              ),
             ),
           ),
           upper: AbsorbPointer(
             absorbing: recording,
             child: ExcludeSemantics(
               excluding: recording,
-              child: _ControlRow(player: player),
+              child: Opacity(
+                opacity: recording ? 0.38 : 1,
+                child: _ControlRow(player: player),
+              ),
             ),
           ),
           lower: recording
@@ -171,7 +168,8 @@ class _PlayerPanelState extends State<PlayerPanel>
                   key: ValueKey(track.uri),
                   take: track,
                   player: player,
-                  source: source,
+                  source: (label) =>
+                      source(label, value: clockText(player.duration)),
                   record: rec,
                 )
               : Row(
@@ -207,12 +205,17 @@ class _FirstRow extends StatelessWidget {
               key: const ValueKey('strip'),
               children: [
                 Expanded(child: PassageStrip(player: player)),
-                if (player.loopStart != null || player.loopEnd != null)
-                  IconButton(
-                    tooltip: AppLocalizations.of(context).playerNewPassage,
-                    icon: const Icon(Icons.restart_alt),
-                    onPressed: player.clearPassage,
-                  ),
+                const SizedBox(width: rowGap),
+                // Always in its place, off until a flag is set: a button
+                // that comes and goes is harder to find.
+                RowButton(
+                  key: PlayerPanel.newPassageKey,
+                  tooltip: AppLocalizations.of(context).playerNewPassage,
+                  label: const Icon(Icons.deselect, size: 24),
+                  onPressed: player.loopStart != null || player.loopEnd != null
+                      ? player.clearPassage
+                      : null,
+                ),
               ],
             )
           : _MessageRow(key: const ValueKey('message'), player: player),
@@ -259,13 +262,26 @@ class _ControlRow extends StatelessWidget {
 
   final PlayerController player;
 
+  /// The short list of speeds, opened under the field.
+  Future<void> _chooseSpeed(BuildContext context) async {
+    final picked = await showChoiceMenu<int>(
+      anchor: context,
+      selected: player.speed,
+      choices: [
+        for (final p in PlayerPanel.speedChoices)
+          Choice(value: p, title: '$p%'),
+      ],
+    );
+    if (picked != null) player.setSpeed(picked);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
     final ready = player.status == PlayerStatus.ready;
     final active = player.looping;
     final pending = player.loopStart != null && !player.hasLoop;
+    final capturing = !player.hasLoop;
     final label = active
         ? l10n.playerLoopActive
         : player.hasLoop
@@ -273,39 +289,40 @@ class _ControlRow extends StatelessWidget {
         : pending
         ? l10n.playerCaptureEnd
         : l10n.playerCaptureStart;
-    final colors = LowEndColors.of(context);
     final enabled = ready && player.duration >= PlayerController.minLoop;
     return Row(
       children: [
         Expanded(
+          flex: 2,
           child: Semantics(
             toggled: player.hasLoop ? active : null,
-            child: OutlinedButton(
+            // The same shape and height as every button of the rows: filled
+            // in the accent while the loop plays, pale while it waits for a
+            // flag (a button to press, like − and +), outlined when it is off.
+            child: RowButton(
               key: PlayerPanel.loopSwitchKey,
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(48, 52),
-                // Change fill and contrasting ink together: a light accent
-                // must not briefly keep the inactive white label.
-                animationDuration: Duration.zero,
-                backgroundColor: active
-                    ? colors.activeFill
-                    : theme.colorScheme.surface,
-                foregroundColor: active
-                    ? colors.onActiveFill
-                    : theme.colorScheme.onSurface,
-                side: BorderSide(
-                  color: active || pending
-                      ? colors.activeFill
-                      : theme.colorScheme.outline,
-                ),
-              ),
+              filled: active,
+              adjustment: capturing,
               onPressed: enabled ? player.captureOrToggle : null,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              label: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.repeat, size: 18),
+                  Icon(
+                    capturing ? Icons.flag_outlined : Icons.repeat,
+                    size: 20,
+                  ),
                   const SizedBox(width: 6),
-                  Flexible(child: Text(label, textAlign: TextAlign.center)),
+                  Flexible(
+                    child: Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      // One line, as tall as the field beside it; a screen
+                      // reader still says it whole.
+                      maxLines: 1,
+                      softWrap: false,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -313,11 +330,15 @@ class _ControlRow extends StatelessWidget {
         ),
         const SizedBox(width: rowGap),
         Expanded(
-          child: LabeledField(
-            key: PlayerPanel.speedFieldKey,
-            label: l10n.playerSpeed,
-            value: '${player.speed}%',
-            onTap: ready ? () => PlayerPanel._askSpeed(context, player) : null,
+          child: Builder(
+            builder: (field) => LabeledField(
+              key: PlayerPanel.speedFieldKey,
+              label: l10n.playerSpeed,
+              value: '${player.speed}%',
+              // Slowed down or sped up: the value in the accent.
+              accent: player.speed != 100,
+              onTap: ready ? () => _chooseSpeed(field) : null,
+            ),
           ),
         ),
       ],
