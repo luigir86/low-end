@@ -10,6 +10,7 @@ import '../features/tuner/tuner_panel.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/dial.dart';
 import '../widgets/flip_detector.dart';
+import '../widgets/navigation_edge.dart';
 import '../widgets/section_float.dart';
 import '../widgets/section_icons.dart';
 import 'app_navigation.dart';
@@ -331,18 +332,23 @@ class _HomeShellState extends State<HomeShell> {
                             FlipDetector(
                               child: Container(
                                 width: LowEndShape.railWidth,
-                                // The thin light line that parts the tabs from the
-                                // dial, as above the bottom bar.
-                                decoration: BoxDecoration(
-                                  border: BorderDirectional(
-                                    end: BorderSide(
-                                      color: LowEndColors.of(context)
-                                          .bottomNavigationSelectedInk,
-                                    ),
-                                  ),
+                                // The accent line that parts the tabs from the
+                                // dial, fading into the ground, as above the
+                                // bottom bar.
+                                padding: const EdgeInsetsDirectional.only(
+                                  end: LowEndShape.navigationLine,
+                                ),
+                                decoration: NavigationEdge(
+                                  ground: LowEndColors.of(context)
+                                      .bottomNavigationBackground,
+                                  accent: LowEndColors.of(context)
+                                      .bottomNavigationBorder,
+                                  side: NavigationEdgeSide.end,
                                 ),
                                 child: NavigationRail(
                                   key: const Key('tabRail'),
+                                  // The frame paints the ground and the glow.
+                                  backgroundColor: Colors.transparent,
                                   selectedIndex: section.index,
                                   onDestinationSelected: _onDestination,
                                   labelType: NavigationRailLabelType.all,
@@ -402,29 +408,22 @@ class _HomeShellState extends State<HomeShell> {
               : Container(
                   key: const Key('bottomNavigationFrame'),
                   margin: const EdgeInsets.only(top: 8),
-                  decoration: BoxDecoration(
-                    color: LowEndColors.of(context).bottomNavigationBackground,
-                    border: Border(
-                      // A thin line of the light colour parts the tabs from
-                      // the controls, both on the ground.
-                      top: BorderSide(
-                        color: LowEndColors.of(context)
-                            .bottomNavigationSelectedInk,
-                      ),
-                      bottom: BorderSide(
-                        color: LowEndColors.of(context).bottomNavigationBorder,
-                        width:
-                            LowEndColors.of(context).bottomNavigationBorder.a ==
-                                0
-                            ? 0
-                            : LowEndShape.navigationBaseLine,
-                      ),
-                    ),
+                  // A thin accent line over the tabs, fading down into the
+                  // ground: the only edge between the controls and the bar.
+                  padding: const EdgeInsets.only(
+                    top: LowEndShape.navigationLine,
+                  ),
+                  decoration: NavigationEdge(
+                    ground: LowEndColors.of(context).bottomNavigationBackground,
+                    accent: LowEndColors.of(context).bottomNavigationBorder,
+                    side: NavigationEdgeSide.top,
                   ),
                   child: _gestureBar(
                     context,
                     (height) => NavigationBar(
                       height: height,
+                      // The frame paints the ground and the glow under it.
+                      backgroundColor: Colors.transparent,
                       labelBehavior:
                           NavigationDestinationLabelBehavior.alwaysHide,
                       animationDuration: MediaQuery.disableAnimationsOf(context)

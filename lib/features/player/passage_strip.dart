@@ -8,6 +8,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 
 import '../../app/style.dart';
+import '../../app/theme.dart';
 import '../../l10n/app_localizations.dart';
 import 'clock_text.dart';
 import 'flag_drag.dart';
@@ -331,7 +332,7 @@ class _PassageStripState extends State<PassageStrip>
                             fill: theme.colorScheme.outlineVariant,
                             outline: theme.colorScheme.outline,
                             tick: theme.colorScheme.onSurfaceVariant,
-                            wave: theme.colorScheme.onSurfaceVariant,
+                            wave: LowEndColors.of(context).stepFill,
                             startLabel: a == null ? '' : 'A ${_clock(a, l10n)}',
                             endLabel: b == null ? '' : '${_clock(b, l10n)} B',
                             textScaler: scale,

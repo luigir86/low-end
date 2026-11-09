@@ -12,14 +12,15 @@ import 'style.dart';
 abstract final class Palette {
   // Text.
   static const inkOnLight = Color(0xFF1E1C1A);
-  static const inkOnDark = Color(0xFFEFEDEA);
+  static const inkOnDark = Color(0xFFF2E9DA);
 
-  static const error = Color(0xFFFF5F56);
+  static const error = Color(0xFFE8735F);
 
   // Warm tuner colours against the dark dial, the same in every palette.
-  static const inTune = Color(0xFFA4BF89);
-  static const close = Color(0xFFDCCB79);
-  static const off = Color(0xFFD98376);
+  static const inTune = Color(0xFFA9BC8B);
+  static const close = Color(0xFFDEC27A);
+  // Far off is the same terracotta as an error and REC: one warm red.
+  static const off = error;
 }
 
 /// Colours the Material scheme has no name for.
@@ -248,10 +249,13 @@ abstract final class LowEndTheme {
   );
 
   /// The whole theme from the four colours of [p]. Every neutral is a
-  /// mixture of the dark and light colours, so a warm palette has warm greys.
+  /// mixture of the dark colour and the light one (or the palette's tint),
+  /// so a warm palette has warm greys.
   static ThemeData forPalette(BrandPalette p) {
     final accent = p.accent;
-    Color shade(double amount) => Color.lerp(p.dark, p.light, amount)!;
+    // The greys lean to the palette's tint (warm sand in Ebony & Bronze).
+    final warm = p.tint ?? p.light;
+    Color shade(double amount) => Color.lerp(p.dark, warm, amount)!;
     final ground = p.dark;
     final disc = Color.lerp(p.dark, Colors.black, 0.11)!;
     const ink = Palette.inkOnDark;
@@ -289,30 +293,30 @@ abstract final class LowEndTheme {
         outlineVariant: shade(0.18),
       ),
       LowEndColors(
-        stepFill: shade(0.89),
+        stepFill: p.step ?? shade(0.89),
         onStepFill: ground,
         filledSteps: true,
         activeFill: accent,
         onActiveFill: onAccent,
-        // The strobe stays neutral grey in every palette.
-        strobeIdle: const Color(0xFF777777),
-        strobeOuter: _grey,
+        // The strobe at rest is a quiet grey of the palette, far from the
+        // saturated verdict colours.
+        strobeIdle: shade(0.5),
+        strobeOuter: shade(0.66),
         strobeInner: ink,
         // The tabs on the ground, like the rest of the screen, under a thin
-        // line of the light colour: the open one is in the light colour
-        // with its icon filled, the others a warm grey (more than 4.5 : 1).
+        // line of the accent that fades into the ground: the open one is in
+        // the light colour with its icon filled, the others a warm grey (more
+        // than 4.5 : 1).
         bottomNavigationBackground: ground,
         bottomNavigationInk: Color.lerp(ground, navigation, 0.6)!,
         bottomNavigationSelectedInk: navigation,
         bottomNavigationIndicator: Colors.transparent,
         bottomNavigationBorder: accent,
-        navigationBackground: accent,
-        navigationIndicator: Color.lerp(
-          accent,
-          onAccent.computeLuminance() < 0.5 ? Colors.white : Colors.black,
-          0.18,
-        )!,
-        navigationInk: onAccent,
+        // The top of the screen is the ground too, up to the status bar:
+        // the accent is carried by the line over the tabs.
+        navigationBackground: ground,
+        navigationIndicator: Color.lerp(ground, Colors.white, 0.18)!,
+        navigationInk: navigation,
         // Pitch verdicts stay bright on the disc, independently of the
         // accent used for controls and navigation.
         inTune: Palette.inTune,
@@ -338,6 +342,8 @@ abstract final class LowEndTheme {
         accent: accent,
         dark: base.dark,
         light: base.light,
+        step: base.step,
+        tint: base.tint,
       ),
     );
   }
