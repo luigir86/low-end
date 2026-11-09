@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:low_end/audio/track_files.dart';
-import 'package:low_end/audio/track_output.dart';
-import 'package:low_end/features/player/player_controller.dart';
-import 'package:low_end/audio/click_output.dart';
-import 'package:low_end/features/metronome/metronome_controller.dart';
 import 'package:low_end/actions/app_actions.dart';
 import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/home_shell.dart';
 import 'package:low_end/app/low_end_app.dart';
 import 'package:low_end/app/settings.dart';
 import 'package:low_end/audio/audio_scope.dart';
+import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/tone_output.dart';
+import 'package:low_end/audio/track_files.dart';
+import 'package:low_end/audio/track_output.dart';
 import 'package:low_end/features/harmony/drone_controller.dart';
+import 'package:low_end/features/metronome/metronome_controller.dart';
+import 'package:low_end/features/player/player_controller.dart';
 import 'package:low_end/features/tuner/tuner_controller.dart';
 
 Map<String, Object?> _state(Map<String, Object?> r) =>

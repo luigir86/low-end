@@ -1,15 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/loop_transport.dart';
-import 'package:low_end/audio/piano_sound.dart';
 import 'package:low_end/audio/piano_output.dart';
+import 'package:low_end/audio/piano_sound.dart';
 import 'package:low_end/audio/tone_output.dart';
+import 'package:low_end/features/harmony/drone_controller.dart';
+import 'package:low_end/features/harmony/harmony.dart';
 import 'package:low_end/features/metronome/metronome_controller.dart';
 import 'package:low_end/features/metronome/subdivision.dart';
 import 'package:low_end/features/metronome/time_signature.dart';
-import 'package:low_end/features/harmony/drone_controller.dart';
 import 'package:low_end/features/songs/example_song.dart';
-import 'package:low_end/features/harmony/harmony.dart';
 
 void main() {
   group('changing song while it plays', () {

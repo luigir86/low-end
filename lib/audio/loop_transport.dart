@@ -186,7 +186,7 @@ class _Loop {
   final Duration? startsAt;
 }
 
-/// Where a loop actually began: [position] into the loop at the moment it
-/// started to sound, and [delay], how long from the call that was, when it
+/// Where a loop actually began: `position` into the loop at the moment it
+/// started to sound, and `delay`, how long from the call that was, when it
 /// had to wait for the other loop's next bar line.
 typedef LoopStart = ({Duration position, Duration delay});

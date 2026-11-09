@@ -58,8 +58,8 @@ Twelve keys round a dial (by default in the circle of fifths; you can ask for se
 Plays a track of your own: a recording of the rehearsal, a part sent by the conductor, a song you bought. Pick it with the phone's file chooser; the app asks for no permission and sends the file nowhere. MP3, M4A, WAV and FLAC play everywhere (Ogg and Opus on Android too). Tracks from a streaming subscription cannot be opened: they are not files.
 
 - **Choosing a track:** touch the middle of the dial (it says *Choose a track*) or the **Track** field under it. The track opens ready, not playing.
-- **The ring is the clock of the track:** a whole turn is its length, from 12 o'clock clockwise, with twelve equally spaced ticks (one per minute on a twelve-minute track) and a point where you are listening. **Touch the ring** to go to that point. The middle shows the elapsed time and track duration. Tap the time in the middle to play or pause; if the file has a title or an artist they are written above the time, and a long one goes by once when the track opens and each time it starts, then stays still.
-- **Speed:** the **Speed** field (50% to 125%) slows the track down or speeds it up without changing the pitch. Touch it and pick a usual value or type one.
+- **The ring is the clock of the track:** a whole turn is its length, from 12 o'clock clockwise, with ticks at round times round the outside, the long ones numbered (every 5 seconds on a short take, every minute on a six-minute song, at most eight numbers; on a small dial only the ticks), and a line across the ring where you are listening. **Touch the ring** to go to that point. The middle shows the elapsed time and track duration. Tap the time in the middle to play or pause; if the file has a title or an artist they are written above the time, and a long one goes by once when the track opens and each time it starts, then stays still.
+- **Speed:** the **Speed** field (50% to 125%) slows the track down or speeds it up without changing the pitch. Touch it and pick one from the short list (50, 60, 70, 75, 80, 85, 90, 100, 110, 125%); away from 100% the value is in bronze.
 - **Practice loop:** tap **Mark start**, then **Mark end** while listening or after seeking while paused. Leave at least one second between the marks. The waveform below the dial shows the whole track, then zooms to the passage. Drag either handle to refine it. Use the reset button beside the waveform to mark a new passage. Tap **Loop active** to stop repeating and keep the marks, then **Resume loop** to repeat them again.
 - **Recording yourself:** tap **REC** in the track row (the first time the phone asks for the microphone). The Player pauses; the metronome and Harmony carry on, so you can record over the click. A red dot and timer appear when the microphone starts. **Stop** opens the take for review from its beginning; **Discard** throws it away and leaves the Player as it was. The take is temporary: **Save** keeps a copy where you choose, **Share** sends it to another app, **Delete recording** throws it away. The track you were studying is not lost: when you delete the take (or remove it after saving), that track comes back with its speed and passage, and it is the one the app remembers next time. Leaving the Player, opening the settings or switching to another app stops the recording and keeps the take.
 - **The Player plays alone.** Starting it pauses the metronome and Harmony, with a *Resume* button; starting the metronome or Harmony pauses the Player. Entering its tab stops nothing. The tuner listening, a call, headphones pulled out and another app taking the sound pause it as they do the other sections. It also plays with the screen off, with the media notification showing the title.
@@ -68,7 +68,7 @@ Plays a track of your own: a recording of the rehearsal, a part sent by the cond
 
 ## Settings
 
-The gear at the top opens the settings, in three groups:
+The gear at the top opens the settings, in groups:
 
 | Group | Setting | Choices |
 | --- | --- | --- |
@@ -94,7 +94,7 @@ If you **unplug the headphones** (or a Bluetooth headset goes away), the sound s
 
 ## How it looks
 
-Ebony and bronze: a thin bronze line frames the top, and the settings gear sits on the ebony background in the top right, leaving more room for the dial. The bottom bar is ivory, with each section's name under its icon; the selected section sits in a bronze pill with its name in bold, and a bronze dot marks a section that is playing, even from another tab. The tuner has no playing dot. Dial centres and control backgrounds stay dark. The tempo wheel has ticks only; drag it or use the separate light −/+ buttons. TAP, the example songs and the style button are bronze. Tuner feedback combines sage, straw and brick red with symbols and words.
+Ebony and bronze: a thin bronze line frames the top, and the settings gear sits on the ebony background in the top right, leaving more room for the dial. The bottom bar is ebony under a thin ivory line, with icons only: the open section's icon is filled and ivory, the others are dimmer, and a bronze dot marks a section that is playing, even from another tab. Sideways, the column of tabs on the left is ebony too and keeps the names. The tuner has no playing dot. Dial centres and control backgrounds stay dark. The tempo wheel has ticks only; drag it or use the separate light −/+ buttons. TAP, the example songs and the style button are bronze. Tuner feedback combines sage, straw and brick red with symbols and words.
 
 ## Questions and problems
 

@@ -9,7 +9,7 @@ import 'web_audio_session.dart';
 
 /// Records a take from the microphone into a temporary file (RF-PLY-20).
 ///
-/// Kept behind an interface, like [MicInput], so that the Player's recording
+/// Kept behind an interface, like `MicInput`, so that the Player's recording
 /// can be tested without a microphone.
 abstract class TakeRecorder {
   /// Asks for microphone access if needed; returns whether it was granted.

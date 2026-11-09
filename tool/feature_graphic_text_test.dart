@@ -29,7 +29,7 @@ void main() {
         ),
       );
     await loader.load();
-    final palette = LowEndBrand.palette;
+    const palette = LowEndBrand.palette;
     await tester.runAsync(() async {
       final mark = (await (await ui.instantiateImageCodec(
         File(LowEndBrand.mark).readAsBytesSync(),

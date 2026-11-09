@@ -380,7 +380,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get circleLayoutFifths => 'Círculo de quintas';
 
   @override
+  String get circleLayoutFifthsShort => 'Quintas';
+
+  @override
   String get circleLayoutChromatic => 'Por semitonos (Do, Do♯, Re…)';
+
+  @override
+  String get circleLayoutChromaticShort => 'Semitonos';
 
   @override
   String get aboutTooltip => 'Acerca de Low End';
@@ -472,6 +478,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get octaveScientific => 'Científica (predeterminada)';
+
+  @override
+  String get octaveScientificShort => 'Científica';
 
   @override
   String get octaveItalian => 'Franco-belga';
@@ -706,9 +715,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get playerChoose => 'Elige una pista';
 
   @override
-  String get playerHubHint => 'Toca para empezar';
-
-  @override
   String get playerPlay => 'Reproducir';
 
   @override
@@ -766,40 +772,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get playerStartEarlier => 'Inicio antes';
-
-  @override
-  String get playerStartLater => 'Inicio después';
-
-  @override
-  String get playerEndEarlier => 'Fin antes';
-
-  @override
-  String get playerEndLater => 'Fin después';
-
-  @override
   String get guidePlayerLoop =>
       'En el reproductor, marca el inicio y el fin mientras escuchas. Arrastra A y B por el círculo para moverlos; en la forma de onda de abajo para afinar.';
-
-  @override
-  String get playerHintFlags =>
-      'Lleva A y B al anillo para elegir el pasaje que repetir';
-
-  @override
-  String get playerHintPlaceStart => 'Toca el anillo donde empieza el pasaje';
-
-  @override
-  String get playerHintPlaceEnd => 'Toca el anillo donde termina el pasaje';
-
-  @override
-  String get playerHintNeedStart => 'Ahora lleva A adonde empieza el pasaje';
-
-  @override
-  String get playerHintNeedEnd => 'Ahora lleva B adonde termina el pasaje';
-
-  @override
-  String get playerFlagStart => 'Bandera A, inicio del pasaje';
-
-  @override
-  String get playerFlagEnd => 'Bandera B, final del pasaje';
 }

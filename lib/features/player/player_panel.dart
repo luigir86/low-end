@@ -8,12 +8,12 @@ import '../../audio/audio_scope.dart';
 import '../../audio/recorded_track.dart';
 import '../../audio/track_output.dart';
 import '../../l10n/app_localizations.dart';
-import '../../widgets/dial.dart';
 import '../../widgets/choice_menu.dart';
+import '../../widgets/dial.dart';
 import '../../widgets/row_controls.dart';
 import 'clock_text.dart';
-import 'player_controller.dart';
 import 'passage_strip.dart';
+import 'player_controller.dart';
 import 'player_dial.dart';
 import 'recording_controller.dart';
 import 'recording_controls.dart';
@@ -337,6 +337,7 @@ class _ControlRow extends StatelessWidget {
               key: PlayerPanel.speedFieldKey,
               label: l10n.playerSpeed,
               value: '${player.speed}%',
+              fitValue: true,
               // Slowed down or sped up: the value in the accent.
               accent: player.speed != 100,
               onTap: ready ? () => _chooseSpeed(field) : null,

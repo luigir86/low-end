@@ -16,8 +16,8 @@ import '../../widgets/step_button.dart';
 import 'metronome_controller.dart';
 import 'note_icon.dart';
 import 'subdivision.dart';
-import 'tempo_dialog.dart';
 import 'tempo_dial.dart';
+import 'tempo_dialog.dart';
 import 'time_signature.dart';
 
 /// The metronome: a ring with one segment per beat of the bar (4 in 4/4,
@@ -586,6 +586,7 @@ class _SignatureButton extends StatelessWidget {
         key: const Key('signatureMenu'),
         label: l10n.timeSignature,
         value: value,
+        fitValue: true,
         onTap: () => _choose(field),
       ),
     );

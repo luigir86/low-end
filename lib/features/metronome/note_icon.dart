@@ -41,6 +41,11 @@ class NoteIcon extends StatelessWidget {
                 Text(
                   'Swing',
                   maxLines: 1,
+                  // Part of the drawing, sized by [height] like the notes:
+                  // the field already grows [height] with large text, and
+                  // scaling the word again made it twice as large, out of
+                  // the menu's line.
+                  textScaler: TextScaler.noScaling,
                   style: TextStyle(
                     color: ink,
                     fontSize: height * 0.42,

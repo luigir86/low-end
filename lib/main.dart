@@ -6,8 +6,8 @@ import 'package:flutter/services.dart';
 import 'app/licenses.dart';
 import 'app/low_end_app.dart';
 import 'app/settings.dart';
-import 'app/theme.dart';
 import 'app/startup_reveal.dart';
+import 'app/theme.dart';
 import 'audio/web_audio_session.dart';
 
 Future<void> main() async {

@@ -17,8 +17,6 @@ class SoundClock {
   /// How long into the clock the sound begins, when it waits.
   Duration _waiting = Duration.zero;
 
-  bool get isRunning => _watch.isRunning;
-
   /// Where in the loop the clock started (see [heard]).
   Duration get startedAt => _startedAt;
 

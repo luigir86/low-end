@@ -377,7 +377,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get circleLayoutFifths => 'Cycle des quintes';
 
   @override
+  String get circleLayoutFifthsShort => 'Quintes';
+
+  @override
   String get circleLayoutChromatic => 'Par demi-tons (Do, Do♯, Ré…)';
+
+  @override
+  String get circleLayoutChromaticShort => 'Demi-tons';
 
   @override
   String get aboutTooltip => 'À propos de Low End';
@@ -470,6 +476,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get octaveScientific => 'Scientifique (par défaut)';
+
+  @override
+  String get octaveScientificShort => 'Scientifique';
 
   @override
   String get octaveItalian => 'Franco-belge';
@@ -707,9 +716,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get playerChoose => 'Choisissez un morceau';
 
   @override
-  String get playerHubHint => 'Touchez pour démarrer';
-
-  @override
   String get playerPlay => 'Lire';
 
   @override
@@ -767,44 +773,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get playerStartEarlier => 'Début plus tôt';
-
-  @override
-  String get playerStartLater => 'Début plus tard';
-
-  @override
-  String get playerEndEarlier => 'Fin plus tôt';
-
-  @override
-  String get playerEndLater => 'Fin plus tard';
-
-  @override
   String get guidePlayerLoop =>
       'Dans le lecteur, marquez le début puis la fin en écoutant. Faites glisser A et B le long du cercle pour les déplacer ; sur la forme d’onde en dessous pour affiner.';
-
-  @override
-  String get playerHintFlags =>
-      'Placez A et B sur l\'anneau pour choisir le passage à répéter';
-
-  @override
-  String get playerHintPlaceStart =>
-      'Touchez l\'anneau là où le passage commence';
-
-  @override
-  String get playerHintPlaceEnd =>
-      'Touchez l\'anneau là où le passage se termine';
-
-  @override
-  String get playerHintNeedStart =>
-      'Placez maintenant A là où le passage commence';
-
-  @override
-  String get playerHintNeedEnd =>
-      'Placez maintenant B là où le passage se termine';
-
-  @override
-  String get playerFlagStart => 'Drapeau A, début du passage';
-
-  @override
-  String get playerFlagEnd => 'Drapeau B, fin du passage';
 }

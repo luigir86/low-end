@@ -4,27 +4,27 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:low_end/actions/app_actions.dart';
+import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/home_shell.dart';
 import 'package:low_end/app/low_end_app.dart';
 import 'package:low_end/app/screen_awake.dart';
-import 'package:low_end/audio/audio_scope.dart';
-import 'package:low_end/features/player/player_panel.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:low_end/actions/app_actions.dart';
-import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/settings.dart';
+import 'package:low_end/audio/audio_scope.dart';
+import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/recorded_track.dart';
 import 'package:low_end/audio/take_recorder.dart';
+import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/audio/track_files.dart';
 import 'package:low_end/audio/track_output.dart';
-import 'package:low_end/audio/click_output.dart';
-import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/features/harmony/drone_controller.dart';
 import 'package:low_end/features/metronome/metronome_controller.dart';
 import 'package:low_end/features/player/player_controller.dart';
+import 'package:low_end/features/player/player_panel.dart';
 import 'package:low_end/features/player/recording_controller.dart';
 import 'package:low_end/features/tuner/tuner_controller.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const _song = TrackRef(uri: 'content://song', name: 'Blue Bossa.mp3');
 const _other = TrackRef(uri: 'content://other', name: 'Other.m4a');
