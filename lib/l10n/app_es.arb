@@ -227,7 +227,7 @@
   "playerStartLater": "Inicio después",
   "playerEndEarlier": "Fin antes",
   "playerEndLater": "Fin después",
-  "guidePlayerLoop": "En el reproductor, marca el inicio y el fin mientras escuchas. Ajusta el pasaje en la forma de onda.",
+  "guidePlayerLoop": "En el reproductor, marca el inicio y el fin mientras escuchas. Arrastra A y B por el círculo para moverlos; en la forma de onda de abajo para afinar.",
   "playerHintFlags": "Lleva A y B al anillo para elegir el pasaje que repetir",
   "playerHintPlaceStart": "Toca el anillo donde empieza el pasaje",
   "playerHintPlaceEnd": "Toca el anillo donde termina el pasaje",

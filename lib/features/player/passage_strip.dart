@@ -41,6 +41,16 @@ class PassageStrip extends StatefulWidget {
   /// reader's increase or decrease.
   static const readerStep = PlayerController.coarseStep;
 
+  /// Within this distance of an end of the strip, a held pole pushes the
+  /// strip wider that way.
+  static const edgeZone = 24.0;
+
+  /// How often, and by how much of the window, the strip widens while
+  /// pushed: about half the window more each second, at least 20 ms a step.
+  static const pushTick = Duration(milliseconds: 16);
+  static const pushRate = 0.01;
+  static const pushMin = Duration(milliseconds: 20);
+
   @override
   State<PassageStrip> createState() => _PassageStripState();
 }
@@ -69,6 +79,11 @@ class _PassageStripState extends State<PassageStrip>
   var _fingerAt = Duration.zero;
   var _reduce = false;
 
+  /// A pole held against an edge widens the window that way (-1 left, 1
+  /// right), a little every frame, as a text selection scrolls.
+  Timer? _push;
+  var _pushWay = 0;
+
   RingWindow get _window =>
       _from.lerp(_to, Easing.standard.transform(_morph.value.clamp(0.0, 1.0)));
 
@@ -94,6 +109,7 @@ class _PassageStripState extends State<PassageStrip>
   void dispose() {
     widget.player.removeListener(_sync);
     _quiet?.cancel();
+    _push?.cancel();
     _ticker.dispose();
     _morph.dispose();
     _position.dispose();
@@ -202,6 +218,14 @@ class _PassageStripState extends State<PassageStrip>
       _moved = true;
       HapticFeedback.selectionClick();
     }
+    final dx = details.localPosition.dx;
+    _pushTowards(
+      dx < PassageStrip.margin + PassageStrip.edgeZone
+          ? -1
+          : dx > _width - PassageStrip.margin - PassageStrip.edgeZone
+          ? 1
+          : 0,
+    );
     final window = _window;
     _fingerAt = _timeAt(details.localPosition.dx);
     final to = _fingerAt + _offset;
@@ -213,7 +237,49 @@ class _PassageStripState extends State<PassageStrip>
     );
   }
 
+  void _pushTowards(int way) {
+    if (way == _pushWay) return;
+    _pushWay = way;
+    _push?.cancel();
+    _push = way == 0
+        ? null
+        : Timer.periodic(PassageStrip.pushTick, (_) => _pushOnce());
+  }
+
+  /// Widens the window by a step on the side of [_pushWay] and takes the
+  /// held flag to its new edge, up to the ends of the track.
+  void _pushOnce() {
+    final edge = _held;
+    if (!mounted || edge == null || _pushWay == 0) return _pushTowards(0);
+    final player = widget.player;
+    final window = _window;
+    final step = Duration(
+      microseconds: math.max(
+        (window.length.inMicroseconds * PassageStrip.pushRate).round(),
+        PassageStrip.pushMin.inMicroseconds,
+      ),
+    );
+    final RingWindow wider;
+    if (_pushWay > 0) {
+      final to = window.to + step;
+      wider = RingWindow(
+        window.from,
+        to > player.duration ? player.duration : to,
+      );
+    } else {
+      final from = window.from - step;
+      wider = RingWindow(from.isNegative ? Duration.zero : from, window.to);
+    }
+    if (wider == window) return;
+    setState(() {
+      _from = _to = wider;
+      _morph.value = 1;
+    });
+    player.moveEdge(edge, _pushWay > 0 ? wider.to : wider.from);
+  }
+
   void _end() {
+    _pushTowards(0);
     final edge = _held;
     if (edge == null) return;
     final moved = _moved;

@@ -773,7 +773,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guidePlayerLoop =>
-      'In Player, tap Mark start and Mark end while listening. Drag the waveform handles to refine the passage.';
+      'In Player, tap Mark start and Mark end while listening. Drag A and B round the dial to move them; on the waveform below for fine adjustments.';
 
   @override
   String get playerHintFlags =>

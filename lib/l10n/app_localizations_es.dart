@@ -779,7 +779,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get guidePlayerLoop =>
-      'En el reproductor, marca el inicio y el fin mientras escuchas. Ajusta el pasaje en la forma de onda.';
+      'En el reproductor, marca el inicio y el fin mientras escuchas. Arrastra A y B por el círculo para moverlos; en la forma de onda de abajo para afinar.';
 
   @override
   String get playerHintFlags =>

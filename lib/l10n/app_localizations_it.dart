@@ -778,7 +778,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get guidePlayerLoop =>
-      'In Ascolto tocca Segna inizio e Segna fine mentre ascolti. Trascina le aste sulla forma d’onda per rifinire il passaggio.';
+      'In Ascolto tocca Segna inizio e Segna fine mentre ascolti. Trascina A e B lungo il cerchio per spostarli; sulla forma d’onda sotto per rifinire.';
 
   @override
   String get playerHintFlags =>
