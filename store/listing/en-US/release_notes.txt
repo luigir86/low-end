@@ -1,1 +1,1 @@
-A new look in ebony and bronze, with a new lion icon. In the Player, recording yourself no longer replaces the track you are studying: delete the take and the track comes back, with its speed and passage.
+A new look in ebony and bronze, with a new lion icon. The section names are back under the tab icons. The Player has tidier controls and a short list of speeds, and recording yourself no longer replaces the track you are studying: delete the take and the track comes back, with its speed and passage.

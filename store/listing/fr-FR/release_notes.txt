@@ -1,1 +1,1 @@
-Un nouveau look en ébène et bronze, avec une nouvelle icône du lion. Dans Écoute, vous enregistrer ne remplace plus le morceau que vous travaillez : supprimez la prise et le morceau revient, avec sa vitesse et son passage.
+Un nouveau look en ébène et bronze, avec une nouvelle icône du lion. Les noms des sections reviennent sous les icônes des onglets. Écoute a des commandes plus claires et une courte liste de vitesses, et vous enregistrer ne remplace plus le morceau que vous travaillez : supprimez la prise et le morceau revient, avec sa vitesse et son passage.
