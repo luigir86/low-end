@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../../app/theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/dial.dart';
 import 'metronome_controller.dart';
@@ -160,7 +161,7 @@ class _MetronomeTempoDialState extends State<MetronomeTempoDial> {
               IgnorePointer(
                 child: CustomPaint(
                   painter: _TempoPainter(
-                    fill: Color.lerp(colors.surface, colors.onSurface, 0.72)!,
+                    fill: LowEndColors.of(context).stepFill,
                     ink: colors.surface,
                     rotation: _rotation,
                   ),

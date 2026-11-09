@@ -97,7 +97,8 @@ class LowEndColors extends ThemeExtension<LowEndColors> {
   /// first.
   final Color beatWeak;
 
-  /// Numeric adjustment buttons, independently of transport buttons.
+  /// Numeric adjustment buttons, independently of transport buttons, and the
+  /// metronome's tempo wheel (both change the tempo).
   final Color stepFill;
   final Color onStepFill;
   final bool filledSteps;
