@@ -14,7 +14,7 @@ Un tema è un `BrandPalette` in `lib/app/brand.dart`, fatto di quattro colori:
 | `brand`: fondo di icona e avvio | Rosso FFM `#A6282C` | Ebano `#141312` |
 | `accent`: TAP, selezioni, primo battito, rail | Rosso FFM `#A6282C` | Bronzo `#D4A373` |
 | `dark`: fondo delle schermate | Antracite `#242424` | Ebano `#141312` |
-| `light`: barra in basso, pulsanti +/−, leone | Grigio chiaro `#ECECE9` | Avorio `#F1E8D5` |
+| `light`: barra in basso, pulsanti +/−, ghiera del metronomo, leone | Grigio chiaro `#ECECE9` | Avorio `#F1E8D5` |
 
 Il leone usa il colore chiaro. Il tema rosso conserva il suo leone avorio
 `#FFF5E3` con il campo facoltativo `mark` (il quinto colore, solo dove serve).
@@ -33,6 +33,9 @@ paglia, mattone), lo strobo grigio a riposo, il testo quasi bianco, Edwin,
 forme, misure e disposizione.
 
 ## Contrasti (Ebony & Bronze)
+
+La ghiera del metronomo ha l'avorio dei pulsanti +/− (`stepFill`, `light` all'89%):
+ghiera e +/− cambiano entrambi il tempo; tacche ebano sulla ghiera 12,2:1.
 
 Testo ebano sul bronzo 7,5:1; avorio su ebano 15:1; bronzo sul disco 8,3:1; scheda
 scelta sull'avorio almeno 4,5:1; verdetti sull'ebano tra 6,6:1 e 11:1.
