@@ -324,8 +324,10 @@ class _MenuField<T> extends StatelessWidget {
   static const double wide = 176;
 
   /// Around a tile whose only line is its title, so that two such fields
-  /// one under the other do not touch.
-  static const tilePadding = EdgeInsets.symmetric(horizontal: 16, vertical: 4);
+  /// one under the other do not touch. Across, the Material 3 list tile's
+  /// own (16 dp before, 24 after), so that every field and switch of the
+  /// page ends on the same line.
+  static const tilePadding = EdgeInsetsDirectional.fromSTEB(16, 4, 24, 4);
 
   final String label;
   final double width;

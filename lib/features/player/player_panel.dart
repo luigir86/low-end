@@ -337,6 +337,7 @@ class _ControlRow extends StatelessWidget {
               key: PlayerPanel.speedFieldKey,
               label: l10n.playerSpeed,
               value: '${player.speed}%',
+              fitValue: true,
               // Slowed down or sped up: the value in the accent.
               accent: player.speed != 100,
               onTap: ready ? () => _chooseSpeed(field) : null,

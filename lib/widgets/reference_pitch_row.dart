@@ -41,6 +41,7 @@ class ReferencePitchRow extends StatelessWidget {
               child: LabeledField(
                 label: l10n.referencePitch,
                 value: '${a4.round()} Hz',
+                fitValue: true,
                 onTap: () => _choose(context),
               ),
             ),

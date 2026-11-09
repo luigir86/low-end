@@ -21,6 +21,7 @@ class LabeledField extends StatelessWidget {
     this.showLabel = true,
     this.display,
     this.accent = false,
+    this.fitValue = false,
   });
 
   final String label;
@@ -34,6 +35,11 @@ class LabeledField extends StatelessWidget {
   /// The value and the border in the accent: a setting away from its usual
   /// value (the Player slowed down), to be noticed at a glance.
   final bool accent;
+
+  /// A short value that must never be cut ("100%", "4/4", "440 Hz"): in a
+  /// narrow field with large text it shrinks a little instead of ending
+  /// in "…".
+  final bool fitValue;
 
   /// Null: the field is dimmed and does nothing.
   final VoidCallback? onTap;
@@ -72,19 +78,40 @@ class LabeledField extends StatelessWidget {
                 minHeight: 24,
               ),
             ),
-            child:
-                display ??
-                Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: accent ? LowEndColors.of(context).activeFill : null,
-                  ),
-                ),
+            child: display ?? _value(context, theme),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _value(BuildContext context, ThemeData theme) {
+    final text = Text(
+      value,
+      maxLines: 1,
+      overflow: fitValue ? TextOverflow.visible : TextOverflow.ellipsis,
+      softWrap: false,
+      style: theme.textTheme.bodyLarge?.copyWith(
+        color: accent ? LowEndColors.of(context).activeFill : null,
+      ),
+    );
+    if (!fitValue) return text;
+    // The field keeps the height of a whole line, as tall as the buttons
+    // beside it; only the words shrink.
+    return Stack(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: Text('', style: theme.textTheme.bodyLarge),
+        ),
+        Positioned.fill(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: text,
+          ),
+        ),
+      ],
     );
   }
 }

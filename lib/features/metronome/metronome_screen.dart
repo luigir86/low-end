@@ -586,6 +586,7 @@ class _SignatureButton extends StatelessWidget {
         key: const Key('signatureMenu'),
         label: l10n.timeSignature,
         value: value,
+        fitValue: true,
         onTap: () => _choose(field),
       ),
     );
