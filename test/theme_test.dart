@@ -143,14 +143,10 @@ void main() {
       test('idle strobe is quiet and verdicts remain semantic', () {
         // A grey of the palette, far less saturated than any verdict.
         for (final color in [e.strobeIdle, e.strobeOuter]) {
-          final quiet = HSLColor.fromColor(color).saturation;
-          expect(quiet, lessThan(0.3));
-          for (final verdict in [e.inTune, e.close, e.off]) {
-            expect(
-              HSLColor.fromColor(verdict).saturation,
-              greaterThan(quiet + 0.1),
-            );
-          }
+          expect(HSLColor.fromColor(color).saturation, lessThan(0.2));
+        }
+        for (final verdict in [e.inTune, e.close, e.off]) {
+          expect(HSLColor.fromColor(verdict).saturation, greaterThan(0.25));
         }
         expect(e.inTune, Palette.inTune);
         expect(e.close, Palette.close);

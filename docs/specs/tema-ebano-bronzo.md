@@ -44,8 +44,8 @@ Il testo è un bianco avorio `#F2E9DA`, l'errore e il REC sono terracotta
 `#E8735F`, la forma d'onda del Player ha l'avorio caldo di +/−. Lo strobo a
 riposo resta molto meno saturo dei verdetti.
 
-Restano uguali in ogni tema: i colori del verdetto dell'accordatore (salvia,
-paglia, mattone), il testo avorio, Edwin,
+Restano uguali in ogni tema: i colori del verdetto dell'accordatore (salvia
+`#A9BC8B`, miele `#DEC27A`, terracotta `#E8735F` come il REC), il testo avorio, Edwin,
 forme, misure e disposizione.
 
 ## Contrasti (Ebony & Bronze)

@@ -17,9 +17,10 @@ abstract final class Palette {
   static const error = Color(0xFFE8735F);
 
   // Warm tuner colours against the dark dial, the same in every palette.
-  static const inTune = Color(0xFFA4BF89);
-  static const close = Color(0xFFDCCB79);
-  static const off = Color(0xFFD98376);
+  static const inTune = Color(0xFFA9BC8B);
+  static const close = Color(0xFFDEC27A);
+  // Far off is the same terracotta as an error and REC: one warm red.
+  static const off = error;
 }
 
 /// Colours the Material scheme has no name for.

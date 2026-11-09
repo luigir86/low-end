@@ -29,7 +29,7 @@ Il fondo di avvio Android/web usa il neutro comune `#181818`, indipendente dalla
 
 Oggi i colori del verdetto colorano anche le bande dello strobo mentre una nota si sente: vedi [il tema attuale](tema-ffm.md) e RF-ACC-05.
 
-Verde salvia #A4BF89 per una nota intonata, giallo paglia #DCCB79 per uno scarto lieve e rosso mattone #D98376 per uno scarto maggiore. Stanno solo sulla scritta del verdetto con la sua spunta o freccia (una freccia se vicino, due se lontano) e sulla lancetta della scala dei cent con il tratto d'asse da 0 alla lancetta; la nota resta bianca. Il giallo è lontano dal bronzo per tonalità (almeno 20 gradi, controllato da `test/theme_test.dart`), non solo per luminosità. Il verdetto è detto anche a parole e dal verso dello strobo: nessuna informazione affidata al solo colore.
+Verde salvia #A9BC8B per una nota intonata, giallo miele #DEC27A per uno scarto lieve e terracotta #E8735F (lo stesso del REC e degli errori) per uno scarto maggiore (9 novembre 2026). Stanno solo sulla scritta del verdetto con la sua spunta o freccia (una freccia se vicino, due se lontano) e sulla lancetta della scala dei cent con il tratto d'asse da 0 alla lancetta; la nota resta bianca. Il giallo resta più chiaro e più giallo del bronzo. Il verdetto è detto anche a parole e dal verso dello strobo: nessuna informazione affidata al solo colore.
 
 ## 5. Contrasto (WCAG)
 
