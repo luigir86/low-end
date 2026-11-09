@@ -30,7 +30,7 @@ object TakeFiles {
                 when (call.method) {
                     "path" -> {
                         val name = call.arguments as String
-                        require(name == File(name).name)
+                        require(name == File(name).name && name != "." && name != "..")
                         result.success(File(working, name).absolutePath)
                         return@setMethodCallHandler
                     }
