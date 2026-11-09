@@ -1467,7 +1467,7 @@ abstract class AppLocalizations {
   /// A line of the first-launch guide. The name of the Player tab (Ascolto in Italian) must match playerTab.
   ///
   /// In en, this message translates to:
-  /// **'In Player, tap Mark start and Mark end while listening. Drag the waveform handles to refine the passage.'**
+  /// **'In Player, tap Mark start and Mark end while listening. Drag A and B round the dial to move them; on the waveform below for fine adjustments.'**
   String get guidePlayerLoop;
 
   /// Hint under the Player dial while no flag is on the ring: how to choose the passage that repeats. The flags A and B wait in the lower corners of the dial; the ring is the circle round its middle.

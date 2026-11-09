@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -297,20 +298,21 @@ class _ControlRow extends StatelessWidget {
           child: Semantics(
             toggled: player.hasLoop ? active : null,
             // The same shape and height as every button of the rows: filled
-            // in the accent while the loop plays, pale while it waits for a
-            // flag (a button to press, like − and +), outlined when it is off.
+            // in the accent, like TAP, while it marks a flag or the loop
+            // plays; outlined when the loop is off.
             child: RowButton(
               key: PlayerPanel.loopSwitchKey,
-              filled: active,
-              adjustment: capturing,
+              filled: active || capturing,
               onPressed: enabled ? player.captureOrToggle : null,
               label: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    capturing ? Icons.flag_outlined : Icons.repeat,
-                    size: 20,
-                  ),
+                  if (capturing)
+                    // The flag it sets, with its letter, as on the strip
+                    // and the ring.
+                    LetterFlag(pending ? 'B' : 'A')
+                  else
+                    const Icon(Icons.repeat, size: 20),
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
@@ -344,4 +346,87 @@ class _ControlRow extends StatelessWidget {
       ],
     );
   }
+}
+
+/// A flag with its [letter] in the pennant, in the ink of the button it sits
+/// in: the button says which flag a touch sets.
+class LetterFlag extends StatelessWidget {
+  const LetterFlag(this.letter, {super.key});
+
+  final String letter;
+
+  @override
+  Widget build(BuildContext context) {
+    final ink =
+        IconTheme.of(context).color ??
+        DefaultTextStyle.of(context).style.color!;
+    final size = MediaQuery.textScalerOf(context).scale(22);
+    return ExcludeSemantics(
+      child: CustomPaint(
+        size: Size(size * 0.9, size),
+        painter: _LetterFlagPainter(
+          letter: letter,
+          ink: ink,
+          style: Theme.of(context).textTheme.labelLarge,
+        ),
+      ),
+    );
+  }
+}
+
+class _LetterFlagPainter extends CustomPainter {
+  _LetterFlagPainter({
+    required this.letter,
+    required this.ink,
+    required this.style,
+  });
+
+  final String letter;
+  final Color ink;
+  final TextStyle? style;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final pole = size.width * 0.12;
+    final paint = Paint()
+      ..color = ink
+      ..strokeWidth = math.max(1.5, size.width * 0.09)
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(pole, 1), Offset(pole, size.height - 1), paint);
+    final pennant = Rect.fromLTRB(pole, 1, size.width, size.height * 0.68);
+    final text = TextPainter(
+      text: TextSpan(
+        text: letter,
+        style: (style ?? const TextStyle()).copyWith(
+          // The letter is cut out of the pennant: drawn in the clear.
+          foreground: Paint()..blendMode = BlendMode.clear,
+          fontWeight: FontWeight.w700,
+          fontSize: pennant.height * 0.82,
+          height: 1,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    canvas.saveLayer(Offset.zero & size, Paint());
+    canvas.drawRRect(
+      RRect.fromRectAndCorners(
+        pennant,
+        topRight: const Radius.circular(2),
+        bottomRight: const Radius.circular(2),
+      ),
+      Paint()..color = ink,
+    );
+    text.paint(
+      canvas,
+      pennant.center -
+          Offset(text.width, text.height) / 2 +
+          Offset(size.width * 0.03, 0),
+    );
+    canvas.restore();
+    text.dispose();
+  }
+
+  @override
+  bool shouldRepaint(_LetterFlagPainter old) =>
+      old.letter != letter || old.ink != ink || old.style != style;
 }

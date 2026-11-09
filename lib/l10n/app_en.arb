@@ -528,7 +528,7 @@
   "@playerEndLater": {
     "description": "Screen reader name of the + button when the end of the loop is chosen: it moves point B later."
   },
-  "guidePlayerLoop": "In Player, tap Mark start and Mark end while listening. Drag the waveform handles to refine the passage.",
+  "guidePlayerLoop": "In Player, tap Mark start and Mark end while listening. Drag A and B round the dial to move them; on the waveform below for fine adjustments.",
   "@guidePlayerLoop": {
     "description": "A line of the first-launch guide. The name of the Player tab (Ascolto in Italian) must match playerTab."
   },

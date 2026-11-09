@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show ValueListenable;
+import 'package:flutter/gestures.dart' show kTouchSlop;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/semantics.dart' show CustomSemanticsAction;
@@ -10,6 +11,8 @@ import '../../app/theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/dial.dart';
 import 'clock_text.dart';
+import 'flag_drag.dart';
+import 'flag_painter.dart';
 import 'marquee.dart';
 import 'player_controller.dart';
 import 'ring_wave.dart';
@@ -36,6 +39,10 @@ class PlayerDial extends StatefulWidget {
   /// screen reader's increase or decrease.
   static const readerStep = Duration(seconds: 10);
 
+  /// How far from the centre of a grip a finger may land and still take it
+  /// (a 48 dp target).
+  static const gripReach = 24.0;
+
   @override
   State<PlayerDial> createState() => _PlayerDialState();
 }
@@ -56,6 +63,15 @@ class _PlayerDialState extends State<PlayerDial>
 
   /// True when the phone asks for no animation.
   var _reduce = false;
+
+  /// The grip held on the ring, and how the finger goes round: the angle
+  /// counted on past a whole turn, so that 12 o'clock is a wall, not a jump
+  /// from the end to the start.
+  LoopEdge? _held;
+  var _moved = false;
+  var _downAt = Offset.zero;
+  var _lastAngle = 0.0;
+  var _turn = 0.0;
 
   @override
   void initState() {
@@ -118,6 +134,76 @@ class _PlayerDialState extends State<PlayerDial>
     final distance = (at - dial.center).distance;
     if (distance < dial.hub || distance > dial.radius) return;
     player.seek(_window.timeAt(touchAngle(at, _size)));
+  }
+
+  /// The centre of the grip of a flag at [time]: on the ring, inside its
+  /// outer edge, so that the whole grip can be touched.
+  Offset _gripCentre(Duration time) {
+    final dial = DialGeometry(_size);
+    final angle = _window.angleOf(time);
+    return dial.center +
+        Offset(math.sin(angle), -math.cos(angle)) *
+            (dial.ringOuter - gripRadius(dial));
+  }
+
+  /// The grip under [at], within a 48 dp target; of two, the nearer.
+  LoopEdge? _gripAt(Offset at) {
+    final player = widget.player;
+    if (player.status != PlayerStatus.ready || _size.isEmpty) return null;
+    if (widget.recordingTime != null) return null;
+    LoopEdge? best;
+    var bestAway = double.infinity;
+    for (final (edge, time) in [
+      (LoopEdge.start, player.loopStart),
+      (LoopEdge.end, player.loopEnd),
+    ]) {
+      if (time == null) continue;
+      final away = (at - _gripCentre(time)).distance;
+      if (away <= PlayerDial.gripReach && away < bestAway) {
+        best = edge;
+        bestAway = away;
+      }
+    }
+    return best;
+  }
+
+  void _gripDown(DragDownDetails details) {
+    _held = _gripAt(details.localPosition);
+    _moved = false;
+    _downAt = details.localPosition;
+    _lastAngle = touchAngle(details.localPosition, _size);
+    final edge = _held;
+    if (edge == null) return;
+    final player = widget.player;
+    final time = edge == LoopEdge.start ? player.loopStart! : player.loopEnd!;
+    _turn = _window.angleOf(time);
+  }
+
+  void _gripMove(DragUpdateDetails details) {
+    final edge = _held;
+    if (edge == null) return;
+    if (!_moved) {
+      if ((details.localPosition - _downAt).distance < kTouchSlop) return;
+      _moved = true;
+      HapticFeedback.selectionClick();
+    }
+    final angle = touchAngle(details.localPosition, _size);
+    var delta = angle - _lastAngle;
+    if (delta > math.pi) delta -= 2 * math.pi;
+    if (delta < -math.pi) delta += 2 * math.pi;
+    _lastAngle = angle;
+    _turn += delta;
+    final fraction = (_turn / (2 * math.pi)).clamp(0.0, 1.0);
+    // The player keeps the flags in order and a second apart.
+    widget.player.moveEdge(edge, _window.timeAtFraction(fraction));
+  }
+
+  void _gripEnd() {
+    final edge = _held;
+    if (edge == null) return;
+    if (!_moved) widget.player.focus(edge);
+    _held = null;
+    _moved = false;
   }
 
   @override
@@ -217,6 +303,21 @@ class _PlayerDialState extends State<PlayerDial>
                   ),
                 ),
               ),
+            // A and B as grips on the ring, to drag round the whole track.
+            if (ready && widget.recordingTime == null)
+              RepaintBoundary(
+                child: ExcludeSemantics(
+                  child: CustomPaint(
+                    painter: _GripPainter(
+                      window: window,
+                      start: player.loopStart,
+                      end: player.loopEnd,
+                      active: player.activeEdge,
+                      colors: FlagColors.of(theme),
+                    ),
+                  ),
+                ),
+              ),
             // The ring, as a slider for screen readers; a touch on it moves
             // the listening point. The middle is a button above it.
             if (widget.recordingTime == null)
@@ -249,13 +350,29 @@ class _PlayerDialState extends State<PlayerDial>
                             player.mark(LoopEdge.end),
                       }
                     : null,
-                child: GestureDetector(
-                  key: const Key('playerRing'),
+                // A grip is dragged at once; elsewhere this does not take
+                // part, so that a swipe changes section and a touch seeks.
+                child: RawGestureDetector(
                   behavior: HitTestBehavior.opaque,
                   excludeFromSemantics: true,
-                  onTapUp: ready
-                      ? (details) => _tap(details.localPosition)
-                      : null,
+                  gestures: {
+                    FlagDrag: GestureRecognizerFactoryWithHandlers<FlagDrag>(
+                      () => FlagDrag(flagAt: _gripAt),
+                      (drag) => drag
+                        ..onDown = _gripDown
+                        ..onUpdate = _gripMove
+                        ..onEnd = ((_) => _gripEnd())
+                        ..onCancel = _gripEnd,
+                    ),
+                  },
+                  child: GestureDetector(
+                    key: const Key('playerRing'),
+                    behavior: HitTestBehavior.opaque,
+                    excludeFromSemantics: true,
+                    onTapUp: ready
+                        ? (details) => _tap(details.localPosition)
+                        : null,
+                  ),
                 ),
               ),
             Center(
@@ -561,4 +678,82 @@ class _PlayheadPainter extends CustomPainter {
       old.color != color ||
       old.outline != outline ||
       old.position != position;
+}
+
+/// The radius of a grip on a ring of [dial].
+double gripRadius(DialGeometry dial) =>
+    (dial.ringWidth * 0.24).clamp(10.0, 16.0);
+
+/// A and B on the ring: a round grip with the letter, solid for the flag the
+/// strip's arrows move, hollow for the other, as on the strip (RF-PLY-08).
+class _GripPainter extends CustomPainter {
+  _GripPainter({
+    required this.window,
+    required this.start,
+    required this.end,
+    required this.active,
+    required this.colors,
+  });
+
+  final RingWindow window;
+  final Duration? start;
+  final Duration? end;
+  final LoopEdge active;
+  final FlagColors colors;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (window.length <= Duration.zero) return;
+    final dial = DialGeometry(size);
+    final r = gripRadius(dial);
+    for (final (edge, time, letter) in [
+      (LoopEdge.start, start, 'A'),
+      (LoopEdge.end, end, 'B'),
+    ]) {
+      if (time == null) continue;
+      final angle = window.angleOf(time);
+      final centre =
+          dial.center +
+          Offset(math.sin(angle), -math.cos(angle)) * (dial.ringOuter - r);
+      final solid = edge == active || end == null;
+      canvas.drawCircle(centre, r + 2, Paint()..color = colors.surface);
+      canvas.drawCircle(
+        centre,
+        r,
+        solid
+            ? (Paint()..color = colors.primary)
+            : (Paint()..color = colors.surface),
+      );
+      canvas.drawCircle(
+        centre,
+        r,
+        Paint()
+          ..color = colors.primary
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2,
+      );
+      final text = TextPainter(
+        text: TextSpan(
+          text: letter,
+          style: (colors.style ?? const TextStyle()).copyWith(
+            color: solid ? colors.onPrimary : colors.primary,
+            fontWeight: FontWeight.w700,
+            fontSize: r * 1.2,
+            height: 1,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      text.paint(canvas, centre - Offset(text.width, text.height) / 2);
+      text.dispose();
+    }
+  }
+
+  @override
+  bool shouldRepaint(_GripPainter old) =>
+      old.window != window ||
+      old.start != start ||
+      old.end != end ||
+      old.active != active ||
+      old.colors != colors;
 }

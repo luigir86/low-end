@@ -3,6 +3,7 @@
 // outputs.
 
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -26,6 +27,7 @@ import 'package:low_end/audio/track_output.dart';
 import 'package:low_end/features/player/clock_text.dart';
 import 'package:low_end/features/player/player_controller.dart';
 import 'package:low_end/features/player/passage_strip.dart';
+import 'package:low_end/features/player/player_dial.dart';
 import 'package:low_end/features/player/player_panel.dart';
 import 'package:low_end/features/player/ring_wave.dart';
 import 'package:low_end/features/player/ring_window.dart';
@@ -614,6 +616,93 @@ void main() {
       expect(screen.player.loopStart! > a, isTrue);
       expect(screen.player.loopEnd, b);
       expect(screen.player.activeEdge, LoopEdge.start);
+    });
+
+    testWidgets('a pole held against the end of the strip widens it and '
+        'goes past the passage', (tester) async {
+      final screen = await track(tester);
+      await screen.player.setLoop(a, b);
+      await screen.settle();
+      final strip = tester.getRect(find.byKey(PassageStrip.stripKey));
+      final window = RingWindow.passage(a, b, const Duration(minutes: 6));
+      final inner = strip.width - 2 * PassageStrip.margin;
+      final from = Offset(
+        strip.left + PassageStrip.margin + inner * window.fractionOf(b),
+        strip.center.dy,
+      );
+      final gesture = await tester.startGesture(from);
+      await tester.pump();
+      final edge = Offset(strip.right - 4, strip.center.dy);
+      for (var i = 1; i <= 8; i++) {
+        await gesture.moveTo(Offset.lerp(from, edge, i / 8)!);
+        await tester.pump(const Duration(milliseconds: 20));
+      }
+      // Held there for a second: the strip and B go on to the right.
+      for (var i = 0; i < 60; i++) {
+        await tester.pump(PassageStrip.pushTick);
+      }
+      await gesture.up();
+      await screen.settle();
+      expect(screen.scope.navigation.section, AppSection.player);
+      expect(screen.player.loopEnd! > window.to, isTrue);
+      expect(screen.player.loopStart, a);
+    });
+
+    testWidgets('A and B are grips on the ring: dragged round, the flag '
+        'follows, past the strip', (tester) async {
+      final screen = await track(tester);
+      await screen.player.setLoop(a, b);
+      await screen.settle();
+      final dial = dialRect(tester);
+      final geometry = DialGeometry(dial.size);
+      Offset at(Duration time) {
+        final angle = whole.angleOf(time);
+        return dial.topLeft +
+            geometry.center +
+            Offset(math.sin(angle), -math.cos(angle)) *
+                (geometry.ringOuter - gripRadius(geometry));
+      }
+
+      final gesture = await tester.startGesture(at(b));
+      await tester.pump();
+      const target = Duration(minutes: 3);
+      for (var i = 1; i <= 10; i++) {
+        await gesture.moveTo(
+          at(b + Duration(microseconds: (target - b).inMicroseconds * i ~/ 10)),
+        );
+        await tester.pump(const Duration(milliseconds: 20));
+      }
+      await gesture.up();
+      await screen.settle();
+      expect(screen.scope.navigation.section, AppSection.player);
+      expect(screen.player.loopStart, a);
+      expect(
+        (screen.player.loopEnd! - target).inMilliseconds.abs(),
+        lessThan(1500),
+      );
+      // A touch on a grip makes it the flag the strip moves.
+      await tester.tapAt(at(a));
+      await screen.settle();
+      expect(screen.player.activeEdge, LoopEdge.start);
+      expect(screen.player.loopStart, a);
+    });
+
+    testWidgets('the passage button is filled like TAP and names its flag', (
+      tester,
+    ) async {
+      final screen = await track(tester);
+      final button = find.byKey(PlayerPanel.loopSwitchKey);
+      expect(
+        find.descendant(of: button, matching: find.byType(FilledButton)),
+        findsOneWidget,
+      );
+      LetterFlag flag() => tester.widget<LetterFlag>(
+        find.descendant(of: button, matching: find.byType(LetterFlag)),
+      );
+      expect(flag().letter, 'A');
+      await tester.tap(find.text('Mark start'));
+      await screen.settle();
+      expect(flag().letter, 'B');
     });
 
     testWidgets('a touch on a pole makes that flag the active one', (

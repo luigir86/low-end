@@ -227,7 +227,7 @@
   "playerStartLater": "Début plus tard",
   "playerEndEarlier": "Fin plus tôt",
   "playerEndLater": "Fin plus tard",
-  "guidePlayerLoop": "Dans le lecteur, marquez le début puis la fin en écoutant. Ajustez le passage sur la forme d’onde.",
+  "guidePlayerLoop": "Dans le lecteur, marquez le début puis la fin en écoutant. Faites glisser A et B le long du cercle pour les déplacer ; sur la forme d’onde en dessous pour affiner.",
   "playerHintFlags": "Placez A et B sur l'anneau pour choisir le passage à répéter",
   "playerHintPlaceStart": "Touchez l'anneau là où le passage commence",
   "playerHintPlaceEnd": "Touchez l'anneau là où le passage se termine",

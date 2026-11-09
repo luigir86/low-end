@@ -2,15 +2,15 @@
 
 Il terzo tab di Low End: un brano proprio, rallentato senza cambiare intonazione, con un passaggio che si ripete, e la registrazione di sé per riascoltarsi. Questo file dice **come** è costruito; **cosa** l'app deve fare sta in [requisiti.md](requisiti.md), sezione 2.10 (codici RF-PLY). Se i due file dicono cose diverse vale `requisiti.md`, e questo file va corretto.
 
-**Revisione 5, 9 novembre 2026: controlli riordinati** (sezione 2.1). **Revisione 4, 7–8 novembre 2026.** Dopo la prova di Luigi la cattura del passaggio è passata da bandiere A e B negli angoli (revisione 3, PR #130–#133) a un solo pulsante con due tocchi (PR #148), con la forma d'onda sempre nella prima riga; si è aggiunta la registrazione (PR #154, #159; corretta l'8/11). Luigi l'ha provata sul telefono e la tiene. Le revisioni 1–3, con le loro alternative e le domande, sono nella storia di git di questo file.
+**Revisione 6, 9 novembre 2026: A e B si spostano dal cerchio** (sezione 2.2). **Revisione 5, 9 novembre 2026: controlli riordinati** (sezione 2.1). **Revisione 4, 7–8 novembre 2026.** Dopo la prova di Luigi la cattura del passaggio è passata da bandiere A e B negli angoli (revisione 3, PR #130–#133) a un solo pulsante con due tocchi (PR #148), con la forma d'onda sempre nella prima riga; si è aggiunta la registrazione (PR #154, #159; corretta l'8/11). Luigi l'ha provata sul telefono e la tiene. Le revisioni 1–3, con le loro alternative e le domande, sono nella storia di git di questo file.
 
 ## 1. Come si usa
 
 1. **Brano** (terza riga) apre il selettore di sistema; il centro del quadrante, senza brano, fa lo stesso.
 2. Il **centro** avvia e mette in pausa; mostra tempo trascorso, durata e il simbolo di riproduzione o pausa, e sopra titolo e autore se il file ha i tag.
-3. Il **toro** è l'orologio del brano intero: dentro la forma d'onda, sul bordo le tacche, il cursore dove si ascolta. Toccarlo sposta l'ascolto; il passaggio vi appare come arco.
-4. **Segna inizio → Segna fine → Loop attivo** (seconda riga, a sinistra, con la bandierina finché si segna): il primo tocco segna A dove si sente, il secondo B; il passaggio si ripete subito da A. Lo stesso pulsante poi spegne e riaccende il loop ("Riattiva loop"); A e B restano.
-5. La **striscia** (prima riga) mostra la forma d'onda dritta: il brano intero finché il passaggio non è completo, poi il passaggio con un margine per parte. Le due aste si trascinano per rifinire; il tocco altrove sposta l'ascolto. Il pulsante **Nuovo passaggio** accanto (icona, sempre al suo posto, spento finché non c'è A o B) cancella A e B.
+3. Il **toro** è l'orologio del brano intero: dentro la forma d'onda, sul bordo le tacche, il cursore dove si ascolta. Toccarlo sposta l'ascolto; il passaggio vi appare come arco. A e B vi compaiono come **maniglie** (cerchietti con la lettera) che si trascinano lungo il cerchio: è il modo normale di spostare il passaggio.
+4. **Segna inizio → Segna fine → Loop attivo** (seconda riga, a sinistra, pieno d'accento come TAP, con la bandierina A o B finché si segna): il primo tocco segna A dove si sente, il secondo B; il passaggio si ripete subito da A. Lo stesso pulsante poi spegne e riaccende il loop ("Riattiva loop"); A e B restano.
+5. La **striscia** (prima riga) mostra la forma d'onda dritta: il brano intero finché il passaggio non è completo, poi il passaggio con un margine per parte. Le due aste si trascinano per rifinire (al centesimo); un'asta tenuta contro un bordo allarga la striscia da quella parte finché il dito resta lì; il tocco altrove sposta l'ascolto. Il pulsante **Nuovo passaggio** accanto (icona, sempre al suo posto, spento finché non c'è A o B) cancella A e B.
 6. **Velocità** (seconda riga, a destra): un tocco apre una lista corta, 50, 60, 70, 75, 80, 85, 90, 100, 110, 125%. Diversa da 100% il valore e il bordo sono nell'accento. Le azioni accettano ogni valore intero dal 50 al 125.
 7. **REC** (terza riga, il pallino rosso accanto a Brano) registra dal microfono; **Stop** (al posto di REC) apre la ripresa nel Player per riascoltarla, **Scarta** la butta. Con una ripresa aperta il campo ne dice la durata e accanto a REC compaiono **Salva**, **Condividi** ed **Elimina**; eliminata (o rimossa dopo il salvataggio), torna il brano che si stava studiando con passaggio e velocità. Una ripresa non salvata eliminata si riprende per qualche secondo con **Annulla** nell'avviso; REC o un altro brano sopra una ripresa non salvata chiedono prima.
 
@@ -31,10 +31,18 @@ Stesso `DialLayout` degli altri tab: quadrante con il centro allineato tra i qua
 Dopo la prova di Luigi del 9/11 (REC e "Segna inizio" più bassi del campo accanto, cerchi solo nel Player, foglio della velocità ingombrante, pulsanti che comparivano e sparivano):
 
 - Ogni controllo delle righe è alto 56 dp come i campi e ogni pulsante è un `RowButton` (rettangolo arrotondato del tema, come − / + e TAP); le icone sono larghe 48 dp, con nome per TalkBack e suggerimento.
-- Il pulsante del passaggio è pallido e pieno mentre si segna (come − / +), nell'accento con il loop attivo, solo bordato con "Riattiva loop".
+- Il pulsante del passaggio è pieno d'accento come TAP mentre si segna (bandierina con A o B) e con il loop attivo, solo bordato con "Riattiva loop" (cambiato il 9/11 su richiesta di Luigi: prima era pallido come − / +).
 - Nuovo passaggio sta accanto alla striscia, dove sono A e B: vicino a Velocità sembrava "torna a 100%".
 - Restano sempre al loro posto Nuovo passaggio e REC; Salva, Condividi ed Elimina compaiono solo con una ripresa (scelta di Luigi). Il campo della ripresa mostra la durata, che entra anche a 360 dp e nella colonna in orizzontale.
 - Anteprime: `preview/player-controlli/` nella cartella del progetto.
+
+### 2.2 Spostare A e B (revisione 6)
+
+Luigi, 9/11: trascinare le aste sulla striscia ingrandita era scomodo, la striscia si fermava ai bordi del passaggio e il brano intero non si rivedeva. Le due viste ora lavorano insieme:
+
+- **Cerchio = spostamenti.** Le maniglie A e B sul toro (raggio un quarto dello spessore dell'anello, 10–16 dp, bersaglio 48 dp, `FlagDrag` come sulla striscia: lo scorrimento tra i tab parte fuori dalle maniglie). L'angolo si conta di seguito, quindi le 12 sono un muro e non un salto dalla fine all'inizio. Toccata senza trascinarla, una maniglia diventa la bandiera attiva. Su 6 minuti un millimetro di cerchio vale circa 2–3 decimi di secondo.
+- **Striscia = ritocchi.** Un'asta tenuta a meno di 24 dp da un'estremità allarga la finestra da quella parte dell'1% ogni 16 ms (almeno 20 ms), portandosi dietro l'asta; lasciata, la finestra si riadatta al passaggio dopo 0,3 s.
+- Anteprima: `preview/player-controlli/passaggio-proposta.png` nella cartella del progetto.
 
 ## 3. Il codice
 
@@ -67,7 +75,7 @@ Dopo la prova di Luigi del 9/11 (REC e "Segna inizio" più bassi del campo accan
 | Test | Cosa verifica |
 | --- | --- |
 | `player_controller_test`, `player_loop_test`, `player_memory_test` | Apertura, errori, velocità, A/B e loop, memoria |
-| `player_panel_test` | Centro, toro, striscia, righe; REC, Scarta durante la richiesta del permesso, Stop, Salva, Condividi, Rimuovi, Elimina con Annulla, lista delle velocità |
+| `player_panel_test` | Centro, toro, striscia, righe; REC, Scarta durante la richiesta del permesso, Stop, Salva, Condividi, Rimuovi, Elimina con Annulla, lista delle velocità, maniglie del cerchio, striscia che si allarga, pulsante pieno con la lettera |
 | `recording_test` | Ripresa sopra il brano studiato e ritorno, seconda ripresa, altro file, Scarta, permesso negato, microfono occupato, stop lasciando il tab o le impostazioni o avviando il Player, azioni |
 | `player_ring_test`, `track_peaks_test`, `marquee_test`, `track_tags_test` | Geometria, forma d'onda, titolo che scorre, tag |
 | `accessibility_test`, `app_actions_test` | Nomi e bersagli; golden delle azioni |
