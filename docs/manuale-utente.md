@@ -2,7 +2,7 @@
 
 *English: [user-guide.md](user-guide.md).* Che cosa fa ogni comando è scritto anche, con un codice ciascuno, nei [requisiti](specs/requisiti.md); dove questo manuale dice altro, valgono i requisiti.
 
-Low End è un metronomo, una sezione di armonia al pianoforte, un accordatore e un lettore per le tue registrazioni in un'unica app. L'ha realizzata un contrabbassista amatoriale pensando agli amici dell'orchestra, ma è pensata per ogni musicista. È gratuita, senza pubblicità, non raccoglie nulla e non ha bisogno di internet. Ha un aspetto scuro color ebano, con accenti bronzo e testi chiari: non c'è un tema da scegliere.
+Low End è un metronomo, una sezione di armonia al pianoforte, un accordatore e un lettore per le tue registrazioni in un'unica app. L'ha realizzata un contrabbassista amatoriale pensando agli amici dell'orchestra, ma è pensata per ogni musicista. È gratuita, senza pubblicità, non raccoglie nulla e non ha bisogno di internet. Ha un aspetto scuro color ebano, con accenti bronzo, toni sabbia e testi color avorio: non c'è un tema da scegliere.
 
 ## Le quattro sezioni
 

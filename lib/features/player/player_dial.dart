@@ -279,7 +279,7 @@ class _PlayerDialState extends State<PlayerDial>
                         painter: RingWave(
                           peaks: peaks,
                           window: window,
-                          color: theme.colorScheme.onSurfaceVariant,
+                          color: LowEndColors.of(context).stepFill,
                           passage: loopOn ? (stretch.$1!, stretch.$2!) : null,
                           passageColor: LowEndColors.of(context).activeFill,
                         ),

@@ -14,6 +14,7 @@ final class BrandPalette {
     required this.light,
     Color? mark,
     this.step,
+    this.tint,
   }) : mark = mark ?? light;
 
   final String name;
@@ -37,6 +38,11 @@ final class BrandPalette {
   /// own; otherwise the light colour dimmed a little towards the dark one.
   final Color? step;
 
+  /// The colour the greys (borders, dark fills, the strobe at rest, muted
+  /// text) are mixed towards from [dark], when a palette keeps its own;
+  /// otherwise [light].
+  final Color? tint;
+
   /// The surface before Flutter draws (Android window, browser chrome).
   Color get startup => Color.lerp(dark, Colors.black, 0.33)!;
 }
@@ -53,6 +59,10 @@ abstract final class LowEndBrand {
   /// Ivory with 15% of bronze (9 November 2026): warm on the ebony, where
   /// ivory dimmed towards it looked grey, and less glaring than ivory.
   static const warmIvory = Color(0xFFEDDEC6);
+
+  /// Ivory with 40% of bronze: the greys of Ebony & Bronze lean to it, so
+  /// borders and dark fills read as wood and sand rather than grey.
+  static const sand = Color(0xFFE3C9A6);
 
   /// The theme of 7 November 2026: FFM red on anthracite.
   static const red = BrandPalette(
@@ -72,6 +82,7 @@ abstract final class LowEndBrand {
     dark: ebony,
     light: ivory,
     step: warmIvory,
+    tint: sand,
   );
 
   static const palettes = [red, ebonyAndBronze];

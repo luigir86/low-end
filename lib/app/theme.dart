@@ -12,9 +12,9 @@ import 'style.dart';
 abstract final class Palette {
   // Text.
   static const inkOnLight = Color(0xFF1E1C1A);
-  static const inkOnDark = Color(0xFFEFEDEA);
+  static const inkOnDark = Color(0xFFF2E9DA);
 
-  static const error = Color(0xFFFF5F56);
+  static const error = Color(0xFFE8735F);
 
   // Warm tuner colours against the dark dial, the same in every palette.
   static const inTune = Color(0xFFA4BF89);
@@ -248,10 +248,13 @@ abstract final class LowEndTheme {
   );
 
   /// The whole theme from the four colours of [p]. Every neutral is a
-  /// mixture of the dark and light colours, so a warm palette has warm greys.
+  /// mixture of the dark colour and the light one (or the palette's tint),
+  /// so a warm palette has warm greys.
   static ThemeData forPalette(BrandPalette p) {
     final accent = p.accent;
-    Color shade(double amount) => Color.lerp(p.dark, p.light, amount)!;
+    // The greys lean to the palette's tint (warm sand in Ebony & Bronze).
+    final warm = p.tint ?? p.light;
+    Color shade(double amount) => Color.lerp(p.dark, warm, amount)!;
     final ground = p.dark;
     final disc = Color.lerp(p.dark, Colors.black, 0.11)!;
     const ink = Palette.inkOnDark;
@@ -294,9 +297,10 @@ abstract final class LowEndTheme {
         filledSteps: true,
         activeFill: accent,
         onActiveFill: onAccent,
-        // The strobe stays neutral grey in every palette.
-        strobeIdle: const Color(0xFF777777),
-        strobeOuter: _grey,
+        // The strobe at rest is a quiet grey of the palette, far from the
+        // saturated verdict colours.
+        strobeIdle: shade(0.5),
+        strobeOuter: shade(0.66),
         strobeInner: ink,
         // The tabs on the ground, like the rest of the screen, under a thin
         // line of the accent that fades into the ground: the open one is in
@@ -338,6 +342,7 @@ abstract final class LowEndTheme {
         dark: base.dark,
         light: base.light,
         step: base.step,
+        tint: base.tint,
       ),
     );
   }

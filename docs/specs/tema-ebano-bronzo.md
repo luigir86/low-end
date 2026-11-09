@@ -36,8 +36,16 @@ dove il fondo arriva fino alla barra di stato (9 novembre 2026). Solo icone: que
 Vale per la barra in basso e per il rail in orizzontale (dal 9 novembre 2026,
 dopo una barra avorio con pillola).
 
+Calore (9 novembre 2026): con il campo facoltativo `tint` i grigi si mescolano
+da `dark` verso un colore proprio invece che verso `light`; Ebony & Bronze usa
+la sabbia `#E3C9A6` (avorio con il 40% di bronzo), così bordi, riempimenti
+scuri, testo attenuato e strobo a riposo sembrano legno e sabbia, non grigio.
+Il testo è un bianco avorio `#F2E9DA`, l'errore e il REC sono terracotta
+`#E8735F`, la forma d'onda del Player ha l'avorio caldo di +/−. Lo strobo a
+riposo resta molto meno saturo dei verdetti.
+
 Restano uguali in ogni tema: i colori del verdetto dell'accordatore (salvia,
-paglia, mattone), lo strobo grigio a riposo, il testo quasi bianco, Edwin,
+paglia, mattone), il testo avorio, Edwin,
 forme, misure e disposizione.
 
 ## Contrasti (Ebony & Bronze)
