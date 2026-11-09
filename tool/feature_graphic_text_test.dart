@@ -49,11 +49,7 @@ void main() {
             ..shader = ui.Gradient.radial(
               const ui.Offset(260, 250),
               520,
-              [
-                ui.Color.lerp(palette.dark, palette.accent, 0.16)!,
-                ui.Color.lerp(palette.dark, palette.accent, 0.06)!,
-                palette.dark,
-              ],
+              [palette.glow, palette.glowMid, palette.brand],
               [0, 0.55, 1],
             ),
         );

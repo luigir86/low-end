@@ -37,11 +37,11 @@ void main() {
 
   test('Ebony & Bronze uses the four approved colours', () {
     const p = LowEndBrand.ebonyAndBronze;
-    expect(_hex(p.brand), '#141312');
+    expect(_hex(p.brand), '#18140F');
     expect(_hex(p.accent), '#D4A373');
-    expect(_hex(p.dark), '#141312');
+    expect(_hex(p.dark), '#18140F');
     expect(_hex(p.light), '#F1E8D5');
-    expect(p.mark, p.light);
+    expect(p.mark, LowEndBrand.warmIvory);
     final theme = LowEndTheme.forPalette(p);
     final e = theme.extension<LowEndColors>()!;
     expect(theme.colorScheme.surface, p.dark);

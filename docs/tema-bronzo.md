@@ -18,7 +18,7 @@ Un solo colore per tutta l'app, il **bronzo miele** del leone dell'icona, su fon
 | Ruolo | Colore |
 |---|---|
 | Accento, bronzo | #D4A373 |
-| Sfondo, ebano | #141312 (superfici #1C1B19, #262422, #312F2C) |
+| Sfondo, ebano | #18140F (ebano caldo dal 9 novembre 2026; superfici miscelate verso la sabbia #E3C9A6) |
 | Testo | #EFEDEA, attenuato #C9C5BF mescolato al 25% di bronzo |
 
 Ogni altra tinta è il bronzo **mescolato nell'ebano** (`LowEndTheme.tint`): disco 10% (`LowEndColors.disc`), tasti e battiti spenti 26%, TAP e indicatore della scheda scelta 20%, note dell'accordo, battiti accesi dopo il primo  58% (`secondary`), bordi 75%. Il primo battito è il bronzo pieno; il primo battito è anche più largo. Mentre il metronomo suona, i battiti spenti si ritirano nel disco (`beatReceded`), un battito lasciato muto (click su 2 e 4) appena si accende (`beatSilent`) e i movimenti deboli di un gruppo del 6/8 sono più tenui (`beatWeak`): tre tinte con nome in `LowEndColors`, nessuna opacità scritta nelle schermate.

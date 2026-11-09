@@ -38,7 +38,23 @@ void main() {
             (bytes.getUint8(offset) << 16) |
             (bytes.getUint8(offset + 1) << 8) |
             bytes.getUint8(offset + 2);
-        expect(actual, LowEndBrand.palette.brand.toARGB32(), reason: path);
+        // Under the soft glow: between the brand colour and the glow's
+        // middle, the same on every icon.
+        const p = LowEndBrand.palette;
+        expect(actual >>> 24, 0xFF, reason: path);
+        for (final (shift, edge, mid) in [
+          (16, p.brand.r, p.glowMid.r),
+          (8, p.brand.g, p.glowMid.g),
+          (0, p.brand.b, p.glowMid.b),
+        ]) {
+          final channel = (actual >> shift) & 0xFF;
+          final a = (edge * 255).round(), b = (mid * 255).round();
+          expect(
+            channel,
+            inInclusiveRange(math.min(a, b) - 1, math.max(a, b) + 1),
+            reason: path,
+          );
+        }
         image.dispose();
         codec.dispose();
       }
