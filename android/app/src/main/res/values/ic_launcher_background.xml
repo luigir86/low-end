@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Generated from LowEndBrand.palette by tool/make_icons_test.dart. -->
-    <color name="ic_launcher_background">#141312</color>
+    <color name="ic_launcher_background">#18140F</color>
+    <!-- The soft accent glow behind the lion (drawable/ic_launcher_tile.xml). -->
+    <color name="ic_launcher_glow">#362B1F</color>
+    <color name="ic_launcher_glow_mid">#231D15</color>
 </resources>

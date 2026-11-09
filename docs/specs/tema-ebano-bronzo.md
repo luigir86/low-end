@@ -11,12 +11,12 @@ Un tema è un `BrandPalette` in `lib/app/brand.dart`, fatto di quattro colori:
 
 | Ruolo | Rosso (7 novembre) | Ebony & Bronze (attivo) |
 | --- | --- | --- |
-| `brand`: fondo di icona e avvio | Rosso FFM `#A6282C` | Ebano `#141312` |
+| `brand`: fondo di icona e avvio | Rosso FFM `#A6282C` | Ebano caldo `#18140F` |
 | `accent`: TAP, selezioni, primo battito, rail | Rosso FFM `#A6282C` | Bronzo `#D4A373` |
-| `dark`: fondo delle schermate | Antracite `#242424` | Ebano `#141312` |
+| `dark`: fondo delle schermate | Antracite `#242424` | Ebano caldo `#18140F` |
 | `light`: scheda aperta della barra in basso, pulsanti +/− e ghiera (in versione calda, vedi sotto), leone | Grigio chiaro `#ECECE9` | Avorio `#F1E8D5` |
 
-Il leone usa il colore chiaro. Il tema rosso conserva il suo leone avorio
+Il leone usa il colore chiaro; in Ebony & Bronze l'avorio caldo `#EDDEC6` (`mark`). L'ebano è un po' più caldo di un nero neutro (`#18140F`, era `#141312` fino al 9 novembre 2026); icona e immagine dello store hanno dietro il leone un alone morbido dell'accento (`glow`, `glowMid`), anche nell'icona adattiva Android (`drawable/ic_launcher_tile.xml`). Il tema rosso conserva il suo leone avorio
 `#FFF5E3` con il campo facoltativo `mark` (il quinto colore, solo dove serve).
 Allo stesso modo il campo facoltativo `step` dà a +/− e alla ghiera un colore
 proprio: Ebony & Bronze usa l'avorio caldo `#EDDEC6` (avorio con il 15% di

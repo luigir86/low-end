@@ -59,6 +59,23 @@ Future<ui.Image> _master() async {
   return (await result.getNextFrame()).image;
 }
 
+/// The icon's ground: the brand colour with a soft accent glow behind the
+/// lion, as on the store's feature graphic.
+void _tile(Canvas c, double size) {
+  const p = LowEndBrand.palette;
+  c.drawColor(p.brand, BlendMode.src);
+  c.drawRect(
+    Offset.zero & Size(size, size),
+    Paint()
+      ..shader = ui.Gradient.radial(
+        Offset(size / 2, size / 2),
+        size * .7,
+        [p.glow, p.glowMid, p.brand],
+        [0, .55, 1],
+      ),
+  );
+}
+
 void _lion(
   Canvas c,
   ui.Image master,
@@ -96,6 +113,16 @@ void _writeBrandColors() {
       file: 'ic_launcher_background.xml',
       colour: 'ic_launcher_background',
       value: hex,
+    ),
+    (
+      file: 'ic_launcher_background.xml',
+      colour: 'ic_launcher_glow',
+      value: _hex(LowEndBrand.palette.glow),
+    ),
+    (
+      file: 'ic_launcher_background.xml',
+      colour: 'ic_launcher_glow_mid',
+      value: _hex(LowEndBrand.palette.glowMid),
     ),
   ]) {
     final file = File('$res/$name');
@@ -166,7 +193,7 @@ void main() {
                   Radius.circular(s * .22),
                 ),
               );
-              c.drawColor(LowEndBrand.palette.brand, BlendMode.src);
+              _tile(c, s);
               _lion(c, master, s, .80);
             }),
           );
@@ -197,7 +224,7 @@ void main() {
           await _save(
             path,
             await _render(size, (c, s) {
-              c.drawColor(LowEndBrand.palette.brand, BlendMode.src);
+              _tile(c, s);
               _lion(c, master, s, .80);
             }),
           );
@@ -206,7 +233,7 @@ void main() {
           await _save(
             'web/icons/Icon-maskable-$size.png',
             await _render(size, (c, s) {
-              c.drawColor(LowEndBrand.palette.brand, BlendMode.src);
+              _tile(c, s);
               _lion(c, master, s, .60);
             }),
           );
@@ -225,7 +252,7 @@ void main() {
                 Radius.circular(s * .22),
               ),
             );
-            c.drawColor(LowEndBrand.palette.brand, BlendMode.src);
+            _tile(c, s);
             _lion(c, master, s, .80);
           }),
         );
@@ -256,6 +283,10 @@ void main() {
                 const Rect.fromLTWH(0, 0, 288, 288),
                 Paint()..color = LowEndBrand.palette.brand,
               );
+              c.save();
+              c.clipRect(const Rect.fromLTWH(0, 0, 288, 288));
+              _tile(c, 288);
+              c.restore();
               _lion(c, master, 288, i == 0 ? .60 : .80);
               c.restore();
             }

@@ -45,6 +45,11 @@ final class BrandPalette {
 
   /// The surface before Flutter draws (Android window, browser chrome).
   Color get startup => Color.lerp(dark, Colors.black, 0.33)!;
+
+  /// The soft accent glow behind the lion on the icon and the store
+  /// graphic: [glow] at its centre, [glowMid] halfway, [brand] at the edge.
+  Color get glow => Color.lerp(brand, accent, 0.16)!;
+  Color get glowMid => Color.lerp(brand, accent, 0.06)!;
 }
 
 /// The palettes of the app, chosen in one place: [palette]. After changing
@@ -53,7 +58,9 @@ final class BrandPalette {
 abstract final class LowEndBrand {
   static const ffmRed = Color(0xFFA6282C);
   static const bronze = Color(0xFFD4A373);
-  static const ebony = Color(0xFF141312);
+
+  /// A touch warmer than a neutral black (9 November 2026, was #141312).
+  static const ebony = Color(0xFF18140F);
   static const ivory = Color(0xFFF1E8D5);
 
   /// Ivory with 15% of bronze (9 November 2026): warm on the ebony, where
@@ -81,6 +88,7 @@ abstract final class LowEndBrand {
     accent: bronze,
     dark: ebony,
     light: ivory,
+    mark: warmIvory,
     step: warmIvory,
     tint: sand,
   );
