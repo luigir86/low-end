@@ -94,7 +94,7 @@ If you **unplug the headphones** (or a Bluetooth headset goes away), the sound s
 
 ## How it looks
 
-Ebony and bronze: a thin bronze line frames the top, and the settings gear sits on the ebony background in the top right, leaving more room for the dial. The bottom bar is ivory with icons only (their names are read by a screen reader and shown when you hold them); the selected section has a darker icon, and a bronze dot marks a section that is playing, even from another tab. The tuner has no playing dot. Dial centres and control backgrounds stay dark. The tempo wheel has ticks only; drag it or use the separate light −/+ buttons. TAP, the example songs and the style button are bronze. Tuner feedback combines sage, straw and brick red with symbols and words.
+Ebony and bronze: a thin bronze line frames the top, and the settings gear sits on the ebony background in the top right, leaving more room for the dial. The bottom bar is ivory, with each section's name under its icon; the selected section sits in a bronze pill with its name in bold, and a bronze dot marks a section that is playing, even from another tab. The tuner has no playing dot. Dial centres and control backgrounds stay dark. The tempo wheel has ticks only; drag it or use the separate light −/+ buttons. TAP, the example songs and the style button are bronze. Tuner feedback combines sage, straw and brick red with symbols and words.
 
 ## Questions and problems
 
