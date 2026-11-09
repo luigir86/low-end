@@ -27,9 +27,10 @@ void main() {
     final c = theme.colorScheme;
     final e = theme.extension<LowEndColors>()!;
     expect(_hex(c.surface), '#242424');
-    expect(_hex(e.disc), '#202020');
+    // Since 9 November the dials sit on the ground in every palette.
+    expect(e.disc, c.surface);
     expect(_hex(c.surfaceContainerHigh), '#303030');
-    expect(_hex(LowEndBrand.red.startup), '#181818');
+    expect(LowEndBrand.red.startup, LowEndBrand.red.dark);
     // Since 9 November the tabs sit on the ground in every palette.
     expect(e.bottomNavigationBackground, c.surface);
     expect(e.activeFill, LowEndBrand.ffmRed);

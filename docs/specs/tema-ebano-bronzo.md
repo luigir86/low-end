@@ -25,9 +25,9 @@ bronzo, 9 novembre 2026); senza `step` è `light` all'89% verso `dark`.
 `LowEndBrand.palette` è l'unico punto di scelta; nessuna impostazione per chi usa
 l'app. `LowEndTheme.forPalette` ricava tutto il resto in `lib/app/theme.dart`:
 superfici, bordi, tasti spenti e testo attenuato sono miscele di `dark` e
-`light` (grigi caldi con l'ebano, neutri con l'antracite); il disco è `dark`
-scurito dell'11%; il fondo prima di Flutter (`startup`) è `dark` scurito del
-33%. Testo sui riempimenti: l'inchiostro chiaro o scuro più leggibile, quindi
+`light` (grigi caldi con l'ebano, neutri con l'antracite); il disco dei
+quadranti è `dark` stesso (era scurito dell'11% fino al 9 novembre 2026); il fondo prima di Flutter (`startup`, anche la barra del
+browser della web app) è `dark` stesso (era scurito del 33%). Testo sui riempimenti: l'inchiostro chiaro o scuro più leggibile, quindi
 ebano sul bronzo. Le schede stanno sul fondo (ebano), sotto una sola riga sottile
 dell'accento che sfuma verso il fondo per 12 dp (`NavigationEdge`, finisce
 prima delle icone); niente riga sotto le schede né fascia dell'accento in alto,

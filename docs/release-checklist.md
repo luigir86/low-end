@@ -5,13 +5,16 @@ marks anything that cannot be confirmed from the code.
 
 ## 1. Version and build
 
-- [ ] `pubspec.yaml`: `version: 1.6.1+11` (name `1.6.1`, versionCode `11`),
+- [ ] `pubspec.yaml`: `version: 1.6.2+12` (name `1.6.2`, versionCode `12`),
       and the same in `lib/app/version.dart` (shown in About; `version_test` checks it).
       1.0.0+1 went to the closed test on 2026-10-19, 1.3.0+4 on 2026-10-29;
       1.4.0+5 (2026-11-05) stayed on "Preparing sounds", fixed in 1.4.1+6;
       1.4.2+7 and 1.4.3+8 built on 2026-11-05, 1.5.0+9 on 2026-11-06;
       1.6.0+10 (Player, recording) built and uploaded by the owner;
-      1.6.1+11 (Ebony & Bronze, take over the studied track) on 2026-11-08.
+      1.6.1+11 (Ebony & Bronze, take over the studied track) built on 2026-11-09;
+      1.6.2+12 (icon-only tab bar, warmer theme, REC in the ring, A-B on
+      the dial, Guava 33.7.2) prepared on 2026-11-09 as the candidate for
+      production.
       The number after `+`
       must grow with every upload to Play.
 - [ ] Target SDK: `flutter.targetSdkVersion` (36 with the current Flutter
@@ -49,8 +52,9 @@ marks anything that cannot be confirmed from the code.
 | `WAKE_LOCK` | Keeps audio running with the screen off / screen on while playing. | Normal permission. |
 
 - No `INTERNET` permission: the app cannot reach a network (docs/offline.md).
-- `allowBackup="false"`; the exported service and receiver belong to
-  audio_service (media controls). The `lowend://action/...` deep link only
+- `allowBackup="false"`; the media service of audio_service is not
+  exported; its exported receiver only takes the headset and notification
+  media buttons. The `lowend://action/...` deep link only
   does what the on-screen buttons do (docs/llm.md).
 - Compliance note: the foreground-service declaration in Play Console asks for
   a short video of the feature (start a sound, lock the screen, it keeps

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../audio/recorded_track.dart';
@@ -237,17 +239,29 @@ class _TakeActionsState extends State<TakeActions> {
     final strings = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final saved = take.saved;
-    await player.removeRecording(take);
+    // The file of a take not saved stays until the notice closes, so that
+    // Undo can open it again.
+    await player.removeRecording(take, keepFile: !saved);
     if (saved) return;
     messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
+    final notice = messenger.showSnackBar(
       SnackBar(
         content: Text(strings.takeDeleted),
+        // With an action a notice stays until it is touched: this one goes
+        // by itself, and nothing on screen waits for it.
+        persist: false,
         action: SnackBarAction(
           label: strings.takeUndo,
           onPressed: () => player.open(take),
         ),
       ),
+    );
+    unawaited(
+      notice.closed.then((reason) {
+        if (reason != SnackBarClosedReason.action) {
+          player.releaseRecording(take);
+        }
+      }),
     );
   }
 

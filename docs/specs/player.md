@@ -58,7 +58,7 @@ Luigi, 9/11: trascinare le aste sulla striscia ingrandita era scomodo, la strisc
 
 ### 3.1 La ripresa e il brano studiato
 
-`PlayerController.open` con una `RecordedTrack` non rilascia il brano aperto: ne tiene la `PlayerSetup` (brano, velocità, A, B, loop) in `_beforeTake`, che `setup` continua a restituire, così il brano studiato resta quello ricordato al prossimo avvio. Una seconda ripresa sostituisce la prima; il brano sotto resta lo stesso. `removeRecording` (Elimina, Rimuovi) o una ripresa che non si apre lo riportano con `restore` + `activate`: si riapre a A, alla sua velocità, al primo play. Scegliere un altro file con una ripresa aperta lascia andare anche il brano sotto (tranne se è lo stesso file). Una ripresa non è mai ricordata da sola.
+`PlayerController.open` con una `RecordedTrack` non rilascia il brano aperto: ne tiene la `PlayerSetup` (brano, velocità, A, B, loop) in `_beforeTake`, che `setup` continua a restituire, così il brano studiato resta quello ricordato al prossimo avvio. Una seconda ripresa sostituisce la prima; il brano sotto resta lo stesso. `removeRecording` (Elimina, Rimuovi) o una ripresa che non si apre lo riportano con `restore` + `activate`: si riapre a A, alla sua velocità, al primo play. Scegliere un altro file con una ripresa aperta lascia andare anche il brano sotto (tranne se è lo stesso file). Una ripresa non è mai ricordata da sola. Elimina su una ripresa non salvata la toglie con `removeRecording(keepFile: true)`: il file temporaneo resta finché l'avviso "Registrazione eliminata" è aperto (circa 4 s, `persist: false`, perché con un'azione un avviso resterebbe fino al tocco), così Annulla la riapre; quando l'avviso si chiude da solo `releaseRecording` lo cancella.
 
 ### 3.2 Regole della registrazione
 
