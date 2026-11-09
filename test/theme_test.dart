@@ -211,7 +211,12 @@ void main() {
         e.bottomNavigationBackground,
       );
       expect(e.bottomNavigationBorder, e.activeFill);
-      expect(e.bottomNavigationIndicator, Colors.transparent);
+      // Material 3: a pill marks the open tab, its dark ink readable on it.
+      expect(e.bottomNavigationIndicator, isNot(e.bottomNavigationBackground));
+      expect(
+        contrast(e.bottomNavigationSelectedInk, e.bottomNavigationIndicator),
+        greaterThanOrEqualTo(4.5),
+      );
       expect(
         contrast(e.bottomNavigationSelectedInk, e.bottomNavigationBackground),
         greaterThanOrEqualTo(4.5),

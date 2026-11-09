@@ -153,7 +153,7 @@ class DialLayout extends StatelessWidget {
   /// large text a row grows and
   /// the screen scrolls.
   static const rowHeight = LowEndShape.controlRowHeight;
-  static const _rowGap = 8.0;
+  static const _rowGap = 16.0;
 
   /// Keep the three rows aligned when enlarged captions need more room.
   static double _rowExtent(BuildContext context) =>

@@ -124,8 +124,8 @@ void main() {
       for (var i = 1; i < 4; i++) {
         expect(g[i].height, closeTo(DialLayout.rowHeight, 1e-6));
       }
-      expect(g[2].top - g[1].bottom, closeTo(8, 1e-6));
-      expect(g[3].top - g[2].bottom, closeTo(8, 1e-6));
+      expect(g[2].top - g[1].bottom, closeTo(16, 1e-6));
+      expect(g[3].top - g[2].bottom, closeTo(16, 1e-6));
     }
   });
 
@@ -185,8 +185,8 @@ void main() {
         expect(g[i].left, greaterThanOrEqualTo(g[0].right));
         expect(g[i].width, greaterThanOrEqualTo(DialLayout.columnMinWidth));
       }
-      expect(g[2].top - g[1].bottom, closeTo(8, 1e-6));
-      expect(g[3].top - g[2].bottom, closeTo(8, 1e-6));
+      expect(g[2].top - g[1].bottom, closeTo(16, 1e-6));
+      expect(g[3].top - g[2].bottom, closeTo(16, 1e-6));
     }
   });
 

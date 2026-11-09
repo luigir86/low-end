@@ -59,6 +59,10 @@ abstract final class LowEndShape {
   /// Shared baseline height of the three control rows and bottom tabs.
   static const controlRowHeight = 64.0;
 
+  /// Height of the bottom tab bar, icons and names: the bar of Material 3
+  /// Expressive, lower than the old 80 dp one.
+  static const navigationBarHeight = 64.0;
+
   /// Fine rule beneath the bottom navigation, including its safe area.
   static const navigationBaseLine = 2.0;
 

@@ -375,9 +375,9 @@ class _HomeShellState extends State<HomeShell> {
                     ),
                   ),
                   child: NavigationBar(
-                    height: kMinInteractiveDimension,
+                    height: LowEndShape.navigationBarHeight,
                     labelBehavior:
-                        NavigationDestinationLabelBehavior.alwaysHide,
+                        NavigationDestinationLabelBehavior.alwaysShow,
                     animationDuration: MediaQuery.disableAnimationsOf(context)
                         ? Duration.zero
                         : Durations.medium1,
