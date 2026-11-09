@@ -70,7 +70,8 @@ void main() {
     expect(dot, findsOneWidget);
     final badge = tester.widget<Badge>(dot);
     expect(badge.isLabelVisible, isTrue);
-    expect(badge.backgroundColor, colors.activeFill);
+    // Ebony like the icons: it reads on the ivory bar and on the pill.
+    expect(badge.backgroundColor, colors.bottomNavigationSelectedInk);
     final tuner = find.byWidgetPredicate(
       (w) => w is NavigationDestination && w.label == 'Tuner',
     );

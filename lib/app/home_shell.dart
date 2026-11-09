@@ -312,10 +312,14 @@ class _HomeShellState extends State<HomeShell> {
                                         icon: _TabIcon(
                                           section: e.section,
                                           icon: e.icon,
+                                          badgeColor: LowEndColors.of(context)
+                                              .navigationInk,
                                         ),
                                         selectedIcon: _TabIcon(
                                           section: e.section,
                                           icon: e.selectedIcon,
+                                          badgeColor: LowEndColors.of(context)
+                                              .navigationInk,
                                         ),
                                         label: FittedBox(
                                           fit: BoxFit.scaleDown,
@@ -389,12 +393,14 @@ class _HomeShellState extends State<HomeShell> {
                           icon: _TabIcon(
                             section: e.section,
                             icon: e.icon,
-                            badgeColor: LowEndColors.of(context).activeFill,
+                            badgeColor: LowEndColors.of(context)
+                                .bottomNavigationSelectedInk,
                           ),
                           selectedIcon: _TabIcon(
                             section: e.section,
                             icon: e.selectedIcon,
-                            badgeColor: LowEndColors.of(context).activeFill,
+                            badgeColor: LowEndColors.of(context)
+                                .bottomNavigationSelectedInk,
                           ),
                           label: e.label,
                         ),

@@ -25,9 +25,10 @@ superfici, bordi, tasti spenti e testo attenuato sono miscele di `dark` e
 `light` (grigi caldi con l'ebano, neutri con l'antracite); il disco è `dark`
 scurito dell'11%; il fondo prima di Flutter (`startup`) è `dark` scurito del
 33%. Testo sui riempimenti: l'inchiostro chiaro o scuro più leggibile, quindi
-ebano sul bronzo. La scheda scelta sulla barra chiara ha la pillola di Material 3, chiara
-miscela della barra e dell'accento, con icona piena e nome in grassetto in
-ebano (dal 9 novembre 2026; prima l'accento scurito senza pillola).
+ebano sul bronzo. La scheda scelta sulla barra chiara ha la pillola di Material 3 nel colore
+dell'accento (come TAP), con icona piena e nome in grassetto in ebano; il
+pallino di una sezione che suona è ebano, sulla barra e sul rail (dal 9
+novembre 2026; prima l'accento scurito senza pillola e il pallino bronzo).
 
 Restano uguali in ogni tema: i colori del verdetto dell'accordatore (salvia,
 paglia, mattone), lo strobo grigio a riposo, il testo quasi bianco, Edwin,
