@@ -44,7 +44,9 @@ final class BrandPalette {
   final Color? tint;
 
   /// The surface before Flutter draws (Android window, browser chrome).
-  Color get startup => Color.lerp(dark, Colors.black, 0.33)!;
+  /// The ground itself since 9 November 2026: a darker shade showed as a
+  /// cold band of old ebony in the browser's bar above the web app.
+  Color get startup => dark;
 
   /// The soft accent glow behind the lion on the icon and the store
   /// graphic: [glow] at its centre, [glowMid] halfway, [brand] at the edge.

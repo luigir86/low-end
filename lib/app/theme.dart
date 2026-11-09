@@ -257,7 +257,9 @@ abstract final class LowEndTheme {
     final warm = p.tint ?? p.light;
     Color shade(double amount) => Color.lerp(p.dark, warm, amount)!;
     final ground = p.dark;
-    final disc = Color.lerp(p.dark, Colors.black, 0.11)!;
+    // The dials sit on the ground itself: a darker disc read as a cold
+    // patch of old ebony round the Player's ring (9 November 2026).
+    final disc = p.dark;
     const ink = Palette.inkOnDark;
     // Borders: 3 : 1 on the disc.
     final outline = shade(0.585);
