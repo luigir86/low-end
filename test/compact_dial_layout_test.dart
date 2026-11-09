@@ -63,9 +63,11 @@ void main() {
         expect(rows[1].top - rows[0].bottom, closeTo(16, 0.01));
         expect(rows[2].top - rows[1].bottom, closeTo(16, 0.01));
         final nav = tester.getRect(find.byType(NavigationBar));
-        // The system inset and 2 dp red baseline are outside the tab row.
-        expect(nav.height, closeTo(64 + 20, 0.01));
-        expect(nav.top - rows[2].bottom, closeTo(8, 0.01));
+        // Gesture navigation (a 20 dp inset): the icons centre in one band
+        // down to the edge, 8 dp of it over the home strip.
+        expect(nav.height, closeTo(48 + 20 - 8, 0.01));
+        // 8 dp of room, then the 1 dp light line over the tabs.
+        expect(nav.top - rows[2].bottom, closeTo(8 + 1, 0.01));
         expect(dial.center.dy, closeTo((page.top + rows[0].top) / 2, 0.01));
         expect(dial.center.dx, closeTo(page.center.dx, 0.01));
         expect(dial, tester.getRect(find.byKey(DialBackdrop.discKey)));

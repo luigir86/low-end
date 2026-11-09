@@ -298,12 +298,13 @@ abstract final class LowEndTheme {
         strobeIdle: const Color(0xFF777777),
         strobeOuter: _grey,
         strobeInner: ink,
-        bottomNavigationBackground: navigation,
-        bottomNavigationInk: Color.lerp(navigation, p.dark, 0.875)!,
-        // Material 3: a pill of the accent marks the open tab (like TAP),
-        // the ink stays dark on it.
-        bottomNavigationSelectedInk: p.dark,
-        bottomNavigationIndicator: accent,
+        // The tabs on the ground, like the rest of the screen, under a thin
+        // line of the light colour: the open one is in the light colour
+        // with its icon filled, the others a warm grey (more than 4.5 : 1).
+        bottomNavigationBackground: ground,
+        bottomNavigationInk: Color.lerp(ground, navigation, 0.6)!,
+        bottomNavigationSelectedInk: navigation,
+        bottomNavigationIndicator: Colors.transparent,
         bottomNavigationBorder: accent,
         navigationBackground: accent,
         navigationIndicator: Color.lerp(
@@ -398,26 +399,29 @@ abstract final class LowEndTheme {
         surfaceTintColor: Colors.transparent,
       ),
       // The tabs in landscape, the same destinations as the bottom
-      // bar, in the same colours and text.
+      // bar, in the same colours.
       navigationRailTheme: NavigationRailThemeData(
-        selectedIconTheme: IconThemeData(color: colors.navigationInk),
-        unselectedIconTheme: IconThemeData(color: colors.navigationInk),
-        backgroundColor: colors.navigationBackground,
-        indicatorColor: colors.navigationIndicator,
+        selectedIconTheme: IconThemeData(
+          color: colors.bottomNavigationSelectedInk,
+        ),
+        unselectedIconTheme: IconThemeData(color: colors.bottomNavigationInk),
+        backgroundColor: colors.bottomNavigationBackground,
+        indicatorColor: colors.bottomNavigationIndicator,
         minWidth: LowEndShape.railWidth,
-        // The rail does not take the app's font by itself.
+        // The rail has room for the names, in the same inks; it does not
+        // take the app's font by itself.
         selectedLabelTextStyle: TextStyle(
           fontFamily: 'Edwin',
           fontFamilyFallback: const ['NotoMusic'],
           fontSize: LowEndType.small,
-          color: colors.navigationInk,
+          color: colors.bottomNavigationSelectedInk,
           fontWeight: FontWeight.w700,
         ),
         unselectedLabelTextStyle: TextStyle(
           fontFamily: 'Edwin',
           fontFamilyFallback: const ['NotoMusic'],
           fontSize: LowEndType.small,
-          color: colors.navigationInk,
+          color: colors.bottomNavigationInk,
         ),
       ),
       // The dot on the tab of a section that is playing: the accent, not
