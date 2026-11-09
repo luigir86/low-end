@@ -384,16 +384,28 @@ class PlayerController extends ChangeNotifier implements SoundSection {
 
   /// Removes the take open (its temporary file is deleted; a copy already
   /// saved stays) and brings back the track that was being studied under
-  /// it, with its speed and passage (RF-PLY-20).
-  Future<void> removeRecording(RecordedTrack take) async {
+  /// it, with its speed and passage (RF-PLY-20). With [keepFile] the
+  /// temporary file stays, so that the take can be opened again (Undo);
+  /// [releaseRecording] lets it go once it is no longer wanted.
+  Future<void> removeRecording(
+    RecordedTrack take, {
+    bool keepFile = false,
+  }) async {
     if (!identical(_track, take)) return;
     await stop();
     if (_disposed || !identical(_track, take)) return;
     ++_generation;
     _settle?.cancel();
-    _clearTrack(null);
+    _clearTrack(null, release: !keepFile);
     _backToTrack();
     notifyListeners();
+  }
+
+  /// Lets go of the file of a take removed with `keepFile`, unless it has
+  /// been opened again in the meantime.
+  void releaseRecording(RecordedTrack take) {
+    if (identical(_track, take)) return;
+    unawaited(_files.release(take));
   }
 
   /// A take that cannot be played also gives the track back.
@@ -424,9 +436,9 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     }
   }
 
-  void _clearTrack(TrackProblem? problem) {
+  void _clearTrack(TrackProblem? problem, {bool release = true}) {
     final failed = _track;
-    if (failed != null) unawaited(_files.release(failed));
+    if (failed != null && release) unawaited(_files.release(failed));
     _stopReadingPeaks();
     _loaded = false;
     _title = _artist = null;

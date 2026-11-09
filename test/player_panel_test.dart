@@ -198,10 +198,24 @@ void main() {
     await screen.settle();
     expect(screen.player.track, _song);
     expect(find.text('Recording deleted'), findsOneWidget);
+    // The file stays while Undo can still bring the take back.
+    expect(screen.files.released, isNot(contains(take)));
     await tester.tap(find.text('Undo'));
     await screen.settle();
     expect(screen.player.track, same(take));
     expect(find.byTooltip('Delete recording'), findsOneWidget);
+    await screen.settle();
+    expect(screen.files.released, isNot(contains(take)));
+    // Deleted again and left alone: the notice goes by itself, and only
+    // then is the file let go.
+    await tester.tap(find.byTooltip('Delete recording'));
+    await screen.settle();
+    expect(find.text('Recording deleted'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 5));
+    await screen.settle();
+    expect(find.text('Recording deleted'), findsNothing);
+    expect(screen.files.released, contains(take));
+    expect(screen.player.track, _song);
   });
 
   testWidgets('with no track the middle asks for one, and a touch opens the '
