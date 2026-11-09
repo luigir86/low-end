@@ -202,23 +202,7 @@ class _FirstRow extends StatelessWidget {
       switchInCurve: Easing.standard,
       switchOutCurve: Easing.standard,
       child: strip
-          ? Row(
-              key: const ValueKey('strip'),
-              children: [
-                Expanded(child: PassageStrip(player: player)),
-                const SizedBox(width: rowGap),
-                // Always in its place, off until a flag is set: a button
-                // that comes and goes is harder to find.
-                RowButton(
-                  key: PlayerPanel.newPassageKey,
-                  tooltip: AppLocalizations.of(context).playerNewPassage,
-                  label: const Icon(Icons.deselect, size: 24),
-                  onPressed: player.loopStart != null || player.loopEnd != null
-                      ? player.clearPassage
-                      : null,
-                ),
-              ],
-            )
+          ? PassageStrip(key: const ValueKey('strip'), player: player)
           : _MessageRow(key: const ValueKey('message'), player: player),
     );
   }
@@ -329,6 +313,18 @@ class _ControlRow extends StatelessWidget {
               ),
             ),
           ),
+        ),
+        const SizedBox(width: rowGap),
+        // Always in its place, off until a point is set: a button that comes
+        // and goes is harder to find. Beside the passage button, as REC is
+        // beside the track, so that the strip has its whole row.
+        RowButton(
+          key: PlayerPanel.newPassageKey,
+          tooltip: l10n.playerNewPassage,
+          label: const Icon(Icons.deselect, size: 24),
+          onPressed: player.loopStart != null || player.loopEnd != null
+              ? player.clearPassage
+              : null,
         ),
         const SizedBox(width: rowGap),
         Expanded(

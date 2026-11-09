@@ -10,7 +10,7 @@ Il terzo tab di Low End: un brano proprio, rallentato senza cambiare intonazione
 2. Il **centro** avvia e mette in pausa; mostra tempo trascorso, durata e il simbolo di riproduzione o pausa, e sopra titolo e autore se il file ha i tag.
 3. Il **toro** è l'orologio del brano intero: dentro la forma d'onda; fuori, in una fascia sottile, le tacche a tempi tondi con i numeri (0:00, 1:00, 2:00…: al massimo 8, il passo si adatta alla durata); il cursore dove si ascolta. Toccarlo sposta l'ascolto; il passaggio vi appare come arco. A e B vi compaiono come **maniglie** (cerchietti con la lettera) che si trascinano lungo il cerchio: è il modo normale di spostare il passaggio.
 4. **Segna inizio → Segna fine → Loop attivo** (seconda riga, a sinistra, pieno d'accento come TAP, con il cerchio A o B, come la maniglia sul toro, finché si segna): il primo tocco segna A dove si sente, il secondo B; il passaggio si ripete subito da A. Lo stesso pulsante poi spegne e riaccende il loop ("Riattiva loop"); A e B restano.
-5. La **striscia** (prima riga) mostra la forma d'onda dritta: il brano intero finché il passaggio non è completo, poi il passaggio con un margine per parte. Le due aste si trascinano per rifinire (al centesimo); un'asta tenuta contro un bordo allarga la striscia da quella parte finché il dito resta lì; il tocco altrove sposta l'ascolto. Il pulsante **Nuovo passaggio** accanto (icona, sempre al suo posto, spento finché non c'è A o B) cancella A e B.
+5. La **striscia** (prima riga) mostra la forma d'onda dritta: il brano intero finché il passaggio non è completo, poi il passaggio con un margine per parte. Le due aste si trascinano per rifinire (al centesimo); un'asta tenuta contro un bordo allarga la striscia da quella parte finché il dito resta lì; il tocco altrove sposta l'ascolto. La striscia ha tutta la riga. Il pulsante **Nuovo passaggio** (icona nella seconda riga, tra il pulsante del passaggio e Velocità, sempre al suo posto, spento finché non c'è A o B) cancella A e B.
 6. **Velocità** (seconda riga, a destra): un tocco apre una lista corta, 50, 60, 70, 75, 80, 85, 90, 100, 110, 125%. Diversa da 100% il valore e il bordo sono nell'accento. Le azioni accettano ogni valore intero dal 50 al 125.
 7. **REC** (terza riga, il pallino rosso accanto a Brano) registra dal microfono; **Stop** (al posto di REC) apre la ripresa nel Player per riascoltarla, **Scarta** la butta. Con una ripresa aperta il campo ne dice la durata e accanto a REC compaiono **Salva**, **Condividi** ed **Elimina**; eliminata (o rimossa dopo il salvataggio), torna il brano che si stava studiando con passaggio e velocità. Una ripresa non salvata eliminata si riprende per qualche secondo con **Annulla** nell'avviso; REC o un altro brano sopra una ripresa non salvata chiedono prima.
 
@@ -22,8 +22,8 @@ Stesso `DialLayout` degli altri tab: quadrante con il centro allineato tra i qua
 | --- | --- | --- | --- |
 | Toro | Anello spento | Forma d'onda, tacche e tempi fuori dal toro, cursore, arco del passaggio | L'onda rossa della ripresa che cresce col volume del microfono e la linea dove si è arrivati; giro di 1 minuto, poi 2, 5, 10… quando è pieno; il brano aperto prima non si vede |
 | Centro | Cartella e "Scegli un brano" | Titolo/autore, tempo, durata, play/pausa | Tempo della ripresa |
-| Prima riga | Vuota, o l'errore del file | Striscia e Nuovo passaggio (spento senza A né B) | Inattiva |
-| Seconda riga | Spenta | Pulsante del passaggio, Velocità | Inattiva |
+| Prima riga | Vuota, o l'errore del file | Striscia, a tutta riga | Inattiva |
+| Seconda riga | Spenta | Pulsante del passaggio, Nuovo passaggio (spento senza A né B), Velocità | Inattiva |
 | Terza riga | Brano e REC | Brano e REC; con una ripresa: durata, REC, Salva, Condividi, Elimina | Campo Registrazione con pallino e tempo, Stop, Scarta |
 
 ### 2.1 Forma dei controlli (revisione 5)
@@ -32,7 +32,7 @@ Dopo la prova di Luigi del 9/11 (REC e "Segna inizio" più bassi del campo accan
 
 - Ogni controllo delle righe è alto 56 dp come i campi e ogni pulsante è un `RowButton` (rettangolo arrotondato del tema, come − / + e TAP); le icone sono larghe 48 dp, con nome per TalkBack e suggerimento.
 - Il pulsante del passaggio è pieno d'accento come TAP mentre si segna (cerchio con A o B, come la maniglia sul toro) e con il loop attivo, solo bordato con "Riattiva loop" (cambiato il 9/11 su richiesta di Luigi: prima era pallido come − / +).
-- Nuovo passaggio sta accanto alla striscia, dove sono A e B: vicino a Velocità sembrava "torna a 100%".
+- Nuovo passaggio sta nella seconda riga, subito dopo il pulsante del passaggio e prima di Velocità (scelta di Luigi del 9/11: la striscia prende tutta la prima riga, più simmetrica). Accanto al pulsante che segna A e B si legge come "cancella il passaggio"; prima, attaccato a Velocità, sembrava "torna a 100%". Il pulsante del passaggio resta largo il doppio di Velocità: a 360 dp e testo normale "Réactiver la boucle" ci sta intero (verificato da `layout_review_test`).
 - Restano sempre al loro posto Nuovo passaggio e REC; Salva, Condividi ed Elimina compaiono solo con una ripresa (scelta di Luigi). Il campo della ripresa mostra la durata, che entra anche a 360 dp e nella colonna in orizzontale.
 - Anteprime: `preview/player-controlli/` nella cartella del progetto.
 
