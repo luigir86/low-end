@@ -40,7 +40,7 @@ Rules: pick a role, never a number; the three dials show their value in `display
 
 ## Colour
 
-The app is always dark. Its colours come from one four-colour palette (`BrandPalette`: brand, accent, dark, light) chosen with one constant, `LowEndBrand.palette`, never by the player: **Ebony & Bronze** (active) or **Red** ([four-colour themes](specs/tema-ebano-bronzo.md), [Red redesign](tema-ffm.md)). Both share the same component builder, Edwin, shapes, sizes and layouts. Flat fills, no gradients or sheen.
+The app is always dark. Its colours come from one four-colour palette (`BrandPalette`: brand, accent, dark, light) chosen with one constant, `LowEndBrand.palette`, never by the player: **Ebony & Bronze** (active: warm ebony `#18140F` ground, ivory `#F1E8D5` surfaces, bronze `#D4A373` accent) or **Red** (kept in reserve, one line to switch; [four-colour themes](specs/tema-ebano-bronzo.md), [Red redesign](tema-ffm.md)). Both share the same component builder, Edwin, shapes, sizes and layouts. Flat fills, no gradients or sheen.
 
 | Meaning | Theme role |
 | --- | --- |
@@ -49,13 +49,13 @@ The app is always dark. Its colours come from one four-colour palette (`BrandPal
 | Other chord notes and lit beats | `secondary`; the first beat is `downbeat` and remains wider |
 | TAP / selected segmented controls | `primaryContainer` / `onPrimaryContainer` |
 | Inactive segments / borders | `outlineVariant` / `outline` |
-| Navigation bar and rail | `navigationBackground`, `navigationIndicator`, `navigationInk`; the bottom bar (`bottomNavigation*`) is on the ground (ebony) under a 1 dp line of the light colour, icons only (their names are tooltips and screen-reader labels), no pill: the open tab is the light colour with a filled icon, the others a warm grey; 48 dp (`LowEndShape.navigationBarHeight`) above three-button navigation, while with gesture navigation the icons centre in one band down to the edge, `navigationGestureOverlap` (8 dp) of it over the home strip; the landscape rail has the same ground, inks and line (on its side) and keeps the names, for which it has room; a 2 dp red frame line runs along the top |
+| Navigation bar and rail | `navigationBackground`, `navigationIndicator`, `navigationInk`; the bottom bar (`bottomNavigation*`) is on the ground (ebony) under a single bronze line that fades into the ebony, icons only (their names are tooltips and screen-reader labels), no pill: the open tab is the light colour with a filled icon, the others a warm grey; 48 dp (`LowEndShape.navigationBarHeight`) above three-button navigation, while with gesture navigation the icons centre in one band down to the edge, `navigationGestureOverlap` (8 dp) of it over the home strip; the landscape rail has the same ground, inks and line (on its side) and keeps the names, for which it has room; the line is a single bronze line that fades into the ebony, and there is no band along the top of the screen |
 | Strobe | Grey `strobeIdle` without a live reading; both bands use the same `inTune`, `close`, `off` verdict as the symbol and cents scale |
-| Tuner verdict | Common sage green, straw yellow and brick red; words, tick/arrows and cents needle, never colour alone |
+| Tuner verdict | Sage green `#A9BC8B` in tune, honey `#DEC27A` near, terracotta `#E8735F` far off (the same terracotta as errors and REC); words, tick/arrows and cents needle, never colour alone |
 
 `LowEndTheme.forPalette` derives every other shade: surfaces, borders, keys that are off and muted text are mixtures of the dark and light colours. Active fills use the exact accent; their labels choose dark or light ink (ebony on bronze), and selected text on the light bottom bar derives a readable accent shade. Tuner verdicts and the idle strobe stay independent. The icon and every startup surface use the palette's brand colour; run `flutter test tool/make_icons_test.dart` before a local build (CI does so automatically). `theme_test.dart` checks both palettes and six accent previews for contrast. Beats left silent, weak pulses and receding beats retain named roles, with no theme conditionals in screens. Roman numerals stay on the notes they represent.
 
-The strobe is grey while paused, waiting for a note, or holding the last note after the sound fades. With a live reading, both bands are sage green within the configured tolerance (default ±5 cents), yellow beyond that up to ±15 cents, and red further off. Colour transitions use `Durations.short4` and `Easing.standard`, or are immediate with reduced motion. Rotation still indicates flat/sharp and the exact offset; it stops only at zero cents, on a held note, or when listening stops. Reduced motion retains the static cents marker. Note names and verdict words stay light and readable.
+The strobe is grey while paused, waiting for a note, or holding the last note after the sound fades. With a live reading, both bands are sage green within the configured tolerance (default ±5 cents), honey beyond that up to ±15 cents, and terracotta further off. Colour transitions use `Durations.short4` and `Easing.standard`, or are immediate with reduced motion. Rotation still indicates flat/sharp and the exact offset; it stops only at zero cents, on a held note, or when listening stops. Reduced motion retains the static cents marker. Note names and verdict words stay light and readable.
 
 ## Landscape
 
@@ -112,6 +112,8 @@ the existing dial size; the central start/stop target fills the inner disc.
 The other dials and lower controls keep their positions.
 
 
-## Anthracite & Red refinement
+## Anthracite & Red refinement (superseded)
+
+> **Superseded.** This section describes the red theme of 7–8 November 2026, kept for the record. The active theme is Ebony & Bronze (see Colour above; the tab bar, the bronze line and the tuner colours changed on 9 November 2026, PR #170 and #175). Red is still available as `LowEndBrand.red`.
 
 See [the approved specification](specs/rosso-coerente-cornice.md). Action fills and selected states use TAP red; readable Material text remains neutral. Numeric −/+ controls are light gray without an outline; action icons in control rows use red fills and light ink. A 2 dp red top line matches the bottom base line. Settings sits on the dark background in the top right with a 48 dp touch target, without reserving a toolbar row; the shared dial expands into the recovered space. The landscape rail stays red. Bottom navigation uses an almost-white background, red selected icon/label and a 2 dp red base line below its safe area; idle destinations use anthracite. Since 9 November 2026 the tabs are on the ebony ground with a thin ivory line, icons only, the open one ivory without a pill, and the dot of a playing section is the accent (as TAP), on any tab; the tuner has no dot. Dial centres and control surfaces stay dark. The wheel shows ticks only. Tuner verdicts are palette-specific, with neutral words and redundant symbols.

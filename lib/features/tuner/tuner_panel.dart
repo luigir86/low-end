@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 
 import '../../app/app_navigation.dart';
+import '../../app/decimal.dart';
 import '../../app/settings.dart';
 import '../../app/style.dart';
 import '../../app/theme.dart';
@@ -597,6 +598,31 @@ class _NoteDisplay extends StatelessWidget {
         child: Column(mainAxisSize: MainAxisSize.min, children: children),
       ),
     );
+    // The reading: the note keeps its own size, whatever the words under it
+    // say ("In tune" or "Flat −9 cents"), so it does not jump while tuning.
+    // Each row shrinks alone to the width of the dial; the block as a whole
+    // shrinks only when it is too tall, and that does not depend on the
+    // verdict's words.
+    Widget fitRows(List<Widget> children) => Center(
+      child: LayoutBuilder(
+        builder: (context, box) {
+          if (!box.maxWidth.isFinite) return fit(children);
+          return FittedBox(
+            fit: BoxFit.scaleDown,
+            child: SizedBox(
+              width: box.maxWidth,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final child in children)
+                    FittedBox(fit: BoxFit.scaleDown, child: child),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
     if (!listening) {
       // Paused: what touching the middle does.
       return fit([
@@ -650,7 +676,7 @@ class _NoteDisplay extends StatelessWidget {
               ? Duration.zero
               : Durations.short4,
           opacity: held ? 0.55 : 1,
-          child: fit([
+          child: fitRows([
             // Note and verdict words remain readable; the symbol carries
             // the palette-specific verdict colour.
             _NoteName(
@@ -704,7 +730,7 @@ class _NoteDisplay extends StatelessWidget {
               // A held note says so in words, not only by fading.
               held
                   ? l10n.tunerHeld
-                  : l10n.frequencyHz(r.frequency.toStringAsFixed(1)),
+                  : l10n.frequencyHz(decimalText(l10n, r.frequency)),
               style: muted,
             ),
           ]),

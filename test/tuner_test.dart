@@ -137,4 +137,61 @@ void main() {
     await tester.pumpAndSettle();
     expect(mic.isCapturing, isFalse);
   });
+
+  /// Opens the tuner on a narrow phone and plays [hz] until a reading shows.
+  Future<void> play(
+    WidgetTester tester,
+    double hz, {
+    String tab = 'Tuner',
+    Locale locale = const Locale('en'),
+  }) async {
+    tester.platformDispatcher.localesTestValue = [locale];
+    addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+    tester.view.physicalSize = const Size(800, 2000);
+    tester.view.devicePixelRatio = 2.5;
+    addTearDown(tester.view.reset);
+    final mic = FakeMicInput();
+    await tester.pumpWidget(
+      LowEndApp(toneOutput: SilentToneOutput(), micInput: mic),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip(tab));
+    await tester.pumpAndSettle();
+    for (var i = 0; i < 8; i++) {
+      mic.add(_sine(hz, 1600, chunk: i));
+      await tester.pump();
+    }
+    await tester.pump(const Duration(milliseconds: 200));
+  }
+
+  double noteWidth(WidgetTester tester) {
+    final note = find.text('G2').first;
+    return (tester.getTopRight(note) - tester.getTopLeft(note)).dx;
+  }
+
+  testWidgets('the note keeps its size whatever the verdict says', (
+    tester,
+  ) async {
+    await play(tester, 98);
+    expect(find.text('In tune'), findsOneWidget);
+    final inTune = noteWidth(tester);
+    // Far enough off for the long words "Flat −36 cents".
+    await tester.pumpWidget(const SizedBox());
+    await play(tester, 96);
+    expect(find.textContaining('Flat −'), findsOneWidget);
+    expect(noteWidth(tester), closeTo(inTune, 0.01));
+  });
+
+  testWidgets('the hertz have the decimal mark of the language', (
+    tester,
+  ) async {
+    Finder hertz(RegExp pattern) => find.byWidgetPredicate(
+      (w) => w is Text && pattern.hasMatch(w.data ?? ''),
+    );
+    await play(tester, 98);
+    expect(hertz(RegExp(r'^\d+\.\d Hz$')), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    await play(tester, 98, tab: 'Accordatore', locale: const Locale('it'));
+    expect(hertz(RegExp(r'^\d+,\d Hz$')), findsOneWidget);
+  });
 }

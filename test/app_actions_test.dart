@@ -85,6 +85,25 @@ void main() {
     expect((await actions.call('drone_stop', const {}, true))['ok'], true);
   });
 
+  test('a link cannot record, close or rename; a direct call can', () async {
+    for (final (name, args) in [
+      ('player_record', <String, Object?>{}),
+      ('player_record_stop', <String, Object?>{'discard': true}),
+      ('player_close', <String, Object?>{}),
+      ('player_take_rename', <String, Object?>{'name': 'x'}),
+    ]) {
+      final refused = await actions.call(name, args, true);
+      expect(refused['ok'], false, reason: name);
+      expect('${refused['error']}', contains('link'), reason: name);
+      // Called directly it gets past the link check (it may fail for
+      // another reason here: nothing is open, no recorder).
+      final direct = await actions.call(name, args);
+      expect('${direct['error']}', isNot(contains('link')), reason: name);
+    }
+    // Starting and stopping the sound is still fine from a link.
+    expect((await actions.call('metronome_stop', const {}, true))['ok'], true);
+  });
+
   test('reads note names in English and Italian', () {
     expect(parseNote('A'), (pitchClass: 9, octave: null));
     expect(parseNote('Bb1'), (pitchClass: 10, octave: 1));

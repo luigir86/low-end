@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../audio/audio_scope.dart';
@@ -42,11 +44,11 @@ class SettingsPage extends StatelessWidget {
             children: [
               // What the whole app speaks and shows.
               _Section(title: l10n.settingsGeneral),
-              ListTile(
+              _MenuTile(
                 // The field is taller than a one-line tile: room around it.
                 contentPadding: _MenuField.tilePadding,
                 title: Text(l10n.languageLabel),
-                trailing: _MenuField<String>(
+                field: _MenuField<String>(
                   key: const Key('languageMenu'),
                   label: l10n.languageLabel,
                   width: _MenuField.wide,
@@ -66,11 +68,11 @@ class SettingsPage extends StatelessWidget {
                       settings.setLanguage(code.isEmpty ? null : code),
                 ),
               ),
-              ListTile(
+              _MenuTile(
                 // The field is taller than a one-line tile: room around it.
                 contentPadding: _MenuField.tilePadding,
                 title: Text(l10n.noteNamesLabel),
-                trailing: _MenuField<NoteNaming>(
+                field: _MenuField<NoteNaming>(
                   key: const Key('noteNamesMenu'),
                   label: l10n.noteNamesLabel,
                   width: _MenuField.wide,
@@ -101,10 +103,10 @@ class SettingsPage extends StatelessWidget {
                 title: Text(l10n.gesturesLockedTitle),
                 subtitle: Text(l10n.gesturesLockedSubtitle),
               ),
-              ListTile(
+              _MenuTile(
                 title: Text(l10n.octaveNumberingLabel),
                 subtitle: Text(l10n.octaveNumberingHint),
-                trailing: _MenuField<OctaveNumbering>(
+                field: _MenuField<OctaveNumbering>(
                   key: const Key('octaveNumberingMenu'),
                   label: l10n.octaveNumberingLabel,
                   width: _MenuField.wide,
@@ -136,11 +138,11 @@ class SettingsPage extends StatelessWidget {
               const Divider(),
               // Everything the tuner compares with, together.
               _Section(title: l10n.tunerTab),
-              ListTile(
+              _MenuTile(
                 title: Text(l10n.referencePitch),
                 subtitle: Text(l10n.referencePitchHint(example)),
                 // The field announces its name too, not only "440 Hz".
-                trailing: _MenuField<double>(
+                field: _MenuField<double>(
                   key: const Key('referencePitchMenu'),
                   label: l10n.referencePitch,
                   selected: settings.a4,
@@ -157,10 +159,10 @@ class SettingsPage extends StatelessWidget {
                   onSelected: settings.setReferencePitch,
                 ),
               ),
-              ListTile(
+              _MenuTile(
                 title: Text(l10n.inTuneZoneTitle),
                 subtitle: Text(l10n.inTuneZoneSubtitle),
-                trailing: _MenuField<double>(
+                field: _MenuField<double>(
                   key: const Key('inTuneZoneMenu'),
                   label: l10n.inTuneZoneTitle,
                   selected: settings.inTuneCents,
@@ -206,10 +208,10 @@ class SettingsPage extends StatelessWidget {
               ),
               const Divider(),
               _Section(title: l10n.harmonyTab),
-              ListTile(
+              _MenuTile(
                 contentPadding: _MenuField.tilePadding,
                 title: Text(l10n.circleLayoutLabel),
-                trailing: _MenuField<CircleLayout>(
+                field: _MenuField<CircleLayout>(
                   key: const Key('circleLayoutMenu'),
                   label: l10n.circleLayoutLabel,
                   width: _MenuField.wide,
@@ -302,6 +304,50 @@ class _Section extends StatelessWidget {
   }
 }
 
+/// A line of the settings with a menu field. Side by side with its name, as
+/// a list tile; with the phone's text enlarged ([_MenuField.stackedFrom]) the
+/// name has too little room beside the field, and the field goes under the
+/// name, as wide as the page, so that no value is cut.
+class _MenuTile extends StatelessWidget {
+  const _MenuTile({
+    required this.title,
+    this.subtitle,
+    required this.field,
+    this.contentPadding,
+  });
+
+  final Widget title;
+  final Widget? subtitle;
+  final Widget field;
+  final EdgeInsetsGeometry? contentPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_MenuField.textScale(context) < _MenuField.stackedFrom) {
+      return ListTile(
+        contentPadding: contentPadding,
+        title: title,
+        subtitle: subtitle,
+        trailing: field,
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ListTile(
+          contentPadding: contentPadding,
+          title: title,
+          subtitle: subtitle,
+        ),
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 24, 8),
+          child: field,
+        ),
+      ],
+    );
+  }
+}
+
 /// A setting chosen from a list: the field of the rows under the dials, its
 /// name left to the line it ends, opening the menu of the whole app.
 class _MenuField<T> extends StatelessWidget {
@@ -331,12 +377,28 @@ class _MenuField<T> extends StatelessWidget {
 
   static String _shown<T>(Choice<T> c) => c.short ?? c.title;
 
+  /// From this text scale on, the field goes under its name (see
+  /// [_MenuTile]) and takes the whole width.
+  static const double stackedFrom = 1.15;
+
+  static double textScale(BuildContext context) =>
+      MediaQuery.textScalerOf(context).scale(14) / 14;
+
   @override
   Widget build(BuildContext context) => SizedBox(
-    width: width,
+    // Large text needs a wider field; side by side with the name, only as
+    // far as there is room.
+    width: textScale(context) >= stackedFrom
+        ? double.infinity
+        : math.min(
+            width * math.max(1, textScale(context)),
+            MediaQuery.sizeOf(context).width * 0.6,
+          ),
     child: LabeledField(
       label: label,
       showLabel: false,
+      // Never ends in "…": a long value shrinks a little to fit.
+      fitValue: true,
       value: _shown(choices.firstWhere((c) => c.value == selected)),
       onTap: () async {
         final picked = await showChoiceMenu(

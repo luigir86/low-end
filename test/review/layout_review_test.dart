@@ -302,7 +302,7 @@ void main() {
         if (tab == AppSection.drone) {
           // The name alone on the dial: the octave never changes.
           expect(find.text('La3'), findsNothing);
-          expect(find.text('220.0 Hz'), findsOneWidget);
+          expect(find.text('220,0 Hz'), findsOneWidget);
         }
         h.expectClean();
       });
