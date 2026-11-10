@@ -414,10 +414,18 @@ class BarLoopPlayer {
     if (source != null) await _soloud.disposeSource(source);
   }
 
+  /// Sets how loud the loops are. The same level again leaves the voice
+  /// alone: the engine's setVolume ends a fade under way, and a hand-over
+  /// (see [beginHandOver]) or a new chord waiting for its pulse is one.
+  /// During a hand-over the loop let down stays so; the new one comes in at
+  /// the new level.
   void setVolume(double volume) {
+    if (volume == _volume) return;
     _volume = volume;
     final handle = _handle;
-    if (handle != null) _soloud.setVolume(handle, volume);
+    if (handle != null && _handOverAt == null) {
+      _soloud.setVolume(handle, volume);
+    }
   }
 }
 

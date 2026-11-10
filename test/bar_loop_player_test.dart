@@ -280,6 +280,25 @@ void main() {
     expect(oldClick.stopsAt, isNotNull);
   });
 
+  test('the volume set again during a hand-over does not stop it', () async {
+    piano.setVolume(0.8);
+    await piano.play(fakeWav(bar * 4), bar, startAt: Duration.zero);
+    engine.advance(ms(300));
+    final old = only('piano-loop.wav');
+    final wait = piano.beginHandOver(lead: ms(500))!;
+    final line = engine.now + wait;
+    engine.advance(ms(400));
+    final down = old.volumeAt(engine.now);
+    expect(down, lessThan(0.8));
+    // The piano sets its volume before every loop it plays.
+    piano.setVolume(0.8);
+    expect(old.volumeAt(engine.now), down);
+    expect(
+      old.volumeAt(line),
+      closeTo(0.8 * BarLoopPlayer.handOverLevel, 1e-9),
+    );
+  });
+
   test('a hand-over called off brings the loop back up', () async {
     await piano.play(fakeWav(bar), bar);
     engine.advance(ms(300));
