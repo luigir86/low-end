@@ -13,16 +13,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get takeDiscard => 'Descartar';
 
   @override
-  String get takeDelete => 'Eliminar grabación';
-
-  @override
-  String get takeRemove => 'Quitar del reproductor';
-
-  @override
   String get takeRecord => 'Grabar';
 
   @override
-  String get takeDeleted => 'Grabación eliminada';
+  String get takeDeleted => 'Grabación descartada';
 
   @override
   String get takeUndo => 'Deshacer';

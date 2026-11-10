@@ -1,9 +1,7 @@
 {
   "takeDiscard": "Scarta",
-  "takeDelete": "Elimina registrazione",
-  "takeRemove": "Rimuovi dal player",
   "takeRecord": "Registra",
-  "takeDeleted": "Registrazione eliminata",
+  "takeDeleted": "Registrazione scartata",
   "takeUndo": "Annulla",
   "takeStop": "Stop",
   "takeRecording": "Registrazione",

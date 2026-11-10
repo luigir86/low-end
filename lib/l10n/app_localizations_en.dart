@@ -13,16 +13,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get takeDiscard => 'Discard';
 
   @override
-  String get takeDelete => 'Delete recording';
-
-  @override
-  String get takeRemove => 'Remove from player';
-
-  @override
   String get takeRecord => 'Record';
 
   @override
-  String get takeDeleted => 'Recording deleted';
+  String get takeDeleted => 'Recording discarded';
 
   @override
   String get takeUndo => 'Undo';

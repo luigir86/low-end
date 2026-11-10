@@ -333,6 +333,21 @@ class AppActions {
           'Clears both passage marks so a new passage can be captured.',
     ),
     const AppAction(
+      name: 'player_close',
+      description:
+          'Empties the Player, like the X beside the track name. A file is '
+          'closed and no longer remembered (it stays on the phone). A take '
+          'goes, and the track it was recorded over comes back with its '
+          'speed and passage; a take not saved can be brought back with '
+          'player_close_undo for 5 seconds, then its file is deleted.',
+    ),
+    const AppAction(
+      name: 'player_close_undo',
+      description:
+          'Brings back the take not saved that player_close (or the X) has '
+          'just discarded, within 5 seconds.',
+    ),
+    const AppAction(
       name: 'player_record',
       description:
           'Opens the Player and records a take from the microphone, like '
@@ -770,6 +785,17 @@ class AppActions {
         await player.setLooping(false);
       case 'player_loop_clear':
         await player.clearPassage();
+      case 'player_close':
+        if (recording?.active ?? false) {
+          throw ActionError('A take is recording: stop it first.');
+        }
+        if (player.track == null) throw ActionError('The Player is empty.');
+        await player.close();
+      case 'player_close_undo':
+        if (player.discarded == null) {
+          throw ActionError('No discarded take to bring back.');
+        }
+        await player.undoDiscard();
       case 'player_record':
         final rec = _requireRecording();
         if (rec.active) throw ActionError('A take is already recording.');

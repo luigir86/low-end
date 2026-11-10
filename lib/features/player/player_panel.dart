@@ -107,6 +107,9 @@ class _PlayerPanelState extends State<PlayerPanel>
             }
             await player.pick();
           },
+          // Scarta: empties the Player, a take as well as a file.
+          onClear: player.track == null ? null : player.close,
+          clearTooltip: strings.takeDiscard,
         );
         final rec = RowButton(
           key: PlayerPanel.recordKey,
@@ -159,6 +162,8 @@ class _PlayerPanelState extends State<PlayerPanel>
           ),
           lower: recording
               ? RecordingRow(recording: recorder)
+              : player.discarded != null
+              ? DiscardedRow(player: player)
               : track is RecordedTrack
               ? TakeActions(
                   key: ValueKey(track.uri),

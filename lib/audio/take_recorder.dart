@@ -55,15 +55,28 @@ class RecordTakeRecorder implements TakeRecorder {
     final path = await system.recordingPath(name);
     // On the iPhone the web app keeps its sound while the microphone is on.
     setWebAudioSession(listening: true);
-    await _rec.start(
-      RecordConfig(
-        encoder: kIsWeb ? AudioEncoder.wav : AudioEncoder.aacLc,
-        numChannels: 1,
-      ),
-      path: path,
-    );
+    await _rec.start(takeConfig, path: path);
     _name = name;
   }
+
+  /// How a take is recorded. Shown to the tests.
+  ///
+  /// The phone's own microphone, as for the tuner: with the record
+  /// package's default Bluetooth handling, a headset with a microphone
+  /// (the "audio + mic" kind) was switched to its call mode for the take,
+  /// and the Player and Harmony then played through it in call quality
+  /// until the app was closed. Never asking for the headset's microphone
+  /// keeps it in music mode, and the phone's microphone is the better one
+  /// for an instrument anyway.
+  @visibleForTesting
+  static const takeConfig = RecordConfig(
+    encoder: kIsWeb ? AudioEncoder.wav : AudioEncoder.aacLc,
+    numChannels: 1,
+    androidConfig: AndroidRecordConfig(
+      audioSource: AndroidAudioSource.mic,
+      manageBluetooth: false,
+    ),
+  );
 
   @override
   Future<double> level() async {
