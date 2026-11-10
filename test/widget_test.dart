@@ -421,7 +421,7 @@ void main() {
     expect(find.byKey(const Key('notice')), findsNothing);
   });
 
-  testWidgets('sound cut by the browser shows as paused, with Resume', (
+  testWidgets('a call or a cut sound shows as paused, with Resume', (
     tester,
   ) async {
     final click = SilentClickOutput();
@@ -447,14 +447,18 @@ void main() {
     await scope.metronome.start();
     await tester.pump(const Duration(milliseconds: 300));
     expect(click.bar, isNotNull);
+    // Older Android phones are asked about calls only while it plays.
+    expect(route.playing, isTrue);
 
-    // A call on the iPhone: the app must not look as if it played on.
+    // A call (the phone rings, or the iPhone's browser cuts the sound):
+    // the app must not look as if it played on.
     route.interrupt();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(scope.metronome.isPlaying, isFalse);
     expect(click.bar, isNull);
     expect(find.text('Paused: the sound was interrupted'), findsOneWidget);
+    expect(route.playing, isFalse);
 
     await tester.tap(find.text('Resume'));
     await tester.pump();

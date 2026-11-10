@@ -11,6 +11,7 @@ import android.media.AudioManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import java.util.concurrent.Executor
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
 
@@ -37,12 +38,57 @@ object AudioRoute {
         override fun onAudioDevicesRemoved(removed: Array<out AudioDeviceInfo>) = sendRoute()
     }
 
+    // A call: the phone rings, or a call is on (a phone call, or a call app
+    // such as WhatsApp). Read from the phone's audio mode, which needs no
+    // permission: the call's own state would need READ_PHONE_STATE. From
+    // Android 12 the phone says when the mode changes; before, it is read
+    // once a second, only while the app plays (see "watch").
+    private val main = Handler(Looper.getMainLooper())
+    private var lastMode = AudioManager.MODE_NORMAL
+    private var watching = false
+    private val poll = object : Runnable {
+        override fun run() {
+            if (!watching) return
+            onMode(audioManager(context ?: return).mode)
+            main.postDelayed(this, 1000)
+        }
+    }
+
+    private fun onMode(mode: Int) {
+        if (isCall(mode) && !isCall(lastMode)) channel?.invokeMethod("call", null)
+        lastMode = mode
+    }
+
+    // Ringing, in a call, in a call app, screening or redirecting a call:
+    // every mode past NORMAL (the negative ones are not modes).
+    private fun isCall(mode: Int) = mode > AudioManager.MODE_NORMAL
+
+    // Something plays (or stops): before Android 12, read the mode while it
+    // plays. A call already on when the sound starts is not a new one.
+    private fun watch(on: Boolean) {
+        val ctx = context ?: return
+        if (Build.VERSION.SDK_INT >= 31 || on == watching) return
+        watching = on
+        main.removeCallbacks(poll)
+        if (on) {
+            lastMode = audioManager(ctx).mode
+            main.postDelayed(poll, 1000)
+        }
+    }
+
     // Called each time a screen opens on the engine (the same engine, kept
     // by audio_service): the listeners are registered the first time only.
     fun attach(appContext: Context, messenger: BinaryMessenger) {
         channel = MethodChannel(messenger, "low_end/audio_route").apply {
             setMethodCallHandler { call, result ->
-                if (call.method == "route") result.success(outputKind()) else result.notImplemented()
+                when (call.method) {
+                    "route" -> result.success(outputKind())
+                    "watch" -> {
+                        watch(call.arguments == true)
+                        result.success(null)
+                    }
+                    else -> result.notImplemented()
+                }
             }
         }
         if (context != null) return
@@ -53,7 +99,12 @@ object AudioRoute {
         } else {
             appContext.registerReceiver(noisyReceiver, noisy)
         }
-        audioManager(appContext).registerAudioDeviceCallback(deviceCallback, Handler(Looper.getMainLooper()))
+        val manager = audioManager(appContext)
+        manager.registerAudioDeviceCallback(deviceCallback, main)
+        if (Build.VERSION.SDK_INT >= 31) {
+            lastMode = manager.mode
+            manager.addOnModeChangedListener(Executor { main.post(it) }) { onMode(it) }
+        }
     }
 
     private fun audioManager(context: Context) =
