@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../app/notice.dart';
 import '../../audio/audio_scope.dart';
 import '../../audio/recorded_track.dart';
 import '../../audio/track_output.dart';
@@ -71,17 +72,11 @@ class _PlayerPanelState extends State<PlayerPanel>
   void _showProblem(RecordingProblem problem) {
     if (!mounted) return;
     final strings = AppLocalizations.of(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(switch (problem) {
-          RecordingProblem.permissionDenied =>
-            kIsWeb
-                ? strings.micPermissionDeniedWeb
-                : strings.micPermissionDenied,
-          RecordingProblem.failed => strings.takeError,
-        }),
-      ),
-    );
+    NoticeHost.of(context).show(switch (problem) {
+      RecordingProblem.permissionDenied =>
+        kIsWeb ? strings.micPermissionDeniedWeb : strings.micPermissionDenied,
+      RecordingProblem.failed => strings.takeError,
+    });
   }
 
   @override

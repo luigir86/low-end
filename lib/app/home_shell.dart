@@ -15,6 +15,7 @@ import '../widgets/section_float.dart';
 import '../widgets/section_icons.dart';
 import 'app_navigation.dart';
 import 'guide.dart';
+import 'notice.dart';
 import 'settings_page.dart';
 import 'style.dart';
 import 'theme.dart';
@@ -131,9 +132,7 @@ class _HomeShellState extends State<HomeShell> {
     settings.markSwipeHintSeen();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).swipeHint)),
-      );
+      NoticeHost.of(context).show(AppLocalizations.of(context).swipeHint);
     });
   }
 

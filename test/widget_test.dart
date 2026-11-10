@@ -283,7 +283,7 @@ void main() {
     expect(click.bar, isNotNull);
     expect(mic.isCapturing, isFalse);
     expect(find.text('Listening pauses what is playing'), findsOneWidget);
-    expect(find.byType(SnackBar), findsNothing);
+    expect(find.byKey(const Key('notice')), findsNothing);
 
     // A touch on the middle pauses both, so the microphone hears only the
     // bass. No notice: the touch was the player's own.
@@ -294,7 +294,7 @@ void main() {
     expect(tone.frequencies, isEmpty);
     expect(click.bar, isNull);
     expect(mic.isCapturing, isTrue);
-    expect(find.byType(SnackBar), findsNothing);
+    expect(find.byKey(const Key('notice')), findsNothing);
     // Listening keeps the screen on too.
     expect(awake.on, isTrue);
 
@@ -365,7 +365,7 @@ void main() {
     expect(scope.metronome.isPlaying, isFalse);
     expect(click.bar, isNull);
     // Pulled out by the player: the paused media notification is enough.
-    expect(find.byType(SnackBar), findsNothing);
+    expect(find.byKey(const Key('notice')), findsNothing);
   });
 
   testWidgets('unplugged, the notification stays paused to play again', (
@@ -418,7 +418,7 @@ void main() {
     route.unplug();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.byType(SnackBar), findsNothing);
+    expect(find.byKey(const Key('notice')), findsNothing);
   });
 
   testWidgets('sound cut by the browser shows as paused, with Resume', (

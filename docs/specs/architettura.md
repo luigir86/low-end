@@ -60,7 +60,7 @@ Tre livelli come dice `docs/architecture.md` (schermate → controller → uscit
 
 | Modulo | Righe | Responsabilità reali |
 | --- | ---: | --- |
-| `app/low_end_app.dart` | 468 | Crea i controller e le uscite (o i finti dei test); ripristina impostazioni e Armonia; collega le regole tra sezioni e mostra lo snackbar "Riprendi" solo per le interruzioni (chiamata, browser); testo della notifica multimediale; schermo acceso; link d'azione; avvio anticipato del motore nel web; preparazione del pianoforte al cambio di sezione |
+| `app/low_end_app.dart` | 468 | Crea i controller e le uscite (o i finti dei test); ripristina impostazioni e Armonia; collega le regole tra sezioni e mostra l'avviso "Riprendi" (in alto, `NoticeHost`) solo per le interruzioni (chiamata, browser); testo della notifica multimediale; schermo acceso; link d'azione; avvio anticipato del motore nel web; preparazione del pianoforte al cambio di sezione |
 | `app/playback_rules.dart` | 155 | Dal 5/11 (passo 8): `PauseRules` (pausa per accordatore, cuffie staccate e interruzioni web, e ripresa) e `NowPlayingNotification` (stato della notifica, pausa e ripresa dai suoi pulsanti), su due `SoundSection` |
 | `app/home_shell.dart` | 390 | Schede in basso o rail a sinistra, `PageView` con le tre sezioni sempre vive (`KeepAlive`, `TickerMode` per quelle fuori schermo), suggerimento di scorrimento |
 | `app/settings.dart` | 445 | Tutte le preferenze in `shared_preferences`, una chiave per valore (18 chiavi; l'Armonia in una sola, JSON), lettura tollerante agli errori; memoria del metronomo, della sezione e dell'Armonia |

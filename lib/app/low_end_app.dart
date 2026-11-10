@@ -31,6 +31,7 @@ import '../l10n/app_localizations.dart';
 import 'app_navigation.dart';
 import 'background_audio.dart';
 import 'home_shell.dart';
+import 'notice.dart';
 import 'playback_rules.dart';
 import 'screen_awake.dart';
 import 'settings.dart';
@@ -171,7 +172,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
   );
 
   /// Shows the notice that the sound paused for the tuner.
-  final _messenger = GlobalKey<ScaffoldMessengerState>();
+  final _notices = GlobalKey<NoticeHostState>();
   late final _settings = widget.settings ?? AppSettings();
   late final _actions = AppActions(
     drone: _drone,
@@ -375,18 +376,11 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
   void _showPaused(Paused? paused) {
     if (paused == null || paused.why != PauseReason.interrupted) return;
     final l10n = _notificationTexts();
-    _messenger.currentState
-      ?..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(l10n.pausedInterrupted),
-          persist: false,
-          action: SnackBarAction(
-            label: l10n.resume,
-            onPressed: () => _pauses.resume(paused),
-          ),
-        ),
-      );
+    _notices.currentState?.show(
+      l10n.pausedInterrupted,
+      actionLabel: l10n.resume,
+      onAction: () => _pauses.resume(paused),
+    );
   }
 
   /// The screen stays on while anything plays or the tuner listens.
@@ -553,7 +547,8 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
   }
 
   Widget _app() => MaterialApp(
-    scaffoldMessengerKey: _messenger,
+    // Notices go at the top, over every page (see NoticeHost).
+    builder: (context, child) => NoticeHost(key: _notices, child: child!),
     // Null follows the phone's language.
     locale: _settings.locale,
     onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
