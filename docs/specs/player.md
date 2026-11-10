@@ -16,7 +16,7 @@ Il terzo tab di Low End: un brano proprio, rallentato senza cambiare intonazione
 
 ## 2. La schermata
 
-Stesso `DialLayout` degli altri tab: quadrante con il centro allineato tra i quattro tab, poi tre righe da 64 dp con 16 dp tra loro.
+Stesso `DialLayout` degli altri tab: quadrante con il centro allineato tra i quattro tab, poi tre righe da 64 dp con 12 dp tra loro e 8 dp sotto l'ultima: pulsanti, campi e striscia dell'onda sono alti 56 dp, quindi si vedono 20 dp tra una riga e l'altra e 20 dp tra l'ultima riga e la linea dei tab.
 
 | Posto | Senza brano | Brano aperto | Durante la registrazione |
 | --- | --- | --- | --- |

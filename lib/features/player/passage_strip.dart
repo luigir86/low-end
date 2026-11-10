@@ -10,6 +10,7 @@ import 'package:flutter/services.dart' show HapticFeedback;
 import '../../app/style.dart';
 import '../../app/theme.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/row_controls.dart' show rowLineHeight;
 import 'clock_text.dart';
 import 'flag_drag.dart';
 import 'flag_painter.dart';
@@ -29,6 +30,12 @@ class PassageStrip extends StatefulWidget {
 
   /// The tallest the strip is at normal text size, in logical pixels.
   static const height = LowEndShape.controlRowHeight;
+
+  /// The box is drawn this much in from the top and bottom of the strip:
+  /// as tall as the buttons and fields of the rows under it (56 dp in a
+  /// 64 dp row), so that the gaps between all the rows look the same. The
+  /// whole height still takes a touch.
+  static const inset = (height - 2 * 16 - rowLineHeight) / 2;
 
   /// Room on each side, so that a pole at the very start or end of the track
   /// can still be taken.
@@ -455,8 +462,9 @@ class _StripPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    const inset = PassageStrip.inset;
     final box = RRect.fromRectAndRadius(
-      Offset.zero & size,
+      Rect.fromLTRB(0, inset, size.width, size.height - inset),
       const Radius.circular(_radius),
     );
     canvas
@@ -474,7 +482,7 @@ class _StripPainter extends CustomPainter {
 
     if (start != null && end != null) {
       canvas.drawRect(
-        Rect.fromLTRB(x(start!), 0, x(end!), size.height),
+        Rect.fromLTRB(x(start!), inset, x(end!), size.height - inset),
         Paint()
           ..color = colors.primary.withValues(alpha: looping ? 0.28 : 0.08),
       );
@@ -486,7 +494,11 @@ class _StripPainter extends CustomPainter {
       ..strokeWidth = 1.5
       ..strokeCap = StrokeCap.round;
     for (final time in tickTimes(window)) {
-      canvas.drawLine(Offset(x(time), 0), Offset(x(time), 6), ticks);
+      canvas.drawLine(
+        Offset(x(time), inset),
+        Offset(x(time), inset + 6),
+        ticks,
+      );
     }
 
     // The wave, one value every two logical pixels at most, and never more
@@ -545,8 +557,8 @@ class _StripPainter extends CustomPainter {
       final px = x(time);
       final look = edge == active ? FlagLook.solid : FlagLook.hollow;
       canvas.drawLine(
-        Offset(px, 0),
-        Offset(px, size.height),
+        Offset(px, inset),
+        Offset(px, size.height - inset),
         Paint()
           ..color = colors.primary
           ..strokeWidth = 2.5,
@@ -567,7 +579,7 @@ class _StripPainter extends CustomPainter {
       final isStart = edge == LoopEdge.start;
       var left = isStart ? px : px - w;
       left = left.clamp(0.0, math.max(0.0, size.width - w));
-      final topY = isStart ? 2.0 : size.height - pennantH - 2;
+      final topY = isStart ? inset : size.height - inset - pennantH;
       paintPennant(
         canvas,
         Rect.fromLTWH(left, topY, w, pennantH),
@@ -617,8 +629,8 @@ class _CursorPainter extends CustomPainter {
     // Only inside the window shown.
     if (at < window.from || at > window.to) return;
     final x = margin + window.fractionOf(at) * (size.width - 2 * margin);
-    final from = const Offset(0, -2) + Offset(x, 0);
-    final to = Offset(x, size.height + 2);
+    final from = Offset(x, PassageStrip.inset - 2);
+    final to = Offset(x, size.height - PassageStrip.inset + 2);
     canvas
       ..drawLine(
         from,
