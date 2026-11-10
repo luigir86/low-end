@@ -29,6 +29,35 @@ Future<bool> saveRecording(RecordedTrack track) async =>
 Future<bool> shareRecording(RecordedTrack track) async =>
     await _takes.invokeMethod<bool>('share', _export(track)) ?? false;
 
+/// Audio files opened or shared from another app ("Open with Low End",
+/// ReceivedTracks.kt): each comes as the app's own copy, for the Player.
+/// Those that came before anyone listened (the app was opened by one)
+/// come first.
+Stream<TrackRef> receivedTracks() {
+  if (kIsWeb || !Platform.isAndroid) return const Stream.empty();
+  const channel = MethodChannel('low_end/received_tracks');
+  final out = StreamController<TrackRef>();
+  void add(Object? data) {
+    final track = data is Map
+        ? TrackRef.fromJson(Map<String, Object?>.from(data))
+        : null;
+    if (track != null) out.add(track);
+  }
+
+  channel.setMethodCallHandler((call) async {
+    if (call.method == 'open') add(call.arguments);
+  });
+  unawaited(() async {
+    try {
+      final waiting = await channel.invokeListMethod<Object?>('ready');
+      (waiting ?? const []).forEach(add);
+    } on PlatformException catch (error) {
+      debugPrint('Files from other apps cannot reach the Player: $error');
+    }
+  }());
+  return out.stream;
+}
+
 Map<String, Object?> _export(RecordedTrack track) => {
   'path': Uri.parse(track.uri).toFilePath(),
   'name': track.exportName,

@@ -17,10 +17,28 @@ import io.flutter.plugin.common.MethodChannel
 // so that its buttons reach the app while the screen is off.
 class MainActivity : AudioServiceActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        // An audio file opened or shared from another app ("Open with Low
+        // End") goes to the Player; Flutter must not take it for a link.
+        if (savedInstanceState == null) {
+            ReceivedTracks.audioOf(intent)?.let { uri ->
+                ReceivedTracks.receive(this, uri)
+                intent = Intent(Intent.ACTION_MAIN)
+            }
+        }
         super.onCreate(savedInstanceState)
         // The volume buttons set the drone's loudness (media volume), even
         // before it starts, rather than the ringer.
         volumeControlStream = AudioManager.STREAM_MUSIC
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        val audio = ReceivedTracks.audioOf(intent)
+        if (audio == null) {
+            super.onNewIntent(intent)
+            return
+        }
+        ReceivedTracks.receive(this, audio)
+        super.onNewIntent(Intent(Intent.ACTION_MAIN))
     }
 
     // The Player's file chooser answers here; the plugins get the rest.
@@ -37,6 +55,7 @@ class MainActivity : AudioServiceActivity() {
         AudioRoute.attach(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
         TrackFiles.attach(this, flutterEngine.dartExecutor.binaryMessenger)
         TakeFiles.attach(this, flutterEngine.dartExecutor.binaryMessenger)
+        ReceivedTracks.attach(flutterEngine.dartExecutor.binaryMessenger)
         TrackPeaks.attach(this, flutterEngine.dartExecutor.binaryMessenger)
         // Android 13+ shows the notification only if the user allows it.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "low_end/notifications")
