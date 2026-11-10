@@ -65,7 +65,8 @@ object TakeFiles {
                                     try {
                                         val uri = FileProvider.getUriForFile(host, host.packageName + ".takes", copy)
                                         val send = Intent(Intent.ACTION_SEND).apply {
-                                            type = mimeType(source)
+                                            // As a file, not as audio: WhatsApp then keeps its name.
+                                            type = TakeProvider.DOCUMENT
                                             putExtra(Intent.EXTRA_STREAM, uri)
                                             clipData = ClipData.newRawUri(name, uri)
                                             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)

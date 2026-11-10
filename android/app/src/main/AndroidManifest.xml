@@ -22,7 +22,7 @@
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false">
         <provider
-            android:name="androidx.core.content.FileProvider"
+            android:name=".TakeProvider"
             android:authorities="${applicationId}.takes"
             android:exported="false"
             android:grantUriPermissions="true">
