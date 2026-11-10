@@ -788,7 +788,7 @@ void main() {
         ..circle()
         ..paragraph();
       expect(paint, circleThenLetter);
-      expect(paint, isNot(paints..saveLayer()));
+      expect(paint, paintsExactlyCountTimes(#saveLayer, 0));
     });
 
     testWidgets('a touch on a pole makes that flag the active one', (
