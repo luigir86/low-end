@@ -773,6 +773,21 @@ void main() {
       expect(flag().letter, 'B');
     });
 
+    testWidgets('the letter is painted, not erased: no clear layer', (
+      tester,
+    ) async {
+      // A glyph erased with BlendMode.clear in a layer cleared its whole box
+      // on the phone: a square in the circle instead of A or B.
+      await track(tester);
+      final badge = find.descendant(
+        of: find.byType(LetterBadge),
+        matching: find.byType(CustomPaint),
+      );
+      final paint = tester.renderObject(badge);
+      expect(paint, paints..circle()..paragraph());
+      expect(paint, isNot(paints..saveLayer()));
+    });
+
     testWidgets('a touch on a pole makes that flag the active one', (
       tester,
     ) async {
