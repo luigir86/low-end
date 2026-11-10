@@ -85,7 +85,7 @@ Luigi, 9/11: trascinare le aste sulla striscia ingrandita era scomodo, la strisc
 
 ## 6. Da provare sul telefono
 
-Stacco al giro del loop (sotto 30 ms su Android, 80 ms sul web), velocità al 70 e 50%, dimensione dell'APK, iPhone (registrazione e condivisione nel browser), registrazione con cuffie Bluetooth (rischio di qualità telefonica, vedi la nota sull'accordatore).
+Stacco al giro del loop (sotto 30 ms su Android, 80 ms sul web), velocità al 70 e 50%, dimensione dell'APK, iPhone (registrazione e condivisione nel browser), registrazione con cuffie Bluetooth con microfono: dal 10/11 la ripresa usa il microfono del telefono e le cuffie devono restare in qualità musica durante e dopo (Sennheiser BT 4.40).
 
 ## 7. Fatti verificati sui pacchetti
 

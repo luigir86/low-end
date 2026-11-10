@@ -27,6 +27,7 @@ import 'package:low_end/features/player/recording_controller.dart';
 import 'package:low_end/features/player/ring_wave.dart';
 import 'package:low_end/features/player/track_peaks.dart';
 import 'package:low_end/features/tuner/tuner_controller.dart';
+import 'package:record/record.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _song = TrackRef(uri: 'content://song', name: 'Blue Bossa.mp3');
@@ -68,6 +69,16 @@ void main() {
     player.setSpeed(70);
     await player.setLoop(_s(10), _s(20));
   }
+
+  test('a take leaves a Bluetooth headset in music mode', () {
+    // The record package's Bluetooth handling put a headset with a
+    // microphone in call mode, and the app's sound stayed in call quality
+    // until the app was closed. The phone's microphone is used, as for the
+    // tuner.
+    const config = RecordTakeRecorder.takeConfig;
+    expect(config.androidConfig.manageBluetooth, isFalse);
+    expect(config.androidConfig.audioSource, AndroidAudioSource.mic);
+  });
 
   group('recording (RF-PLY-20)', () {
     test('REC pauses the Player and records', () async {
