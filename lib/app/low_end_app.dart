@@ -235,8 +235,9 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     _unplugged = _route.unplugged.listen(
       (_) => _pauseFor(PauseReason.unplugged),
     );
-    // The iPhone's browser cut the sound (a call, the locked screen): the
-    // app must not look as if it played on, unheard.
+    // A call came (on Android), or the iPhone's browser cut the sound (a
+    // call, the locked screen): the app must not look as if it played on,
+    // unheard.
     _interrupted = _route.interrupted.listen(
       (_) => _pauseFor(PauseReason.interrupted),
     );
@@ -416,6 +417,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     final sound = _drone.isPlaying || _metronome.isPlaying;
     if (sound && !_soundWasPlaying && _player.isPlaying) _player.stop();
     _soundWasPlaying = sound;
+    _route.playing = sound || _player.isPlaying;
     _keepScreenOn();
     // In a web page the engine sleeps a while after the last sound.
     setWebAudioIdle(!_drone.isPlaying && !_metronome.isPlaying);

@@ -100,6 +100,7 @@ Fuori dallo scopo, per decisione presa: libreria PDF e conversione in MusicXML/M
 | RF-BG-01 | Su Android, con lo schermo spento o l'app in background, Metronomo e Armonia continuano, con una notifica multimediale che dice cosa suona (play/pausa/stop). La notifica c'è solo mentre suona o dopo la sua pausa. | ◐ | provato sul telefono (PR #63) |
 | RF-BG-02 | Staccare le cuffie mette in pausa come un lettore musicale (notifica di sistema in pausa; nessun avviso nell'app dal 10/11). | ◐ | provato sul telefono |
 | RF-BG-03 | Nella web app su iPhone, se il browser taglia l'audio (chiamata, schermo bloccato) l'app si mette in pausa invece di sembrare che suoni. | ○ | mai provato su iPhone |
+| RF-BG-04 | Nell'app Android, una chiamata (squillo, telefonata, chiamata WhatsApp o simili) mette in pausa Metronomo, Armonia e Player con l'avviso in alto "suono interrotto" e Riprendi. Senza fuoco audio (il metronomo suona ancora sopra la musica di altre app) e senza permessi nuovi. | ○ | `widget_test`, da provare sul telefono |
 
 ### 2.8 Azioni per assistenti, "LLM first" (RF-LLM)
 
