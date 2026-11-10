@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../app/decimal.dart';
 import '../../app/settings.dart';
 import '../../app/theme.dart';
 import '../../audio/audio_scope.dart';
@@ -616,7 +617,7 @@ class _DialCenterState extends State<_DialCenter> {
             )
           else
             Text(
-              l10n.frequencyHz(drone.frequency.toStringAsFixed(1)),
+              l10n.frequencyHz(decimalText(l10n, drone.frequency)),
               style: muted,
             ),
           if (inProgression) ...[
