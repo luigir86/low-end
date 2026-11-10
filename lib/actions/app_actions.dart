@@ -149,8 +149,8 @@ class AppActions {
           'Opens the tuner and starts listening through the microphone: it '
           'recognises any note played. If the metronome or Harmony is '
           'playing, they are paused, as when the dial of the tuner is '
-          'touched (the player sees a notice with a "Resume" button; '
-          'nothing resumes by itself). The tuner stops by itself when '
+          'touched (no notice; nothing resumes by itself: start them '
+          'again). The tuner stops by itself when '
           'another section or the settings page opens, or the app goes to '
           'the background. The answer says "listening", or why not '
           '(permissionDenied, failed); read the note with get_state.',
@@ -227,8 +227,8 @@ class AppActions {
       name: 'player_play',
       description:
           'Opens the Player and plays the open track from where it is. If '
-          'the metronome or Harmony is playing they are paused, with a '
-          'notice and a Resume button. Fails if no track is open. In the web '
+          'the metronome or Harmony is playing they are paused, with no '
+          'notice. Fails if no track is open. In the web '
           'app a link may not start the sound without a touch on the page.',
     ),
     const AppAction(

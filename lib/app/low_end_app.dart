@@ -357,8 +357,8 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
   }
 
   /// Whenever the tuner starts listening, whatever sounds is paused, or the
-  /// microphone would hear it instead of the instrument; a notice says so,
-  /// with a button to play it again.
+  /// microphone would hear it instead of the instrument. No notice: the
+  /// player has just touched the tuner, and the dial shows what stopped.
   void _onTunerChanged() {
     _keepScreenOn();
     _showPaused(_pauses.tunerChanged(listening: _tuner.isListening));
@@ -367,20 +367,19 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
   void _pauseFor(PauseReason why) => _showPaused(_pauses.pauseFor(why));
 
   /// A notice that says why the sound paused, with a button to play it
-  /// again (see [PauseRules]).
+  /// again (see [PauseRules]), only when the reason is not plain to see.
+  /// The tuner touched, the Player started or the headphones pulled out
+  /// come from the player's own gesture: a notice would only cover the
+  /// controls. A call, or the iPhone's browser cutting the sound, does not:
+  /// back in the app, the notice says why it is silent.
   void _showPaused(Paused? paused) {
-    if (paused == null) return;
+    if (paused == null || paused.why != PauseReason.interrupted) return;
     final l10n = _notificationTexts();
     _messenger.currentState
       ?..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(switch (paused.why) {
-            PauseReason.tuner => l10n.pausedForTuner,
-            PauseReason.unplugged => l10n.pausedUnplugged,
-            PauseReason.interrupted => l10n.pausedInterrupted,
-            PauseReason.player => l10n.pausedForPlayer,
-          }),
+          content: Text(l10n.pausedInterrupted),
           persist: false,
           action: SnackBarAction(
             label: l10n.resume,
@@ -402,7 +401,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
   StreamSubscription<MediaCommand>? _commands;
 
   /// The Player started: it plays alone, so the metronome and Harmony
-  /// pause, with a notice and a button to play them again (RF-PLY-04).
+  /// pause, with no notice (RF-PLY-04).
   var _playerWasPlaying = false;
 
   void _onPlayerChanged() {

@@ -35,7 +35,7 @@ The four tabs are **Metronome**, **Harmony**, **Player** and **Tuner**, and the 
 - Finds the note with the YIN algorithm ([`lib/audio/pitch_detector.dart`](lib/audio/pitch_detector.dart)), from 28 to 2800 Hz (700 Hz with the bass chosen): from the lowest strings to the top of the violin and the flute. For B♭, E♭ and F instruments it can name the written note.
 - The instrument menu switches from Chromatic to the strings of guitar, violin, viola, cello, ukulele or bass, with the string number shown.
 - Reference A under the dial: − and + move by one hertz, the pencil types it or picks 415, 432, 440 or 442 Hz.
-- It listens only while it is on screen (and you can pause it from the middle of the dial). Coming to the tuner stops nothing: if the metronome or the harmony is playing, the tuner waits, and touching its dial pauses them (a notice with a **Resume** button brings them back), so the microphone hears only your instrument.
+- It listens only while it is on screen (and you can pause it from the middle of the dial). Coming to the tuner stops nothing: if the metronome or the harmony is playing, the tuner waits, and touching its dial pauses them (touch their dial again to bring them back), so the microphone hears only your instrument.
 
 ### Player
 
