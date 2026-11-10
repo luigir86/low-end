@@ -13,12 +13,19 @@ import 'package:low_end/app/settings.dart';
 import 'package:low_end/audio/audio_scope.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/tone_output.dart';
+import 'package:low_end/audio/track_files.dart';
+import 'package:low_end/audio/track_output.dart';
 import 'package:low_end/features/harmony/drone_controller.dart';
 import 'package:low_end/features/harmony/harmony.dart';
+import 'package:low_end/features/player/player_controller.dart';
+import 'package:low_end/features/player/player_panel.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Roboto and the Material icons, copied from the Flutter SDK into the repo
 // (Apache 2.0, licences beside them) so the tests find them on any machine.
 const _fonts = 'test/fonts';
+
+const _song = TrackRef(uri: 'content://song', name: 'Blue Bossa.mp3');
 
 Future<ByteData> _font(String file) async =>
     ByteData.sublistView(await File('$_fonts/$file').readAsBytes());
@@ -333,5 +340,66 @@ void main() {
       expect((h.mic as FakeMicInput).isCapturing, isFalse);
       h.expectClean();
     });
+  });
+
+  group('the passage button says its step whole', () {
+    // The button shares its row with New passage and Speed: at the
+    // usual text size its words fit in every language, portrait and
+    // landscape.
+    setUpAll(() async {
+      // The app's own font, as on the phone: the words are measured in it.
+      final edwin = FontLoader('Edwin')
+        ..addFont(rootBundle.load('assets/fonts/Edwin-Roman.otf'))
+        ..addFont(rootBundle.load('assets/fonts/Edwin-Bold.otf'));
+      await edwin.load();
+    });
+
+    for (final lang in ['en', 'it', 'es', 'fr']) {
+      for (final size in const [Size(360, 640), Size(640, 360)]) {
+        final name = '$lang ${size.width.round()}x${size.height.round()}';
+        testWidgets(name, (tester) async {
+          SharedPreferences.setMockInitialValues({'seen_guide': true});
+          tester.view.physicalSize = size * 2;
+          tester.view.devicePixelRatio = 2;
+          tester.platformDispatcher.localesTestValue = [Locale(lang)];
+          tester.platformDispatcher.localeTestValue = Locale(lang);
+          tester.platformDispatcher.textScaleFactorTestValue = 1;
+          addTearDown(tester.view.reset);
+          addTearDown(tester.platformDispatcher.clearAllTestValues);
+          await tester.pumpWidget(
+            LowEndApp(
+              toneOutput: SilentToneOutput(),
+              micInput: FakeMicInput(),
+              trackOutput: SilentTrackOutput(),
+              trackFiles: FakeTrackFiles(),
+              settings: AppSettings()..rememberSection(AppSection.player),
+            ),
+          );
+          await tester.pumpAndSettle();
+          final shell = tester.element(find.byType(HomeShell));
+          final player = AudioScope.of(shell).player;
+          await player.open(_song);
+          await tester.pumpAndSettle();
+          Future<void> expectWhole(String step) async {
+            await tester.pumpAndSettle();
+            final label = find.descendant(
+              of: find.byKey(PlayerPanel.loopSwitchKey),
+              matching: find.byType(Text),
+            );
+            final paragraph = tester.renderObject(label) as RenderParagraph;
+            expect(paragraph.didExceedMaxLines, isFalse, reason: step);
+            expect(tester.takeException(), isNull, reason: step);
+          }
+
+          await expectWhole('mark start');
+          await player.place(LoopEdge.start, const Duration(seconds: 10));
+          await expectWhole('mark end');
+          await player.place(LoopEdge.end, const Duration(seconds: 20));
+          await expectWhole('loop active');
+          await player.setLooping(false);
+          await expectWhole('resume loop');
+        });
+      }
+    }
   });
 }

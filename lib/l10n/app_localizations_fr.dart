@@ -762,7 +762,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get playerLoopActive => 'Boucle active';
 
   @override
-  String get playerResumeLoop => 'Réactiver la boucle';
+  String get playerResumeLoop => 'Réactiver';
 
   @override
   String get playerNewPassage => 'Nouveau passage';
