@@ -486,6 +486,24 @@
     }
   },
   {
+    "name": "player_close",
+    "description": "Empties the Player, like the X beside the track name. A file is closed and no longer remembered (it stays on the phone). A take goes, and the track it was recorded over comes back with its speed and passage; a take not saved can be brought back with player_close_undo for 5 seconds, then its file is deleted.",
+    "input_schema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "player_close_undo",
+    "description": "Brings back the take not saved that player_close (or the X) has just discarded, within 5 seconds.",
+    "input_schema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
     "name": "player_record",
     "description": "Opens the Player and records a take from the microphone, like REC; the track open pauses. Android asks for the microphone the first time. Recording stops when the Player leaves the screen or the app goes to the background, and the take is kept.",
     "input_schema": {

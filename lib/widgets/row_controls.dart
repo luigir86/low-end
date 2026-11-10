@@ -22,6 +22,8 @@ class LabeledField extends StatelessWidget {
     this.display,
     this.accent = false,
     this.fitValue = false,
+    this.onClear,
+    this.clearTooltip,
   });
 
   final String label;
@@ -44,8 +46,35 @@ class LabeledField extends StatelessWidget {
   /// Null: the field is dimmed and does nothing.
   final VoidCallback? onTap;
 
+  /// With it, an X in place of the caret empties the field (the Player's
+  /// track): a button of its own, named [clearTooltip].
+  final VoidCallback? onClear;
+  final String? clearTooltip;
+
   @override
   Widget build(BuildContext context) {
+    final field = _field(context);
+    if (onClear == null) return field;
+    return Stack(
+      children: [
+        field,
+        PositionedDirectional(
+          end: 0,
+          top: 0,
+          bottom: 0,
+          child: Center(
+            child: IconButton(
+              tooltip: clearTooltip,
+              onPressed: onClear,
+              icon: const Icon(Icons.close),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _field(BuildContext context) {
     final theme = Theme.of(context);
     return Semantics(
       button: true,
@@ -72,7 +101,10 @@ class LabeledField extends StatelessWidget {
                     )
                   : null,
               contentPadding: const EdgeInsets.fromLTRB(12, 16, 4, 16),
-              suffixIcon: const Icon(Icons.arrow_drop_down),
+              // The X lies over this room, as wide as its touch.
+              suffixIcon: onClear == null
+                  ? const Icon(Icons.arrow_drop_down)
+                  : const SizedBox(width: kMinInteractiveDimension - 4),
               suffixIconConstraints: const BoxConstraints(
                 minWidth: 28,
                 minHeight: 24,

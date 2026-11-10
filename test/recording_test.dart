@@ -341,6 +341,31 @@ void main() {
       expect(player.track, _song);
     });
 
+    test('player_close discards the take, then the file; undo brings the '
+        'take back', () async {
+      await actions.call('player_record');
+      await actions.call('player_record_stop');
+      final take = player.track;
+      expect(
+        await actions.call('player_close_undo'),
+        containsPair('ok', false),
+      );
+      expect(await actions.call('player_close'), containsPair('ok', true));
+      expect(player.track, _song);
+      expect(player.discarded, same(take));
+      expect(await actions.call('player_close_undo'), containsPair('ok', true));
+      expect(player.track, same(take));
+      expect(player.discarded, isNull);
+      expect(files.released, isNot(contains(take)));
+      await actions.call('player_close');
+      await actions.call('player_close');
+      // Another close lets the discarded take go at once.
+      expect(files.released, contains(take));
+      expect(player.track, isNull);
+      expect(player.discarded, isNull);
+      expect(await actions.call('player_close'), containsPair('ok', false));
+    });
+
     test('player_record says when the microphone is not allowed', () async {
       recorder.granted = false;
       final result = await actions.call('player_record');

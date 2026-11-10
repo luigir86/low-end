@@ -12,7 +12,7 @@ Il terzo tab di Low End: un brano proprio, rallentato senza cambiare intonazione
 4. **Segna inizio → Segna fine → Loop attivo** (seconda riga, a sinistra, pieno d'accento come TAP, con il cerchio A o B, come la maniglia sul toro, finché si segna): il primo tocco segna A dove si sente, il secondo B; il passaggio si ripete subito da A. Lo stesso pulsante poi spegne e riaccende il loop ("Riattiva loop"); A e B restano.
 5. La **striscia** (prima riga) mostra la forma d'onda dritta: il brano intero finché il passaggio non è completo, poi il passaggio con un margine per parte. Le due aste si trascinano per rifinire (al centesimo); un'asta tenuta contro un bordo allarga la striscia da quella parte finché il dito resta lì; il tocco altrove sposta l'ascolto. La striscia ha tutta la riga. Il pulsante **Nuovo passaggio** (icona nella seconda riga, tra il pulsante del passaggio e Velocità, sempre al suo posto, spento finché non c'è A o B) cancella A e B.
 6. **Velocità** (seconda riga, a destra): un tocco apre una lista corta, 50, 60, 70, 75, 80, 85, 90, 100, 110, 125%. Diversa da 100% il valore e il bordo sono nell'accento. Le azioni accettano ogni valore intero dal 50 al 125.
-7. **REC** (terza riga, il pallino rosso accanto a Brano) registra dal microfono; **Stop** (al posto di REC) apre la ripresa nel Player per riascoltarla, **Scarta** la butta. Con una ripresa aperta il campo ne dice la durata e accanto a REC compaiono **Salva**, **Condividi** ed **Elimina**; eliminata (o rimossa dopo il salvataggio), torna il brano che si stava studiando con passaggio e velocità. Una ripresa non salvata eliminata si riprende per qualche secondo con **Annulla** nell'avviso; REC o un altro brano sopra una ripresa non salvata chiedono prima.
+7. **REC** (terza riga, il pallino rosso accanto a Brano) registra dal microfono; **Stop** (al posto di REC) apre la ripresa nel Player per riascoltarla, **Scarta** la butta. Con una ripresa aperta il campo ne dice la durata e accanto a REC compaiono **Salva** e **Condividi**; scartata con la **X** nel campo, torna il brano che si stava studiando con passaggio e velocità. Una ripresa non salvata scartata si riprende per 5 secondi con **Annulla**, nella riga stessa (non in un avviso sopra i comandi); REC o un altro brano sopra una ripresa non salvata chiedono prima.
 
 ## 2. La schermata
 
@@ -24,7 +24,7 @@ Stesso `DialLayout` degli altri tab: quadrante con il centro allineato tra i qua
 | Centro | Cartella e "Scegli un brano" | Titolo/autore, tempo, durata, play/pausa | Tempo della ripresa |
 | Prima riga | Vuota, o l'errore del file | Striscia, a tutta riga | Inattiva |
 | Seconda riga | Spenta | Pulsante del passaggio, Nuovo passaggio (spento senza A né B), Velocità | Inattiva |
-| Terza riga | Brano e REC | Brano e REC; con una ripresa: durata, REC, Salva, Condividi, Elimina | Campo Registrazione con pallino e tempo, Stop, Scarta |
+| Terza riga | Brano e REC | Brano (con la X Scarta quando c'è qualcosa) e REC; con una ripresa: durata, REC, Salva, Condividi; per 5 s dopo aver scartato una ripresa non salvata: "Registrazione scartata" e Annulla | Campo Registrazione con pallino e tempo, Stop, Scarta |
 
 ### 2.1 Forma dei controlli (revisione 5)
 
@@ -33,7 +33,7 @@ Dopo la prova di Luigi del 9/11 (REC e "Segna inizio" più bassi del campo accan
 - Ogni controllo delle righe è alto 56 dp come i campi e ogni pulsante è un `RowButton` (rettangolo arrotondato del tema, come − / + e TAP); le icone sono larghe 48 dp, con nome per TalkBack e suggerimento.
 - Il pulsante del passaggio è pieno d'accento come TAP mentre si segna (cerchio con A o B, come la maniglia sul toro) e con il loop attivo, solo bordato con "Riattiva loop" (cambiato il 9/11 su richiesta di Luigi: prima era pallido come − / +).
 - Nuovo passaggio sta nella seconda riga, subito dopo il pulsante del passaggio e prima di Velocità (scelta di Luigi del 9/11: la striscia prende tutta la prima riga, più simmetrica). Accanto al pulsante che segna A e B si legge come "cancella il passaggio"; prima, attaccato a Velocità, sembrava "torna a 100%". Il pulsante del passaggio resta largo il doppio di Velocità: a 360 dp e testo normale ogni etichetta ci sta intera, anche in orizzontale (verificato da `layout_review_test`); per questo in francese "Riattiva loop" è "Réactiver" (accanto all'icona del loop), non più "Réactiver la boucle".
-- Restano sempre al loro posto Nuovo passaggio e REC; Salva, Condividi ed Elimina compaiono solo con una ripresa (scelta di Luigi). Il campo della ripresa mostra la durata, che entra anche a 360 dp e nella colonna in orizzontale.
+- Restano sempre al loro posto Nuovo passaggio e REC; Salva e Condividi compaiono solo con una ripresa (scelta di Luigi). Elimina è stato sostituito il 10/11 dalla X Scarta nel campo Brano, sempre visibile con un file o una ripresa (RF-PLY-21). Il campo della ripresa mostra la durata, che entra anche a 360 dp e nella colonna in orizzontale.
 - Anteprime: `preview/player-controlli/` nella cartella del progetto.
 
 ### 2.2 Spostare A e B (revisione 6)
@@ -58,7 +58,7 @@ Luigi, 9/11: trascinare le aste sulla striscia ingrandita era scomodo, la strisc
 
 ### 3.1 La ripresa e il brano studiato
 
-`PlayerController.open` con una `RecordedTrack` non rilascia il brano aperto: ne tiene la `PlayerSetup` (brano, velocità, A, B, loop) in `_beforeTake`, che `setup` continua a restituire, così il brano studiato resta quello ricordato al prossimo avvio. Una seconda ripresa sostituisce la prima; il brano sotto resta lo stesso. `removeRecording` (Elimina, Rimuovi) o una ripresa che non si apre lo riportano con `restore` + `activate`: si riapre a A, alla sua velocità, al primo play. Scegliere un altro file con una ripresa aperta lascia andare anche il brano sotto (tranne se è lo stesso file). Una ripresa non è mai ricordata da sola. Elimina su una ripresa non salvata la toglie con `removeRecording(keepFile: true)`: il file temporaneo resta finché l'avviso "Registrazione eliminata" è aperto (circa 4 s, `persist: false`, perché con un'azione un avviso resterebbe fino al tocco), così Annulla la riapre; quando l'avviso si chiude da solo `releaseRecording` lo cancella.
+`PlayerController.open` con una `RecordedTrack` non rilascia il brano aperto: ne tiene la `PlayerSetup` (brano, velocità, A, B, loop) in `_beforeTake`, che `setup` continua a restituire, così il brano studiato resta quello ricordato al prossimo avvio. Una seconda ripresa sostituisce la prima; il brano sotto resta lo stesso. `removeRecording` (la X su una ripresa) o una ripresa che non si apre lo riportano con `restore` + `activate`: si riapre a A, alla sua velocità, al primo play. Scegliere un altro file con una ripresa aperta lascia andare anche il brano sotto (tranne se è lo stesso file). Una ripresa non è mai ricordata da sola. `close` (la X) su una ripresa non salvata la toglie con `removeRecording(keepFile: true)` e la tiene in `discarded` per `undoTime` (5 s): la riga del brano mostra "Registrazione scartata" e Annulla (`undoDiscard`), un tocco sul campo o qualunque altro brano aperto la lasciano andare subito (`releaseRecording`). Su un file `close` lo chiude e `setup` diventa null, così non è più ricordato.
 
 ### 3.2 Regole della registrazione
 
@@ -78,7 +78,7 @@ Luigi, 9/11: trascinare le aste sulla striscia ingrandita era scomodo, la strisc
 | --- | --- |
 | `player_controller_test`, `player_loop_test`, `player_memory_test` | Apertura, errori, velocità, A/B e loop, memoria |
 | `player_ring_test` | Tempi sul cerchio: passo tondo, al massimo 8 numeri, niente numero accanto a 0:00, numero sempre fuori dalla sua tacca, fascia del Player nello stesso cerchio |
-| `player_panel_test` | Centro, toro, striscia, righe; REC, Scarta durante la richiesta del permesso, Stop, Salva, Condividi, Rimuovi, Elimina con Annulla, lista delle velocità, maniglie del cerchio, striscia che si allarga, pulsante pieno con la lettera |
+| `player_panel_test` | Centro, toro, striscia, righe; REC, Scarta durante la richiesta del permesso, Stop, Salva, Condividi, X Scarta su ripresa e file, Annulla nella riga, lista delle velocità, maniglie del cerchio, striscia che si allarga, pulsante pieno con la lettera |
 | `recording_test` | Ripresa sopra il brano studiato e ritorno, seconda ripresa, altro file, Scarta, permesso negato, microfono occupato, stop lasciando il tab o le impostazioni o avviando il Player, azioni |
 | `player_ring_test`, `track_peaks_test`, `marquee_test`, `track_tags_test` | Geometria, forma d'onda, titolo che scorre, tag |
 | `accessibility_test`, `app_actions_test` | Nomi e bersagli; golden delle azioni |

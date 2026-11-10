@@ -108,18 +108,6 @@ abstract class AppLocalizations {
   /// **'Discard'**
   String get takeDiscard;
 
-  /// No description provided for @takeDelete.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete recording'**
-  String get takeDelete;
-
-  /// No description provided for @takeRemove.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove from player'**
-  String get takeRemove;
-
   /// No description provided for @takeRecord.
   ///
   /// In en, this message translates to:
@@ -129,7 +117,7 @@ abstract class AppLocalizations {
   /// No description provided for @takeDeleted.
   ///
   /// In en, this message translates to:
-  /// **'Recording deleted'**
+  /// **'Recording discarded'**
   String get takeDeleted;
 
   /// No description provided for @takeUndo.
