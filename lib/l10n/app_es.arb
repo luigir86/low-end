@@ -65,7 +65,7 @@
   "frequencyHz": "{frequency} Hz",
   "stopSound": "Detener {name}",
   "playSound": "Tocar {name}",
-  "droneHint": "Toca una nota para que suene. Tócala de nuevo para detenerla.",
+  "droneHint": "Toca una nota para empezar",
   "chordLabel": "Acorde",
   "noteAlone": "Solo la nota",
   "chordMajor": "Mayor",

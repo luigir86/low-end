@@ -230,7 +230,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get droneHint => 'Touch a note to play it. Touch it again to stop.';
+  String get droneHint => 'Tap a note to start';
 
   @override
   String get chordLabel => 'Chord';
