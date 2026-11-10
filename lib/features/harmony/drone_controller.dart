@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 
 import '../../audio/latest_request.dart';
+import '../../audio/loop_transport.dart';
 import '../../audio/piano_output.dart';
 import '../../audio/piano_sound.dart';
 import '../../audio/pitch.dart';
@@ -138,7 +139,19 @@ class DroneController extends ChangeNotifier implements SoundSection {
     _clock.addListener(_onClockChanged);
     _lastBpm = _clock.soundingBpm;
     _lastSignature = _clock.signature;
+    // A loop mixed for a start that a stop (or a stop and a start) has
+    // overtaken does not sound: the latest request plays its own.
+    _piano?.stillWanted = () =>
+        _playing && !_disposed && _generation == _playGeneration;
   }
+
+  /// Counts the starts and stops, so that a loop mixed for one of them
+  /// knows, once it is ready, whether another has come since (see
+  /// PianoOutput.stillWanted).
+  var _generation = 0;
+
+  /// The [_generation] the piano loop being mixed was asked for in.
+  var _playGeneration = 0;
 
   final ToneOutput _output;
   final PianoOutput? _piano;
@@ -454,10 +467,12 @@ class DroneController extends ChangeNotifier implements SoundSection {
 
   @override
   Future<void> start() {
+    _generation++;
     _playing = true;
     _audioFailed = false;
     _step = 0;
     _fromTheTop = true;
+    _endHandOver();
     // The chords move on once the first one is heard (see [_soundStarts]).
     _soundStarted = false;
     _waitShown = _slow = false;
@@ -517,6 +532,16 @@ class DroneController extends ChangeNotifier implements SoundSection {
   final _handOverClock = Stopwatch();
   Duration _handOverWait = Duration.zero;
 
+  /// Forgets a hand-over asked for or under way (see [_handOver]): the
+  /// sound stopped, failed, started again or became the continuous tone,
+  /// none of which comes in on the bar line. The piano's own loop, if any,
+  /// is let go by whoever stops it.
+  void _endHandOver() {
+    _patient = false;
+    _handOverWanted = _handingOver = false;
+    _handOverClock.stop();
+  }
+
   /// True while a sound change waits for the end of the current event, so
   /// that the settings changed together in it make one change.
   var _syncSoon = false;
@@ -533,10 +558,9 @@ class DroneController extends ChangeNotifier implements SoundSection {
 
   @override
   Future<void> stop() {
+    _generation++;
     _playing = false;
-    _patient = false;
-    _handOverWanted = _handingOver = false;
-    _handOverClock.stop();
+    _endHandOver();
     _slowTimer?.cancel();
     _barTimer?.cancel();
     _loopClock.stop();
@@ -803,9 +827,17 @@ class DroneController extends ChangeNotifier implements SoundSection {
       // the chord that has only just started.
       if (wait < const Duration(milliseconds: 150)) wait += bar;
     }
+    final set = Stopwatch()..start();
     _barTimer = Timer(wait, () {
       if (!_playing || _disposed) return;
-      _step = (_step + 1) % _progression.steps.length;
+      // On the piano, the bars that went by: a timer late by more than a
+      // bar (a page in the background, a phone held up) does not leave the
+      // chords shown behind the sound for good.
+      final late = set.elapsed - wait;
+      final missed = _patterned && late > Duration.zero
+          ? late.inMicroseconds ~/ bar.inMicroseconds
+          : 0;
+      _step = (_step + 1 + missed) % _progression.steps.length;
       _notify();
       if (!_patterned) _sync();
       _scheduleBar();
@@ -889,6 +921,8 @@ class DroneController extends ChangeNotifier implements SoundSection {
         await _playPiano();
       } else {
         // Not awaited when there is no piano: sound starts without delay.
+        // The tone does not wait for a bar line: no hand-over to show.
+        _endHandOver();
         final piano = _piano;
         if (piano != null) await piano.stop();
         final f = frequencies;
@@ -901,6 +935,7 @@ class DroneController extends ChangeNotifier implements SoundSection {
       debugPrint('Drone could not start: $error');
       _playing = false;
       _audioFailed = true;
+      _endHandOver();
       _slowTimer?.cancel();
       _barTimer?.cancel();
       _notify();
@@ -950,19 +985,27 @@ class DroneController extends ChangeNotifier implements SoundSection {
       return;
     }
     _sounding = null;
-    final started = await _piano!.play(
-      chords: chords,
-      style: _pianoStyle,
-      // The piano counts pulses, like the clicks: three a beat in 6/8.
-      bpm: bpm * signature.pulsesPerBeat,
-      signature: signature,
-      a4: _a4,
-      volume: _volume,
-      startAt: fromTheTop ? Duration.zero : null,
-      onTheBeat: onTheBeat,
-      patient: patient,
-      handOver: handOver,
-    );
+    _playGeneration = _generation;
+    final LoopStart started;
+    try {
+      started = await _piano!.play(
+        chords: chords,
+        style: _pianoStyle,
+        // The piano counts pulses, like the clicks: three a beat in 6/8.
+        bpm: bpm * signature.pulsesPerBeat,
+        signature: signature,
+        a4: _a4,
+        volume: _volume,
+        startAt: fromTheTop ? Duration.zero : null,
+        onTheBeat: onTheBeat,
+        patient: patient,
+        handOver: handOver,
+      );
+    } on LoopNotWanted {
+      // Stopped, or stopped and started again, while it was mixed: nothing
+      // sounds for it; the start that came since (if any) plays its own.
+      return;
+    }
     _sounding = wanted;
     // Scheduled: from now on the wait is the loop's own (see [waitLeft]).
     if (handOver) {
@@ -994,9 +1037,11 @@ class DroneController extends ChangeNotifier implements SoundSection {
     _sounding = null;
     try {
       _toneSounding = false;
+      // The piano first, before anything is awaited: it lets go of what
+      // plays now, never of a loop a start pressed meanwhile brings in.
+      final piano = _piano?.stop();
       await _output.stop();
-      final piano = _piano;
-      if (piano != null) await piano.stop();
+      await piano;
     } catch (error) {
       debugPrint('Drone could not stop: $error');
     }

@@ -60,6 +60,10 @@ class BarLoopPlayer {
   Duration _bar = Duration.zero;
   double _volume = 1;
 
+  /// The engine time the voice playing was scheduled to come in at, if it
+  /// was: until then it reports no position (see [_untilOwnStart]).
+  Duration? _startsAt;
+
   LoopEngine get _soloud => transport.engine;
 
   bool get isPlaying => _handle != null;
@@ -98,6 +102,10 @@ class BarLoopPlayer {
   /// loop does, this loop playing on until then, let down with it: the
   /// clicks of a new song change with the piano, not before it, even when
   /// the piano's new loop takes longer than a bar to get ready.
+  ///
+  /// [wanted] is asked once the loop is ready, just before it sounds: if
+  /// it says no (the sound was stopped, or started again, meanwhile),
+  /// nothing starts and the play throws [LoopNotWanted].
   Future<LoopStart> play(
     Uint8List wav,
     Duration bar, {
@@ -107,6 +115,7 @@ class BarLoopPlayer {
     Future<Uint8List> Function(Duration position)? tailFor,
     bool handOver = false,
     bool atMeeting = false,
+    bool Function()? wanted,
   }) async {
     await _soloud.ensure();
     final source = await _soloud.loadMem('$name-loop.wav', wav);
@@ -126,7 +135,7 @@ class BarLoopPlayer {
     var meeting = false;
     Duration? met;
     if (atMeeting && !carryOn && old != null) {
-      final aimed = transport.meetAt;
+      final aimed = transport.meetingAt;
       if (aimed != null) {
         meeting = true;
         // Down at once, not along the wait: a click sounds only on the
@@ -154,7 +163,13 @@ class BarLoopPlayer {
     }
     // The moment [wait] counts from, and where the old loop was then.
     var waitedFrom = _soloud.getEngineTime();
-    final oldThen = old == null ? null : _soloud.getPosition(old);
+    // A voice still waiting to come in is that long before its start.
+    final oldWaits = old == null ? null : _untilOwnStart();
+    final oldThen = old == null
+        ? null
+        : oldWaits != null
+        ? -oldWaits
+        : _soloud.getPosition(old);
     final since = Stopwatch()..start();
     var position = startAt ?? Duration.zero;
     var delay = Duration.zero;
@@ -208,7 +223,11 @@ class BarLoopPlayer {
     // The old loop let go where the new one takes over: a ringing piano
     // dies away as under a pianist's hands rather than being cut.
     _Tail? tail;
-    if (oldThen != null && !carryOn && tailFor != null) {
+    // None for a voice replaced before it ever sounded.
+    if (oldThen != null &&
+        !carryOn &&
+        tailFor != null &&
+        oldThen + (wait ?? Duration.zero) > Duration.zero) {
       try {
         tail = await _Tail.load(
           tailFor,
@@ -250,6 +269,11 @@ class BarLoopPlayer {
       switchAt = _soloud.getEngineTime() + wait - _switchLead;
     }
     final fade = carryOn && crossfade > Duration.zero && switchAt == null;
+    if (wanted != null && !wanted()) {
+      tail?.dispose();
+      await _soloud.disposeSource(source);
+      throw const LoopNotWanted();
+    }
     if (wait == null) {
       handle = _soloud.play(
         source,
@@ -282,6 +306,7 @@ class BarLoopPlayer {
     _source = source;
     _length = length;
     _bar = bar;
+    _startsAt = startsAt;
     transport.unregister(name, old);
     transport.register(name, handle, bar, startsAt: startsAt);
     if (handingOver && startsAt != null) {
@@ -341,14 +366,30 @@ class BarLoopPlayer {
   Duration _nextBarLine(SoundHandle old, Duration minimum) {
     final other = transport.untilBarLine(name, minimum: minimum);
     if (other != null) return other;
+    // Scheduled and not yet sounding (a change right after another): its
+    // bar lines count from its start, as the transport counts the other's.
+    final until = _untilOwnStart();
     return LoopTransport.waitForBarLine(
       bar: _bar,
-      position: Duration(
-        microseconds:
-            _soloud.getPosition(old).inMicroseconds % _length.inMicroseconds,
-      ),
+      position: until != null
+          ? null
+          : Duration(
+              microseconds:
+                  _soloud.getPosition(old).inMicroseconds %
+                  _length.inMicroseconds,
+            ),
+      untilStart: until,
       minimum: minimum,
     );
+  }
+
+  /// How long until the voice playing comes in, while it is scheduled and
+  /// not yet sounding; null once it sounds.
+  Duration? _untilOwnStart() {
+    final at = _startsAt;
+    if (at == null) return null;
+    final left = at - _soloud.getEngineTime();
+    return left > Duration.zero ? left : null;
   }
 
   /// Starts handing this loop over to another, as a band changes song: it
@@ -392,6 +433,7 @@ class BarLoopPlayer {
     _handOverAt = null;
     _handle = null;
     _source = null;
+    _startsAt = null;
     transport.unregister(name, handle);
     if (handle != null &&
         tailFor != null &&
@@ -414,10 +456,18 @@ class BarLoopPlayer {
     if (source != null) await _soloud.disposeSource(source);
   }
 
+  /// Sets how loud the loops are. The same level again leaves the voice
+  /// alone: the engine's setVolume ends a fade under way, and a hand-over
+  /// (see [beginHandOver]) or a new chord waiting for its pulse is one.
+  /// During a hand-over the loop let down stays so; the new one comes in at
+  /// the new level.
   void setVolume(double volume) {
+    if (volume == _volume) return;
     _volume = volume;
     final handle = _handle;
-    if (handle != null) _soloud.setVolume(handle, volume);
+    if (handle != null && _handOverAt == null) {
+      _soloud.setVolume(handle, volume);
+    }
   }
 }
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
@@ -7,12 +8,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/audio/click_sound.dart';
 import 'package:low_end/audio/in_steps.dart';
 import 'package:low_end/audio/loop_transport.dart';
+import 'package:low_end/audio/piano_mixer.dart';
 import 'package:low_end/audio/piano_output.dart';
 import 'package:low_end/audio/piano_sound.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/features/harmony/drone_controller.dart';
 import 'package:low_end/features/harmony/harmony.dart';
 import 'package:low_end/features/metronome/time_signature.dart';
+
+import 'fake_loop_engine.dart';
 
 /// Pure tones in place of the piano: each recorded note a sine at its own
 /// pitch, a second long, so what is played can be told by its frequency.
@@ -64,6 +68,40 @@ double _energy(List<double> loop, int from, int length) {
 void main() {
   final samples = _tones();
   const cMajor = [60, 64, 67];
+
+  // testWidgets for its fake clock: half a minute goes by at once.
+  testWidgets('started again while the last stop lets go, the recordings '
+      'are kept while it plays', (tester) async {
+    final mixer = _FakeMixer();
+    final piano = SoLoudPianoOutput(
+      transport: LoopTransport(engine: FakeLoopEngine()),
+      mixer: mixer,
+      engineReady: () async {},
+    );
+    Future<LoopStart> play() => piano.play(
+      chords: const [cMajor],
+      style: PianoStyle.bar,
+      bpm: 120,
+      signature: TimeSignature.fourFour,
+      a4: 440,
+      volume: 0.8,
+      startAt: Duration.zero,
+    );
+    await play();
+    // Stopped: the tail of the loop is being made...
+    mixer.holdTails();
+    final stopped = piano.stop();
+    await tester.pump();
+    // ...when the piano is started again.
+    await play();
+    mixer.releaseTails();
+    await stopped;
+    await tester.pump(const Duration(minutes: 1));
+    expect(mixer.cleared, 0);
+    await piano.stop();
+    await tester.pump(const Duration(minutes: 1));
+    expect(mixer.cleared, 1);
+  });
 
   group('the piano loop', () {
     test('doubles the root an octave down, unless it is too low', () {
@@ -992,4 +1030,42 @@ class _Clock extends ChangeNotifier implements BarClock {
 
   /// Tells the listeners that the tempo or the time signature changed.
   void announce() => notifyListeners();
+}
+
+/// A mixer of silent loops, whose tails can be held back while they are
+/// "made".
+class _FakeMixer implements PianoMixer {
+  var cleared = 0;
+  Completer<void>? _tails;
+
+  void holdTails() => _tails = Completer<void>();
+
+  void releaseTails() {
+    _tails?.complete();
+    _tails = null;
+  }
+
+  @override
+  Future<void> prepare(List<PianoChord> chords, {bool bass = false}) async {}
+
+  @override
+  Future<MixedLoop> loop(
+    PianoLoop loop, {
+    SlicedWork? work,
+    Duration slice = const Duration(milliseconds: 6),
+  }) async => (wav: fakeWav(const Duration(seconds: 2)), scale: 1.0);
+
+  @override
+  Future<Uint8List> tail(
+    PianoLoop loop, {
+    required double scale,
+    required int position,
+    Duration slice = const Duration(milliseconds: 50),
+  }) async {
+    await _tails?.future;
+    return fakeWav(const Duration(seconds: 1));
+  }
+
+  @override
+  void clear() => cleared++;
 }

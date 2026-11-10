@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/audio/loop_transport.dart';
 
+import 'fake_loop_engine.dart';
+
 void main() {
   const ms = Duration(milliseconds: 1);
 
@@ -76,5 +78,21 @@ void main() {
         ms * 2030,
       );
     });
+  });
+
+  test('a meeting holds until the piano'
+      's new loop has come in', () {
+    final engine = FakeLoopEngine();
+    final transport = LoopTransport(engine: engine);
+    expect(transport.meetingAt, isNull);
+    transport.beginMeeting(ms * 4000);
+    expect(transport.meetingAt, ms * 4000);
+    // Scheduled later than aimed: met there, still to come.
+    transport.meet(ms * 6000);
+    engine.advance(ms * 5000);
+    expect(transport.meetingAt, ms * 6000);
+    // Come in: nothing left to meet for a later change.
+    engine.advance(ms * 1000);
+    expect(transport.meetingAt, isNull);
   });
 }

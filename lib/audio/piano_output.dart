@@ -54,6 +54,11 @@ abstract class PianoOutput {
     bool handOver = false,
   });
 
+  /// Asked by [play] once its loop is mixed, just before it sounds: when it
+  /// says no (the sound was stopped, or started again, while the loop was
+  /// mixed), nothing starts and [play] throws LoopNotWanted.
+  bool Function()? stillWanted;
+
   /// Starts letting the loop playing now down, for another to come in on
   /// the next bar line at least [lead] away (see BarLoopPlayer.beginHandOver):
   /// a [play] with `handOver` then starts there. Says how long until that
@@ -282,20 +287,39 @@ typedef _Playing = ({PianoLoop loop, double scale});
 
 /// [PianoOutput] backed by the SoLoud audio engine.
 class SoLoudPianoOutput implements PianoOutput {
+  /// On the phone's engine. Tests give a transport on a fake engine, a
+  /// mixer and an engine of their own.
+  SoLoudPianoOutput({
+    @visibleForTesting this._transport,
+    @visibleForTesting PianoMixer? mixer,
+    @visibleForTesting Future<void> Function()? engineReady,
+  }) : _mixerGiven = mixer,
+       _engineReady = engineReady ?? ensureSoLoud;
+
+  final LoopTransport? _transport;
+  final PianoMixer? _mixerGiven;
+  final Future<void> Function() _engineReady;
+
   // Follows the clicks: after a change of tempo it comes back in on their
   // beat, not on its own, the two loops crossing over so that the ringing
   // notes do not jump.
-  final _player = BarLoopPlayer(
+  late final _player = BarLoopPlayer(
     'piano',
     follows: true,
     crossfade: const Duration(milliseconds: 40),
+    transport: _transport,
   );
   _Playing? _playing;
+
+  @override
+  bool Function()? stillWanted;
 
   /// Where the recordings are kept and the loops mixed: on the phone an
   /// isolate of its own (see IsolatePianoMixer), started at the first need;
   /// in a page, or if that isolate cannot start, the screen's thread.
-  Future<PianoMixer> get _mixer => _mixerReady ??= _startMixer();
+  Future<PianoMixer> get _mixer => _mixerReady ??= _mixerGiven != null
+      ? Future.value(_mixerGiven)
+      : _startMixer();
   Future<PianoMixer>? _mixerReady;
 
   static Future<PianoMixer> _startMixer() async {
@@ -324,6 +348,10 @@ class SoLoudPianoOutput implements PianoOutput {
   /// soon, it need not read them again.
   Timer? _forget;
   static const _keepFor = Duration(seconds: 30);
+
+  /// How many times [play] was called: a [stop] knows whether the piano
+  /// was started again while it let the loop go.
+  var _plays = 0;
 
   /// In a browser the recordings stay while the page is open: reading them
   /// again holds the screen up for seconds (there is no isolate there), and
@@ -362,8 +390,9 @@ class SoLoudPianoOutput implements PianoOutput {
     bool handOver = false,
   }) async {
     _forget?.cancel();
+    _plays++;
     // The engine starts and warms up while the notes are mixed, not before.
-    final engine = ensureSoLoud()..ignore();
+    final engine = _engineReady()..ignore();
     final loop = (
       chords: chords,
       style: style,
@@ -391,14 +420,21 @@ class SoLoudPianoOutput implements PianoOutput {
     final bar = barDuration(bpm, signature.beats);
     final was = _playing;
     _playing = (loop: loop, scale: rendered.scale);
-    return _player.play(
-      rendered.wav,
-      bar,
-      startAt: startAt,
-      onPulse: onTheBeat ? bar ~/ signature.beats : null,
-      tailFor: was == null ? null : (position) => _tail(was, position),
-      handOver: handOver,
-    );
+    try {
+      return await _player.play(
+        rendered.wav,
+        bar,
+        startAt: startAt,
+        onPulse: onTheBeat ? bar ~/ signature.beats : null,
+        tailFor: was == null ? null : (position) => _tail(was, position),
+        handOver: handOver,
+        wanted: stillWanted,
+      );
+    } on LoopNotWanted {
+      // What played before (if anything) still does.
+      if (_playing?.loop == loop) _playing = was;
+      rethrow;
+    }
   }
 
   @override
@@ -478,12 +514,14 @@ class SoLoudPianoOutput implements PianoOutput {
   @override
   Future<void> stop() async {
     final was = _playing;
+    final plays = _plays;
     _playing = null;
     // The piano is let go as a pianist lifts the hands, not cut.
     await _player.stop(
       tailFor: was == null ? null : (position) => _tail(was, position),
     );
-    _forgetAfter(_keepFor);
+    // Started again while it was let go: the recordings are in use.
+    if (_plays == plays) _forgetAfter(_keepFor);
   }
 
   @override
@@ -491,7 +529,7 @@ class SoLoudPianoOutput implements PianoOutput {
     // In a browser the engine is started by LowEndApp, held silent until a
     // touch; the recordings are read there without it (see
     // decodeFlacInBrowser).
-    if (!kIsWeb) await ensureSoLoud();
+    if (!kIsWeb) await _engineReady();
     await (await _mixer).prepare(chords, bass: bass);
     // Not played after all: they go, as after a stop, a while later.
     if (_playing != null) return;
@@ -516,6 +554,9 @@ class SilentPianoOutput implements PianoOutput {
   Duration delay = Duration.zero;
 
   @override
+  bool Function()? stillWanted;
+
+  @override
   Future<LoopStart> play({
     required List<PianoChord> chords,
     required PianoStyle style,
@@ -528,6 +569,7 @@ class SilentPianoOutput implements PianoOutput {
     bool patient = false,
     bool handOver = false,
   }) async {
+    if (stillWanted?.call() == false) throw const LoopNotWanted();
     this.handOver = handOver;
     this.patient = patient;
     if (handOver && this.chords != null && handOverIn != null) {

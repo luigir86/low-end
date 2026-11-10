@@ -52,6 +52,17 @@ class LoopTransport {
     _meeting = null;
   }
 
+  /// The bar line clicks asked to meet the piano (see BarLoopPlayer.play
+  /// with atMeeting) aim at: while a hand-over is under way, or its new
+  /// loop is still to come in. Null once it has come in: a later change
+  /// that the piano does not hand over has nothing to meet.
+  Duration? get meetingAt {
+    final at = meetAt;
+    if (at == null) return null;
+    if (_meeting != null || at > engine.getEngineTime()) return at;
+    return null;
+  }
+
   /// When the piano's new loop comes in, once it is known; null if the
   /// hand-over was called off.
   Future<Duration?> get meeting => _meeting?.future ?? Future.value(meetAt);
@@ -184,6 +195,15 @@ class _Loop {
   final SoundHandle handle;
   final Duration bar;
   final Duration? startsAt;
+}
+
+/// Thrown by a play whose loop is no longer wanted by the time it is ready
+/// to sound (see BarLoopPlayer.play with wanted): nothing was started.
+class LoopNotWanted implements Exception {
+  const LoopNotWanted();
+
+  @override
+  String toString() => 'LoopNotWanted';
 }
 
 /// Where a loop actually began: `position` into the loop at the moment it

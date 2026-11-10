@@ -253,6 +253,92 @@ void main() {
     expect(newClick.startsAt, isNotNull);
   });
 
+  test('after a hand-over has come in, clicks asked to meet the piano '
+      'are not let down', () async {
+    await click.play(fakeWav(bar), bar);
+    await piano.play(fakeWav(bar * 4), bar, startAt: Duration.zero);
+    engine.advance(bar + ms(300));
+    piano.beginHandOver(lead: ms(500));
+    await piano.play(
+      fakeWav(bar * 4),
+      bar,
+      startAt: Duration.zero,
+      handOver: true,
+    );
+    // Well past the bar line the new piano came in on.
+    engine.advance(bar * 3 + ms(500));
+    final oldClick = only('click-loop.wav');
+    // A later change the piano does not hand over (a time signature): the
+    // clicks come in on the piano's bar line, at their level until then.
+    await click.play(
+      fakeWav(bar),
+      bar,
+      startAt: Duration.zero,
+      atMeeting: true,
+    );
+    expect(oldClick.volumeAt(engine.now + ms(200)), 1);
+    expect(oldClick.stopsAt, isNotNull);
+  });
+
+  test('the volume set again during a hand-over does not stop it', () async {
+    piano.setVolume(0.8);
+    await piano.play(fakeWav(bar * 4), bar, startAt: Duration.zero);
+    engine.advance(ms(300));
+    final old = only('piano-loop.wav');
+    final wait = piano.beginHandOver(lead: ms(500))!;
+    final line = engine.now + wait;
+    engine.advance(ms(400));
+    final down = old.volumeAt(engine.now);
+    expect(down, lessThan(0.8));
+    // The piano sets its volume before every loop it plays.
+    piano.setVolume(0.8);
+    expect(old.volumeAt(engine.now), down);
+    expect(
+      old.volumeAt(line),
+      closeTo(0.8 * BarLoopPlayer.handOverLevel, 1e-9),
+    );
+  });
+
+  test('a second hand-over before the first new loop sounds keeps to '
+      'its bar line', () async {
+    // The piano alone: its bar lines are its own.
+    await piano.play(fakeWav(bar * 4), bar, startAt: Duration.zero);
+    engine.advance(ms(300));
+    piano.beginHandOver(lead: ms(500));
+    await piano.play(
+      fakeWav(bar * 4),
+      bar,
+      startAt: Duration.zero,
+      handOver: true,
+      tailFor: (_) async => fakeWav(bar),
+    );
+    final second = engine.voices.values.lastWhere(
+      (v) => v.name == 'piano-loop.wav',
+    );
+    expect(second.startsAt, bar);
+    engine.advance(ms(200));
+    // Another change (a style, then a key) before the second has sounded.
+    expect(piano.beginHandOver(lead: ms(500)), bar - ms(500));
+    await piano.play(
+      fakeWav(bar * 4),
+      bar,
+      startAt: Duration.zero,
+      handOver: true,
+      tailFor: (_) async => fakeWav(bar),
+    );
+    final third = engine.voices.values.lastWhere(
+      (v) => v.name == 'piano-loop.wav',
+    );
+    // On the same bar line, not half a bar after it; the second never
+    // sounds, and leaves no tail.
+    expect(third.startsAt, bar);
+    expect(second.stopsAt, bar);
+    expect(
+      engine.voices.values.where((v) => v.name == 'tail.wav'),
+      hasLength(1),
+    );
+  });
+
   test('a hand-over called off brings the loop back up', () async {
     await piano.play(fakeWav(bar), bar);
     engine.advance(ms(300));
