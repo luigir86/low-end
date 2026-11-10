@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../app/notice.dart';
 import '../../audio/recorded_track.dart';
 import '../../audio/system_track_files.dart';
 import '../../audio/track_output.dart';
@@ -226,8 +227,7 @@ class _TakeActionsState extends State<TakeActions> {
     if (!mounted) return;
     setState(() => busy = false);
     if (message != null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
+      NoticeHost.of(context).show(message);
     }
   }
 

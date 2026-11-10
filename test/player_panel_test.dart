@@ -233,7 +233,7 @@ void main() {
     await screen.settle();
     expect(screen.player.track, _song);
     // Said in the track row, not in a notice over the controls.
-    expect(find.byType(SnackBar), findsNothing);
+    expect(find.byKey(const Key('notice')), findsNothing);
     expect(find.text('Recording discarded'), findsOneWidget);
     // The file stays while Undo can still bring the take back.
     expect(screen.files.released, isNot(contains(take)));

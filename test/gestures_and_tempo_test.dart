@@ -174,7 +174,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       // Nothing over the guide; the hint comes once it is closed.
-      expect(find.byType(SnackBar), findsNothing);
+      expect(find.byKey(const Key('notice')), findsNothing);
       expect(settings.seenSwipeHint, isFalse);
       await tester.ensureVisible(find.text('Got it'));
       await tester.tap(find.text('Got it'));

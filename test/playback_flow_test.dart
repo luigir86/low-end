@@ -254,7 +254,7 @@ void main() {
       await tester.tap(find.byTooltip('Tuner'));
       await app.settle();
       expect(app.mic.isCapturing, isTrue);
-      expect(find.byType(SnackBar), findsNothing);
+      expect(find.byKey(const Key('notice')), findsNothing);
       expect(find.text('Resume'), findsNothing);
     });
 
@@ -262,8 +262,8 @@ void main() {
       ('the metronome alone', true, false),
       ('the harmony alone', false, true),
     ]) {
-      testWidgets('$name: entering stops nothing, a touch pauses it and '
-          'Resume brings back only that', (tester) async {
+      testWidgets('$name: entering stops nothing, a touch pauses it with '
+          'no notice', (tester) async {
         final app = await _open(tester);
         if (metronome) await app.scope.metronome.start();
         if (drone) await app.scope.drone.start();
@@ -274,22 +274,16 @@ void main() {
         expect(app.scope.metronome.isPlaying, metronome);
         expect(app.scope.drone.isPlaying, drone);
         expect(app.mic.isCapturing, isFalse);
-        expect(find.text('Paused while you tune'), findsNothing);
+        expect(find.byKey(const Key('notice')), findsNothing);
 
         await tester.tap(find.byKey(const Key('tunerHub')));
         await app.settle();
         expect(app.scope.metronome.isPlaying, isFalse);
         expect(app.scope.drone.isPlaying, isFalse);
         expect(app.mic.isCapturing, isTrue);
-        expect(find.text('Paused while you tune'), findsOneWidget);
+        expect(find.byKey(const Key('notice')), findsNothing);
         // A pause for the tuner is not a pause from the notification.
         expect(app.audio.state, MediaState.off);
-
-        await tester.tap(find.text('Resume'));
-        await app.settle();
-        expect(app.scope.metronome.isPlaying, metronome);
-        expect(app.scope.drone.isPlaying, drone);
-        expect(app.audio.state, MediaState.playing);
       });
     }
   });
@@ -475,7 +469,7 @@ void main() {
       await tester.tap(find.byKey(const Key('tunerHub')));
       await app.settle();
       expect(app.click.bar, isNull);
-      expect(find.text('Resume'), findsOneWidget);
+      expect(app.mic.isCapturing, isTrue);
     });
 
     testWidgets('stops the vertical flick in landscape, not the rail', (
@@ -553,7 +547,7 @@ void main() {
     }
 
     testWidgets('entering its tab stops nothing; its dial pauses the metronome '
-        'and Harmony, and Resume brings them back', (tester) async {
+        'and Harmony, with no notice', (tester) async {
       final app = await openWithTrack(tester);
       await app.scope.metronome.start();
       await app.scope.drone.start();
@@ -563,7 +557,7 @@ void main() {
       await app.settle();
       expect(app.scope.metronome.isPlaying, isTrue);
       expect(app.scope.drone.isPlaying, isTrue);
-      expect(find.text('Paused while you listen'), findsNothing);
+      expect(find.byKey(const Key('notice')), findsNothing);
 
       await tester.tap(find.byKey(const Key('playerHub')));
       await app.settle();
@@ -571,18 +565,10 @@ void main() {
       expect(app.track.playing, isTrue);
       expect(app.scope.metronome.isPlaying, isFalse);
       expect(app.scope.drone.isPlaying, isFalse);
-      expect(find.text('Paused while you listen'), findsOneWidget);
+      expect(find.byKey(const Key('notice')), findsNothing);
       // Its notification names the track and the Player.
       expect(app.audio.state, MediaState.playing);
       expect(app.audio.title, 'Blue Bossa');
-
-      // Resume plays the two again, and the Player gives way.
-      await tester.tap(find.text('Resume'));
-      await app.settle();
-      expect(app.scope.metronome.isPlaying, isTrue);
-      expect(app.scope.drone.isPlaying, isTrue);
-      expect(app.scope.player.isPlaying, isFalse);
-      expect(app.track.playing, isFalse);
     });
 
     for (final (name, start) in [
@@ -599,11 +585,11 @@ void main() {
         await app.settle();
         expect(app.scope.player.isPlaying, isFalse);
         expect(app.track.playing, isFalse);
-        expect(find.byType(SnackBar), findsNothing);
+        expect(find.byKey(const Key('notice')), findsNothing);
       });
     }
 
-    testWidgets('the tuner listening pauses it, and Resume plays it again', (
+    testWidgets('the tuner listening pauses it, with no notice', (
       tester,
     ) async {
       final app = await openWithTrack(tester);
@@ -618,11 +604,7 @@ void main() {
       await app.settle();
       expect(app.scope.player.isPlaying, isFalse);
       expect(app.mic.isCapturing, isTrue);
-      expect(find.text('Paused while you tune'), findsOneWidget);
-
-      await tester.tap(find.text('Resume'));
-      await app.settle();
-      expect(app.scope.player.isPlaying, isTrue);
+      expect(find.byKey(const Key('notice')), findsNothing);
     });
 
     testWidgets('a call pauses it with a notice, and Resume plays it', (
@@ -636,6 +618,11 @@ void main() {
       await app.settle();
       expect(app.scope.player.isPlaying, isFalse);
       expect(find.text('Paused: the sound was interrupted'), findsOneWidget);
+      // At the top, over none of the controls.
+      expect(
+        tester.getRect(find.byKey(const Key('notice'))).bottom,
+        lessThan(tester.getSize(find.byType(MaterialApp)).height / 4),
+      );
       await tester.tap(find.text('Resume'));
       await app.settle();
       expect(app.scope.player.isPlaying, isTrue);

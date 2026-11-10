@@ -443,12 +443,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get beatUnitEighth => 'eighth note';
 
   @override
-  String get pausedForTuner => 'Paused while you tune';
-
-  @override
-  String get pausedUnplugged => 'Paused: headphones unplugged';
-
-  @override
   String get pausedInterrupted => 'Paused: the sound was interrupted';
 
   @override
@@ -726,9 +720,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String playerTimeOf(String position, String duration) {
     return '$position of $duration';
   }
-
-  @override
-  String get pausedForPlayer => 'Paused while you listen';
 
   @override
   String get playerUnreadable => 'This file can\'t be opened.';

@@ -870,18 +870,6 @@ abstract class AppLocalizations {
   /// **'eighth note'**
   String get beatUnitEighth;
 
-  /// No description provided for @pausedForTuner.
-  ///
-  /// In en, this message translates to:
-  /// **'Paused while you tune'**
-  String get pausedForTuner;
-
-  /// Notice shown when the sound stops because the headphones were unplugged; it has a Resume button.
-  ///
-  /// In en, this message translates to:
-  /// **'Paused: headphones unplugged'**
-  String get pausedUnplugged;
-
   /// Notice shown in the web app when the browser cut the sound (a call, Siri, an alarm, the locked screen on an iPhone); it has a Resume button.
   ///
   /// In en, this message translates to:
@@ -1379,12 +1367,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{position} of {duration}'**
   String playerTimeOf(String position, String duration);
-
-  /// Notice shown when the metronome and Harmony were paused because the Player started; it has a Resume button.
-  ///
-  /// In en, this message translates to:
-  /// **'Paused while you listen'**
-  String get pausedForPlayer;
 
   /// No description provided for @playerUnreadable.
   ///

@@ -297,11 +297,6 @@
   "beatUnitQuarter": "quarter note",
   "beatUnitDottedQuarter": "dotted quarter note",
   "beatUnitEighth": "eighth note",
-  "pausedForTuner": "Paused while you tune",
-  "pausedUnplugged": "Paused: headphones unplugged",
-  "@pausedUnplugged": {
-    "description": "Notice shown when the sound stops because the headphones were unplugged; it has a Resume button."
-  },
   "pausedInterrupted": "Paused: the sound was interrupted",
   "@pausedInterrupted": {
     "description": "Notice shown in the web app when the browser cut the sound (a call, Siri, an alarm, the locked screen on an iPhone); it has a Resume button."
@@ -480,10 +475,6 @@
         "type": "String"
       }
     }
-  },
-  "pausedForPlayer": "Paused while you listen",
-  "@pausedForPlayer": {
-    "description": "Notice shown when the metronome and Harmony were paused because the Player started; it has a Resume button."
   },
   "playerUnreadable": "This file can't be opened.",
   "playerMissing": "The file is no longer available.",

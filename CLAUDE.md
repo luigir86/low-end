@@ -22,9 +22,10 @@ flutter build web --wasm --release --no-web-resources-cdn   # the web app for iP
 ## Product rules (keep them true)
 
 - Four sections (metronome, Harmony, tuner, Player); tabs only navigate. Each section starts/stops its own sound from the centre of its dial. No balance setting.
-- Entering the tuner stops nothing; touching the tuner dial (or `tuner_start`) pauses the metronome and Harmony with a "Resume" snackbar.
-- The Player plays alone: starting it pauses the metronome and Harmony with a "Resume" snackbar; starting either of them pauses the Player; touching the tuner dial pauses it too.
+- Entering the tuner stops nothing; touching the tuner dial (or `tuner_start`) pauses the metronome and Harmony, with no notice (the touch is the reason).
+- The Player plays alone: starting it pauses the metronome and Harmony, with no notice; starting either of them pauses the Player; touching the tuner dial pauses it too.
 - Harmony started while the click plays enters on the metronome's bar line with a countdown (and vice versa).
+- Notices sit at the top of the screen (`NoticeHost.of(context).show`, lib/app/notice.dart), never a bottom `SnackBar`: the controls are at the bottom. Pause notices ("Resume") only when the reason is not the player's own gesture: a call or the browser cutting the sound. Not for the tuner, the Player or headphones pulled out: they would cover the controls.
 - "Lock gestures" only disables swiping between sections.
 - The web app (`web/`, docs/web.md) is the same code: anything Android-only (MethodChannel, `dart:io`, `Isolate.run`) needs a web path too; check it with the web build.
 

@@ -283,10 +283,10 @@ void main() {
     expect(click.bar, isNotNull);
     expect(mic.isCapturing, isFalse);
     expect(find.text('Listening pauses what is playing'), findsOneWidget);
-    expect(find.text('Paused while you tune'), findsNothing);
+    expect(find.byKey(const Key('notice')), findsNothing);
 
     // A touch on the middle pauses both, so the microphone hears only the
-    // bass, and says so.
+    // bass. No notice: the touch was the player's own.
     await tester.tap(find.byKey(const Key('tunerHub')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
@@ -294,7 +294,7 @@ void main() {
     expect(tone.frequencies, isEmpty);
     expect(click.bar, isNull);
     expect(mic.isCapturing, isTrue);
-    expect(find.text('Paused while you tune'), findsOneWidget);
+    expect(find.byKey(const Key('notice')), findsNothing);
     // Listening keeps the screen on too.
     expect(awake.on, isTrue);
 
@@ -308,14 +308,6 @@ void main() {
     expect(click.bar, isNull);
     expect(mic.isCapturing, isFalse);
     expect(awake.on, isFalse);
-
-    // Resume, on the notice, plays both again.
-    await tester.tap(find.text('Resume'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-    await tester.pump(const Duration(milliseconds: 300));
-    expect(tone.frequencies.single, closeTo(220, 0.01));
-    expect(click.bar, isNotNull);
   });
 
   testWidgets('a page opened over the tuner does not pause the sound again', (
@@ -345,7 +337,7 @@ void main() {
     await scope.metronome.stop();
   });
 
-  testWidgets('unplugging the headphones stops the sound, with Resume', (
+  testWidgets('unplugging the headphones stops the sound, with no notice', (
     tester,
   ) async {
     final click = SilentClickOutput();
@@ -372,14 +364,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     expect(scope.metronome.isPlaying, isFalse);
     expect(click.bar, isNull);
-    expect(find.text('Paused: headphones unplugged'), findsOneWidget);
-
-    await tester.tap(find.text('Resume'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-    expect(scope.metronome.isPlaying, isTrue);
-    await scope.metronome.stop();
-    await tester.pump(const Duration(milliseconds: 300));
+    // Pulled out by the player: the paused media notification is enough.
+    expect(find.byKey(const Key('notice')), findsNothing);
   });
 
   testWidgets('unplugged, the notification stays paused to play again', (
@@ -432,7 +418,7 @@ void main() {
     route.unplug();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Paused: headphones unplugged'), findsNothing);
+    expect(find.byKey(const Key('notice')), findsNothing);
   });
 
   testWidgets('sound cut by the browser shows as paused, with Resume', (

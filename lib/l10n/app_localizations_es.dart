@@ -447,12 +447,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get beatUnitEighth => 'corchea';
 
   @override
-  String get pausedForTuner => 'En pausa mientras afinas';
-
-  @override
-  String get pausedUnplugged => 'En pausa: auriculares desconectados';
-
-  @override
   String get pausedInterrupted => 'En pausa: el sonido se interrumpió';
 
   @override
@@ -732,9 +726,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String playerTimeOf(String position, String duration) {
     return '$position de $duration';
   }
-
-  @override
-  String get pausedForPlayer => 'En pausa mientras escuchas';
 
   @override
   String get playerUnreadable => 'No se puede abrir este archivo.';
