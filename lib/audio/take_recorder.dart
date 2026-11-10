@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:record/record.dart';
 
+import 'phone_mic.dart';
 import 'recorded_track.dart';
 import 'system_track_files.dart' as system;
 import 'web_audio_session.dart';
@@ -55,7 +56,23 @@ class RecordTakeRecorder implements TakeRecorder {
     final path = await system.recordingPath(name);
     // On the iPhone the web app keeps its sound while the microphone is on.
     setWebAudioSession(listening: true);
-    await _rec.start(takeConfig, path: path);
+    // In the browser the phone's microphone is named, as the Android app
+    // does with manageBluetooth off; a microphone that went away in the
+    // meantime is left to the browser.
+    final phone = kIsWeb ? await phoneMic() : null;
+    if (phone == null) {
+      await _rec.start(takeConfig, path: path);
+    } else {
+      try {
+        await _rec.start(
+          takeConfig.copyWith(device: (value: phone)),
+          path: path,
+        );
+      } catch (error) {
+        debugPrint('The phone microphone failed ($error): the default one.');
+        await _rec.start(takeConfig, path: path);
+      }
+    }
     _name = name;
   }
 

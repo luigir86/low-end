@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:record/record.dart';
 
+import 'phone_mic.dart';
 import 'web_audio_engine.dart';
 import 'web_audio_session.dart';
 
@@ -47,11 +48,24 @@ class RecordMicInput implements MicInput {
     // On the iPhone the web app's sound keeps playing while it listens.
     setWebAudioSession(listening: true);
     markWebAudioInUse();
+    // In the browser the phone's microphone is named (see phone_mic.dart).
+    var phone = kIsWeb ? await phoneMic() : null;
     while (true) {
       try {
-        final bytes = await _rec.startStream(_config(sampleRate));
+        var config = _config(sampleRate);
+        if (phone != null) config = config.copyWith(device: (value: phone));
+        final bytes = await _rec.startStream(config);
         return bytes.transform(const Pcm16Decoder());
       } catch (error) {
+        if (phone != null) {
+          // The phone microphone went away: the browser's choice.
+          debugPrint('The phone microphone failed: $error');
+          phone = null;
+          try {
+            await _rec.stop();
+          } catch (_) {}
+          continue;
+        }
         if (_source + 1 >= _sources.length) rethrow;
         // Not on this phone: the next source, from now on.
         debugPrint('${_sources[_source].name} microphone failed: $error');

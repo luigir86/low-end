@@ -81,7 +81,7 @@ Fuori dallo scopo, per decisione presa: libreria PDF e conversione in MusicXML/M
 | RF-ACC-07 | Il microfono ascolta solo con l'accordatore sullo schermo; si spegne cambiando sezione, aprendo le impostazioni o mandando l'app in background. Niente riparte da solo. | ✓ | `regression_test`, `startup_test` |
 | RF-ACC-08 | Entrare nell'accordatore non ferma niente: ascolta da solo solo se nulla suona. Toccare il quadrante (o `tuner_start`) mette in pausa Metronomo e Armonia, senza avviso (dal 10/11: il tocco è già il motivo, un avviso coprirebbe i comandi). | ✓ | `playback_flow_test` |
 | RF-ACC-09 | Il microfono non prende il focus audio: la musica di un'altra app continua. | ◐ | provato sul telefono una volta |
-| RF-ACC-10 | Con un auricolare Bluetooth l'audio non deve restare in qualità telefonata (HFP) dopo l'accordatore. | ? | valutazione del 4/11 in attesa |
+| RF-ACC-10 | Con un auricolare Bluetooth l'audio non deve restare in qualità telefonata (HFP) dopo l'accordatore o una registrazione. App Android: microfono del telefono, `manageBluetooth: false` (accordatore, e REC dal 10/11). Web (10/11): accordatore e REC chiedono al browser il microfono del telefono per nome (`phone_mic.dart`: "Speakerphone" in Chrome/Edge su Android, "iPhone Microphone" in Safari) quando nella lista c'è un microfono Bluetooth; i nomi si leggono senza aprire il microfono, quindi solo dopo il primo permesso. Limite: se il browser non dà nomi riconoscibili sceglie lui, e il modo in cui Chrome/Edge rilasciano le cuffie non dipende dall'app. | ◐ | `phone_mic_test`; telefono con Edge e cuffie BT 4.40 |
 
 ### 2.6 Impostazioni (RF-IMP)
 
@@ -198,7 +198,7 @@ Sempre tema scuro, un solo accento per variante interna; niente scelta utente, t
 
 ## 5. Questioni aperte da decidere
 
-1. **Bluetooth HFP dopo l'accordatore** (RF-ACC-10): valutazione in attesa.
+1. **Bluetooth HFP dopo l'accordatore** (RF-ACC-10): app corretta; web corretto il 10/11, da provare con Edge.
 2. Livello e durata del calo di volume (RF-ARM-15): da riascoltare sul telefono.
 3. **Luce e memoria** (RNF-LAT-03, RNF-MEM-01): i numeri proposti si confermano dopo le misure del passo 1.
 
