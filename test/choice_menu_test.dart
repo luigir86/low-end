@@ -103,4 +103,46 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('440 Hz'), findsNothing);
   });
+
+  testWidgets('the icon of the chosen line has the ink of the accent', (
+    tester,
+  ) async {
+    final theme = LowEndTheme.dark;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: theme,
+        home: Scaffold(
+          body: Center(
+            child: Builder(
+              builder: (field) => TextButton(
+                onPressed: () => showChoiceMenu(
+                  anchor: field,
+                  selected: 1,
+                  choices: const [
+                    Choice(
+                      value: 0,
+                      title: 'Zero',
+                      leading: Icon(Icons.looks_one),
+                    ),
+                    Choice(
+                      value: 1,
+                      title: 'One',
+                      leading: Icon(Icons.looks_two),
+                    ),
+                  ],
+                ),
+                child: const Text('Open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+    Color? inkOf(IconData icon) =>
+        IconTheme.of(tester.element(find.byIcon(icon))).color;
+    expect(inkOf(Icons.looks_two), theme.colorScheme.onPrimaryContainer);
+    expect(inkOf(Icons.looks_one), isNot(theme.colorScheme.onPrimaryContainer));
+  });
 }

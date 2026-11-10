@@ -130,11 +130,23 @@ class _ChoiceLineState<T> extends State<_ChoiceLine<T>> {
                 borderRadius: BorderRadius.circular(4),
               )
             : null,
-        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
         child: Row(
           children: [
             if (choice.leading != null) ...[
-              choice.leading!,
+              // On the accent the icon takes the same dark ink as the text and
+              // the tick (NoteIcon reads the text colour, StyleIcon the icon
+              // theme's).
+              if (selected)
+                IconTheme.merge(
+                  data: IconThemeData(color: scheme.onPrimaryContainer),
+                  child: DefaultTextStyle.merge(
+                    style: TextStyle(color: scheme.onPrimaryContainer),
+                    child: choice.leading!,
+                  ),
+                )
+              else
+                choice.leading!,
               const SizedBox(width: 12),
             ],
             Expanded(
