@@ -91,9 +91,15 @@ object TrackFiles {
         worker.execute {
             val readable = try {
                 val target = Uri.parse(uri)
-                val kept = host.contentResolver.persistedUriPermissions
-                    .any { it.uri == target && it.isReadPermission }
-                kept && host.contentResolver.openFileDescriptor(target, "r")?.use { true } == true
+                // A file opened from another app is the app's own copy.
+                val received = ReceivedTracks.copyOf(host, target)
+                if (received != null) {
+                    received.isFile
+                } else {
+                    val kept = host.contentResolver.persistedUriPermissions
+                        .any { it.uri == target && it.isReadPermission }
+                    kept && host.contentResolver.openFileDescriptor(target, "r")?.use { true } == true
+                }
             } catch (e: Exception) {
                 false
             }
@@ -130,6 +136,13 @@ object TrackFiles {
     private fun release(uri: String?, result: MethodChannel.Result) {
         val host = activity
         if (uri != null && host != null) {
+            // A copy of a file opened from another app goes with it.
+            val received = ReceivedTracks.copyOf(host, Uri.parse(uri))
+            if (received != null) {
+                received.parentFile?.deleteRecursively()
+                result.success(null)
+                return
+            }
             try {
                 host.contentResolver.releasePersistableUriPermission(
                     Uri.parse(uri),

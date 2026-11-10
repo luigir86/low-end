@@ -56,6 +56,7 @@ class LowEndApp extends StatefulWidget {
     this.trackOutput,
     this.trackFiles,
     this.takeRecorder,
+    this.receivedTracks,
   });
 
   /// Audio output for the drone; defaults to the device's speakers.
@@ -97,6 +98,11 @@ class LowEndApp extends StatefulWidget {
   /// nothing when a test gives its own tone or click output.
   final TakeRecorder? takeRecorder;
 
+  /// Audio files opened or shared from another app ("Open with Low End");
+  /// the system's by default, none when a test gives its own tone or click
+  /// output.
+  final Stream<TrackRef>? receivedTracks;
+
   @override
   State<LowEndApp> createState() => _LowEndAppState();
 }
@@ -127,6 +133,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
   StreamSubscription<void>? _unplugged;
   StreamSubscription<void>? _interrupted;
   StreamSubscription<void>? _playerInterrupted;
+  StreamSubscription<TrackRef>? _received;
   late final _tuner = TunerController(widget.micInput ?? RecordMicInput());
   // The Player makes its system player at the first track, not before
   // (RNF-AVV-01); the tests never touch the real one.
@@ -245,6 +252,14 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     _playerInterrupted = _player.interruptions.listen(
       (_) => _pauseFor(PauseReason.interrupted),
     );
+    // A track a teacher sent on WhatsApp, tapped there: it opens in the
+    // Player, ready to study.
+    _received =
+        (widget.receivedTracks ??
+                (_testOutputs
+                    ? const Stream<TrackRef>.empty()
+                    : receivedTracks()))
+            .listen(_openReceived);
     // If the app opens on the tuner (where it was left, or a link), start
     // listening once the first frame is up, so the microphone never delays
     // it. Opening on the harmony, its piano is got ready a moment later
@@ -265,6 +280,14 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     final initial = WidgetsBinding.instance.platformDispatcher.defaultRouteName;
     if (initial != '/') _runLink(Uri.parse(initial));
+  }
+
+  /// Opens a file from another app in the Player, on screen. A recording
+  /// under way stops first and is kept, as when leaving the Player.
+  Future<void> _openReceived(TrackRef track) async {
+    if (_recording.active) await _recording.finish();
+    _navigation.open(AppSection.player);
+    await _player.open(track);
   }
 
   void _rememberMetronome() => _settings.rememberMetronome(
@@ -514,6 +537,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     _player.removeListener(_rememberPlayer);
     _tuner.removeListener(_onTunerChanged);
     _commands?.cancel();
+    _received?.cancel();
     _unplugged?.cancel();
     _interrupted?.cancel();
     _playerInterrupted?.cancel();
