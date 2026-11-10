@@ -345,9 +345,9 @@ class _ControlRow extends StatelessWidget {
   }
 }
 
-/// A circle with its [letter] cut out, in the ink of the button it sits in:
-/// the button says which point a touch sets, drawn like the handle that then
-/// appears on the ring.
+/// A circle with its [letter] in the colour of the button it sits in, so
+/// that the letter looks cut out of the circle: the button says which point
+/// a touch sets, drawn like the handle that then appears on the ring.
 class LetterBadge extends StatelessWidget {
   const LetterBadge(this.letter, {super.key});
 
@@ -365,6 +365,10 @@ class LetterBadge extends StatelessWidget {
         painter: _LetterBadgePainter(
           letter: letter,
           ink: ink,
+          // Painted in the button's colour, not erased with a clear blend:
+          // on Android (Impeller) a cleared glyph clears its whole box and
+          // the letter became a square.
+          hole: RowButton.fillOf(context),
           style: Theme.of(context).textTheme.labelLarge,
         ),
       ),
@@ -376,11 +380,13 @@ class _LetterBadgePainter extends CustomPainter {
   _LetterBadgePainter({
     required this.letter,
     required this.ink,
+    required this.hole,
     required this.style,
   });
 
   final String letter;
   final Color ink;
+  final Color hole;
   final TextStyle? style;
 
   @override
@@ -391,8 +397,7 @@ class _LetterBadgePainter extends CustomPainter {
       text: TextSpan(
         text: letter,
         style: (style ?? const TextStyle()).copyWith(
-          // The letter is cut out of the circle: drawn in the clear.
-          foreground: Paint()..blendMode = BlendMode.clear,
+          color: hole,
           fontWeight: FontWeight.w700,
           fontSize: radius * 1.2,
           height: 1,
@@ -400,14 +405,15 @@ class _LetterBadgePainter extends CustomPainter {
       ),
       textDirection: TextDirection.ltr,
     )..layout();
-    canvas.saveLayer(Offset.zero & size, Paint());
     canvas.drawCircle(centre, radius, Paint()..color = ink);
     text.paint(canvas, centre - Offset(text.width, text.height) / 2);
-    canvas.restore();
     text.dispose();
   }
 
   @override
   bool shouldRepaint(_LetterBadgePainter old) =>
-      old.letter != letter || old.ink != ink || old.style != style;
+      old.letter != letter ||
+      old.ink != ink ||
+      old.hole != hole ||
+      old.style != style;
 }

@@ -181,6 +181,15 @@ class RowButton extends StatelessWidget {
   final bool filled;
   final bool adjustment;
 
+  /// The colour of a [filled] button: what a mark drawn on it uses to look
+  /// cut out of its own ink.
+  static Color fillOf(BuildContext context) {
+    final colors = LowEndColors.of(context);
+    return colors.filledSteps
+        ? colors.activeFill
+        : Theme.of(context).colorScheme.secondaryContainer;
+  }
+
   @override
   Widget build(BuildContext context) {
     // At least as tall as a line of text, so that an icon button grows with
@@ -205,11 +214,7 @@ class RowButton extends StatelessWidget {
         ? FilledButton.tonal(
             onPressed: onPressed,
             style: FilledButton.styleFrom(
-              backgroundColor: pale
-                  ? colors.stepFill
-                  : colors.filledSteps
-                  ? colors.activeFill
-                  : Theme.of(context).colorScheme.secondaryContainer,
+              backgroundColor: pale ? colors.stepFill : fillOf(context),
               foregroundColor: pale
                   ? colors.onStepFill
                   : colors.filledSteps
