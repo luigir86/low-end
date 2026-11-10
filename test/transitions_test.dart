@@ -1,10 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/audio/click_output.dart';
+import 'package:low_end/audio/loop_transport.dart';
 import 'package:low_end/audio/piano_output.dart';
+import 'package:low_end/audio/piano_sound.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/features/harmony/drone_controller.dart';
 import 'package:low_end/features/harmony/harmony.dart';
 import 'package:low_end/features/metronome/metronome_controller.dart';
+import 'package:low_end/features/metronome/time_signature.dart';
 
 /// RF-ARM-15 (a change of what the piano plays fades the old loop to its
 /// bar line, where the new one comes in) and RF-MET-08 (the sound takes a
@@ -100,6 +105,63 @@ void main() {
     });
   });
 
+  group('Harmony when requests overlap', () {
+    late _GatedPiano piano;
+    late MetronomeController metronome;
+    late DroneController drone;
+
+    setUp(() async {
+      piano = _GatedPiano();
+      metronome = MetronomeController(SilentClickOutput());
+      drone = DroneController(
+        SilentToneOutput(),
+        piano: piano,
+        clock: metronome,
+      );
+      drone
+        ..setVoicing(DroneVoicing.progression)
+        ..setProgression(Progression.oneSixFourFive);
+      await drone.start();
+      await settle();
+    });
+
+    tearDown(() async {
+      piano.open();
+      await drone.stop();
+      drone.dispose();
+      metronome.dispose();
+    });
+
+    test('a failure during a hand-over leaves no wait behind', () async {
+      piano.failNext = true;
+      drone.setProgression(Progression.blues);
+      await settle();
+      expect(drone.audioFailed, isTrue);
+      expect(drone.isPlaying, isFalse);
+      expect(drone.showsWait, isFalse);
+      await drone.start();
+      await settle();
+      expect(drone.isPlaying, isTrue);
+      expect(drone.showsWait, isFalse);
+      expect(drone.beatsLeft, isNull);
+    });
+
+    test('the continuous tone during a hand-over shows no wait', () async {
+      piano.close();
+      metronome.setBpm(100);
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      drone.setStyle(DroneStyle.arpeggio);
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      drone.setContinuous(true);
+      piano.open();
+      await settle();
+      expect(drone.continuous, isTrue);
+      expect(drone.isPlaying, isTrue);
+      expect(drone.showsWait, isFalse);
+      expect(drone.beatsLeft, isNull);
+    });
+  });
+
   group('the tempo follows the finger, the sound its rest', () {
     late SilentClickOutput click;
     late MetronomeController metronome;
@@ -156,4 +218,50 @@ void main() {
       expect(metronome.soundingBpm, 105);
     });
   });
+}
+
+/// A piano whose loops can be held back while they "mix" ([close], then
+/// [open]), or fail.
+class _GatedPiano extends SilentPianoOutput {
+  Completer<void>? _gate;
+  bool failNext = false;
+
+  void close() => _gate ??= Completer<void>();
+
+  void open() {
+    _gate?.complete();
+    _gate = null;
+  }
+
+  @override
+  Future<LoopStart> play({
+    required List<PianoChord> chords,
+    required PianoStyle style,
+    required int bpm,
+    required TimeSignature signature,
+    required double a4,
+    required double volume,
+    Duration? startAt,
+    bool onTheBeat = false,
+    bool patient = false,
+    bool handOver = false,
+  }) async {
+    if (_gate case final gate?) await gate.future;
+    if (failNext) {
+      failNext = false;
+      throw StateError('the piano failed');
+    }
+    return super.play(
+      chords: chords,
+      style: style,
+      bpm: bpm,
+      signature: signature,
+      a4: a4,
+      volume: volume,
+      startAt: startAt,
+      onTheBeat: onTheBeat,
+      patient: patient,
+      handOver: handOver,
+    );
+  }
 }

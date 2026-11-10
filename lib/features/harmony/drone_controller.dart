@@ -458,6 +458,7 @@ class DroneController extends ChangeNotifier implements SoundSection {
     _audioFailed = false;
     _step = 0;
     _fromTheTop = true;
+    _endHandOver();
     // The chords move on once the first one is heard (see [_soundStarts]).
     _soundStarted = false;
     _waitShown = _slow = false;
@@ -517,6 +518,16 @@ class DroneController extends ChangeNotifier implements SoundSection {
   final _handOverClock = Stopwatch();
   Duration _handOverWait = Duration.zero;
 
+  /// Forgets a hand-over asked for or under way (see [_handOver]): the
+  /// sound stopped, failed, started again or became the continuous tone,
+  /// none of which comes in on the bar line. The piano's own loop, if any,
+  /// is let go by whoever stops it.
+  void _endHandOver() {
+    _patient = false;
+    _handOverWanted = _handingOver = false;
+    _handOverClock.stop();
+  }
+
   /// True while a sound change waits for the end of the current event, so
   /// that the settings changed together in it make one change.
   var _syncSoon = false;
@@ -534,9 +545,7 @@ class DroneController extends ChangeNotifier implements SoundSection {
   @override
   Future<void> stop() {
     _playing = false;
-    _patient = false;
-    _handOverWanted = _handingOver = false;
-    _handOverClock.stop();
+    _endHandOver();
     _slowTimer?.cancel();
     _barTimer?.cancel();
     _loopClock.stop();
@@ -889,6 +898,8 @@ class DroneController extends ChangeNotifier implements SoundSection {
         await _playPiano();
       } else {
         // Not awaited when there is no piano: sound starts without delay.
+        // The tone does not wait for a bar line: no hand-over to show.
+        _endHandOver();
         final piano = _piano;
         if (piano != null) await piano.stop();
         final f = frequencies;
@@ -901,6 +912,7 @@ class DroneController extends ChangeNotifier implements SoundSection {
       debugPrint('Drone could not start: $error');
       _playing = false;
       _audioFailed = true;
+      _endHandOver();
       _slowTimer?.cancel();
       _barTimer?.cancel();
       _notify();
