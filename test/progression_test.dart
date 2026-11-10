@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:low_end/audio/piano_output.dart';
 import 'package:low_end/audio/pitch.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/features/harmony/drone_controller.dart';
@@ -84,6 +87,27 @@ void main() {
     await tester.pump(const Duration(seconds: 2));
     expect(drone.step, 0);
     await drone.stop();
+  });
+
+  test('on the piano, a bar timer late by more than a bar shows the chord '
+      'the sound is on', () async {
+    // Bars of 0.2 s, real time: the piano's chords follow its own clock.
+    clock.barLength = const Duration(milliseconds: 200);
+    final piano = SilentPianoOutput();
+    final harmony = DroneController(output, clock: clock, piano: piano)
+      ..setVoicing(DroneVoicing.progression)
+      ..setProgression(Progression.oneSixFourFive);
+    await harmony.start();
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    expect(harmony.step, 0);
+    // The screen's thread held up (a page in the background, a slow
+    // phone): the bar timer comes some two bars late.
+    sleep(const Duration(milliseconds: 450));
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    // About 0.52 s into the loop: the third bar.
+    expect(harmony.step, 2);
+    await harmony.stop();
+    harmony.dispose();
   });
 
   testWidgets('changes chord on the metronome\'s "one"', (tester) async {

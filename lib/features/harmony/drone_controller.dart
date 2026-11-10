@@ -812,9 +812,17 @@ class DroneController extends ChangeNotifier implements SoundSection {
       // the chord that has only just started.
       if (wait < const Duration(milliseconds: 150)) wait += bar;
     }
+    final set = Stopwatch()..start();
     _barTimer = Timer(wait, () {
       if (!_playing || _disposed) return;
-      _step = (_step + 1) % _progression.steps.length;
+      // On the piano, the bars that went by: a timer late by more than a
+      // bar (a page in the background, a phone held up) does not leave the
+      // chords shown behind the sound for good.
+      final late = set.elapsed - wait;
+      final missed = _patterned && late > Duration.zero
+          ? late.inMicroseconds ~/ bar.inMicroseconds
+          : 0;
+      _step = (_step + 1 + missed) % _progression.steps.length;
       _notify();
       if (!_patterned) _sync();
       _scheduleBar();
