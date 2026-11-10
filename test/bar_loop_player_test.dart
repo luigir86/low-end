@@ -253,6 +253,33 @@ void main() {
     expect(newClick.startsAt, isNotNull);
   });
 
+  test('after a hand-over has come in, clicks asked to meet the piano '
+      'are not let down', () async {
+    await click.play(fakeWav(bar), bar);
+    await piano.play(fakeWav(bar * 4), bar, startAt: Duration.zero);
+    engine.advance(bar + ms(300));
+    piano.beginHandOver(lead: ms(500));
+    await piano.play(
+      fakeWav(bar * 4),
+      bar,
+      startAt: Duration.zero,
+      handOver: true,
+    );
+    // Well past the bar line the new piano came in on.
+    engine.advance(bar * 3 + ms(500));
+    final oldClick = only('click-loop.wav');
+    // A later change the piano does not hand over (a time signature): the
+    // clicks come in on the piano's bar line, at their level until then.
+    await click.play(
+      fakeWav(bar),
+      bar,
+      startAt: Duration.zero,
+      atMeeting: true,
+    );
+    expect(oldClick.volumeAt(engine.now + ms(200)), 1);
+    expect(oldClick.stopsAt, isNotNull);
+  });
+
   test('a hand-over called off brings the loop back up', () async {
     await piano.play(fakeWav(bar), bar);
     engine.advance(ms(300));

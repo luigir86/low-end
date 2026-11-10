@@ -126,7 +126,7 @@ class BarLoopPlayer {
     var meeting = false;
     Duration? met;
     if (atMeeting && !carryOn && old != null) {
-      final aimed = transport.meetAt;
+      final aimed = transport.meetingAt;
       if (aimed != null) {
         meeting = true;
         // Down at once, not along the wait: a click sounds only on the
