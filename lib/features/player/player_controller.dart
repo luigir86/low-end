@@ -106,9 +106,20 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   /// is open, and back when the take is removed (RF-PLY-20).
   PlayerSetup? _beforeTake;
 
+  /// A take not saved, just discarded with the X: for [undoTime] it can be
+  /// opened again with [undoDiscard]; then its file is let go.
+  RecordedTrack? _discarded;
+  Timer? _undoTimer;
+
+  /// How long a discarded take can be brought back.
+  static const undoTime = Duration(seconds: 5);
+
   /// The title and the artist in the tags of the file (RF-PLY-14).
   String? _title;
   String? _artist;
+
+  /// The take just discarded, while it can still be brought back.
+  RecordedTrack? get discarded => _discarded;
 
   /// The track chosen, until it is replaced or fails.
   TrackRef? get track => _track;
@@ -198,6 +209,7 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   /// removed. A problem leaves the Player empty and says why in [problem].
   Future<void> open(TrackRef track) async {
     final generation = ++_generation;
+    _forgetDiscarded();
     final old = _track;
     // The reading of the last track stops before the system is asked for
     // another: a cancel arriving after would close the new one.
@@ -380,6 +392,60 @@ class PlayerController extends ChangeNotifier implements SoundSection {
     }
     notifyListeners();
     return false;
+  }
+
+  /// Empties the Player: the X beside the track's name (RF-PLY-21). A file
+  /// is closed and no longer remembered (it stays on the phone); a take
+  /// goes as with [removeRecording], the track under it coming back, and
+  /// one not saved can be brought back for [undoTime] with [undoDiscard].
+  Future<void> close() async {
+    final track = _track;
+    if (track == null) return;
+    if (track is RecordedTrack) {
+      final keep = !track.saved;
+      await removeRecording(track, keepFile: keep);
+      if (keep && !_disposed && !identical(_track, track)) _offerUndo(track);
+      return;
+    }
+    await stop();
+    if (_disposed || !identical(_track, track)) return;
+    ++_generation;
+    _settle?.cancel();
+    _forgetDiscarded();
+    _clearTrack(null);
+    notifyListeners();
+  }
+
+  /// Opens again the take just discarded, over the track it was over.
+  Future<void> undoDiscard() async {
+    final take = _discarded;
+    if (take == null) return;
+    _undoTimer?.cancel();
+    _undoTimer = null;
+    _discarded = null;
+    await open(take);
+  }
+
+  /// Lets the discarded take go at once, before [undoTime] is over.
+  void dismissUndo() {
+    if (_discarded == null) return;
+    _forgetDiscarded();
+    notifyListeners();
+  }
+
+  void _offerUndo(RecordedTrack take) {
+    _forgetDiscarded();
+    _discarded = take;
+    _undoTimer = Timer(undoTime, dismissUndo);
+    notifyListeners();
+  }
+
+  void _forgetDiscarded() {
+    _undoTimer?.cancel();
+    _undoTimer = null;
+    final take = _discarded;
+    _discarded = null;
+    if (take != null) releaseRecording(take);
   }
 
   /// Removes the take open (its temporary file is deleted; a copy already
@@ -711,6 +777,9 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   @override
   void dispose() {
     _disposed = true;
+    _undoTimer?.cancel();
+    final discarded = _discarded;
+    if (discarded != null) unawaited(_files.release(discarded));
     _settle?.cancel();
     _stopReadingPeaks();
     _events.cancel();

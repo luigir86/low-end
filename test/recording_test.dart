@@ -27,6 +27,7 @@ import 'package:low_end/features/player/recording_controller.dart';
 import 'package:low_end/features/player/ring_wave.dart';
 import 'package:low_end/features/player/track_peaks.dart';
 import 'package:low_end/features/tuner/tuner_controller.dart';
+import 'package:record/record.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _song = TrackRef(uri: 'content://song', name: 'Blue Bossa.mp3');
@@ -68,6 +69,16 @@ void main() {
     player.setSpeed(70);
     await player.setLoop(_s(10), _s(20));
   }
+
+  test('a take leaves a Bluetooth headset in music mode', () {
+    // The record package's Bluetooth handling put a headset with a
+    // microphone in call mode, and the app's sound stayed in call quality
+    // until the app was closed. The phone's microphone is used, as for the
+    // tuner.
+    const config = RecordTakeRecorder.takeConfig;
+    expect(config.androidConfig.manageBluetooth, isFalse);
+    expect(config.androidConfig.audioSource, AndroidAudioSource.mic);
+  });
 
   group('recording (RF-PLY-20)', () {
     test('REC pauses the Player and records', () async {
@@ -328,6 +339,31 @@ void main() {
       });
       expect(result['ok'], isTrue);
       expect(player.track, _song);
+    });
+
+    test('player_close discards the take, then the file; undo brings the '
+        'take back', () async {
+      await actions.call('player_record');
+      await actions.call('player_record_stop');
+      final take = player.track;
+      expect(
+        await actions.call('player_close_undo'),
+        containsPair('ok', false),
+      );
+      expect(await actions.call('player_close'), containsPair('ok', true));
+      expect(player.track, _song);
+      expect(player.discarded, same(take));
+      expect(await actions.call('player_close_undo'), containsPair('ok', true));
+      expect(player.track, same(take));
+      expect(player.discarded, isNull);
+      expect(files.released, isNot(contains(take)));
+      await actions.call('player_close');
+      await actions.call('player_close');
+      // Another close lets the discarded take go at once.
+      expect(files.released, contains(take));
+      expect(player.track, isNull);
+      expect(player.discarded, isNull);
+      expect(await actions.call('player_close'), containsPair('ok', false));
     });
 
     test('player_record says when the microphone is not allowed', () async {

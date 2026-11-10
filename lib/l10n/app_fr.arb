@@ -1,9 +1,7 @@
 {
   "takeDiscard": "Abandonner",
-  "takeDelete": "Supprimer la prise",
-  "takeRemove": "Retirer du lecteur",
   "takeRecord": "Enregistrer",
-  "takeDeleted": "Enregistrement supprimé",
+  "takeDeleted": "Enregistrement abandonné",
   "takeUndo": "Annuler",
   "takeStop": "Arrêter",
   "takeRecording": "Enregistrement",

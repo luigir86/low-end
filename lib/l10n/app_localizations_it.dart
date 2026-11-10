@@ -13,16 +13,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get takeDiscard => 'Scarta';
 
   @override
-  String get takeDelete => 'Elimina registrazione';
-
-  @override
-  String get takeRemove => 'Rimuovi dal player';
-
-  @override
   String get takeRecord => 'Registra';
 
   @override
-  String get takeDeleted => 'Registrazione eliminata';
+  String get takeDeleted => 'Registrazione scartata';
 
   @override
   String get takeUndo => 'Annulla';

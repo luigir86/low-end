@@ -146,7 +146,9 @@ void main() {
       expect(screen.player.title, 'Bass_ line');
       // REC stays in its place, next to the take's own buttons.
       expect(find.byTooltip('Record'), findsOneWidget);
-      expect(find.byTooltip('Delete recording'), findsOneWidget);
+      expect(find.byIcon(Icons.delete_outline), findsNothing);
+      // The X in the track field discards the take.
+      expect(find.byTooltip('Discard'), findsOneWidget);
       // The field gives the length of the take.
       expect(
         find.descendant(
@@ -171,13 +173,22 @@ void main() {
       expect(find.text('Saved'), findsOneWidget);
       expect(find.byTooltip('Record'), findsOneWidget);
       final take = screen.player.track;
-      await tester.tap(find.byTooltip('Remove from player'));
+      await tester.tap(find.byTooltip('Discard'));
       await screen.settle();
-      // The track studied before the take comes back.
+      // The track studied before the take comes back; a saved take needs
+      // no Undo.
       expect(screen.player.track, _song);
       expect(screen.files.released, contains(take));
       expect(screen.files.released, isNot(contains(_song)));
-      expect(find.byIcon(Icons.delete_outline), findsNothing);
+      expect(find.byKey(DiscardedRow.undoKey), findsNothing);
+      // A second X empties the Player, and the file is no longer
+      // remembered.
+      await tester.tap(find.byTooltip('Discard'));
+      await screen.settle();
+      expect(screen.player.track, isNull);
+      expect(screen.player.setup, isNull);
+      expect(find.byTooltip('Discard'), findsNothing);
+      expect(find.text('Choose a track'), findsWidgets);
     },
   );
 
@@ -201,8 +212,8 @@ void main() {
     },
   );
 
-  testWidgets('an unsaved take deleted can be brought back, and REC over '
-      'it asks first', (tester) async {
+  testWidgets('an unsaved take discarded can be brought back in its own '
+      'row, and REC over it asks first', (tester) async {
     final screen = await _open(tester);
     await screen.player.open(_song);
     await screen.settle();
@@ -218,28 +229,47 @@ void main() {
     await tester.tap(find.text('Keep'));
     await screen.settle();
     expect(screen.player.track, same(take));
-    await tester.tap(find.byTooltip('Delete recording'));
+    await tester.tap(find.byTooltip('Discard'));
     await screen.settle();
     expect(screen.player.track, _song);
-    expect(find.text('Recording deleted'), findsOneWidget);
+    // Said in the track row, not in a notice over the controls.
+    expect(find.byType(SnackBar), findsNothing);
+    expect(find.text('Recording discarded'), findsOneWidget);
     // The file stays while Undo can still bring the take back.
     expect(screen.files.released, isNot(contains(take)));
-    await tester.tap(find.text('Undo'));
+    await tester.tap(find.byKey(DiscardedRow.undoKey));
     await screen.settle();
     expect(screen.player.track, same(take));
-    expect(find.byTooltip('Delete recording'), findsOneWidget);
-    await screen.settle();
+    expect(find.text('Recording discarded'), findsNothing);
     expect(screen.files.released, isNot(contains(take)));
-    // Deleted again and left alone: the notice goes by itself, and only
-    // then is the file let go.
-    await tester.tap(find.byTooltip('Delete recording'));
+    // Discarded again and left alone: the row comes back by itself, and
+    // only then is the file let go.
+    await tester.tap(find.byTooltip('Discard'));
     await screen.settle();
-    expect(find.text('Recording deleted'), findsOneWidget);
-    await tester.pump(const Duration(seconds: 5));
+    expect(find.text('Recording discarded'), findsOneWidget);
+    await tester.pump(PlayerController.undoTime);
     await screen.settle();
-    expect(find.text('Recording deleted'), findsNothing);
+    expect(find.text('Recording discarded'), findsNothing);
     expect(screen.files.released, contains(take));
     expect(screen.player.track, _song);
+    expect(find.byKey(PlayerPanel.trackFieldKey), findsOneWidget);
+  });
+
+  testWidgets('the X empties the Player of a file', (tester) async {
+    final screen = await _open(tester);
+    expect(find.byTooltip('Discard'), findsNothing);
+    await screen.player.open(_song);
+    screen.player.setSpeed(70);
+    await screen.player.start();
+    await screen.settle();
+    await tester.tap(find.byTooltip('Discard'));
+    await screen.settle();
+    expect(screen.player.track, isNull);
+    expect(screen.player.isPlaying, isFalse);
+    expect(screen.player.setup, isNull);
+    expect(screen.files.released, contains(_song));
+    expect(find.byKey(DiscardedRow.undoKey), findsNothing);
+    expect(find.byTooltip('Discard'), findsNothing);
   });
 
   testWidgets('with no track the middle asks for one, and a touch opens the '

@@ -231,40 +231,6 @@ class _TakeActionsState extends State<TakeActions> {
     }
   }
 
-  /// Takes the take off the Player. One not saved is lost with it, so
-  /// for a few seconds it can be brought back.
-  Future<void> remove() async {
-    final take = widget.take;
-    final player = widget.player;
-    final strings = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    final saved = take.saved;
-    // The file of a take not saved stays until the notice closes, so that
-    // Undo can open it again.
-    await player.removeRecording(take, keepFile: !saved);
-    if (saved) return;
-    messenger.hideCurrentSnackBar();
-    final notice = messenger.showSnackBar(
-      SnackBar(
-        content: Text(strings.takeDeleted),
-        // With an action a notice stays until it is touched: this one goes
-        // by itself, and nothing on screen waits for it.
-        persist: false,
-        action: SnackBarAction(
-          label: strings.takeUndo,
-          onPressed: () => player.open(take),
-        ),
-      ),
-    );
-    unawaited(
-      notice.closed.then((reason) {
-        if (reason != SnackBarClosedReason.action) {
-          player.releaseRecording(take);
-        }
-      }),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
@@ -293,11 +259,41 @@ class _TakeActionsState extends State<TakeActions> {
           onPressed: busy ? null : () => export(true),
           label: const Icon(Icons.share_outlined, size: 24),
         ),
+      ],
+    );
+  }
+}
+
+/// The track row for a few seconds after a take not saved was discarded
+/// with the X: what happened, and Undo, in the row itself rather than in a
+/// notice over the controls. A touch on the field lets the take go now.
+class DiscardedRow extends StatelessWidget {
+  const DiscardedRow({required this.player, super.key});
+  final PlayerController player;
+
+  static const undoKey = Key('takeUndo');
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = AppLocalizations.of(context);
+    return Row(
+      children: [
+        Expanded(
+          child: Semantics(
+            liveRegion: true,
+            child: LabeledField(
+              label: strings.takeRecording,
+              value: strings.takeDeleted,
+              onTap: player.dismissUndo,
+            ),
+          ),
+        ),
         const SizedBox(width: rowGap),
         RowButton(
-          tooltip: saved ? strings.takeRemove : strings.takeDelete,
-          onPressed: busy ? null : remove,
-          label: const Icon(Icons.delete_outline, size: 24),
+          key: undoKey,
+          filled: true,
+          onPressed: player.undoDiscard,
+          label: Text(strings.takeUndo),
         ),
       ],
     );

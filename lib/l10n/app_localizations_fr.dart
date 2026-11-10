@@ -13,16 +13,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get takeDiscard => 'Abandonner';
 
   @override
-  String get takeDelete => 'Supprimer la prise';
-
-  @override
-  String get takeRemove => 'Retirer du lecteur';
-
-  @override
   String get takeRecord => 'Enregistrer';
 
   @override
-  String get takeDeleted => 'Enregistrement supprimé';
+  String get takeDeleted => 'Enregistrement abandonné';
 
   @override
   String get takeUndo => 'Annuler';
