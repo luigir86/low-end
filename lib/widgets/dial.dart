@@ -153,7 +153,14 @@ class DialLayout extends StatelessWidget {
   /// large text a row grows and
   /// the screen scrolls.
   static const rowHeight = LowEndShape.controlRowHeight;
-  static const _rowGap = 16.0;
+
+  /// Between two rows. Their buttons and fields are 56 dp in a 64 dp row,
+  /// so 12 dp here shows 20 dp between them.
+  static const _rowGap = 12.0;
+
+  /// Under the last row, above the tabs (the shell adds its own 8 dp):
+  /// the last buttons are as far from the tabs as from the row above.
+  static const _bottomGap = 8.0;
 
   /// Keep the three rows aligned when enlarged captions need more room.
   static double _rowExtent(BuildContext context) =>
@@ -233,6 +240,7 @@ class DialLayout extends StatelessWidget {
                   if (i > 0) const SizedBox(height: _rowGap),
                   _row(context, i, row, Axis.horizontal),
                 ],
+                const SizedBox(height: _bottomGap),
               ],
             ),
           ),
@@ -262,7 +270,10 @@ class DialLayout extends StatelessWidget {
     Size area, {
     double rowExtent = rowHeight,
   }) {
-    final room = math.max(232.0, area.height - 3 * rowExtent - 2 * _rowGap);
+    final room = math.max(
+      232.0,
+      area.height - 3 * rowExtent - 2 * _rowGap - _bottomGap,
+    );
     final size = math.max(
       200.0,
       math.min(math.min(area.width - 32, _maxSize), room - 32),

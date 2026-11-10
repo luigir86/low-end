@@ -60,14 +60,16 @@ void main() {
         for (final row in rows) {
           expect(row.height, closeTo(64, 0.01), reason: section.name);
         }
-        expect(rows[1].top - rows[0].bottom, closeTo(16, 0.01));
-        expect(rows[2].top - rows[1].bottom, closeTo(16, 0.01));
+        expect(rows[1].top - rows[0].bottom, closeTo(12, 0.01));
+        expect(rows[2].top - rows[1].bottom, closeTo(12, 0.01));
         final nav = tester.getRect(find.byType(NavigationBar));
         // Gesture navigation (a 20 dp inset): the icons centre in one band
         // down to the edge, 8 dp of it over the home strip.
         expect(nav.height, closeTo(48 + 20 - 8, 0.01));
-        // 8 dp of room, then the 1 dp light line over the tabs.
-        expect(nav.top - rows[2].bottom, closeTo(8 + 1, 0.01));
+        // The buttons are 56 dp in their 64 dp rows: 4 + 12 + 4 = 20 dp
+        // between two rows, and 4 + 8 + 8 = 20 dp from the last one to the
+        // 1 dp line over the tabs.
+        expect(nav.top - 1 - rows[2].bottom, closeTo(8 + 8, 0.01));
         expect(dial.center.dy, closeTo((page.top + rows[0].top) / 2, 0.01));
         expect(dial.center.dx, closeTo(page.center.dx, 0.01));
         expect(dial, tester.getRect(find.byKey(DialBackdrop.discKey)));
