@@ -25,6 +25,7 @@ import '../features/harmony/harmony_names.dart'
 import '../features/metronome/metronome_controller.dart';
 import '../features/player/player_controller.dart';
 import '../features/player/recording_controller.dart';
+import '../features/player/take_name.dart';
 import '../features/tuner/tuner_controller.dart';
 import '../l10n/app_localizations.dart';
 import 'app_navigation.dart';
@@ -139,6 +140,8 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
         (_testOutputs ? FakeTakeRecorder() : RecordTakeRecorder()),
     player: _player,
     navigation: _navigation,
+    nameTake: (now) =>
+        takeName(_notificationTexts(), _settings.nextTakeNumber(now), now),
   );
   bool get _testOutputs =>
       widget.toneOutput != null || widget.clickOutput != null;

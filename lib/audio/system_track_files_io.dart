@@ -20,19 +20,37 @@ Future<String> recordingPath(String name) async =>
 Future<RecordedTrack> recordedTrack(String path, String name) async =>
     RecordedTrack(uri: Uri.file(path).toString(), name: name);
 
+/// Saves the take where the person chooses, as [RecordedTrack.exportName].
 Future<bool> saveRecording(RecordedTrack track) async =>
-    await _takes.invokeMethod<bool>(
-      'save',
-      Uri.parse(track.uri).toFilePath(),
-    ) ??
+    await _takes.invokeMethod<bool>('save', _export(track)) ?? false;
+
+/// Shares the take as [RecordedTrack.exportName]: straight to WhatsApp with
+/// [whatsApp], otherwise through the system's share window.
+Future<bool> shareRecording(
+  RecordedTrack track, {
+  bool whatsApp = false,
+}) async =>
+    await _takes.invokeMethod<bool>('share', {
+      ..._export(track),
+      'whatsapp': whatsApp,
+    }) ??
     false;
 
-Future<bool> shareRecording(RecordedTrack track) async =>
-    await _takes.invokeMethod<bool>(
-      'share',
-      Uri.parse(track.uri).toFilePath(),
-    ) ??
-    false;
+/// Whether WhatsApp is on the phone, so that a take can go straight to it.
+Future<bool> canShareToWhatsApp() async {
+  if (kIsWeb || !Platform.isAndroid) return false;
+  try {
+    return await _takes.invokeMethod<bool>('whatsapp') ?? false;
+  } on PlatformException catch (error) {
+    debugPrint('Could not tell if WhatsApp is there: $error');
+    return false;
+  }
+}
+
+Map<String, Object?> _export(RecordedTrack track) => {
+  'path': Uri.parse(track.uri).toFilePath(),
+  'name': track.exportName,
+};
 
 /// [TrackFiles] from Android's document chooser, through TrackFiles.kt: it
 /// asks for no permission, and keeps the right to read the chosen file.

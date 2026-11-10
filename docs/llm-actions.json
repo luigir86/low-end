@@ -1,7 +1,7 @@
 [
   {
     "name": "get_state",
-    "description": "Returns what the app is doing now, without changing anything: the section on screen (metronome, drone, tuner, player); the tuner (status idle, starting, listening, permissionDenied or failed, and the last note heard with its cents off); the Harmony section, called drone (playing, note, voicing, chord, progression, style, held tone, current step of a progression); the metronome (playing, tempo, time signature, subdivision, click on 2 and 4); the Player (the track open with its name and length in seconds, playing, position in seconds, and the problem if the last file could not be opened: unreadable or missing; whether it is a recorded take, and the recording: idle, starting, recording or finishing); and the settings (reference A, language, note and octave names, the tuner's instrument, in-tune zone and transposition, the circle, screen on, locked gestures). \"playing\" is true as soon as a start is asked, also while the sound waits for the other one's next bar line. Notes are always written with letters and octave (Bb4), whatever the note names setting. Loudness follows the phone's media volume.",
+    "description": "Returns what the app is doing now, without changing anything: the section on screen (metronome, drone, tuner, player); the tuner (status idle, starting, listening, permissionDenied or failed, and the last note heard with its cents off); the Harmony section, called drone (playing, note, voicing, chord, progression, style, held tone, current step of a progression); the metronome (playing, tempo, time signature, subdivision, click on 2 and 4); the Player (the track open with its name and length in seconds, playing, position in seconds, and the problem if the last file could not be opened: unreadable or missing; whether it is a recorded take and the name it is shared and saved with, and the recording: idle, starting, recording or finishing); and the settings (reference A, language, note and octave names, the tuner's instrument, in-tune zone and transposition, the circle, screen on, locked gestures). \"playing\" is true as soon as a start is asked, also while the sound waits for the other one's next bar line. Notes are always written with letters and octave (Bb4), whatever the note names setting. Loudness follows the phone's media volume.",
     "input_schema": {
       "type": "object",
       "properties": {},
@@ -496,7 +496,7 @@
   },
   {
     "name": "player_record_stop",
-    "description": "Stops recording. The take opens in the Player from its start, over the track that was open; that track comes back, with its speed and passage, when the take is deleted. With discard the take is thrown away. Saving or sharing a take is left to the person, through the phone's own windows.",
+    "description": "Stops recording. The take opens in the Player from its start, over the track that was open; that track comes back, with its speed and passage, when the take is deleted. With discard the take is thrown away. A kept take is named after its number that day and the date (Take1_9_nov_2026, in the app language). Saving or sharing a take is left to the person, through the phone's own windows, where WhatsApp comes first when it is installed.",
     "input_schema": {
       "type": "object",
       "properties": {
@@ -505,6 +505,23 @@
           "description": "Throw the take away instead of keeping it."
         }
       },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "player_take_rename",
+    "description": "Renames the take open in the Player: the name its file gets when the person shares or saves it. The extension (m4a, or wav in the web app) is kept. Characters a file name cannot hold become _.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The new name, without extension; at most 80 characters."
+        }
+      },
+      "required": [
+        "name"
+      ],
       "additionalProperties": false
     }
   },

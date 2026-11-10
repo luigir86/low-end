@@ -29,6 +29,7 @@ import 'package:low_end/features/player/passage_strip.dart';
 import 'package:low_end/features/player/player_controller.dart';
 import 'package:low_end/features/player/player_dial.dart';
 import 'package:low_end/features/player/player_panel.dart';
+import 'package:low_end/features/player/recording_controls.dart';
 import 'package:low_end/features/player/ring_wave.dart';
 import 'package:low_end/features/player/ring_window.dart';
 import 'package:low_end/features/player/time_scale.dart';
@@ -94,8 +95,10 @@ void main() {
       final messenger = tester.binding.defaultBinaryMessenger;
       const takes = MethodChannel('low_end/takes');
       final exports = <String>[];
+      final names = <Object?>[];
       messenger.setMockMethodCallHandler(takes, (call) async {
         exports.add(call.method);
+        if (call.arguments is Map) names.add((call.arguments as Map)['name']);
         return true;
       });
       addTearDown(() => messenger.setMockMethodCallHandler(takes, null));
@@ -124,7 +127,23 @@ void main() {
       expect(screen.player.setup?.track, _song);
       await tester.tap(find.byTooltip('Share'));
       await screen.settle();
+      // The take is named after its number that day and the date, and
+      // the name can be changed before it goes.
+      final field = tester.widget<TextField>(
+        find.byKey(TakeNameDialog.nameKey),
+      );
+      expect(
+        field.controller!.text,
+        matches(RegExp(r'^Take1_\d+_[a-z]+_\d{4}$')),
+      );
+      expect(find.text('.m4a'), findsOneWidget);
+      expect(find.byKey(TakeNameDialog.whatsAppKey), findsNothing);
+      await tester.enterText(find.byKey(TakeNameDialog.nameKey), 'Bass: line');
+      await tester.tap(find.byKey(TakeNameDialog.confirmKey));
+      await screen.settle();
       expect(exports, ['share']);
+      expect(names, ['Bass_ line.m4a']);
+      expect(screen.player.title, 'Bass_ line');
       // REC stays in its place, next to the take's own buttons.
       expect(find.byTooltip('Record'), findsOneWidget);
       expect(find.byTooltip('Delete recording'), findsOneWidget);
@@ -143,7 +162,12 @@ void main() {
       expect(find.text('Temporary'), findsOneWidget);
       await tester.tap(find.byTooltip('Save'));
       await screen.settle();
+      // The name given for sharing is offered again.
+      expect(find.text('Bass_ line'), findsOneWidget);
+      await tester.tap(find.byKey(TakeNameDialog.confirmKey));
+      await screen.settle();
       expect(exports, ['share', 'save']);
+      expect(names, ['Bass_ line.m4a', 'Bass_ line.m4a']);
       expect(find.text('Saved'), findsOneWidget);
       expect(find.byTooltip('Record'), findsOneWidget);
       final take = screen.player.track;

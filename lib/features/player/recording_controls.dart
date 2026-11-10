@@ -10,6 +10,7 @@ import '../../widgets/row_controls.dart';
 import 'clock_text.dart';
 import 'player_controller.dart';
 import 'recording_controller.dart';
+import 'take_name.dart';
 
 Future<bool> confirmReplace(BuildContext context, TrackRef? track) async {
   if (track is! RecordedTrack || track.saved) return true;
@@ -190,14 +191,32 @@ class TakeActions extends StatefulWidget {
 
 class _TakeActionsState extends State<TakeActions> {
   bool busy = false;
+
+  /// Asks for the take's name (Take1_9_nov_2026 to start with), then
+  /// shares it (straight to WhatsApp if chosen) or saves it.
   Future<void> export(bool share) async {
     final take = widget.take;
     final strings = AppLocalizations.of(context);
     setState(() => busy = true);
+    final whatsApp = share && await canShareToWhatsApp();
+    if (!mounted) return;
+    final choice = await showDialog<TakeExport>(
+      context: context,
+      builder: (context) =>
+          TakeNameDialog(take: take, share: share, whatsApp: whatsApp),
+    );
+    if (!mounted) return;
+    if (choice == null) {
+      setState(() => busy = false);
+      return;
+    }
+    widget.player.renameTake(choice.name);
     String? message;
     try {
       if (share) {
-        if (!await shareRecording(take)) message = strings.takeShareUnavailable;
+        if (!await shareRecording(take, whatsApp: choice.whatsApp)) {
+          message = strings.takeShareUnavailable;
+        }
       } else if (await saveRecording(take)) {
         take.saved = true;
       }
@@ -280,6 +299,107 @@ class _TakeActionsState extends State<TakeActions> {
           onPressed: busy ? null : remove,
           label: const Icon(Icons.delete_outline, size: 24),
         ),
+      ],
+    );
+  }
+}
+
+/// What [TakeNameDialog] answers: the take's new name, and whether it goes
+/// straight to WhatsApp.
+typedef TakeExport = ({String name, bool whatsApp});
+
+/// The take's name, ready to be changed, before it is shared or saved.
+/// Sharing offers WhatsApp first when it is on the phone, and the other
+/// apps through the system's share window.
+class TakeNameDialog extends StatefulWidget {
+  const TakeNameDialog({
+    required this.take,
+    required this.share,
+    this.whatsApp = false,
+    super.key,
+  });
+  final RecordedTrack take;
+  final bool share;
+  final bool whatsApp;
+
+  static const nameKey = Key('takeName');
+  static const whatsAppKey = Key('takeWhatsApp');
+  static const confirmKey = Key('takeExport');
+
+  @override
+  State<TakeNameDialog> createState() => _TakeNameDialogState();
+}
+
+class _TakeNameDialogState extends State<TakeNameDialog> {
+  // The whole name is selected: typing replaces it.
+  late final name = TextEditingController(text: widget.take.fileName)
+    ..selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: widget.take.fileName.length,
+    );
+
+  @override
+  void initState() {
+    super.initState();
+    name.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    name.dispose();
+    super.dispose();
+  }
+
+  String get clean => cleanTakeName(name.text);
+
+  void done({bool whatsApp = false}) {
+    if (clean.isEmpty) return;
+    Navigator.pop<TakeExport>(context, (name: clean, whatsApp: whatsApp));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = AppLocalizations.of(context);
+    final ready = clean.isNotEmpty;
+    final extension = widget.take.extension;
+    final whatsApp = widget.share && widget.whatsApp;
+    return AlertDialog(
+      title: Text(widget.share ? strings.takeShare : strings.takeSave),
+      content: TextField(
+        key: TakeNameDialog.nameKey,
+        controller: name,
+        autofocus: true,
+        maxLength: maxTakeNameLength,
+        textInputAction: TextInputAction.done,
+        decoration: InputDecoration(
+          labelText: strings.takeNameLabel,
+          suffixText: extension.isEmpty ? null : '.$extension',
+          counterText: '',
+        ),
+        onSubmitted: (_) => done(whatsApp: whatsApp),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+        ),
+        if (whatsApp) ...[
+          TextButton(
+            key: TakeNameDialog.confirmKey,
+            onPressed: ready ? done : null,
+            child: Text(strings.takeShareOther),
+          ),
+          FilledButton(
+            key: TakeNameDialog.whatsAppKey,
+            onPressed: ready ? () => done(whatsApp: true) : null,
+            child: Text(strings.takeShareWhatsApp),
+          ),
+        ] else
+          FilledButton(
+            key: TakeNameDialog.confirmKey,
+            onPressed: ready ? done : null,
+            child: Text(widget.share ? strings.takeShare : strings.takeSave),
+          ),
       ],
     );
   }

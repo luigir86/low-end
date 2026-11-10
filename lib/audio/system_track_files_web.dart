@@ -40,14 +40,27 @@ Future<RecordedTrack> recordedTrack(String url, String name) async {
 Future<bool> saveRecording(RecordedTrack track) async {
   final link = web.HTMLAnchorElement()
     ..href = track.uri
-    ..download = track.name;
+    ..download = track.exportName;
   link.click();
   return true;
 }
 
-Future<bool> shareRecording(RecordedTrack track) async {
+/// A web page cannot pick the app it shares with: [whatsApp] is ignored and
+/// the system's share window opens.
+Future<bool> shareRecording(
+  RecordedTrack track, {
+  bool whatsApp = false,
+}) async {
+  final take = _takes[track.uri]!;
   final data = web.ShareData(
-    files: [_takes[track.uri]!].toJS,
+    // A copy of the file with the name the person gave it.
+    files: [
+      web.File(
+        [take].toJS,
+        track.exportName,
+        web.FilePropertyBag(type: take.type),
+      ),
+    ].toJS,
     title: track.baseName,
   );
   final navigator = web.window.navigator;
@@ -60,6 +73,9 @@ Future<bool> shareRecording(RecordedTrack track) async {
   }
   return true;
 }
+
+/// A web page cannot open WhatsApp with a file in it.
+Future<bool> canShareToWhatsApp() async => false;
 
 /// [TrackFiles] from the browser's file chooser. The file becomes a `blob:`
 /// address the audio element plays; it lasts as long as the page.
