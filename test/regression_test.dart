@@ -302,7 +302,7 @@ void main() {
       await _settle(tester);
       // The name alone: Harmony's octave never changes; the hertz say it.
       expect(find.text('La3'), findsNothing);
-      expect(find.text('220.0 Hz'), findsOneWidget);
+      expect(find.text('220,0 Hz'), findsOneWidget);
 
       await tester.tap(find.byKey(const Key('chordMenu')));
       await _settle(tester);
