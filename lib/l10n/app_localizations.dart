@@ -495,7 +495,7 @@ abstract class AppLocalizations {
   /// No description provided for @droneHint.
   ///
   /// In en, this message translates to:
-  /// **'Touch a note to play it. Touch it again to stop.'**
+  /// **'Tap a note to start'**
   String get droneHint;
 
   /// No description provided for @chordLabel.

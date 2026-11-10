@@ -65,7 +65,7 @@
   "frequencyHz": "{frequency} Hz",
   "stopSound": "Arrêter {name}",
   "playSound": "Jouer {name}",
-  "droneHint": "Touchez une note pour la faire sonner. Touchez-la à nouveau pour l’arrêter.",
+  "droneHint": "Touchez une note pour démarrer",
   "chordLabel": "Accord",
   "noteAlone": "La note seule",
   "chordMajor": "Majeur",

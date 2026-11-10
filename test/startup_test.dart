@@ -49,10 +49,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(
-      find.text('Touch a note to play it. Touch it again to stop.'),
-      findsOneWidget,
-    );
+    expect(find.text('Tap a note to start'), findsOneWidget);
     expect(mic.askedDuring, isNull);
     expect(output.used, isFalse);
     // The Player opens no file and makes no system player (RNF-AVV-01).
