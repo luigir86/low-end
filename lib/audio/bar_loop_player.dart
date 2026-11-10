@@ -60,6 +60,10 @@ class BarLoopPlayer {
   Duration _bar = Duration.zero;
   double _volume = 1;
 
+  /// The engine time the voice playing was scheduled to come in at, if it
+  /// was: until then it reports no position (see [_untilOwnStart]).
+  Duration? _startsAt;
+
   LoopEngine get _soloud => transport.engine;
 
   bool get isPlaying => _handle != null;
@@ -154,7 +158,13 @@ class BarLoopPlayer {
     }
     // The moment [wait] counts from, and where the old loop was then.
     var waitedFrom = _soloud.getEngineTime();
-    final oldThen = old == null ? null : _soloud.getPosition(old);
+    // A voice still waiting to come in is that long before its start.
+    final oldWaits = old == null ? null : _untilOwnStart();
+    final oldThen = old == null
+        ? null
+        : oldWaits != null
+        ? -oldWaits
+        : _soloud.getPosition(old);
     final since = Stopwatch()..start();
     var position = startAt ?? Duration.zero;
     var delay = Duration.zero;
@@ -208,7 +218,11 @@ class BarLoopPlayer {
     // The old loop let go where the new one takes over: a ringing piano
     // dies away as under a pianist's hands rather than being cut.
     _Tail? tail;
-    if (oldThen != null && !carryOn && tailFor != null) {
+    // None for a voice replaced before it ever sounded.
+    if (oldThen != null &&
+        !carryOn &&
+        tailFor != null &&
+        oldThen + (wait ?? Duration.zero) > Duration.zero) {
       try {
         tail = await _Tail.load(
           tailFor,
@@ -282,6 +296,7 @@ class BarLoopPlayer {
     _source = source;
     _length = length;
     _bar = bar;
+    _startsAt = startsAt;
     transport.unregister(name, old);
     transport.register(name, handle, bar, startsAt: startsAt);
     if (handingOver && startsAt != null) {
@@ -341,14 +356,30 @@ class BarLoopPlayer {
   Duration _nextBarLine(SoundHandle old, Duration minimum) {
     final other = transport.untilBarLine(name, minimum: minimum);
     if (other != null) return other;
+    // Scheduled and not yet sounding (a change right after another): its
+    // bar lines count from its start, as the transport counts the other's.
+    final until = _untilOwnStart();
     return LoopTransport.waitForBarLine(
       bar: _bar,
-      position: Duration(
-        microseconds:
-            _soloud.getPosition(old).inMicroseconds % _length.inMicroseconds,
-      ),
+      position: until != null
+          ? null
+          : Duration(
+              microseconds:
+                  _soloud.getPosition(old).inMicroseconds %
+                  _length.inMicroseconds,
+            ),
+      untilStart: until,
       minimum: minimum,
     );
+  }
+
+  /// How long until the voice playing comes in, while it is scheduled and
+  /// not yet sounding; null once it sounds.
+  Duration? _untilOwnStart() {
+    final at = _startsAt;
+    if (at == null) return null;
+    final left = at - _soloud.getEngineTime();
+    return left > Duration.zero ? left : null;
   }
 
   /// Starts handing this loop over to another, as a band changes song: it
@@ -392,6 +423,7 @@ class BarLoopPlayer {
     _handOverAt = null;
     _handle = null;
     _source = null;
+    _startsAt = null;
     transport.unregister(name, handle);
     if (handle != null &&
         tailFor != null &&

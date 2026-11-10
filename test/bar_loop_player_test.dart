@@ -299,6 +299,46 @@ void main() {
     );
   });
 
+  test('a second hand-over before the first new loop sounds keeps to '
+      'its bar line', () async {
+    // The piano alone: its bar lines are its own.
+    await piano.play(fakeWav(bar * 4), bar, startAt: Duration.zero);
+    engine.advance(ms(300));
+    piano.beginHandOver(lead: ms(500));
+    await piano.play(
+      fakeWav(bar * 4),
+      bar,
+      startAt: Duration.zero,
+      handOver: true,
+      tailFor: (_) async => fakeWav(bar),
+    );
+    final second = engine.voices.values.lastWhere(
+      (v) => v.name == 'piano-loop.wav',
+    );
+    expect(second.startsAt, bar);
+    engine.advance(ms(200));
+    // Another change (a style, then a key) before the second has sounded.
+    expect(piano.beginHandOver(lead: ms(500)), bar - ms(500));
+    await piano.play(
+      fakeWav(bar * 4),
+      bar,
+      startAt: Duration.zero,
+      handOver: true,
+      tailFor: (_) async => fakeWav(bar),
+    );
+    final third = engine.voices.values.lastWhere(
+      (v) => v.name == 'piano-loop.wav',
+    );
+    // On the same bar line, not half a bar after it; the second never
+    // sounds, and leaves no tail.
+    expect(third.startsAt, bar);
+    expect(second.stopsAt, bar);
+    expect(
+      engine.voices.values.where((v) => v.name == 'tail.wav'),
+      hasLength(1),
+    );
+  });
+
   test('a hand-over called off brings the loop back up', () async {
     await piano.play(fakeWav(bar), bar);
     engine.advance(ms(300));
