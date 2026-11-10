@@ -514,7 +514,7 @@
   },
   {
     "name": "player_record_stop",
-    "description": "Stops recording. The take opens in the Player from its start, over the track that was open; that track comes back, with its speed and passage, when the take is deleted. With discard the take is thrown away. A kept take is named after its number that day and the date (Take1_9_nov_2026, in the app language). Saving or sharing a take is left to the person, through the phone's own windows, where WhatsApp comes first when it is installed.",
+    "description": "Stops recording. The take opens in the Player from its start, over the track that was open; that track comes back, with its speed and passage, when the take is deleted. With discard the take is thrown away. A kept take is named after its number that day and the date (Take1_9_nov_2026, in the app language). Saving or sharing a take is left to the person, through the phone's own windows, after a window where its name can be changed.",
     "input_schema": {
       "type": "object",
       "properties": {

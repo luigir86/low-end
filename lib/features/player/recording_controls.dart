@@ -194,28 +194,25 @@ class _TakeActionsState extends State<TakeActions> {
   bool busy = false;
 
   /// Asks for the take's name (Take1_9_nov_2026 to start with), then
-  /// shares it (straight to WhatsApp if chosen) or saves it.
+  /// shares it through the system's share window or saves it.
   Future<void> export(bool share) async {
     final take = widget.take;
     final strings = AppLocalizations.of(context);
     setState(() => busy = true);
-    final whatsApp = share && await canShareToWhatsApp();
-    if (!mounted) return;
-    final choice = await showDialog<TakeExport>(
+    final name = await showDialog<String>(
       context: context,
-      builder: (context) =>
-          TakeNameDialog(take: take, share: share, whatsApp: whatsApp),
+      builder: (context) => TakeNameDialog(take: take, share: share),
     );
     if (!mounted) return;
-    if (choice == null) {
+    if (name == null) {
       setState(() => busy = false);
       return;
     }
-    widget.player.renameTake(choice.name);
+    widget.player.renameTake(name);
     String? message;
     try {
       if (share) {
-        if (!await shareRecording(take, whatsApp: choice.whatsApp)) {
+        if (!await shareRecording(take)) {
           message = strings.takeShareUnavailable;
         }
       } else if (await saveRecording(take)) {
@@ -300,26 +297,14 @@ class DiscardedRow extends StatelessWidget {
   }
 }
 
-/// What [TakeNameDialog] answers: the take's new name, and whether it goes
-/// straight to WhatsApp.
-typedef TakeExport = ({String name, bool whatsApp});
-
 /// The take's name, ready to be changed, before it is shared or saved.
-/// Sharing offers WhatsApp first when it is on the phone, and the other
-/// apps through the system's share window.
+/// It answers the new name, or null if the person changed their mind.
 class TakeNameDialog extends StatefulWidget {
-  const TakeNameDialog({
-    required this.take,
-    required this.share,
-    this.whatsApp = false,
-    super.key,
-  });
+  const TakeNameDialog({required this.take, required this.share, super.key});
   final RecordedTrack take;
   final bool share;
-  final bool whatsApp;
 
   static const nameKey = Key('takeName');
-  static const whatsAppKey = Key('takeWhatsApp');
   static const confirmKey = Key('takeExport');
 
   @override
@@ -348,9 +333,9 @@ class _TakeNameDialogState extends State<TakeNameDialog> {
 
   String get clean => cleanTakeName(name.text);
 
-  void done({bool whatsApp = false}) {
+  void done() {
     if (clean.isEmpty) return;
-    Navigator.pop<TakeExport>(context, (name: clean, whatsApp: whatsApp));
+    Navigator.pop<String>(context, clean);
   }
 
   @override
@@ -358,7 +343,6 @@ class _TakeNameDialogState extends State<TakeNameDialog> {
     final strings = AppLocalizations.of(context);
     final ready = clean.isNotEmpty;
     final extension = widget.take.extension;
-    final whatsApp = widget.share && widget.whatsApp;
     return AlertDialog(
       title: Text(widget.share ? strings.takeShare : strings.takeSave),
       content: TextField(
@@ -372,30 +356,18 @@ class _TakeNameDialogState extends State<TakeNameDialog> {
           suffixText: extension.isEmpty ? null : '.$extension',
           counterText: '',
         ),
-        onSubmitted: (_) => done(whatsApp: whatsApp),
+        onSubmitted: (_) => done(),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
           child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
         ),
-        if (whatsApp) ...[
-          TextButton(
-            key: TakeNameDialog.confirmKey,
-            onPressed: ready ? done : null,
-            child: Text(strings.takeShareOther),
-          ),
-          FilledButton(
-            key: TakeNameDialog.whatsAppKey,
-            onPressed: ready ? () => done(whatsApp: true) : null,
-            child: Text(strings.takeShareWhatsApp),
-          ),
-        ] else
-          FilledButton(
-            key: TakeNameDialog.confirmKey,
-            onPressed: ready ? done : null,
-            child: Text(widget.share ? strings.takeShare : strings.takeSave),
-          ),
+        FilledButton(
+          key: TakeNameDialog.confirmKey,
+          onPressed: ready ? done : null,
+          child: Text(widget.share ? strings.takeShare : strings.takeSave),
+        ),
       ],
     );
   }

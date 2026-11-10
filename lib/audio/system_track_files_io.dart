@@ -24,28 +24,10 @@ Future<RecordedTrack> recordedTrack(String path, String name) async =>
 Future<bool> saveRecording(RecordedTrack track) async =>
     await _takes.invokeMethod<bool>('save', _export(track)) ?? false;
 
-/// Shares the take as [RecordedTrack.exportName]: straight to WhatsApp with
-/// [whatsApp], otherwise through the system's share window.
-Future<bool> shareRecording(
-  RecordedTrack track, {
-  bool whatsApp = false,
-}) async =>
-    await _takes.invokeMethod<bool>('share', {
-      ..._export(track),
-      'whatsapp': whatsApp,
-    }) ??
-    false;
-
-/// Whether WhatsApp is on the phone, so that a take can go straight to it.
-Future<bool> canShareToWhatsApp() async {
-  if (kIsWeb || !Platform.isAndroid) return false;
-  try {
-    return await _takes.invokeMethod<bool>('whatsapp') ?? false;
-  } on PlatformException catch (error) {
-    debugPrint('Could not tell if WhatsApp is there: $error');
-    return false;
-  }
-}
+/// Shares the take as [RecordedTrack.exportName] through the system's share
+/// window.
+Future<bool> shareRecording(RecordedTrack track) async =>
+    await _takes.invokeMethod<bool>('share', _export(track)) ?? false;
 
 Map<String, Object?> _export(RecordedTrack track) => {
   'path': Uri.parse(track.uri).toFilePath(),

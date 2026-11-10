@@ -18,8 +18,6 @@
   "takeFileName": "Take{number}_{date}",
   "@takeFileName": {"description": "Default file name of a recording: number of the take that day, then the date (like 9_nov_2026). No spaces.", "placeholders": {"number": {"type": "int"}, "date": {"type": "String"}}},
   "takeNameLabel": "File name",
-  "takeShareWhatsApp": "WhatsApp",
-  "takeShareOther": "Other apps",
   "@@locale": "en",
   "appTitle": "Low End",
   "tunerTab": "Tuner",

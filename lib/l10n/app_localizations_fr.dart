@@ -67,12 +67,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get takeNameLabel => 'Nom du fichier';
 
   @override
-  String get takeShareWhatsApp => 'WhatsApp';
-
-  @override
-  String get takeShareOther => 'Autres apps';
-
-  @override
   String get appTitle => 'Low End';
 
   @override

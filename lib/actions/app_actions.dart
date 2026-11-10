@@ -364,7 +364,7 @@ class AppActions {
           'take is thrown away. A kept take is named after its number that '
           'day and the date (Take1_9_nov_2026, in the app language). Saving '
           "or sharing a take is left to the person, through the phone's own "
-          'windows, where WhatsApp comes first when it is installed.',
+          'windows, after a window where its name can be changed.',
       parameters: {
         'discard': {
           'type': 'boolean',
