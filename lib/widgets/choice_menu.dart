@@ -225,3 +225,40 @@ class _SectionHeadingState<T> extends State<_SectionHeading<T>> {
     );
   }
 }
+
+/// One line of a sheet's list (the tempo shortcuts, the time signatures)
+/// that marks the [selected] one as [showChoiceMenu] does: the same rounded
+/// band of the accent container, its words and tick in the ink on it, and
+/// a margin so that the band does not touch the edges of the sheet.
+class ChoiceTile extends StatelessWidget {
+  const ChoiceTile({
+    super.key,
+    required this.title,
+    this.subtitle,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final Widget title;
+  final Widget? subtitle;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: ListTile(
+        title: title,
+        subtitle: subtitle,
+        selected: selected,
+        selectedColor: scheme.onPrimaryContainer,
+        selectedTileColor: scheme.primaryContainer,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+        trailing: selected ? const Icon(Icons.check) : null,
+        onTap: onTap,
+      ),
+    );
+  }
+}

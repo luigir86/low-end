@@ -612,14 +612,11 @@ class _SignatureButton extends StatelessWidget {
                 ),
               ),
               for (final s in TimeSignature.all)
-                ListTile(
+                ChoiceTile(
                   title: Text(s.label),
                   // How the bar is felt: 3/4 is "3", 6/8 is "3 + 3".
                   subtitle: s.grouped ? Text(s.feel) : null,
                   selected: s == metronome.signature,
-                  trailing: s == metronome.signature
-                      ? const Icon(Icons.check)
-                      : null,
                   onTap: () => Navigator.of(context).pop(s),
                 ),
               const Divider(),

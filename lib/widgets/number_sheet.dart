@@ -97,7 +97,6 @@ class _NumberSheetState extends State<_NumberSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     final material = MaterialLocalizations.of(context);
     return SafeArea(
       child: SingleChildScrollView(
@@ -133,15 +132,10 @@ class _NumberSheetState extends State<_NumberSheet> {
               ),
             ),
             for (final c in widget.shortcuts)
-              ListTile(
+              ChoiceTile(
                 title: Text(c.title),
                 subtitle: c.subtitle == null ? null : Text(c.subtitle!),
                 selected: c.value == widget.current,
-                selectedColor: scheme.onPrimaryContainer,
-                selectedTileColor: scheme.primaryContainer,
-                trailing: c.value == widget.current
-                    ? const Icon(Icons.check)
-                    : null,
                 onTap: () => Navigator.of(context).pop(c.value),
               ),
             Padding(
