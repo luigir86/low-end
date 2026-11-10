@@ -160,6 +160,44 @@ void main() {
       expect(drone.showsWait, isFalse);
       expect(drone.beatsLeft, isNull);
     });
+
+    test('stopped while the first chord is mixed, no loop starts', () async {
+      await drone.stop();
+      await settle();
+      final plays = piano.plays;
+      piano.close();
+      final started = drone.start();
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      final stopped = drone.stop();
+      piano.open();
+      await Future.wait([started, stopped]);
+      await settle();
+      expect(piano.plays, plays);
+      expect(piano.chords, isNull);
+      expect(drone.isPlaying, isFalse);
+      expect(drone.audioFailed, isFalse);
+    });
+
+    test('start, stop and start while the first chord is mixed: one '
+        'start heard', () async {
+      await drone.stop();
+      await settle();
+      final plays = piano.plays;
+      piano.close();
+      final first = drone.start();
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      final stopped = drone.stop();
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      final again = drone.start();
+      piano.open();
+      await Future.wait([first, stopped, again]);
+      await settle();
+      expect(piano.plays, plays + 1);
+      expect(piano.startAt, Duration.zero);
+      expect(drone.isPlaying, isTrue);
+      expect(drone.isStarting, isFalse);
+      expect(drone.audioFailed, isFalse);
+    });
   });
 
   group('the tempo follows the finger, the sound its rest', () {

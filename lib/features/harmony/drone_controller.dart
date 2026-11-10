@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 
 import '../../audio/latest_request.dart';
+import '../../audio/loop_transport.dart';
 import '../../audio/piano_output.dart';
 import '../../audio/piano_sound.dart';
 import '../../audio/pitch.dart';
@@ -138,7 +139,19 @@ class DroneController extends ChangeNotifier implements SoundSection {
     _clock.addListener(_onClockChanged);
     _lastBpm = _clock.soundingBpm;
     _lastSignature = _clock.signature;
+    // A loop mixed for a start that a stop (or a stop and a start) has
+    // overtaken does not sound: the latest request plays its own.
+    _piano?.stillWanted = () =>
+        _playing && !_disposed && _generation == _playGeneration;
   }
+
+  /// Counts the starts and stops, so that a loop mixed for one of them
+  /// knows, once it is ready, whether another has come since (see
+  /// PianoOutput.stillWanted).
+  var _generation = 0;
+
+  /// The [_generation] the piano loop being mixed was asked for in.
+  var _playGeneration = 0;
 
   final ToneOutput _output;
   final PianoOutput? _piano;
@@ -454,6 +467,7 @@ class DroneController extends ChangeNotifier implements SoundSection {
 
   @override
   Future<void> start() {
+    _generation++;
     _playing = true;
     _audioFailed = false;
     _step = 0;
@@ -544,6 +558,7 @@ class DroneController extends ChangeNotifier implements SoundSection {
 
   @override
   Future<void> stop() {
+    _generation++;
     _playing = false;
     _endHandOver();
     _slowTimer?.cancel();
@@ -970,19 +985,27 @@ class DroneController extends ChangeNotifier implements SoundSection {
       return;
     }
     _sounding = null;
-    final started = await _piano!.play(
-      chords: chords,
-      style: _pianoStyle,
-      // The piano counts pulses, like the clicks: three a beat in 6/8.
-      bpm: bpm * signature.pulsesPerBeat,
-      signature: signature,
-      a4: _a4,
-      volume: _volume,
-      startAt: fromTheTop ? Duration.zero : null,
-      onTheBeat: onTheBeat,
-      patient: patient,
-      handOver: handOver,
-    );
+    _playGeneration = _generation;
+    final LoopStart started;
+    try {
+      started = await _piano!.play(
+        chords: chords,
+        style: _pianoStyle,
+        // The piano counts pulses, like the clicks: three a beat in 6/8.
+        bpm: bpm * signature.pulsesPerBeat,
+        signature: signature,
+        a4: _a4,
+        volume: _volume,
+        startAt: fromTheTop ? Duration.zero : null,
+        onTheBeat: onTheBeat,
+        patient: patient,
+        handOver: handOver,
+      );
+    } on LoopNotWanted {
+      // Stopped, or stopped and started again, while it was mixed: nothing
+      // sounds for it; the start that came since (if any) plays its own.
+      return;
+    }
     _sounding = wanted;
     // Scheduled: from now on the wait is the loop's own (see [waitLeft]).
     if (handOver) {
@@ -1014,9 +1037,11 @@ class DroneController extends ChangeNotifier implements SoundSection {
     _sounding = null;
     try {
       _toneSounding = false;
+      // The piano first, before anything is awaited: it lets go of what
+      // plays now, never of a loop a start pressed meanwhile brings in.
+      final piano = _piano?.stop();
       await _output.stop();
-      final piano = _piano;
-      if (piano != null) await piano.stop();
+      await piano;
     } catch (error) {
       debugPrint('Drone could not stop: $error');
     }

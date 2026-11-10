@@ -54,6 +54,11 @@ abstract class PianoOutput {
     bool handOver = false,
   });
 
+  /// Asked by [play] once its loop is mixed, just before it sounds: when it
+  /// says no (the sound was stopped, or started again, while the loop was
+  /// mixed), nothing starts and [play] throws LoopNotWanted.
+  bool Function()? stillWanted;
+
   /// Starts letting the loop playing now down, for another to come in on
   /// the next bar line at least [lead] away (see BarLoopPlayer.beginHandOver):
   /// a [play] with `handOver` then starts there. Says how long until that
@@ -306,6 +311,9 @@ class SoLoudPianoOutput implements PianoOutput {
   );
   _Playing? _playing;
 
+  @override
+  bool Function()? stillWanted;
+
   /// Where the recordings are kept and the loops mixed: on the phone an
   /// isolate of its own (see IsolatePianoMixer), started at the first need;
   /// in a page, or if that isolate cannot start, the screen's thread.
@@ -412,14 +420,21 @@ class SoLoudPianoOutput implements PianoOutput {
     final bar = barDuration(bpm, signature.beats);
     final was = _playing;
     _playing = (loop: loop, scale: rendered.scale);
-    return _player.play(
-      rendered.wav,
-      bar,
-      startAt: startAt,
-      onPulse: onTheBeat ? bar ~/ signature.beats : null,
-      tailFor: was == null ? null : (position) => _tail(was, position),
-      handOver: handOver,
-    );
+    try {
+      return await _player.play(
+        rendered.wav,
+        bar,
+        startAt: startAt,
+        onPulse: onTheBeat ? bar ~/ signature.beats : null,
+        tailFor: was == null ? null : (position) => _tail(was, position),
+        handOver: handOver,
+        wanted: stillWanted,
+      );
+    } on LoopNotWanted {
+      // What played before (if anything) still does.
+      if (_playing?.loop == loop) _playing = was;
+      rethrow;
+    }
   }
 
   @override
@@ -539,6 +554,9 @@ class SilentPianoOutput implements PianoOutput {
   Duration delay = Duration.zero;
 
   @override
+  bool Function()? stillWanted;
+
+  @override
   Future<LoopStart> play({
     required List<PianoChord> chords,
     required PianoStyle style,
@@ -551,6 +569,7 @@ class SilentPianoOutput implements PianoOutput {
     bool patient = false,
     bool handOver = false,
   }) async {
+    if (stillWanted?.call() == false) throw const LoopNotWanted();
     this.handOver = handOver;
     this.patient = patient;
     if (handOver && this.chords != null && handOverIn != null) {

@@ -197,6 +197,15 @@ class _Loop {
   final Duration? startsAt;
 }
 
+/// Thrown by a play whose loop is no longer wanted by the time it is ready
+/// to sound (see BarLoopPlayer.play with wanted): nothing was started.
+class LoopNotWanted implements Exception {
+  const LoopNotWanted();
+
+  @override
+  String toString() => 'LoopNotWanted';
+}
+
 /// Where a loop actually began: `position` into the loop at the moment it
 /// started to sound, and `delay`, how long from the call that was, when it
 /// had to wait for the other loop's next bar line.

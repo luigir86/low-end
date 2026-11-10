@@ -102,6 +102,10 @@ class BarLoopPlayer {
   /// loop does, this loop playing on until then, let down with it: the
   /// clicks of a new song change with the piano, not before it, even when
   /// the piano's new loop takes longer than a bar to get ready.
+  ///
+  /// [wanted] is asked once the loop is ready, just before it sounds: if
+  /// it says no (the sound was stopped, or started again, meanwhile),
+  /// nothing starts and the play throws [LoopNotWanted].
   Future<LoopStart> play(
     Uint8List wav,
     Duration bar, {
@@ -111,6 +115,7 @@ class BarLoopPlayer {
     Future<Uint8List> Function(Duration position)? tailFor,
     bool handOver = false,
     bool atMeeting = false,
+    bool Function()? wanted,
   }) async {
     await _soloud.ensure();
     final source = await _soloud.loadMem('$name-loop.wav', wav);
@@ -264,6 +269,11 @@ class BarLoopPlayer {
       switchAt = _soloud.getEngineTime() + wait - _switchLead;
     }
     final fade = carryOn && crossfade > Duration.zero && switchAt == null;
+    if (wanted != null && !wanted()) {
+      tail?.dispose();
+      await _soloud.disposeSource(source);
+      throw const LoopNotWanted();
+    }
     if (wait == null) {
       handle = _soloud.play(
         source,
