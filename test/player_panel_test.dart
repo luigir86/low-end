@@ -784,7 +784,10 @@ void main() {
         matching: find.byType(CustomPaint),
       );
       final paint = tester.renderObject(badge);
-      expect(paint, paints..circle()..paragraph());
+      final circleThenLetter = paints
+        ..circle()
+        ..paragraph();
+      expect(paint, circleThenLetter);
       expect(paint, isNot(paints..saveLayer()));
     });
 
