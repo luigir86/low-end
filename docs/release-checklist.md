@@ -5,7 +5,7 @@ marks anything that cannot be confirmed from the code.
 
 ## 1. Version and build
 
-- [ ] `pubspec.yaml`: `version: 1.6.2+12` (name `1.6.2`, versionCode `12`),
+- [ ] `pubspec.yaml`: `version: 1.6.3+13` (name `1.6.3`, versionCode `13`),
       and the same in `lib/app/version.dart` (shown in About; `version_test` checks it).
       1.0.0+1 went to the closed test on 2026-10-19, 1.3.0+4 on 2026-10-29;
       1.4.0+5 (2026-11-05) stayed on "Preparing sounds", fixed in 1.4.1+6;
@@ -14,7 +14,10 @@ marks anything that cannot be confirmed from the code.
       1.6.1+11 (Ebony & Bronze, take over the studied track) built on 2026-11-09;
       1.6.2+12 (icon-only tab bar, warmer theme, REC in the ring, A-B on
       the dial, Guava 33.7.2) prepared on 2026-11-09 as the candidate for
-      production.
+      production;
+      1.6.3+13 (call pauses the sound, Bluetooth stays in music mode when
+      recording, take discard with Undo, race fixes in Harmony and loops)
+      built on 2026-11-10.
       The number after `+`
       must grow with every upload to Play.
 - [ ] Target SDK: `flutter.targetSdkVersion` (36 with the current Flutter
