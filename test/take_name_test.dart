@@ -46,12 +46,10 @@ void main() {
     expect(cleanTakeName('x' * 200).length, maxTakeNameLength);
   });
 
-  testWidgets('sharing offers WhatsApp first when it is on the phone', (
-    tester,
-  ) async {
+  testWidgets('the name window answers the new name', (tester) async {
     final take = RecordedTrack(uri: 'file:///takes/1.m4a', name: 'take.m4a')
       ..fileName = 'Take1_9_nov_2026';
-    TakeExport? answer;
+    String? answer;
     await tester.pumpWidget(
       MaterialApp(
         localizationsDelegates: const [
@@ -62,10 +60,9 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         home: Builder(
           builder: (context) => TextButton(
-            onPressed: () async => answer = await showDialog<TakeExport>(
+            onPressed: () async => answer = await showDialog<String>(
               context: context,
-              builder: (_) =>
-                  TakeNameDialog(take: take, share: true, whatsApp: true),
+              builder: (_) => TakeNameDialog(take: take, share: true),
             ),
             child: const Text('open'),
           ),
@@ -74,21 +71,20 @@ void main() {
     );
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
-    expect(find.text('Other apps'), findsOneWidget);
     expect(find.text('.m4a'), findsOneWidget);
     // An empty name cannot be sent.
     await tester.enterText(find.byKey(TakeNameDialog.nameKey), ' ');
     await tester.pump();
     expect(
       tester
-          .widget<FilledButton>(find.byKey(TakeNameDialog.whatsAppKey))
+          .widget<FilledButton>(find.byKey(TakeNameDialog.confirmKey))
           .onPressed,
       isNull,
     );
     await tester.enterText(find.byKey(TakeNameDialog.nameKey), 'Scales');
     await tester.pump();
-    await tester.tap(find.byKey(TakeNameDialog.whatsAppKey));
+    await tester.tap(find.byKey(TakeNameDialog.confirmKey));
     await tester.pumpAndSettle();
-    expect(answer, (name: 'Scales', whatsApp: true));
+    expect(answer, 'Scales');
   });
 }

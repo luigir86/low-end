@@ -17,8 +17,6 @@
   "takeStarting": "Activation du micro…",
   "takeFileName": "Prise{number}_{date}",
   "takeNameLabel": "Nom du fichier",
-  "takeShareWhatsApp": "WhatsApp",
-  "takeShareOther": "Autres apps",
   "@@locale": "fr",
   "appTitle": "Low End",
   "tunerTab": "Accordeur",

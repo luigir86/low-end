@@ -45,12 +45,7 @@ Future<bool> saveRecording(RecordedTrack track) async {
   return true;
 }
 
-/// A web page cannot pick the app it shares with: [whatsApp] is ignored and
-/// the system's share window opens.
-Future<bool> shareRecording(
-  RecordedTrack track, {
-  bool whatsApp = false,
-}) async {
+Future<bool> shareRecording(RecordedTrack track) async {
   final take = _takes[track.uri]!;
   final data = web.ShareData(
     // A copy of the file with the name the person gave it.
@@ -73,9 +68,6 @@ Future<bool> shareRecording(
   }
   return true;
 }
-
-/// A web page cannot open WhatsApp with a file in it.
-Future<bool> canShareToWhatsApp() async => false;
 
 /// [TrackFiles] from the browser's file chooser. The file becomes a `blob:`
 /// address the audio element plays; it lasts as long as the page.

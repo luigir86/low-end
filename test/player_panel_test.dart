@@ -137,7 +137,6 @@ void main() {
         matches(RegExp(r'^Take1_\d+_[a-z]+_\d{4}$')),
       );
       expect(find.text('.m4a'), findsOneWidget);
-      expect(find.byKey(TakeNameDialog.whatsAppKey), findsNothing);
       await tester.enterText(find.byKey(TakeNameDialog.nameKey), 'Bass: line');
       await tester.tap(find.byKey(TakeNameDialog.confirmKey));
       await screen.settle();

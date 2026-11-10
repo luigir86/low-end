@@ -210,18 +210,6 @@ abstract class AppLocalizations {
   /// **'File name'**
   String get takeNameLabel;
 
-  /// No description provided for @takeShareWhatsApp.
-  ///
-  /// In en, this message translates to:
-  /// **'WhatsApp'**
-  String get takeShareWhatsApp;
-
-  /// No description provided for @takeShareOther.
-  ///
-  /// In en, this message translates to:
-  /// **'Other apps'**
-  String get takeShareOther;
-
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:

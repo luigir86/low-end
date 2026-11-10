@@ -21,8 +21,7 @@ object TakeFiles {
         // A killed process cannot release its temporary takes.
         root.listFiles()?.filter { it.name != session }?.forEach { it.deleteRecursively() }
         val exports = File(host.cacheDir, "shared-takes")
-        // Each shared take sits in a folder of its own, with the name the
-        // person gave it; a day later it is let go.
+        // A shared take is let go a day later.
         exports.listFiles()?.filter { System.currentTimeMillis() - it.lastModified() > 86400000L }
             ?.forEach { it.deleteRecursively() }
         MethodChannel(messenger, "low_end/takes").setMethodCallHandler { call, result ->
@@ -32,10 +31,6 @@ object TakeFiles {
                         val name = call.arguments as String
                         require(name == File(name).name && name != "." && name != "..")
                         result.success(File(working, name).absolutePath)
-                        return@setMethodCallHandler
-                    }
-                    "whatsapp" -> {
-                        result.success(whatsApp(host) != null)
                         return@setMethodCallHandler
                     }
                 }
@@ -56,14 +51,15 @@ object TakeFiles {
                     }
                     "share" -> {
                         // The receiving app may open its attachment after the player changes track.
-                        val folder = File(exports, UUID.randomUUID().toString())
-                        folder.mkdirs()
-                        val copy = File(folder, name)
+                        exports.mkdirs()
+                        val copy = File(exports, name)
+                        // An older take shared with the same name gives way.
+                        copy.delete()
                         // Both paths are on the app's private cache volume.
                         // Linking keeps large takes shareable without copying
                         // audio on the UI thread.
                         android.system.Os.link(source.path, copy.path)
-                        folder.setLastModified(System.currentTimeMillis())
+                        copy.setLastModified(System.currentTimeMillis())
                         val uri = FileProvider.getUriForFile(host, host.packageName + ".takes", copy)
                         val send = Intent(Intent.ACTION_SEND).apply {
                             type = mimeType(source)
@@ -71,13 +67,7 @@ object TakeFiles {
                             clipData = ClipData.newRawUri(name, uri)
                             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         }
-                        val app = if (call.argument<Boolean>("whatsapp") == true) whatsApp(host) else null
-                        if (app != null) {
-                            send.setPackage(app)
-                            host.startActivity(send)
-                        } else {
-                            host.startActivity(Intent.createChooser(send, null))
-                        }
+                        host.startActivity(Intent.createChooser(send, null))
                         result.success(true)
                     }
                     else -> result.notImplemented()
@@ -103,14 +93,6 @@ object TakeFiles {
     }
 
     private fun mimeType(file: File) = if (file.extension == "wav") "audio/wav" else "audio/mp4"
-
-    /// WhatsApp's package if it is on the phone (the Business one if only
-    /// that is), else null. AndroidManifest.xml lists both in <queries>.
-    private fun whatsApp(host: Activity): String? =
-        listOf("com.whatsapp", "com.whatsapp.w4b").firstOrNull { app ->
-            Intent(Intent.ACTION_SEND).setType("audio/mp4").setPackage(app)
-                .resolveActivity(host.packageManager) != null
-        }
 
     fun onResult(host: Activity, request: Int, code: Int, data: Intent?) {
         if (request != SAVE) return
