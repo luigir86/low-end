@@ -50,25 +50,36 @@ object TakeFiles {
                         pending = source to result
                     }
                     "share" -> {
-                        // The receiving app may open its attachment after the player changes track.
+                        // The receiving app may open its attachment after the
+                        // player changes track, so it gets a copy of its own.
+                        // A copy, not a hard link: Android refuses links to
+                        // apps (SELinux), which made sharing fail.
                         exports.mkdirs()
                         val copy = File(exports, name)
-                        // An older take shared with the same name gives way.
-                        copy.delete()
-                        // Both paths are on the app's private cache volume.
-                        // Linking keeps large takes shareable without copying
-                        // audio on the UI thread.
-                        android.system.Os.link(source.path, copy.path)
-                        copy.setLastModified(System.currentTimeMillis())
-                        val uri = FileProvider.getUriForFile(host, host.packageName + ".takes", copy)
-                        val send = Intent(Intent.ACTION_SEND).apply {
-                            type = mimeType(source)
-                            putExtra(Intent.EXTRA_STREAM, uri)
-                            clipData = ClipData.newRawUri(name, uri)
-                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        }
-                        host.startActivity(Intent.createChooser(send, null))
-                        result.success(true)
+                        Thread {
+                            try {
+                                // An older take shared with the same name gives way.
+                                source.copyTo(copy, overwrite = true)
+                                copy.setLastModified(System.currentTimeMillis())
+                                host.runOnUiThread {
+                                    try {
+                                        val uri = FileProvider.getUriForFile(host, host.packageName + ".takes", copy)
+                                        val send = Intent(Intent.ACTION_SEND).apply {
+                                            type = mimeType(source)
+                                            putExtra(Intent.EXTRA_STREAM, uri)
+                                            clipData = ClipData.newRawUri(name, uri)
+                                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                        }
+                                        host.startActivity(Intent.createChooser(send, null))
+                                        result.success(true)
+                                    } catch (e: Exception) {
+                                        result.error("share", e.message, null)
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                host.runOnUiThread { result.error("share", e.message, null) }
+                            }
+                        }.start()
                     }
                     else -> result.notImplemented()
                 }
