@@ -102,7 +102,7 @@ jobs:
       - run: flutter test tool/make_icons_test.dart
       # arm64 only (nearly every phone, the S20 FE too): the C++ audio engine
       # is compiled once instead of once per processor type. The .aab for the
-      # Play Store is built on the PC and still holds every type.
+      # Play Store (release-play.yml or the PC) still holds every type.
       - run: flutter build apk --debug --target-platform android-arm64
       # The Player's system player (ExoPlayer) declares ACCESS_NETWORK_STATE;
       # the app's manifest removes it (RNF-PRIV-01, docs/offline.md). INTERNET

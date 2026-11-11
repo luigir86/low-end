@@ -1,0 +1,148 @@
+name: Release Play
+
+# Builds the signed .aab from main and uploads it to Google Play as a DRAFT
+# release: nothing reaches the testers until the owner presses "Review
+# release" in Play Console. Started by hand only (Actions > Release Play >
+# Run workflow). One-time setup and the secrets: docs/play-release.md.
+on:
+  workflow_dispatch:
+    inputs:
+      track:
+        description: 'Play track ("alpha" = Closed testing, "internal" = Internal testing)'
+        type: choice
+        options: [alpha, internal]
+        default: alpha
+      upload:
+        description: 'Upload to Play as a draft (off: build the .aab only)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+# Never two releases at the same time.
+concurrency:
+  group: release-play
+  cancel-in-progress: false
+
+jobs:
+  release:
+    # Only from main: a release is what was merged and checked.
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          # A release reads the cache written by CI on main, never writes it.
+          cache-read-only: true
+
+      - run: flutter pub get
+      # Generate native/web colours and icons from the single Dart accent.
+      - run: flutter test tool/make_icons_test.dart
+      - run: flutter analyze
+      - run: flutter test
+
+      # Version from pubspec.yaml, e.g. 1.6.6+16: name 1.6.6, versionCode 16.
+      - name: Read the version
+        id: version
+        run: |
+          full=$(sed -n 's/^version: *//p' pubspec.yaml | tr -d '\r')
+          echo "full=$full" >> "$GITHUB_OUTPUT"
+          echo "name=${full%%+*}" >> "$GITHUB_OUTPUT"
+          echo "code=${full##*+}" >> "$GITHUB_OUTPUT"
+          echo "Version $full"
+
+      # Play limits each "What's new" text to 500 characters; the files are
+      # named the way the upload step expects (whatsnew-<locale>).
+      - name: Release notes
+        env:
+          LC_ALL: C.UTF-8
+        run: |
+          mkdir -p "$RUNNER_TEMP/whatsnew"
+          for dir in store/listing/*/; do
+            locale=$(basename "$dir")
+            file="$dir/release_notes.txt"
+            test -s "$file"
+            chars=$(tr -d '\r' < "$file" | wc -m)
+            echo "$locale: $chars characters"
+            if [ "$chars" -gt 500 ]; then
+              echo "::error file=$file::$chars characters, Play allows 500"
+              exit 1
+            fi
+            tr -d '\r' < "$file" > "$RUNNER_TEMP/whatsnew/whatsnew-$locale"
+          done
+
+      # The upload key, from the repository secrets, only for this run: the
+      # same android/key.properties the PC uses (see build.gradle.kts).
+      - name: Upload key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          for name in KEYSTORE_BASE64 STORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Secret for $name is missing (docs/play-release.md)"
+              exit 1
+            fi
+          done
+          keystore="$RUNNER_TEMP/upload-keystore.jks"
+          printf '%s' "$KEYSTORE_BASE64" | tr -d ' \r\n' | base64 --decode > "$keystore"
+          {
+            echo "storeFile=$keystore"
+            echo "storePassword=$STORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
+          } > android/key.properties
+
+      - run: flutter build appbundle --release
+
+      # The certificate that signed the bundle: its SHA-256 must be the
+      # upload key's (75:11:C0:4C ... E7:9D), or Play refuses the upload.
+      - name: Check the signature
+        run: |
+          aab=build/app/outputs/bundle/release/app-release.aab
+          jarsigner -verify "$aab"
+          keytool -printcert -jarfile "$aab" | grep -E 'Owner|SHA256'
+
+      - name: Name the bundle
+        id: aab
+        run: |
+          file="low-end-${{ steps.version.outputs.full }}.aab"
+          cp build/app/outputs/bundle/release/app-release.aab "$file"
+          echo "file=$file" >> "$GITHUB_OUTPUT"
+
+      # Downloadable from the run page, also when the upload is skipped.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: low-end-${{ steps.version.outputs.full }}
+          path: ${{ steps.aab.outputs.file }}
+          retention-days: 90
+
+      # v1.1.5, pinned to its commit: the step that sees the Play key.
+      - name: Upload to Google Play (draft)
+        if: ${{ inputs.upload }}
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.luigir86.low_end
+          releaseFiles: ${{ steps.aab.outputs.file }}
+          releaseName: ${{ steps.version.outputs.full }}
+          track: ${{ inputs.track }}
+          status: draft
+          whatsNewDirectory: ${{ runner.temp }}/whatsnew
+
+      - name: Remove the key
+        if: ${{ always() }}
+        run: rm -f android/key.properties "$RUNNER_TEMP/upload-keystore.jks"

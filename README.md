@@ -124,7 +124,7 @@ The same code also runs in a browser: `.github/workflows/web.yml` publishes it o
 
 ### Google Play
 
-`flutter build appbundle --release` makes the bundle for the store. It is signed with the upload key named in `android/key.properties` (git-ignored); without that file a release build stops with an error, so nothing is ever signed with the debug key by mistake. The listing texts, graphics and the console checklist are in [store/](store/README.md).
+`flutter build appbundle --release` makes the bundle for the store. It is signed with the upload key named in `android/key.properties` (git-ignored); without that file a release build stops with an error, so nothing is ever signed with the debug key by mistake. The listing texts, graphics and the console checklist are in [store/](store/README.md). GitHub can also build it and upload it to Play as a draft: [docs/play-release.md](docs/play-release.md).
 
 ## Translations
 
