@@ -18,7 +18,8 @@ marks anything that cannot be confirmed from the code.
       1.6.3+13 (call pauses the sound, Bluetooth stays in music mode when
       recording, take discard with Undo, race fixes in Harmony and loops)
       built on 2026-11-10;
-      1.6.4+14 (Share of a take copies the file) built on 2026-11-10.
+      1.6.4+14 (Share of a take copies the file) built on 2026-11-10;
+      1.6.5+15 (share to WhatsApp keeps the name, Open with Low End) built on 2026-11-11.
       The number after `+`
       must grow with every upload to Play.
 - [ ] Target SDK: `flutter.targetSdkVersion` (36 with the current Flutter
