@@ -77,7 +77,7 @@ class ReceivedTracksTest {
         // Another app lends a file through its provider, with no audio type
         // (this one is the app's own provider, which says
         // application/octet-stream, as WhatsApp's often does).
-        Robolectric.setupContentProvider(TakeProvider::class.java, host.packageName + ".takes")
+        serveTakes(host)
         val lent = File(host.cacheDir, "shared-takes").apply { mkdirs() }
         val sound = ByteArray(1000) { it.toByte() }
         File(lent, "Lesson 3.mp3").writeBytes(sound)

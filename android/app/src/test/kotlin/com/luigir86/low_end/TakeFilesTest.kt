@@ -97,7 +97,7 @@ class TakeFilesTest {
         assertArrayEquals(audio, copy.readBytes())
 
         // What the other app reads through the provider.
-        Robolectric.setupContentProvider(TakeProvider::class.java, host.packageName + ".takes")
+        serveTakes(host)
         assertEquals("application/octet-stream", host.contentResolver.getType(uri))
         host.contentResolver.openInputStream(uri)!!.use { assertArrayEquals(audio, it.readBytes()) }
     }
@@ -147,7 +147,7 @@ class TakeFilesTest {
         assertEquals(FakeMessenger.Pending, answer())
 
         // Saved where the person chose (here a file the provider serves).
-        Robolectric.setupContentProvider(TakeProvider::class.java, host.packageName + ".takes")
+        serveTakes(host)
         val shared = File(host.cacheDir, "shared-takes").apply { mkdirs() }
         val where = FileProvider.getUriForFile(host, host.packageName + ".takes", File(shared, "Lesson 3.m4a"))
         TakeFiles.onResult(host, TakeFiles.SAVE, Activity.RESULT_OK, Intent().setData(where))

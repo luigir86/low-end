@@ -123,3 +123,11 @@ tasks.matching { it.name.startsWith("package") && it.name.endsWith("UnitTestForU
         val variant = name.removePrefix("package").removeSuffix("UnitTestForUnitTest")
         dependsOn("copyFlutterAssets$variant")
     }
+
+// A failing test prints why in the CI log, not only in the report.
+tasks.withType<Test>().configureEach {
+    testLogging {
+        events("failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+}

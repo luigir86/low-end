@@ -1,5 +1,7 @@
 package com.luigir86.low_end
 
+import android.content.Context
+import android.content.pm.ProviderInfo
 import android.os.Looper
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.FlutterException
@@ -7,6 +9,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.StandardMethodCodec
 import java.nio.ByteBuffer
 import org.junit.Assert.fail
+import org.robolectric.Robolectric
 import org.robolectric.Shadows.shadowOf
 
 /** Stands in for Flutter: calls the app's channels as the Dart side would,
@@ -75,4 +78,16 @@ fun waitFor(done: () -> Boolean) {
         if (System.currentTimeMillis() > end) fail("Timed out waiting for the app")
         Thread.sleep(10)
     }
+}
+
+/** The app's take provider, answering as on the phone: set up from the
+ * manifest's own settings (it grants read rights and is not exported),
+ * which FileProvider checks. */
+fun serveTakes(host: Context) {
+    val info = ProviderInfo().apply {
+        authority = host.packageName + ".takes"
+        exported = false
+        grantUriPermissions = true
+    }
+    Robolectric.buildContentProvider(TakeProvider::class.java).create(info)
 }
