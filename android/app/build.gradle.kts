@@ -114,3 +114,12 @@ dependencies {
         }
     }
 }
+
+// The unit tests read the app's merged assets, into which the Flutter plugin
+// copies its own (copyFlutterAssets<Variant>) without telling Gradle: say
+// it, or Gradle 9 refuses to run them.
+tasks.matching { it.name.startsWith("package") && it.name.endsWith("UnitTestForUnitTest") }
+    .configureEach {
+        val variant = name.removePrefix("package").removeSuffix("UnitTestForUnitTest")
+        dependsOn("copyFlutterAssets$variant")
+    }
