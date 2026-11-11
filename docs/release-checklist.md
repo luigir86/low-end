@@ -5,7 +5,7 @@ marks anything that cannot be confirmed from the code.
 
 ## 1. Version and build
 
-- [ ] `pubspec.yaml`: `version: 1.6.3+13` (name `1.6.3`, versionCode `13`),
+- [ ] `pubspec.yaml`: `version: 1.6.5+15` (name `1.6.5`, versionCode `15`),
       and the same in `lib/app/version.dart` (shown in About; `version_test` checks it).
       1.0.0+1 went to the closed test on 2026-10-19, 1.3.0+4 on 2026-10-29;
       1.4.0+5 (2026-11-05) stayed on "Preparing sounds", fixed in 1.4.1+6;
@@ -18,7 +18,8 @@ marks anything that cannot be confirmed from the code.
       1.6.3+13 (call pauses the sound, Bluetooth stays in music mode when
       recording, take discard with Undo, race fixes in Harmony and loops)
       built on 2026-11-10;
-      1.6.4+14 (Share of a take copies the file) built on 2026-11-10.
+      1.6.4+14 (Share of a take copies the file) built on 2026-11-10;
+      1.6.5+15 (share to WhatsApp keeps the name, Open with Low End) built on 2026-11-11.
       The number after `+`
       must grow with every upload to Play.
 - [ ] Target SDK: `flutter.targetSdkVersion` (36 with the current Flutter
