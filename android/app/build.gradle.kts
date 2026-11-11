@@ -68,6 +68,14 @@ android {
             signingConfig = signingConfigs.findByName("release")
         }
     }
+
+    // The Kotlin side (sharing, saving, "Open with Low End") has unit tests
+    // in src/test, run on the computer with Robolectric: CI runs them with
+    // ./gradlew :app:testDebugUnitTest. They read the app's real manifest
+    // and resources, so they also check the provider and intent filters.
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
 }
 
 // Debug and test builds need no key; only a release build does.
@@ -92,6 +100,9 @@ flutter {
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.14.1")
+    testImplementation("androidx.test:core:1.6.1")
     constraints {
         // Guava comes in through the Player's ExoPlayer (AndroidX Media3,
         // brought by just_audio), which asks for 33.0.0-android. That
@@ -101,5 +112,22 @@ dependencies {
         implementation("com.google.guava:guava:33.7.2-android") {
             because("GHSA-xxph-c9ww-hj94: Guava before 33.7.2 is affected")
         }
+    }
+}
+
+// The unit tests read the app's merged assets, into which the Flutter plugin
+// copies its own (copyFlutterAssets<Variant>) without telling Gradle: say
+// it, or Gradle 9 refuses to run them.
+tasks.matching { it.name.startsWith("package") && it.name.endsWith("UnitTestForUnitTest") }
+    .configureEach {
+        val variant = name.removePrefix("package").removeSuffix("UnitTestForUnitTest")
+        dependsOn("copyFlutterAssets$variant")
+    }
+
+// A failing test prints why in the CI log, not only in the report.
+tasks.withType<Test>().configureEach {
+    testLogging {
+        events("failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     }
 }

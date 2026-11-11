@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.provider.OpenableColumns
+import android.util.Log
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
@@ -21,13 +22,15 @@ import java.util.concurrent.Executors
 // app's own files (received/<random>/<name>); the Player lets the copy go
 // with the track (TrackFiles.release), and remembers it like any track.
 object ReceivedTracks {
-    private val worker = Executors.newSingleThreadExecutor()
+    internal val worker = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
     private var channel: MethodChannel? = null
     private var ready = false
     private val waiting = mutableListOf<Map<String, Any?>>()
 
     fun attach(messenger: BinaryMessenger) {
+        // A new engine (the activity made again) has no Player listening yet.
+        ready = false
         val opened = MethodChannel(messenger, "low_end/received_tracks")
         opened.setMethodCallHandler { call, result ->
             if (call.method == "ready") {
@@ -44,14 +47,15 @@ object ReceivedTracks {
 
     fun folder(host: Activity) = File(host.filesDir, "received")
 
-    /** The audio file [intent] brings, if it brings one. */
+    /** The audio file [intent] brings, if it brings one. The manifest lets
+     * only audio through (and lowend:// links, which are not files), and
+     * the type is often not in the intent itself: the system found it by
+     * asking the other app, so it is not checked again here. */
     fun audioOf(intent: Intent?): Uri? {
         intent ?: return null
-        val type = intent.type ?: ""
-        val audio = type.startsWith("audio/") || type == "application/ogg"
         return when (intent.action) {
-            Intent.ACTION_VIEW -> if (audio) intent.data else null
-            Intent.ACTION_SEND -> if (audio) stream(intent) else null
+            Intent.ACTION_VIEW -> intent.data?.takeIf { it.scheme == "content" || it.scheme == "file" }
+            Intent.ACTION_SEND -> stream(intent)
             else -> null
         }
     }
@@ -71,6 +75,7 @@ object ReceivedTracks {
             val track = try {
                 copy(host, uri)
             } catch (e: Exception) {
+                Log.w("LowEnd", "A file from another app could not be copied: $uri", e)
                 null
             }
             main.post {
