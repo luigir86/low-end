@@ -67,6 +67,11 @@ class ReceivedTracksTest {
         assertTrue(opens(Intent(Intent.ACTION_VIEW).setDataAndType(content, "audio/mpeg")))
         assertTrue(opens(Intent(Intent.ACTION_VIEW).setDataAndType(content, "audio/mp4")))
         assertTrue(opens(Intent(Intent.ACTION_VIEW).setDataAndType(content, "application/ogg")))
+        // A take shared from Low End arrives as an MP4 document (WhatsApp).
+        assertTrue(opens(Intent(Intent.ACTION_VIEW).setDataAndType(content, "application/mp4")))
+        assertTrue(opens(Intent(Intent.ACTION_SEND).setType("application/mp4")))
+        // Not for every file: a generic one is not offered Low End.
+        assertTrue(!opens(Intent(Intent.ACTION_VIEW).setDataAndType(content, "application/octet-stream")))
         assertTrue(opens(Intent(Intent.ACTION_SEND).setType("audio/x-wav")))
         assertTrue(opens(Intent(Intent.ACTION_VIEW, Uri.parse("lowend://action/drone_play"))))
         assertTrue(!opens(Intent(Intent.ACTION_VIEW).setDataAndType(content, "image/jpeg")))
@@ -79,8 +84,8 @@ class ReceivedTracksTest {
         val dart = FakeMessenger()
         ReceivedTracks.attach(dart)
         // Another app lends a file through its provider, with no audio type
-        // (this one is the app's own provider, which says
-        // application/octet-stream, as WhatsApp's often does).
+        // (this one is the app's own provider, which says application/mp4,
+        // as for a take a teacher shared from Low End).
         serveTakes(host)
         val lent = File(host.cacheDir, "shared-takes").apply { mkdirs() }
         val sound = ByteArray(1000) { it.toByte() }

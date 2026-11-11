@@ -76,10 +76,19 @@
                 <data android:scheme="content"/>
                 <data android:mimeType="application/ogg"/>
             </intent-filter>
+            <!-- A take shared from Low End as a document, so that WhatsApp
+                 keeps its name (TakeProvider.kt). -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:scheme="content"/>
+                <data android:mimeType="application/mp4"/>
+            </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.SEND"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <data android:mimeType="audio/*"/>
+                <data android:mimeType="application/mp4"/>
             </intent-filter>
         </activity>
         <!-- Not exported: only the app's own notification and headset
