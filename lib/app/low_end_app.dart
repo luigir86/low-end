@@ -259,7 +259,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
                 (_testOutputs
                     ? const Stream<TrackRef>.empty()
                     : receivedTracks()))
-            .listen(_openReceived);
+            .listen(_openReceived, onError: _receiveFailed);
     // If the app opens on the tuner (where it was left, or a link), start
     // listening once the first frame is up, so the microphone never delays
     // it. Opening on the harmony, its piano is got ready a moment later
@@ -288,6 +288,13 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
     if (_recording.active) await _recording.finish();
     _navigation.open(AppSection.player);
     await _player.open(track);
+  }
+
+  /// A file from another app that could not be taken: the Player, where
+  /// it was going, says so at the top rather than nothing happening.
+  void _receiveFailed(Object error) {
+    _navigation.open(AppSection.player);
+    _notices.currentState?.show(_notificationTexts().playerUnreadable);
   }
 
   void _rememberMetronome() => _settings.rememberMetronome(

@@ -8,6 +8,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.OpenableColumns
 import android.util.Log
+import android.webkit.MimeTypeMap
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
@@ -68,18 +69,27 @@ object ReceivedTracks {
             intent.getParcelableExtra(Intent.EXTRA_STREAM)
         }
 
+    /** Takes the audio file [intent] brings for the Player, if it brings
+     * one; the activity then must not hand [intent] to Flutter, which would
+     * take it for a link. */
+    fun take(host: Activity, intent: Intent?): Boolean {
+        val uri = audioOf(intent) ?: return false
+        receive(host, uri)
+        return true
+    }
+
     /** Copies the file [uri] while the other app still lends it, then
-     * hands it to the Player. */
+     * hands it to the Player; if it cannot be copied, the Player says so
+     * ("failed": true) rather than nothing happening. */
     fun receive(host: Activity, uri: Uri) {
         worker.execute {
             val track = try {
                 copy(host, uri)
             } catch (e: Exception) {
                 Log.w("LowEnd", "A file from another app could not be copied: $uri", e)
-                null
+                mapOf("failed" to true)
             }
             main.post {
-                if (track == null) return@post
                 val opened = channel
                 if (ready && opened != null) {
                     opened.invokeMethod("open", track)
@@ -103,20 +113,29 @@ object ReceivedTracks {
             .trimStart('.')
             .take(120)
             .ifEmpty { "audio" }
+        // A name with no extension (some apps give none) takes the one of
+        // its type, so that the Player and the phone know what it is.
+        val named = if (safe.contains('.')) safe else {
+            val type = host.contentResolver.getType(uri)
+            val extension = type?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) }
+            if (extension == null) safe else "$safe.$extension"
+        }
         val dir = File(folder(host), UUID.randomUUID().toString())
         dir.mkdirs()
-        val target = File(dir, safe)
+        val target = File(dir, named)
         try {
             requireNotNull(host.contentResolver.openInputStream(uri)).use { input ->
                 target.outputStream().use { input.copyTo(it) }
             }
+            // Nothing came (a file the other app could not give).
+            check(target.length() > 0) { "Empty file" }
         } catch (e: Exception) {
             dir.deleteRecursively()
             throw e
         }
         return mapOf(
             "uri" to Uri.fromFile(target).toString(),
-            "name" to safe,
+            "name" to named,
             "size" to target.length(),
         )
     }

@@ -9,6 +9,15 @@ typedef TrackTags = ({String? title, String? artist});
 /// The system's side of the Player's files: choosing one with the file
 /// chooser (no permission needed), and letting it go. Kept behind an
 /// interface so that the rest of the app can be tested without a phone.
+/// A file from another app ("Open with Low End") that could not be taken:
+/// the other app gave nothing, or the phone had no room for the copy.
+class ReceivedTrackFailed implements Exception {
+  const ReceivedTrackFailed();
+
+  @override
+  String toString() => 'A file from another app could not be opened';
+}
+
 abstract interface class TrackFiles {
   /// The system's file chooser; null if closed without a choice. In a web
   /// page it must be called inside the touch, with nothing awaited before it
