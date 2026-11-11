@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:io' show File, Platform;
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
+import 'package:flutter/foundation.dart'
+    show debugPrint, kIsWeb, visibleForTesting;
 import 'package:flutter/services.dart';
 
 import 'recorded_track.dart';
@@ -33,8 +34,10 @@ Future<bool> shareRecording(RecordedTrack track) async =>
 /// ReceivedTracks.kt): each comes as the app's own copy, for the Player.
 /// Those that came before anyone listened (the app was opened by one)
 /// come first.
-Stream<TrackRef> receivedTracks() {
-  if (kIsWeb || !Platform.isAndroid) return const Stream.empty();
+Stream<TrackRef> receivedTracks({@visibleForTesting bool? android}) {
+  if (!(android ?? (!kIsWeb && Platform.isAndroid))) {
+    return const Stream.empty();
+  }
   const channel = MethodChannel('low_end/received_tracks');
   final out = StreamController<TrackRef>();
   void add(Object? data) {

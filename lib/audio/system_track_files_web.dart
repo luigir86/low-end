@@ -72,7 +72,7 @@ Future<bool> shareRecording(RecordedTrack track) async {
 }
 
 /// A web page is not offered to other apps as a player.
-Stream<TrackRef> receivedTracks() => const Stream.empty();
+Stream<TrackRef> receivedTracks({bool? android}) => const Stream.empty();
 
 /// [TrackFiles] from the browser's file chooser. The file becomes a `blob:`
 /// address the audio element plays; it lasts as long as the page.

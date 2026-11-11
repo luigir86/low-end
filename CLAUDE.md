@@ -12,6 +12,7 @@ flutter analyze
 flutter test              # or one file: flutter test test/app_actions_test.dart
 flutter test test/app_actions_test.dart --update-goldens   # regenerates docs/llm-actions.json
 flutter build web --wasm --release --no-web-resources-cdn   # the web app for iPhone (docs/web.md)
+cd android && ./gradlew :app:testDebugUnitTest   # Kotlin tests (Robolectric), after one flutter build apk
 ```
 
 ## Structure

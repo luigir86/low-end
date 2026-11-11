@@ -3,7 +3,7 @@
 
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/home_shell.dart';
@@ -13,6 +13,7 @@ import 'package:low_end/app/settings.dart';
 import 'package:low_end/audio/audio_scope.dart';
 import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/mic_input.dart';
+import 'package:low_end/audio/system_track_files.dart';
 import 'package:low_end/audio/take_recorder.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/audio/track_files.dart';
@@ -59,5 +60,77 @@ void main() {
     expect(scope.player.track, _sent);
     expect(scope.player.title, 'Scala di Do lenta');
     expect(scope.player.isPlaying, isFalse);
+  });
+
+  group('the channel from Android (ReceivedTracks.kt)', () {
+    const channel = MethodChannel('low_end/received_tracks');
+    const codec = StandardMethodCodec();
+    final waitingTrack = {
+      'uri': 'file:///data/received/a/Lezione 3.mp3',
+      'name': 'Lezione 3.mp3',
+      'size': 1000,
+    };
+
+    testWidgets('files that came before the Player listened come first, '
+        'then each new one', (tester) async {
+      final messenger = tester.binding.defaultBinaryMessenger;
+      final asked = <String>[];
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        asked.add(call.method);
+        return [
+          waitingTrack,
+          {'name': 'no uri'},
+        ];
+      });
+      addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+      final tracks = <TrackRef>[];
+      final subscription = receivedTracks(android: true).listen(tracks.add);
+      addTearDown(subscription.cancel);
+      await tester.pump();
+      expect(asked, ['ready']);
+      expect(tracks, [
+        const TrackRef(
+          uri: 'file:///data/received/a/Lezione 3.mp3',
+          name: 'Lezione 3.mp3',
+          size: 1000,
+        ),
+      ]);
+      expect(tracks.single.size, 1000);
+
+      // Android calls "open" for a file that comes while the app runs.
+      await messenger.handlePlatformMessage(
+        channel.name,
+        codec.encodeMethodCall(
+          const MethodCall('open', {
+            'uri': 'file:///data/received/b/Scala.m4a',
+            'name': 'Scala.m4a',
+            'size': 20,
+          }),
+        ),
+        (_) {},
+      );
+      await tester.pump();
+      expect(tracks.map((track) => track.name), ['Lezione 3.mp3', 'Scala.m4a']);
+    });
+
+    testWidgets('an Android that does not answer leaves the Player as it is', (
+      tester,
+    ) async {
+      final messenger = tester.binding.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(
+        channel,
+        (call) async => throw PlatformException(code: 'x'),
+      );
+      addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+      final tracks = <TrackRef>[];
+      final subscription = receivedTracks(android: true).listen(tracks.add);
+      addTearDown(subscription.cancel);
+      await tester.pump();
+      expect(tracks, isEmpty);
+    });
+
+    test('off Android nothing is asked', () async {
+      expect(await receivedTracks(android: false).isEmpty, isTrue);
+    });
   });
 }

@@ -10,7 +10,7 @@ import java.io.File
 import java.util.UUID
 
 object TakeFiles {
-    private const val SAVE = 4602
+    internal const val SAVE = 4602
     private val session = UUID.randomUUID().toString()
     private var pending: Pair<File, MethodChannel.Result>? = null
 
@@ -92,7 +92,7 @@ object TakeFiles {
 
     /// The name the person gave the take, made safe for a file and kept
     /// with the extension of the take; the take's own name if none.
-    private fun fileName(asked: String?, path: String): String {
+    internal fun fileName(asked: String?, path: String): String {
         val source = File(path)
         val extension = source.extension
         var base = (asked ?: "").replace(Regex("[\\\\/:*?\"<>|\\x00-\\x1F]"), "_").trim()
@@ -104,7 +104,7 @@ object TakeFiles {
         return if (extension.isEmpty()) base else "$base.$extension"
     }
 
-    private fun mimeType(file: File) = if (file.extension == "wav") "audio/wav" else "audio/mp4"
+    internal fun mimeType(file: File) = if (file.extension == "wav") "audio/wav" else "audio/mp4"
 
     fun onResult(host: Activity, request: Int, code: Int, data: Intent?) {
         if (request != SAVE) return

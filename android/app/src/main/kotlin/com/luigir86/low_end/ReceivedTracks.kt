@@ -22,13 +22,15 @@ import java.util.concurrent.Executors
 // app's own files (received/<random>/<name>); the Player lets the copy go
 // with the track (TrackFiles.release), and remembers it like any track.
 object ReceivedTracks {
-    private val worker = Executors.newSingleThreadExecutor()
+    internal val worker = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
     private var channel: MethodChannel? = null
     private var ready = false
     private val waiting = mutableListOf<Map<String, Any?>>()
 
     fun attach(messenger: BinaryMessenger) {
+        // A new engine (the activity made again) has no Player listening yet.
+        ready = false
         val opened = MethodChannel(messenger, "low_end/received_tracks")
         opened.setMethodCallHandler { call, result ->
             if (call.method == "ready") {
