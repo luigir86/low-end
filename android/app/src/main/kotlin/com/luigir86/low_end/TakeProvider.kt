@@ -5,7 +5,7 @@ import androidx.core.content.FileProvider
 
 /**
  * Hands shared takes to other apps as MP4 files (application/mp4), not as
- * audio (audio/mp4). WhatsApp sends an audio/* file as a voice-style
+ * audio (audio/mp4). WhatsApp sends an audio file (audio type) as a voice-style
  * message and drops its name; any other type goes as a document with the
  * name the person gave the take. application/mp4 rather than a generic
  * file (application/octet-stream, until 11/11): WhatsApp keeps the type it
