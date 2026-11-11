@@ -30,6 +30,7 @@ class TakeFilesTest {
 
     @Before
     fun setUp() {
+        forgetProviderFolders()
         host = Robolectric.buildActivity(Activity::class.java).setup().get()
         dart = FakeMessenger()
         TakeFiles.attach(host, dart)

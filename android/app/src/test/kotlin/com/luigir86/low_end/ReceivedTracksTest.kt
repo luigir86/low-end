@@ -11,6 +11,7 @@ import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -25,6 +26,9 @@ import org.robolectric.annotation.Config
 @Config(sdk = [34])
 class ReceivedTracksTest {
     private val content = Uri.parse("content://com.whatsapp.provider.media/item/42")
+
+    @Before
+    fun setUp() = forgetProviderFolders()
 
     /** Waits for the copies under way and runs what they post. */
     private fun finishReceiving() {

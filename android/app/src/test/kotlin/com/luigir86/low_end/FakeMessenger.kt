@@ -3,6 +3,7 @@ package com.luigir86.low_end
 import android.content.Context
 import android.content.pm.ProviderInfo
 import android.os.Looper
+import androidx.core.content.FileProvider
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.FlutterException
 import io.flutter.plugin.common.MethodCall
@@ -90,4 +91,14 @@ fun serveTakes(host: Context) {
         grantUriPermissions = true
     }
     Robolectric.buildContentProvider(TakeProvider::class.java).create(info)
+}
+
+/** FileProvider keeps the folders it serves, once read, for the whole
+ * process; on the phone they never move, but each test has folders of its
+ * own. Called before each test. */
+fun forgetProviderFolders() {
+    val cache = FileProvider::class.java.getDeclaredField("sCache")
+    cache.isAccessible = true
+    val folders = cache.get(null) as MutableMap<*, *>
+    synchronized(folders) { folders.clear() }
 }
