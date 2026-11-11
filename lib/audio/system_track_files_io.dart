@@ -33,7 +33,8 @@ Future<bool> shareRecording(RecordedTrack track) async =>
 /// Audio files opened or shared from another app ("Open with Low End",
 /// ReceivedTracks.kt): each comes as the app's own copy, for the Player.
 /// Those that came before anyone listened (the app was opened by one)
-/// come first.
+/// come first. A file that could not be taken comes as a
+/// [ReceivedTrackFailed] error.
 Stream<TrackRef> receivedTracks({@visibleForTesting bool? android}) {
   if (!(android ?? (!kIsWeb && Platform.isAndroid))) {
     return const Stream.empty();
@@ -41,6 +42,10 @@ Stream<TrackRef> receivedTracks({@visibleForTesting bool? android}) {
   const channel = MethodChannel('low_end/received_tracks');
   final out = StreamController<TrackRef>();
   void add(Object? data) {
+    if (data is Map && data['failed'] == true) {
+      out.addError(const ReceivedTrackFailed());
+      return;
+    }
     final track = data is Map
         ? TrackRef.fromJson(Map<String, Object?>.from(data))
         : null;

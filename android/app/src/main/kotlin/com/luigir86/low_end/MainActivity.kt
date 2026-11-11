@@ -19,11 +19,8 @@ class MainActivity : AudioServiceActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         // An audio file opened or shared from another app ("Open with Low
         // End") goes to the Player; Flutter must not take it for a link.
-        if (savedInstanceState == null) {
-            ReceivedTracks.audioOf(intent)?.let { uri ->
-                ReceivedTracks.receive(this, uri)
-                intent = Intent(Intent.ACTION_MAIN)
-            }
+        if (savedInstanceState == null && ReceivedTracks.take(this, intent)) {
+            intent = Intent(Intent.ACTION_MAIN)
         }
         super.onCreate(savedInstanceState)
         // The volume buttons set the drone's loudness (media volume), even
@@ -32,13 +29,7 @@ class MainActivity : AudioServiceActivity() {
     }
 
     override fun onNewIntent(intent: Intent) {
-        val audio = ReceivedTracks.audioOf(intent)
-        if (audio == null) {
-            super.onNewIntent(intent)
-            return
-        }
-        ReceivedTracks.receive(this, audio)
-        super.onNewIntent(Intent(Intent.ACTION_MAIN))
+        super.onNewIntent(if (ReceivedTracks.take(this, intent)) Intent(Intent.ACTION_MAIN) else intent)
     }
 
     // The Player's file chooser answers here; the plugins get the rest.

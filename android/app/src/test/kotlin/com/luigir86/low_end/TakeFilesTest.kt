@@ -81,8 +81,9 @@ class TakeFilesTest {
         @Suppress("DEPRECATION")
         val send = chooser.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)!!
         assertEquals(Intent.ACTION_SEND, send.action)
-        // A document, not audio: WhatsApp keeps the name.
-        assertEquals("application/octet-stream", send.type)
+        // A document (MP4 file), not audio: WhatsApp keeps the name, and
+        // the student can open it with Low End.
+        assertEquals("application/mp4", send.type)
         assertTrue(send.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION != 0)
         @Suppress("DEPRECATION")
         val uri = send.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)!!
@@ -99,7 +100,7 @@ class TakeFilesTest {
 
         // What the other app reads through the provider.
         serveTakes(host)
-        assertEquals("application/octet-stream", host.contentResolver.getType(uri))
+        assertEquals("application/mp4", host.contentResolver.getType(uri))
         host.contentResolver.openInputStream(uri)!!.use { assertArrayEquals(audio, it.readBytes()) }
     }
 
@@ -128,7 +129,7 @@ class TakeFilesTest {
         val shared = File(File(host.cacheDir, "shared-takes"), "Take1.m4a")
         val uri = FileProvider.getUriForFile(host, host.packageName + ".takes", shared)
         assertEquals("content://com.luigir86.low_end.takes/audio/Take1.m4a", uri.toString())
-        assertEquals("application/octet-stream", TakeProvider().getType(uri))
+        assertEquals("application/mp4", TakeProvider().getType(uri))
         val elsewhere = File(host.filesDir, "Take1.m4a")
         val refused = runCatching { FileProvider.getUriForFile(host, host.packageName + ".takes", elsewhere) }
         assertTrue(refused.isFailure)

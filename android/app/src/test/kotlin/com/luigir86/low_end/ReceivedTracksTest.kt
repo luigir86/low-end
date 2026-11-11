@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Looper
+import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import java.io.File
 import org.junit.Assert.assertArrayEquals
@@ -67,6 +68,11 @@ class ReceivedTracksTest {
         assertTrue(opens(Intent(Intent.ACTION_VIEW).setDataAndType(content, "audio/mpeg")))
         assertTrue(opens(Intent(Intent.ACTION_VIEW).setDataAndType(content, "audio/mp4")))
         assertTrue(opens(Intent(Intent.ACTION_VIEW).setDataAndType(content, "application/ogg")))
+        // A take shared from Low End arrives as an MP4 document (WhatsApp).
+        assertTrue(opens(Intent(Intent.ACTION_VIEW).setDataAndType(content, "application/mp4")))
+        assertTrue(opens(Intent(Intent.ACTION_SEND).setType("application/mp4")))
+        // Not for every file: a generic one is not offered Low End.
+        assertTrue(!opens(Intent(Intent.ACTION_VIEW).setDataAndType(content, "application/octet-stream")))
         assertTrue(opens(Intent(Intent.ACTION_SEND).setType("audio/x-wav")))
         assertTrue(opens(Intent(Intent.ACTION_VIEW, Uri.parse("lowend://action/drone_play"))))
         assertTrue(!opens(Intent(Intent.ACTION_VIEW).setDataAndType(content, "image/jpeg")))
@@ -79,8 +85,8 @@ class ReceivedTracksTest {
         val dart = FakeMessenger()
         ReceivedTracks.attach(dart)
         // Another app lends a file through its provider, with no audio type
-        // (this one is the app's own provider, which says
-        // application/octet-stream, as WhatsApp's often does).
+        // (this one is the app's own provider, which says application/mp4,
+        // as for a take a teacher shared from Low End).
         serveTakes(host)
         val lent = File(host.cacheDir, "shared-takes").apply { mkdirs() }
         val sound = ByteArray(1000) { it.toByte() }
@@ -112,16 +118,83 @@ class ReceivedTracksTest {
         assertEquals("Scale.m4a", (arguments as Map<*, *>)["name"])
     }
 
-    @Test
-    fun aFileThatCannotBeReadIsDropped() {
+    /** The app with the Player listening, and [lend]ing files through the
+     * take provider as another app would. */
+    private fun listening(): Pair<Activity, FakeMessenger> {
         val host = Robolectric.buildActivity(Activity::class.java).setup().get()
         val dart = FakeMessenger()
         ReceivedTracks.attach(dart)
         dart.call("low_end/received_tracks", "ready")
+        serveTakes(host)
+        return host to dart
+    }
+
+    private fun lend(host: Activity, name: String, bytes: ByteArray): Uri {
+        val lent = File(host.cacheDir, "shared-takes").apply { mkdirs() }
+        File(lent, name).writeBytes(bytes)
+        return FileProvider.getUriForFile(host, host.packageName + ".takes", File(lent, name))
+    }
+
+    private fun opened(dart: FakeMessenger) =
+        dart.sent.filter { it.second == "open" }.map { it.third as Map<*, *> }
+
+    @Test
+    fun aFileThatCannotBeReadIsSaidAndLeavesNothing() {
+        val (host, dart) = listening()
         ReceivedTracks.receive(host, Uri.parse("content://nobody.here/a.mp3"))
         finishReceiving()
-        // Nothing is opened and no folder is left.
-        assertTrue(dart.sent.none { it.second == "open" })
+        // The Player is told, to say so (rather than nothing happening).
+        assertEquals(listOf(mapOf("failed" to true)), opened(dart))
         assertTrue(ReceivedTracks.folder(host).listFiles().orEmpty().all { it.listFiles().orEmpty().isNotEmpty() })
+    }
+
+    @Test
+    fun anEmptyFileIsSaidAndLeavesNothing() {
+        val (host, dart) = listening()
+        ReceivedTracks.receive(host, lend(host, "Empty.mp3", ByteArray(0)))
+        finishReceiving()
+        assertEquals(listOf(mapOf("failed" to true)), opened(dart))
+        assertTrue(ReceivedTracks.folder(host).listFiles().orEmpty().isEmpty())
+    }
+
+    @Test
+    fun aFailureBeforeThePlayerListensWaitsForIt() {
+        val host = Robolectric.buildActivity(Activity::class.java).setup().get()
+        val dart = FakeMessenger()
+        ReceivedTracks.attach(dart)
+        ReceivedTracks.receive(host, Uri.parse("content://nobody.here/a.mp3"))
+        finishReceiving()
+        assertEquals(listOf(mapOf("failed" to true)), dart.call("low_end/received_tracks", "ready"))
+    }
+
+    @Test
+    fun aNameWithNoExtensionTakesTheOneOfItsType() {
+        val (host, dart) = listening()
+        shadowOf(MimeTypeMap.getSingleton()).addExtensionMimeTypeMapping("mp4", "application/mp4")
+        ReceivedTracks.receive(host, lend(host, "Lezione", byteArrayOf(1, 2, 3)))
+        finishReceiving()
+        val track = opened(dart).single()
+        assertEquals("Lezione.mp4", track["name"])
+        assertTrue((track["uri"] as String).endsWith("/Lezione.mp4"))
+    }
+
+    @Test
+    fun oddNamesAreMadeSafe() {
+        val (host, dart) = listening()
+        ReceivedTracks.receive(host, lend(host, "..Bass: line?.m4a", byteArrayOf(1)))
+        finishReceiving()
+        assertEquals("Bass_ line_.m4a", opened(dart).single()["name"])
+    }
+
+    @Test
+    fun takeHandsAudioToThePlayerAndLeavesLinksToFlutter() {
+        val (host, dart) = listening()
+        val uri = lend(host, "Scale.m4a", byteArrayOf(1, 2))
+        assertTrue(ReceivedTracks.take(host, Intent(Intent.ACTION_VIEW, uri)))
+        assertTrue(!ReceivedTracks.take(host, Intent(Intent.ACTION_VIEW, Uri.parse("lowend://action/drone_play?note=A"))))
+        assertTrue(!ReceivedTracks.take(host, Intent(Intent.ACTION_MAIN)))
+        assertTrue(!ReceivedTracks.take(host, null))
+        finishReceiving()
+        assertEquals(listOf("Scale.m4a"), opened(dart).map { it["name"] })
     }
 }
