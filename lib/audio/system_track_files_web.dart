@@ -45,21 +45,29 @@ Future<bool> saveRecording(RecordedTrack track) async {
   return true;
 }
 
+/// Shares the take as a copy named [RecordedTrack.exportName]. It goes as
+/// a plain file (a document) where the browser allows it: WhatsApp sends an
+/// audio file as an audio message and drops its name, a document keeps it.
+/// Otherwise it goes as audio.
 Future<bool> shareRecording(RecordedTrack track) async {
   final take = _takes[track.uri]!;
-  final data = web.ShareData(
-    // A copy of the file with the name the person gave it.
+  web.ShareData asFile(String type) => web.ShareData(
     files: [
-      web.File(
-        [take].toJS,
-        track.exportName,
-        web.FilePropertyBag(type: take.type),
-      ),
+      web.File([take].toJS, track.exportName, web.FilePropertyBag(type: type)),
     ].toJS,
     title: track.baseName,
   );
   final navigator = web.window.navigator;
-  if (!navigator.has('canShare') || !navigator.canShare(data)) return false;
+  if (!navigator.has('canShare')) return false;
+  web.ShareData? data;
+  for (final type in ['application/octet-stream', take.type]) {
+    final candidate = asFile(type);
+    if (navigator.canShare(candidate)) {
+      data = candidate;
+      break;
+    }
+  }
+  if (data == null) return false;
   try {
     await navigator.share(data).toDart;
   } catch (error) {
