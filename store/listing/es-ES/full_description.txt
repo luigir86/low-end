@@ -22,18 +22,18 @@ AFINADOR
 ESCUCHA: ESTUDIA TUS PISTAS
 • Abre una pista del teléfono (MP3, M4A, WAV, FLAC…) y muévete por su forma de onda alrededor del círculo.
 • Ralentízala hasta el 50% o acelérala hasta el 125% sin cambiar la afinación.
-• Repite un pasaje con dos toques y ajústalo sobre la forma de onda.
+• Marca A y B para repetir un pasaje y luego arrastra las asas A y B para ajustarlo.
 • Grábate con REC, también sobre el clic, escúchate y guarda o comparte la toma.
 
 HECHA PARA TOCAR
-• Escucha suena sola: pausa el metrónomo y la armonía, con un botón Reanudar.
+• Escucha suena sola: al iniciarla, pausa el metrónomo y la armonía.
 • Desliza a izquierda y derecha para cambiar de sección; para los ensayos, bloquea los gestos en los ajustes.
-• Sigue sonando con la pantalla apagada, con una notificación que dice lo que suena. Si desconectas los auriculares, el sonido se detiene.
+• Sigue sonando con la pantalla apagada, con una notificación que dice lo que suena. Si desconectas los auriculares o entra una llamada, el sonido se pausa.
 • Un aspecto oscuro en ébano y bronce; en cuatro idiomas; notas Do Re Mi o C D E.
 • Pensada para ser accesible: etiquetas para lectores de pantalla, texto ampliable y colores que nunca son la única señal.
 
 PRIVADA Y ABIERTA
 • Sin cuenta, sin anuncios, sin rastreo, sin necesidad de conexión a internet.
-• El micrófono solo se usa mientras el afinador está en pantalla o mientras grabas. Tus grabaciones se quedan en el teléfono salvo que las guardes o compartas.
+• El micrófono solo se usa mientras el afinador está en pantalla o mientras grabas. Una toma nunca sale del teléfono salvo que la guardes o compartas.
 • Software libre y de código abierto con licencia MIT: https://github.com/luigir86/low-end
 • Sonidos: Salamander Grand Piano de Alexander Holm, contrabajo Meatbass de Karoryfer Lecolds (dominio público).

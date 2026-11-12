@@ -22,18 +22,18 @@ ACCORDATORE
 ASCOLTO: STUDIA I TUOI BRANI
 • Apri un brano dal telefono (MP3, M4A, WAV, FLAC…) e muoviti sulla sua forma d'onda intorno al cerchio.
 • Rallentalo fino al 50% o acceleralo fino al 125% senza cambiare l'intonazione.
-• Ripeti un passaggio con due tocchi e rifiniscilo sulla forma d'onda.
+• Segna A e B per ripetere un passaggio, poi trascina le maniglie A e B per rifinirlo.
 • Registrati con REC, anche sul click, riascoltati, poi salva o condividi la ripresa.
 
 PENSATA PER SUONARE
-• Ascolto suona da solo: mette in pausa metronomo e armonia, con un pulsante Riprendi.
+• Ascolto suona da solo: avviarlo mette in pausa metronomo e armonia.
 • Scorri a sinistra e a destra per cambiare sezione; per le prove, blocca i gesti nelle impostazioni.
-• Continua a suonare con lo schermo spento, con una notifica che dice cosa suona. Se stacchi le cuffie il suono si ferma.
+• Continua a suonare con lo schermo spento, con una notifica che dice cosa suona. Se stacchi le cuffie o arriva una chiamata, il suono va in pausa.
 • Un aspetto scuro in ebano e bronzo, comodo sul palco; in quattro lingue; note Do Re Mi o C D E.
 • Progettata per essere accessibile: etichette per i lettori di schermo, testo ingrandibile e colori mai usati come unico segnale.
 
 PRIVATA E APERTA
 • Niente account, pubblicità, tracciamento né internet.
-• Il microfono è usato solo mentre l'accordatore è sullo schermo o mentre registri. Le registrazioni restano sul telefono, a meno che tu non le salvi o condivida.
+• Il microfono è usato solo mentre l'accordatore è sullo schermo o mentre registri. Una ripresa non lascia mai il telefono, a meno che tu non la salvi o condivida.
 • Software libero e open source con licenza MIT: https://github.com/luigir86/low-end
 • Suoni: pianoforte Salamander Grand Piano di Alexander Holm, contrabbasso Meatbass di Karoryfer Lecolds (pubblico dominio).

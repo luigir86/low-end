@@ -22,18 +22,18 @@ ACCORDEUR
 ÉCOUTE : TRAVAILLEZ VOS MORCEAUX
 • Ouvrez un morceau du téléphone (MP3, M4A, WAV, FLAC…) et déplacez-vous sur sa forme d’onde autour du cercle.
 • Ralentissez-le jusqu’à 50 % ou accélérez-le jusqu’à 125 % sans changer la hauteur.
-• Bouclez un passage en deux gestes et ajustez-le sur la forme d’onde.
+• Marquez A et B pour boucler un passage, puis faites glisser les poignées A et B pour l’ajuster.
 • Enregistrez-vous avec REC, sur le clic si vous voulez, réécoutez, puis enregistrez ou partagez la prise.
 
 FAITE POUR JOUER
-• Écoute joue seule : elle met en pause le métronome et l’harmonie, avec un bouton Reprendre.
+• Écoute joue seule : la lancer met en pause le métronome et l’harmonie.
 • Glissez à gauche et à droite pour changer de section ; pour les répétitions, verrouillez les gestes.
-• Continue de jouer écran éteint, avec une notification qui dit ce qui sonne. Débranchez les écouteurs et le son s’arrête.
+• Continue de jouer écran éteint, avec une notification qui dit ce qui sonne. Écouteurs débranchés ou appel : le son se met en pause.
 • Ébène et bronze ; quatre langues ; notes Do Ré Mi ou C D E.
 • Accessible : libellés pour lecteurs d’écran, texte agrandissable, jamais la couleur comme seul indice.
 
 PRIVÉE ET OUVERTE
 • Pas de compte, pas de publicité, pas de pistage, pas d’internet.
-• Le micro n’est utilisé que lorsque l’accordeur est à l’écran ou pendant un enregistrement. Vos prises restent sur le téléphone, sauf si vous les partagez.
+• Le micro n’est utilisé que lorsque l’accordeur est à l’écran ou pendant un enregistrement. Une prise ne quitte le téléphone que si vous l’enregistrez ou la partagez.
 • Logiciel libre et open source sous licence MIT : https://github.com/luigir86/low-end
 • Sons : Salamander Grand Piano d’Alexander Holm, contrebasse Meatbass de Karoryfer Lecolds (domaine public).
