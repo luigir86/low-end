@@ -70,6 +70,9 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          # Pinned to the last Flutter the app is tested with (CLAUDE.md); 3.50 needs a
+          # migration first (material_ui package, Android Gradle Plugin 9.1.1).
+          flutter-version: 3.47.9
           cache: true
       - run: flutter pub get
       # Generate native/web colours and icons from the single Dart accent.
@@ -93,6 +96,9 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          # Pinned to the last Flutter the app is tested with (CLAUDE.md); 3.50 needs a
+          # migration first (material_ui package, Android Gradle Plugin 9.1.1).
+          flutter-version: 3.47.9
           cache: true
       # Keeps Gradle and the Android libraries between runs (saved by main,
       # read by pull requests).
@@ -136,6 +142,9 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          # Pinned to the last Flutter the app is tested with (CLAUDE.md); 3.50 needs a
+          # migration first (material_ui package, Android Gradle Plugin 9.1.1).
+          flutter-version: 3.47.9
           cache: true
       - run: flutter pub get
       # Generate native/web colours and icons from the single Dart accent.
