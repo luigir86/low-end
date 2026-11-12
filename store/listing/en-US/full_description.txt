@@ -22,18 +22,18 @@ TUNER
 PLAYER: STUDY YOUR TRACKS
 • Open a track from your phone (MP3, M4A, WAV, FLAC…) and find your way on its waveform round the dial.
 • Slow it down to 50% or speed it up to 125% without changing the pitch.
-• Loop a passage with two taps and refine it on the waveform.
+• Mark A and B to loop a passage, then drag the A and B handles to adjust it.
 • Record yourself with REC, over the click if you like, listen back, then save or share the take.
 
 MADE FOR PLAYING
-• The Player plays alone: it pauses the metronome and the harmony, with a Resume button.
+• The Player plays on its own: starting it pauses the metronome and the harmony.
 • Swipe left and right to change section; for rehearsals, lock the gestures in the settings.
-• Keeps playing with the screen off, with a notification that says what is sounding. Unplug the headphones and the sound stops.
+• Keeps playing with the screen off, with a notification that says what is sounding. Unplug the headphones or take a call and the sound pauses.
 • A dark look in ebony and bronze, easy on the eyes on stage; in four languages; note names as C D E or Do Re Mi.
 • Built to be accessible: screen-reader labels, enlargeable text, and colours that are never the only cue.
 
 PRIVATE AND OPEN
 • No account, no ads, no tracking, no internet connection needed.
-• The microphone is used only while the tuner is on screen or while you record. Your recordings stay on the phone unless you save or share them.
+• The microphone is used only while the tuner is on screen or while you record. A take never leaves the phone unless you save or share it.
 • Free and open-source software under the MIT License: https://github.com/luigir86/low-end
 • Sounds: Salamander Grand Piano by Alexander Holm, Meatbass double bass by Karoryfer Lecolds (public domain).
