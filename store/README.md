@@ -24,6 +24,8 @@ The file is `build/app/outputs/bundle/release/app-release.aab`. It is signed wit
 
 Raise `version:` in `pubspec.yaml` (the number after `+` must grow with every upload) and `appVersion` in `lib/app/version.dart` (shown in About; `version_test` keeps them equal) before each new bundle.
 
+The same bundle can be built and uploaded to Play as a draft by GitHub, without the PC: Actions > **Release Play** ([docs/play-release.md](../docs/play-release.md)).
+
 ## Store listing
 
 The texts in `listing/` describe the app to the people on Google Play; what it does is written in [docs/specs/requisiti.md](../docs/specs/requisiti.md), and before each release the texts are read against it (see the release checklist): what they promise must be there, as the requirements say it.

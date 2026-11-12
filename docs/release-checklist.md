@@ -28,6 +28,9 @@ marks anything that cannot be confirmed from the code.
 - [ ] Format: upload an **AAB**: `flutter build appbundle --release`
       (output: `build/app/outputs/bundle/release/app-release.aab`).
       The APK (`flutter build apk --release`) is for testing on the phone.
+      Or, without the PC: GitHub > Actions > **Release Play** builds the same
+      signed AAB from `main` and uploads it to Play as a draft
+      ([docs/play-release.md](play-release.md)).
 - [ ] `flutter build appbundle --release --analyze-size` once, to confirm that
       R8 / resource shrinking are active (the performance review could not
       confirm it; `build.gradle.kts` has no explicit minify setting).
