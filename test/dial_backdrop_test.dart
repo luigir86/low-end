@@ -94,8 +94,10 @@ void main() {
     (tester) async {
       await open(tester, const Size(320, 480), scale: 2.0);
       final before = disc(tester);
-      await tester.drag(
-        find.byType(SingleChildScrollView).first,
+      // Beside the dial: on it the tempo wheel would take the drag.
+      final page = tester.getRect(find.byType(SingleChildScrollView).first);
+      await tester.dragFrom(
+        Offset(page.left + 8, page.center.dy),
         const Offset(0, -120),
       );
       await tester.pumpAndSettle();
