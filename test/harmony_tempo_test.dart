@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,13 +12,14 @@ import 'package:low_end/audio/audio_scope.dart';
 import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/tone_output.dart';
-import 'package:low_end/features/harmony/drone_controller.dart';
+import 'package:low_end/features/harmony/drone_panel.dart';
+import 'package:low_end/features/metronome/tempo_dial.dart';
 
 Future<ByteData> _font(String path) async =>
     ByteData.sublistView(await File(path).readAsBytes());
 
-/// Harmony shows the metronome's tempo beside the Mode field and changes it
-/// with the metronome's sheet.
+/// Harmony shows the metronome's tempo above its controls and changes it
+/// with the same wheel as the metronome, round its dial.
 void main() {
   setUpAll(() async {
     // The app's own fonts: the ♩ comes from the music font, taller than the
@@ -31,12 +33,10 @@ void main() {
     )..addFont(_font('assets/fonts/NotoMusic-Regular.ttf'))).load();
   });
 
-  Future<AudioScope> open(WidgetTester tester, {double scale = 1}) async {
+  Future<AudioScope> open(WidgetTester tester) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
-    tester.platformDispatcher.textScaleFactorTestValue = scale;
-    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     await tester.pumpWidget(
       LowEndApp(
         toneOutput: SilentToneOutput(),
@@ -52,43 +52,35 @@ void main() {
     return scope;
   }
 
-  for (final scale in [1.0, 1.3, 2.0]) {
-    testWidgets('Tempo is exactly as tall as Mode (text x$scale)', (
-      tester,
-    ) async {
-      final scope = await open(tester, scale: scale);
-      for (final voicing in [DroneVoicing.progression, DroneVoicing.root]) {
-        scope.drone.setVoicing(voicing);
-        await tester.pumpAndSettle();
-        final mode = tester.getRect(find.byKey(const Key('voicingMenu')));
-        final tempo = tester.getRect(find.byKey(const Key('harmonyTempo')));
-        expect(tempo.height, mode.height, reason: '$voicing');
-        expect(tempo.top, mode.top, reason: '$voicing');
-      }
-    });
-  }
+  Finder wheel() => find.descendant(
+    of: find.byType(DronePanel),
+    matching: find.byKey(const Key('metronomeTempoDial')),
+  );
 
-  testWidgets('Tempo shows the metronome\'s and changes it', (tester) async {
+  testWidgets('Tempo shows the metronome\'s and the wheel changes it', (
+    tester,
+  ) async {
     final scope = await open(tester);
     expect(find.text('♩ = 80'), findsOneWidget);
-    expect(
-      tester.getSemantics(find.byKey(const Key('harmonyTempo'))),
-      matchesSemantics(
-        label: 'Tempo',
-        value: '80 BPM',
-        isButton: true,
-        hasTapAction: true,
-        hasEnabledState: true,
-        isEnabled: true,
-      ),
-    );
-    await tester.tap(find.byKey(const Key('harmonyTempo')));
+    // No tempo field any more: the wheel is the slider.
+    expect(find.bySemanticsLabel('Tempo'), findsNothing);
+    final rect = tester.getRect(wheel());
+    final g = TempoDialGeometry(rect.size);
+    final radius = (g.inner + g.outer) / 2;
+    Offset at(double angle) =>
+        rect.center + Offset(math.sin(angle), -math.cos(angle)) * radius;
+    // A quarter turn clockwise: 30 BPM faster, and no note plays.
+    final gesture = await tester.startGesture(at(0));
+    for (var i = 1; i <= 12; i++) {
+      await gesture.moveTo(at(math.pi / 2 * i / 12));
+      await tester.pump(const Duration(milliseconds: 5));
+    }
+    await gesture.up();
     await tester.pumpAndSettle();
-    await tester.tap(find.text('120 BPM'));
-    await tester.pumpAndSettle();
-    expect(scope.metronome.bpm, 120);
+    expect(scope.metronome.bpm, 110);
+    expect(scope.drone.isPlaying, isFalse);
     expect(scope.navigation.section, AppSection.drone);
-    expect(find.text('♩ = 120'), findsOneWidget);
+    expect(find.text('♩ = 110'), findsOneWidget);
     // Set on the metronome, it shows here too.
     scope.metronome.setBpm(96);
     await tester.pumpAndSettle();

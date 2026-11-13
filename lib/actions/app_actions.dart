@@ -204,7 +204,7 @@ class AppActions {
           'beat or the click on 2 and 4, without starting, stopping or '
           'changing section. Give at least one. The settings are remembered '
           'for the next launch. The tempo is also the one Harmony plays at '
-          '(shown in its Tempo field).',
+          '(shown above its controls and turned on the wheel round its dial).',
       parameters: _metronomeParameters,
     ),
     const AppAction(

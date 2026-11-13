@@ -16,7 +16,7 @@ import '../../widgets/dial.dart';
 import '../../widgets/page_dots.dart';
 import '../../widgets/row_controls.dart';
 import '../../widgets/style_icons.dart';
-import '../metronome/tempo_dialog.dart';
+import '../metronome/tempo_dial.dart';
 import 'drone_controller.dart';
 import 'drone_key_sheets.dart';
 import 'harmony.dart';
@@ -58,19 +58,13 @@ class DronePanel extends StatelessWidget {
             names: names,
             order: circleOrder(scope.settings.circleLayout),
           ),
+          // The tempo Harmony plays at, the metronome's, turned on the same
+          // wheel round the dial: written here, above the controls.
+          header: const _TempoReadout(),
           upper: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Two halves like the metronome's first row: what plays, and
-              // the tempo it plays at, the metronome's, so that it can be
-              // changed without leaving Harmony.
-              Row(
-                children: [
-                  Expanded(child: _VoicingSwitch(drone: drone)),
-                  const SizedBox(width: rowGap),
-                  const Expanded(child: _TempoField()),
-                ],
-              ),
+              _VoicingSwitch(drone: drone),
               if (drone.audioFailed)
                 Semantics(
                   liveRegion: true,
@@ -159,9 +153,16 @@ class _FifthsDial extends StatelessWidget {
         // For a frame the dial can get almost no room (for instance while
         // the app rebuilds after a language change): draw nothing then.
         if (size.shortestSide < 120) return const SizedBox.shrink();
-        final dial = DialGeometry(size);
+        // The notes sit inside the tempo wheel, where the metronome has its
+        // beats, and the hub is the metronome's.
+        final geometry = TempoDialGeometry(size);
+        final dial = geometry.dial;
+        final middle = (geometry.beatInner + geometry.beatOuter) / 2;
+        Offset notePoint(double angle) =>
+            dial.center + Offset(math.sin(angle), -math.cos(angle)) * middle;
         // A touch area per note, as wide as the ring is thick.
-        final key = math.max(48.0, dial.ringWidth);
+        final key = math.max(48.0, geometry.beatWidth);
+        final metronome = AudioScope.of(context).metronome;
         return Stack(
           children: [
             Positioned.fill(
@@ -177,10 +178,18 @@ class _FifthsDial extends StatelessWidget {
                 ),
               ),
             ),
+            // Above the painted ring, which would take its touches.
+            Positioned.fill(
+              child: ListenableBuilder(
+                listenable: metronome,
+                builder: (context, _) =>
+                    MetronomeTempoDial(metronome: metronome),
+              ),
+            ),
             for (var i = 0; i < 12; i++)
               Positioned.fromRect(
                 rect: Rect.fromCenter(
-                  center: dial.ringPoint(i * math.pi / 6),
+                  center: notePoint(i * math.pi / 6),
                   width: key,
                   height: key,
                 ),
@@ -214,7 +223,7 @@ class _FifthsDial extends StatelessWidget {
             // again, like the metronome's ring.
             Center(
               child: SizedBox.square(
-                dimension: dial.hub * 2,
+                dimension: geometry.hubRadius * 2,
                 child: Semantics(
                   button: true,
                   label: drone.isPlaying
@@ -232,9 +241,11 @@ class _FifthsDial extends StatelessWidget {
                       },
                       child: Center(
                         child: SizedBox.square(
-                          dimension: dial.hub * math.sqrt2,
+                          dimension: geometry.hubRadius * math.sqrt2,
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
+                            // Laid out as wide as before the wheel, then
+                            // scaled into the smaller hub: the same lines.
                             child: SizedBox(
                               width: dial.hub * math.sqrt2,
                               child: _DialCenter(drone: drone, names: names),
@@ -280,7 +291,8 @@ class _FifthsPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final dial = DialGeometry(size);
+    final geometry = TempoDialGeometry(size);
+    final dial = geometry.dial;
     const step = math.pi / 6;
     for (var i = 0; i < 12; i++) {
       final pc = order[i];
@@ -291,6 +303,8 @@ class _FifthsPainter extends CustomPainter {
       const sweep = step - DialGeometry.gap;
       dial.paintSegment(
         canvas,
+        inner: geometry.beatInner,
+        outer: geometry.beatOuter,
         startAngle: start,
         sweep: sweep,
         color: lit
@@ -680,34 +694,45 @@ class _VoicingSwitch extends StatelessWidget {
   }
 }
 
-/// The tempo Harmony plays at, which is the metronome's: "♩ = 80". A touch
-/// opens the same sheet as the metronome's pencil, so the sound changes once,
-/// on OK, and not at every step of the way.
-class _TempoField extends StatelessWidget {
-  const _TempoField();
+/// The tempo Harmony plays at, which is the metronome's: "♩ = 80", and under
+/// it how to change it, by turning the wheel round the dial. The wheel is
+/// the slider heard by a screen reader; this only shows the number.
+class _TempoReadout extends StatelessWidget {
+  const _TempoReadout();
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
     final metronome = AudioScope.of(context).metronome;
-    final style = Theme.of(context).textTheme.bodyLarge;
+    final style = theme.textTheme.titleMedium!;
     return ListenableBuilder(
       listenable: metronome,
-      builder: (context, _) => LabeledField(
-        key: const Key('harmonyTempo'),
-        label: l10n.tempoLabel,
-        // Heard as "Tempo, 80 BPM".
-        value: l10n.bpmValue('${metronome.bpm}'),
-        // The note comes from the music font, taller than the text: the line
-        // keeps the height of the text, so the field matches the one beside it.
-        display: Text(
-          '${metronome.signature.beatUnit.symbol} = ${metronome.bpm}',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: style,
-          strutStyle: StrutStyle.fromTextStyle(style!, forceStrutHeight: true),
+      builder: (context, _) => ExcludeSemantics(
+        child: Column(
+          key: const Key('harmonyTempo'),
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // The note comes from the music font, taller than the text: the
+            // line keeps the height of the text.
+            Text(
+              '${metronome.signature.beatUnit.symbol} = ${metronome.bpm}',
+              textAlign: TextAlign.center,
+              style: style,
+              strutStyle: StrutStyle.fromTextStyle(
+                style,
+                forceStrutHeight: true,
+              ),
+            ),
+            Text(
+              l10n.tempoDialCaption,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
         ),
-        onTap: () => showTempoDialog(context, metronome),
       ),
     );
   }
