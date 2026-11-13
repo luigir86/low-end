@@ -20,11 +20,11 @@ class TempoDialGeometry {
 
   // Dark margins enlarge the drag target without painting a heavy band.
   double get hitOuter => dial.radius;
-  double get hitInner => hitOuter - math.min(36, dial.radius * 0.23);
-  double get beatOuter => hitInner - 4;
-  double get beatInner => beatOuter - dial.ringWidth;
+  double get hitInner => dial.outerBandInner;
+  double get beatOuter => dial.mainOuter;
+  double get beatInner => dial.mainInner;
   double get beatWidth => beatOuter - beatInner;
-  double get hubRadius => beatInner - 4;
+  double get hubRadius => dial.centreRadius;
   double get hubSize => hubRadius * 1.65;
 
   Path _annulus(double inner, double outer) => Path()

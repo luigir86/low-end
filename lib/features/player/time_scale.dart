@@ -15,23 +15,20 @@ class PlayerDialGeometry extends DialGeometry {
   /// screen) only the ticks are drawn and the band stays thin.
   static const minLabelledRadius = 120.0;
 
-  /// The room kept outside the ring for the ticks and, on a dial large
-  /// enough, the times.
-  double get band => labelled ? 28.0 : 10.0;
-
   /// True when the dial is large enough for the times.
   bool get labelled => radius >= minLabelledRadius;
 
-  /// Where the band ends towards the ring: the outer edge of the ring.
+  /// The ring and hub of every tab; the ticks and times go in the outer
+  /// band, where the other tabs have their tempo wheel.
   @override
-  double get ringOuter => radius * 0.97 - band;
+  double get ringOuter => mainOuter;
 
   @override
-  double get ringInner => ringOuter - radius * 0.30;
+  double get ringInner => mainInner;
 
   /// The middle, where the time and the play button are.
   @override
-  double get hub => ringInner - radius * 0.03;
+  double get hub => centreRadius;
 }
 
 /// The marks of a track's times on the ring: a number every [major], a

@@ -371,13 +371,14 @@ class _RingPainter extends CustomPainter {
         // than the "one", as the chord's notes are than its root.
         color = colors.secondary;
       }
-      // The lit "one" is also wider, into the ring's margins: it stands out
-      // by its shape as well as by its colour.
+      // The lit "one" is also longer, out to the ring's edge: it stands out
+      // by its shape as well as by its colour. All start from the edge of the
+      // hub, the same on every tab.
       final one = b == 0 && b == beat && count > 1 && !metronome.isSilent(0);
       dial.paintSegment(
         canvas,
-        inner: geometry.beatInner + geometry.beatWidth * (one ? 0.12 : 0.22),
-        outer: geometry.beatOuter - geometry.beatWidth * (one ? 0.0 : 0.08),
+        inner: geometry.beatInner,
+        outer: geometry.beatOuter - geometry.beatWidth * (one ? 0.0 : 0.14),
         startAngle: b * slice + start,
         sweep: slice - start - end,
         color: color,

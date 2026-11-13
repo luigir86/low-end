@@ -115,6 +115,19 @@ class DialGeometry {
 
   /// Thickness of the ring.
   double get ringWidth => ringOuter - ringInner;
+
+  /// The band round the outside that every section shares: the tempo wheel
+  /// of the metronome and Harmony, the times of the Player, the outer
+  /// strobe of the tuner. Inside it, the same ring and hub on every tab.
+  double get outerBandInner => radius - math.min(36, radius * 0.23);
+
+  /// The ring of each section inside the outer band: the beats, the
+  /// notes, the track, the inner strobe.
+  double get mainOuter => outerBandInner - 4;
+  double get mainInner => mainOuter - (radius * 0.97 - radius * 0.64);
+
+  /// The hub inside it, the same size on every tab.
+  double get centreRadius => mainInner - 4;
 }
 
 /// Lays out a section around its dial, the same way on every tab: the dial

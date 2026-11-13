@@ -378,73 +378,82 @@ class _StrobeDiscState extends State<_StrobeDisc>
     final segments = idle
         ? colors.strobeIdle
         : _centsColor(theme, r.cents, widget.tolerance);
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // Moves on every frame: repaint only this part of the screen.
-        RepaintBoundary(
-          child: ExcludeSemantics(
-            child: TweenAnimationBuilder<Color?>(
-              tween: ColorTween(begin: segments, end: segments),
-              duration: _animate ? Durations.short4 : Duration.zero,
-              curve: Easing.standard,
-              builder: (context, color, _) => CustomPaint(
-                key: const Key('tunerStrobe'),
-                painter: _DiscPainter(
-                  phase: _phase,
-                  segments: color!,
-                  innerSegments: color,
-                  hub: theme.colorScheme.surface,
-                  // A still marker for players who turned animations off.
-                  stillCents: _animate ? null : r?.cents,
-                  scale: theme.colorScheme.outline,
-                  edge: theme.colorScheme.outline,
+    return LayoutBuilder(
+      builder: (context, box) {
+        // The hub of every tab: inside the ring they share.
+        final dial = DialGeometry(box.biggest);
+        final hubFraction = box.biggest.isEmpty
+            ? DialGeometry.hubFraction
+            : dial.centreRadius / dial.radius;
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            // Moves on every frame: repaint only this part of the screen.
+            RepaintBoundary(
+              child: ExcludeSemantics(
+                child: TweenAnimationBuilder<Color?>(
+                  tween: ColorTween(begin: segments, end: segments),
+                  duration: _animate ? Durations.short4 : Duration.zero,
+                  curve: Easing.standard,
+                  builder: (context, color, _) => CustomPaint(
+                    key: const Key('tunerStrobe'),
+                    painter: _DiscPainter(
+                      phase: _phase,
+                      segments: color!,
+                      innerSegments: color,
+                      hub: theme.colorScheme.surface,
+                      // A still marker for players who turned animations off.
+                      stillCents: _animate ? null : r?.cents,
+                      scale: theme.colorScheme.outline,
+                      edge: theme.colorScheme.outline,
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
-        // The hub is the button: as wide as the hub of the dial.
-        Center(
-          child: FractionallySizedBox(
-            widthFactor: DialGeometry.hubFraction,
-            heightFactor: DialGeometry.hubFraction,
-            child: Semantics(
-              button: true,
-              label: widget.listening
-                  ? AppLocalizations.of(context).stopListening
-                  : AppLocalizations.of(context).startListening,
-              child: Material(
-                type: MaterialType.transparency,
-                child: InkWell(
-                  key: const Key('tunerHub'),
-                  customBorder: const CircleBorder(),
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    widget.onToggle();
-                  },
-                  child: Center(
-                    child: FractionallySizedBox(
-                      widthFactor: 0.5 / DialGeometry.hubFraction,
-                      heightFactor: 0.5 / DialGeometry.hubFraction,
-                      child: _NoteDisplay(
-                        reading: r,
-                        held: widget.held,
-                        tolerance: widget.tolerance,
-                        listening: widget.listening,
-                        soundPlaying: widget.soundPlaying,
-                        names: widget.names,
-                        numbering: widget.numbering,
-                        transposition: widget.transposition,
+            // The hub is the button: as wide as the hub of the dial.
+            Center(
+              child: FractionallySizedBox(
+                widthFactor: hubFraction,
+                heightFactor: hubFraction,
+                child: Semantics(
+                  button: true,
+                  label: widget.listening
+                      ? AppLocalizations.of(context).stopListening
+                      : AppLocalizations.of(context).startListening,
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: InkWell(
+                      key: const Key('tunerHub'),
+                      customBorder: const CircleBorder(),
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        widget.onToggle();
+                      },
+                      child: Center(
+                        child: FractionallySizedBox(
+                          widthFactor: 0.5 / DialGeometry.hubFraction,
+                          heightFactor: 0.5 / DialGeometry.hubFraction,
+                          child: _NoteDisplay(
+                            reading: r,
+                            held: widget.held,
+                            tolerance: widget.tolerance,
+                            listening: widget.listening,
+                            soundPlaying: widget.soundPlaying,
+                            names: widget.names,
+                            numbering: widget.numbering,
+                            transposition: widget.transposition,
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 }
@@ -478,8 +487,10 @@ class _DiscPainter extends CustomPainter {
     // Two bands of segments fill the ring, the inner one turning twice as
     // fast: the same ring the drone and the metronome use.
     const step = 2 * math.pi / _count;
-    final split = dial.ringInner + dial.ringWidth / 2;
-    final bandGap = dial.ringWidth * 0.06;
+    // From the inner edge shared by every tab out to the dial's edge.
+    final inner = dial.mainInner, width = dial.ringOuter - inner;
+    final split = inner + width / 2;
+    final bandGap = width * 0.06;
     for (var band = 0; band < 2; band++) {
       final turn = stillCents == null ? phase.value * (band + 1) * step : 0.0;
       for (var i = 0; i < _count; i++) {
@@ -489,7 +500,7 @@ class _DiscPainter extends CustomPainter {
           // Narrower than the gaps between them: a lighter ring.
           sweep: step * 0.4,
           color: band == 0 ? segments : innerSegments,
-          inner: band == 0 ? split + bandGap / 2 : dial.ringInner,
+          inner: band == 0 ? split + bandGap / 2 : inner,
           outer: band == 0 ? dial.ringOuter : split - bandGap / 2,
           border: edge,
         );
@@ -500,7 +511,7 @@ class _DiscPainter extends CustomPainter {
     // still against it when in tune.
     final top = dial.center.dx;
     final y0 = dial.center.dy - dial.ringOuter;
-    final y1 = dial.center.dy - dial.ringInner;
+    final y1 = dial.center.dy - dial.mainInner;
     canvas.drawLine(
       Offset(top, y0),
       Offset(top, y1),
@@ -529,8 +540,8 @@ class _DiscPainter extends CustomPainter {
         // The tick for "in tune" is longer and thicker: told by shape.
         final zero = c == 0;
         canvas.drawLine(
-          center + dir * (dial.hub * (zero ? 0.72 : 0.86)),
-          center + dir * (dial.hub * (zero ? 1.0 : 0.96)),
+          center + dir * (dial.centreRadius * (zero ? 0.72 : 0.86)),
+          center + dir * (dial.centreRadius * (zero ? 1.0 : 0.96)),
           zero
               ? (Paint()
                   ..color = scale
@@ -541,8 +552,8 @@ class _DiscPainter extends CustomPainter {
       final a = angle(cents.clamp(-50, 50));
       final dir = Offset(math.cos(a), math.sin(a));
       canvas.drawLine(
-        center + dir * (dial.hub * 0.80),
-        center + dir * dial.hub,
+        center + dir * (dial.centreRadius * 0.80),
+        center + dir * dial.centreRadius,
         Paint()
           ..color = segments
           ..strokeWidth = 6
