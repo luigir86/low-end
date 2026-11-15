@@ -424,11 +424,16 @@ class BarLoopPlayer {
   }
 
   /// Stops the loop. With [tailFor], what the loop sounds like let go
-  /// where it is (see PianoSound.tailWav) plays on from that very sample.
+  /// where it is (see PianoSound.tailWav) plays on from that very sample;
+  /// none for a loop still waiting to come in, which was never heard.
   Future<void> stop({
     Future<Uint8List> Function(Duration position)? tailFor,
   }) async {
     final handle = _handle, source = _source;
+    // Scheduled and not yet sounding (waiting for the other loop's bar
+    // line): there is nothing to let go, and a tail would ring out of a
+    // chord never heard. Read before [_startsAt] is forgotten.
+    final unheard = _untilOwnStart() != null;
     if (_handOverAt != null) transport.cancelMeeting();
     _handOverAt = null;
     _handle = null;
@@ -437,6 +442,7 @@ class BarLoopPlayer {
     transport.unregister(name, handle);
     if (handle != null &&
         tailFor != null &&
+        !unheard &&
         _soloud.getIsValidVoiceHandle(handle)) {
       try {
         final since = Stopwatch()..start();
