@@ -3,6 +3,7 @@ import 'package:flutter_soloud/flutter_soloud.dart';
 
 import 'drone_sound.dart';
 import 'loop_engine.dart';
+import 'loop_transport.dart';
 import 'off_thread.dart';
 import 'soloud_engine.dart';
 
@@ -12,7 +13,9 @@ import 'soloud_engine.dart';
 /// real audio device.
 abstract class ToneOutput {
   /// Starts (or retunes, if already playing) the given frequencies in Hz.
-  /// [gains] holds one relative volume per frequency, 0 to 1.
+  /// [gains] holds one relative volume per frequency, 0 to 1. Stopped
+  /// while the tone is got ready, it starts nothing and throws
+  /// [LoopNotWanted].
   Future<void> play(
     List<double> frequencies,
     List<double> gains,
@@ -50,6 +53,10 @@ class SoLoudToneOutput implements ToneOutput {
   final Future<void> Function() _engineReady;
   final Future<Uint8List> Function(List<double>, List<double>) _buildTone;
 
+  /// How many times [stop] was called: a play that a stop overtook while
+  /// its tone was built starts nothing.
+  var _stops = 0;
+
   /// The tones built and loaded so far, by [_key].
   final _sources = <String, Future<AudioSource>>{};
   SoundHandle? _handle;
@@ -86,6 +93,7 @@ class SoLoudToneOutput implements ToneOutput {
   ) async {
     assert(gains.length == frequencies.length);
     final key = _key(frequencies, gains);
+    final stops = _stops;
     if (_handle != null && key == _playing) {
       _setVolume(volume);
       return;
@@ -102,6 +110,9 @@ class SoLoudToneOutput implements ToneOutput {
       rethrow;
     }
     await awake;
+    // Stopped meanwhile: the stop let go of the tones (this one too), and a
+    // tone started now would sound on unseen.
+    if (stops != _stops) throw const LoopNotWanted();
     final handle = _soloud.play(source, volume: 0, looping: true);
     // The new tone fades in while the old one fades out: no click, no gap.
     _soloud.fadeVolume(handle, volume, _fade);
@@ -128,6 +139,7 @@ class SoLoudToneOutput implements ToneOutput {
 
   @override
   Future<void> stop() async {
+    _stops++;
     final handle = _handle;
     _handle = null;
     _playing = null;
