@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 
 import 'drone_sound.dart';
+import 'loop_engine.dart';
 import 'off_thread.dart';
 import 'soloud_engine.dart';
 
@@ -31,14 +32,28 @@ abstract class ToneOutput {
 /// are expected one at a time (DroneController waits for each one to
 /// finish before the next).
 class SoLoudToneOutput implements ToneOutput {
+  /// On the phone's engine. Tests give an engine of their own, what starts
+  /// it, and how a tone is built.
+  SoLoudToneOutput({
+    @visibleForTesting LoopEngine engine = LoopEngine.soloud,
+    @visibleForTesting Future<void> Function()? engineReady,
+    @visibleForTesting
+    Future<Uint8List> Function(List<double> frequencies, List<double> gains)?
+    build,
+  }) : _soloud = engine,
+       _engineReady = engineReady ?? prepareSoLoud,
+       _buildTone = build ?? _build;
+
   static const _fade = Duration(milliseconds: 80);
+
+  final LoopEngine _soloud;
+  final Future<void> Function() _engineReady;
+  final Future<Uint8List> Function(List<double>, List<double>) _buildTone;
 
   /// The tones built and loaded so far, by [_key].
   final _sources = <String, Future<AudioSource>>{};
   SoundHandle? _handle;
   String? _playing;
-
-  SoLoud get _soloud => SoLoud.instance;
 
   static String _key(List<double> frequencies, List<double> gains) =>
       '$frequencies $gains';
@@ -56,9 +71,9 @@ class SoLoudToneOutput implements ToneOutput {
       _sources.putIfAbsent(_key(frequencies, gains), () async {
         // The engine starts and warms up while the tone is built; its sound
         // is woken by play.
-        final engine = prepareSoLoud()..ignore();
+        final engine = _engineReady()..ignore();
         // Building the tone takes a moment: away from the screen's thread.
-        final wav = await _build(frequencies, gains);
+        final wav = await _buildTone(frequencies, gains);
         await engine;
         return _soloud.loadMem('drone.wav', wav);
       });
@@ -77,7 +92,7 @@ class SoLoudToneOutput implements ToneOutput {
     }
     // In a web page the engine's sound may be held (before the first
     // touch, asleep, interrupted): it is woken while the tone is got.
-    final awake = ensureSoLoud()..ignore();
+    final awake = _soloud.ensure()..ignore();
     final AudioSource source;
     try {
       source = await _source(frequencies, gains);
