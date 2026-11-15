@@ -118,6 +118,28 @@ void main() {
     expect(start.delay, _near(bar * 3 - engine.now));
   });
 
+  test('a tail slow and then failing does not schedule the new loop in '
+      'the past', () async {
+    await piano.play(fakeWav(bar * 4), bar, startAt: Duration.zero);
+    engine.advance(ms(300));
+    piano.beginHandOver(lead: ms(500));
+    await piano.play(
+      fakeWav(bar * 4),
+      bar,
+      startAt: Duration.zero,
+      handOver: true,
+      tailFor: (_) async {
+        // The bar line goes by while the tail is made, and then it fails.
+        engine.advance(const Duration(seconds: 3));
+        throw StateError('no tail');
+      },
+    );
+    final fresh = engine.voices.values.last;
+    expect(fresh.startsAt! >= engine.now, isTrue);
+    // The old loop's next bar line: 4 s.
+    expect(fresh.startsAt, bar * 2);
+  });
+
   test('a hand-over lets the old loop down to the bar line, '
       'where the new one comes in', () async {
     await click.play(fakeWav(bar), bar);
