@@ -419,22 +419,20 @@ class SoLoudPianoOutput implements PianoOutput {
     _player.setVolume(volume);
     final bar = barDuration(bpm, signature.beats);
     final was = _playing;
+    final started = await _player.play(
+      rendered.wav,
+      bar,
+      startAt: startAt,
+      onPulse: onTheBeat ? bar ~/ signature.beats : null,
+      tailFor: was == null ? null : (position) => _tail(was, position),
+      handOver: handOver,
+      wanted: stillWanted,
+    );
+    // Only now is it the player's loop: a stop while it was got ready lets
+    // go of the loop that sounds, not of this one, never heard. (Until it
+    // comes in, the player lets go of the old one with the tail above.)
     _playing = (loop: loop, scale: rendered.scale);
-    try {
-      return await _player.play(
-        rendered.wav,
-        bar,
-        startAt: startAt,
-        onPulse: onTheBeat ? bar ~/ signature.beats : null,
-        tailFor: was == null ? null : (position) => _tail(was, position),
-        handOver: handOver,
-        wanted: stillWanted,
-      );
-    } on LoopNotWanted {
-      // What played before (if anything) still does.
-      if (_playing?.loop == loop) _playing = was;
-      rethrow;
-    }
+    return started;
   }
 
   @override

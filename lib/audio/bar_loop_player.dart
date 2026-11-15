@@ -55,6 +55,25 @@ class BarLoopPlayer {
   /// aims at, while one is under way.
   Duration? _handOverAt;
 
+  /// When the loop handed over began to go down (see [beginHandOver]), and
+  /// from what level: how loud it is at a stop before the bar line.
+  ({Duration at, double level})? _handOverFrom;
+
+  /// The meeting this player opened on the transport (see [beginHandOver])
+  /// and has not closed yet. Whoever opens a meeting closes it, however
+  /// the hand-over ends: the new loop scheduled ([LoopTransport.meet]),
+  /// called off, failed, not wanted, or stopped. Otherwise clicks waiting
+  /// for it would stay let down for up to [_meetingLimit].
+  Object? _meeting;
+
+  /// Closes the meeting this player opened, if it is still open: nothing
+  /// will come in on it.
+  void _closeMeeting() {
+    if (_meeting == null) return;
+    _meeting = null;
+    transport.cancelMeeting();
+  }
+
   AudioSource? _source;
   SoundHandle? _handle;
   Duration _length = Duration.zero;
@@ -64,6 +83,18 @@ class BarLoopPlayer {
   /// The engine time the voice playing was scheduled to come in at, if it
   /// was: until then it reports no position (see [_untilOwnStart]).
   Duration? _startsAt;
+
+  /// The engine time a new chord carrying on is heard from (see [play]
+  /// with onPulse): until then it plays silent under the old one.
+  Duration? _heardFrom;
+
+  /// Whether the voice playing has yet to be heard: scheduled on a bar line
+  /// still to come, or a new chord silent until its pulse.
+  bool get _unheard {
+    if (_untilOwnStart() != null) return true;
+    final from = _heardFrom;
+    return from != null && _soloud.getEngineTime() < from;
+  }
 
   /// The voices this player started that still sound, or are still to,
   /// besides the loop playing ([_handle]): the loop it replaced, which plays
@@ -149,10 +180,19 @@ class BarLoopPlayer {
         : null;
     final oldSource = _source;
     final oldLength = _length;
+    // The old loop may itself be yet to be heard (a change right after
+    // another): from when it is.
+    final oldHeardFrom = !_unheard
+        ? null
+        : _untilOwnStart() != null
+        ? _startsAt
+        : _heardFrom;
     final carryOn = startAt == null && old != null;
     final handingOver = handOver && !carryOn && old != null;
     final aimedAt = _handOverAt;
+    final fadeFrom = _handOverFrom;
     _handOverAt = null;
+    _handOverFrom = null;
     Duration? wait;
     // Meeting the piano's new loop: let down with the piano by the bar line
     // it aims at, as a band changing song, then wait to hear when it
@@ -296,6 +336,9 @@ class BarLoopPlayer {
     final fade = carryOn && crossfade > Duration.zero && switchAt == null;
     if (wanted != null && !wanted()) {
       tail?.dispose();
+      // The hand-over this loop was for ends here: clicks waiting to meet
+      // it change on their own (a stop meanwhile has closed it already).
+      if (handOver) _closeMeeting();
       await _soloud.disposeSource(source);
       throw const LoopNotWanted();
     }
@@ -338,17 +381,29 @@ class BarLoopPlayer {
     _length = length;
     _bar = bar;
     _startsAt = startsAt;
+    _heardFrom = switchAt == null ? null : switchAt + _switchLead;
     transport.unregister(name, old);
     transport.register(name, handle, bar, startsAt: startsAt);
     if (handingOver && startsAt != null) {
+      _meeting = null;
       transport.meet(startsAt);
     } else if (handOver) {
+      _meeting = null;
       transport.cancelMeeting();
     }
     if (old != null && switchAt != null) {
       // Both run together, silent the new one, until the pulse.
       _soloud.fadeScheduled(old, switchAt, 0, _switchLead, thenStop: true);
-      _owned.add(_Owned(old, until: switchAt + _switchLead, length: oldLength));
+      _owned.add(
+        _Owned(
+          old,
+          until: switchAt + _switchLead,
+          from: oldHeardFrom,
+          length: oldLength,
+          tailFor: tailFor,
+          level: (_) => _volume,
+        ),
+      );
       final gone = switchAt - _soloud.getEngineTime() + _switchLead;
       Future<void>.delayed(gone + const Duration(milliseconds: 100), () {
         if (oldSource != null) _soloud.disposeSource(oldSource);
@@ -357,8 +412,30 @@ class BarLoopPlayer {
       // The old loop plays on until the new one comes in, and stops at that
       // very sample, so that the two "ones" do not both sound.
       _soloud.stopScheduled(old, startsAt);
+      final level = _volume;
+      final down = level * handOverLevel;
       _owned.add(
-        _Owned(old, until: startsAt, length: oldLength, tailFor: tailFor),
+        _Owned(
+          old,
+          until: startsAt,
+          from: oldHeardFrom,
+          length: oldLength,
+          tailFor: tailFor,
+          // As it was let down: to a third by the bar line handed over at,
+          // to a sixth at once for clicks meeting the piano.
+          level: meeting
+              ? (_) => level * meetingLevel
+              : handingOver && fadeFrom != null && aimedAt != null
+              ? (now) {
+                  final span = aimedAt - fadeFrom.at;
+                  if (span <= Duration.zero || now >= aimedAt) return down;
+                  final done =
+                      (now - fadeFrom.at).inMicroseconds / span.inMicroseconds;
+                  return fadeFrom.level +
+                      (down - fadeFrom.level) * done.clamp(0.0, 1.0);
+                }
+              : (_) => level,
+        ),
       );
       Future<void>.delayed(delay + const Duration(milliseconds: 100), () {
         if (oldSource != null) _soloud.disposeSource(oldSource);
@@ -449,6 +526,8 @@ class BarLoopPlayer {
     if (aimed != null && aimed - now >= _scheduleLead) return aimed - now;
     final wait = _nextBarLine(handle, lead);
     _handOverAt = now + wait;
+    _handOverFrom = (at: now, level: _volume);
+    _meeting = Object();
     transport.beginMeeting(now + wait);
     _soloud.fadeVolume(handle, _volume * handOverLevel, wait);
     return wait;
@@ -460,47 +539,99 @@ class BarLoopPlayer {
     final handle = _handle;
     if (_handOverAt == null || handle == null) return;
     _handOverAt = null;
-    transport.cancelMeeting();
+    _handOverFrom = null;
+    _closeMeeting();
     if (!_soloud.getIsValidVoiceHandle(handle)) return;
     _soloud.fadeVolume(handle, _volume, const Duration(milliseconds: 300));
   }
 
-  /// Stops the loop. With [tailFor], what the loop sounds like let go
-  /// where it is (see PianoSound.tailWav) plays on from that very sample;
-  /// none for a loop still waiting to come in, which was never heard.
+  /// Stops the loop at once, with every voice this player started that is
+  /// still to end (see [_owned]): the old loop playing on to the bar line
+  /// or pulse where the new one comes in, and its tail scheduled there.
+  /// With [tailFor], the loop heard is let go where it is (see
+  /// PianoSound.tailWav), its tail playing on from that very sample: the
+  /// loop playing, or while that one has yet to be heard, the old loop it
+  /// was to replace, with the tail given for it to [play]. A tail already
+  /// ringing (a chord let go before) rings on.
   Future<void> stop({
     Future<Uint8List> Function(Duration position)? tailFor,
   }) async {
     final handle = _handle, source = _source;
     // Scheduled and not yet sounding (waiting for the other loop's bar
-    // line): there is nothing to let go, and a tail would ring out of a
-    // chord never heard. Read before [_startsAt] is forgotten.
-    final unheard = _untilOwnStart() != null;
-    if (_handOverAt != null) transport.cancelMeeting();
+    // line), or a new chord silent until its pulse: it is not let go, and
+    // a tail would ring out of a chord never heard. Read before
+    // [_startsAt] and [_heardFrom] are forgotten.
+    final unheard = _unheard;
+    _closeMeeting();
     _handOverAt = null;
+    _handOverFrom = null;
     _handle = null;
     _source = null;
     _startsAt = null;
+    _heardFrom = null;
     transport.unregister(name, handle);
-    if (handle != null &&
-        tailFor != null &&
-        !unheard &&
-        _soloud.getIsValidVoiceHandle(handle)) {
+    _forgetEnded();
+    final owned = [..._owned];
+    _owned.clear();
+    final now = _soloud.getEngineTime();
+    // The loop heard now, which is let go rather than cut.
+    ({
+      SoundHandle handle,
+      Duration length,
+      double level,
+      Future<Uint8List> Function(Duration)? tailFor,
+    })?
+    heard;
+    if (handle != null && !unheard) {
+      heard = (
+        handle: handle,
+        length: _length,
+        level: _volume,
+        tailFor: tailFor,
+      );
+    } else if (tailFor != null) {
+      for (final v in owned.reversed) {
+        final from = v.from;
+        if (v.isTail || v.level == null) continue;
+        if (from != null && from > now) continue;
+        heard = (
+          handle: v.handle,
+          length: v.length,
+          level: v.level!(now),
+          tailFor: v.tailFor,
+        );
+        break;
+      }
+    }
+    // All the rest at once, before a tail is made: nothing still to come in
+    // may come in meanwhile.
+    for (final v in owned) {
+      if (v.handle == heard?.handle) continue;
+      // A tail already ringing is a chord let go: it rings on.
+      final from = v.from;
+      if (v.isTail && (from == null || from <= now)) continue;
+      await _soloud.stop(v.handle);
+    }
+    if (handle != null && handle != heard?.handle) await _soloud.stop(handle);
+    final heardTail = heard?.tailFor;
+    if (heard != null &&
+        heardTail != null &&
+        _soloud.getIsValidVoiceHandle(heard.handle)) {
       try {
         final since = Stopwatch()..start();
         final tail = await _Tail.load(
-          tailFor,
-          _soloud.getPosition(handle),
-          _length,
+          heardTail,
+          _soloud.getPosition(heard.handle),
+          heard.length,
           since,
           _soloud,
         );
-        tail.playNow(_volume);
+        tail.playNow(heard.level);
       } catch (_) {
         // Without its tail the loop is simply cut, as it used to be.
       }
     }
-    if (handle != null) await _soloud.stop(handle);
+    if (heard != null) await _soloud.stop(heard.handle);
     if (source != null) await _soloud.disposeSource(source);
   }
 
@@ -596,6 +727,7 @@ class _Owned {
     required this.length,
     this.from,
     this.tailFor,
+    this.level,
     this.isTail = false,
   });
 
@@ -607,13 +739,19 @@ class _Owned {
   /// How long its recording is.
   final Duration length;
 
-  /// The engine time it comes in at, when it is scheduled (a tail playing
-  /// from the bar line the new loop comes in on); null once it sounds.
+  /// The engine time it is heard from, when that was still to come as it
+  /// was started (a tail on the bar line the new loop comes in on, an old
+  /// loop itself replaced before it was heard); null if it was heard
+  /// already.
   final Duration? from;
 
   /// For a loop replaced: what it sounds like let go at a place in it, as
   /// given to the play that replaced it; null if not known.
   final Future<Uint8List> Function(Duration position)? tailFor;
+
+  /// For a loop replaced that plays on until the new one comes in: how
+  /// loud it is at a time on the engine's clock (see BarLoopPlayer.stop).
+  final double Function(Duration now)? level;
 
   /// A tail, rather than a loop replaced.
   final bool isTail;
