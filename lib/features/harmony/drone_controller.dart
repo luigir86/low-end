@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:clock/clock.dart' as wall;
 import 'package:flutter/foundation.dart';
 
 import '../../audio/latest_request.dart';
@@ -134,7 +135,8 @@ class DroneController extends ChangeNotifier implements SoundSection {
     this._piano,
     Duration Function()? outputLatency,
     this.prefetchBass = false,
-  }) : _clock = clock ?? const _FixedBar(),
+  }) : _loopClock = SoundClock(wall.clock.stopwatch()),
+       _clock = clock ?? const _FixedBar(),
        _outputLatency = outputLatency ?? _noLatency {
     _clock.addListener(_onClockChanged);
     _lastBpm = _clock.soundingBpm;
@@ -204,7 +206,7 @@ class DroneController extends ChangeNotifier implements SoundSection {
   // The piano keeps its own count of bars (see [_scheduleBar]): where in
   // its loop the clock started, and how long it waited for the metronome's
   // next bar line before the first chord.
-  final _loopClock = SoundClock();
+  final SoundClock _loopClock;
   late int _lastBpm;
   late TimeSignature _lastSignature;
 
@@ -827,17 +829,21 @@ class DroneController extends ChangeNotifier implements SoundSection {
       // the chord that has only just started.
       if (wait < const Duration(milliseconds: 150)) wait += bar;
     }
-    final set = Stopwatch()..start();
     _barTimer = Timer(wait, () {
       if (!_playing || _disposed) return;
-      // On the piano, the bars that went by: a timer late by more than a
-      // bar (a page in the background, a phone held up) does not leave the
-      // chords shown behind the sound for good.
-      final late = set.elapsed - wait;
-      final missed = _patterned && late > Duration.zero
-          ? late.inMicroseconds ~/ bar.inMicroseconds
-          : 0;
-      _step = (_step + 1 + missed) % _progression.steps.length;
+      final steps = _progression.steps.length;
+      // On the piano, the bar the loop is in as it is heard, read from its
+      // clock rather than counted: a timer late by more than a bar (a page
+      // in the background, a phone held up), or a bar line skipped because
+      // a change of tempo landed just before it, does not leave the chords
+      // shown behind the sound. A timer a little early still counts as on
+      // its bar line.
+      final at = _patterned ? _loopClock.position : null;
+      _step = at == null
+          ? (_step + 1) % steps
+          : ((at + const Duration(milliseconds: 40)).inMicroseconds ~/
+                    bar.inMicroseconds) %
+                steps;
       _notify();
       if (!_patterned) _sync();
       _scheduleBar();
