@@ -204,7 +204,13 @@ class MetronomeController extends ChangeNotifier
     _playing = false;
     _clock.stop();
     _notify();
-    return _sync();
+    // At once, not after a start under way: one waiting for the piano's
+    // new loop (see ClickOutput.play with atMeeting) may wait for seconds.
+    // The start then gives up, and the run queued here stops again after it.
+    final silenced = _output.stop().catchError((Object error) {
+      debugPrint('Metronome could not stop: $error');
+    });
+    return Future.wait([silenced, _sync()]);
   }
 
   Future<void> toggle() => _playing ? stop() : start();

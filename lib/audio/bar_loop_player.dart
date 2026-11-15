@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -84,6 +85,14 @@ class BarLoopPlayer {
   /// was: until then it reports no position (see [_untilOwnStart]).
   Duration? _startsAt;
 
+  /// How many times [stop] was called: a play that a stop overtook while it
+  /// got ready starts nothing (it throws [LoopNotWanted]).
+  var _stops = 0;
+
+  /// Ended by [stop]: clicks waiting to meet the piano (see [play] with
+  /// atMeeting) stop waiting.
+  Completer<void>? _meetingWait;
+
   /// The engine time a new chord carrying on is heard from (see [play]
   /// with onPulse): until then it plays silent under the old one.
   Duration? _heardFrom;
@@ -161,6 +170,8 @@ class BarLoopPlayer {
   /// [wanted] is asked once the loop is ready, just before it sounds: if
   /// it says no (the sound was stopped, or started again, meanwhile),
   /// nothing starts and the play throws [LoopNotWanted].
+  /// The same when this player is stopped meanwhile: clicks waiting to
+  /// meet the piano stop waiting then, and a stop never waits behind a play.
   Future<LoopStart> play(
     Uint8List wav,
     Duration bar, {
@@ -172,6 +183,8 @@ class BarLoopPlayer {
     bool atMeeting = false,
     bool Function()? wanted,
   }) async {
+    // A stop while this play gets ready overtakes it (see [_stops]).
+    final stops = _stops;
     await _soloud.ensure();
     final source = await _soloud.loadMem('$name-loop.wav', wav);
     final length = _soloud.getLength(source);
@@ -207,10 +220,13 @@ class BarLoopPlayer {
         // beats, the last one a beat before the bar line, and a slow fade
         // would never be heard.
         _soloud.fadeVolume(old, _volume * meetingLevel, _meetingFade);
-        met = await transport.meeting.timeout(
-          _meetingLimit,
-          onTimeout: () => null,
-        );
+        // A stop meanwhile ends the wait at once (see [stop]).
+        final stopped = _meetingWait = Completer<void>();
+        met = await Future.any([
+          transport.meeting.timeout(_meetingLimit, onTimeout: () => null),
+          stopped.future.then((_) => null),
+        ]);
+        if (identical(_meetingWait, stopped)) _meetingWait = null;
       }
     }
     final metLeft = met == null ? null : met - _soloud.getEngineTime();
@@ -334,7 +350,7 @@ class BarLoopPlayer {
       switchAt = _soloud.getEngineTime() + wait - _switchLead;
     }
     final fade = carryOn && crossfade > Duration.zero && switchAt == null;
-    if (wanted != null && !wanted()) {
+    if (stops != _stops || (wanted != null && !wanted())) {
       tail?.dispose();
       // The hand-over this loop was for ends here: clicks waiting to meet
       // it change on their own (a stop meanwhile has closed it already).
@@ -562,6 +578,9 @@ class BarLoopPlayer {
     // a tail would ring out of a chord never heard. Read before
     // [_startsAt] and [_heardFrom] are forgotten.
     final unheard = _unheard;
+    _stops++;
+    _meetingWait?.complete();
+    _meetingWait = null;
     _closeMeeting();
     _handOverAt = null;
     _handOverFrom = null;
