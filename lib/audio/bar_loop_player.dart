@@ -322,12 +322,14 @@ class BarLoopPlayer {
       }
       // Making the tail took longer than the wait (a slow phone, a page):
       // the next bar line instead, without the tail, made for the one
-      // gone. The new loop's first chord covers the old one stopping.
+      // gone. The new loop's first chord covers the old one stopping. The
+      // same when the tail failed after a while: the wait is gone all the
+      // same, and a start in the past would come in at once, off the beat.
       final w = wait;
-      if (tail != null && w != null) {
+      if (w != null) {
         final now = _soloud.getEngineTime();
         if (waitedFrom + w - now < _scheduleLead) {
-          tail.dispose();
+          tail?.dispose();
           tail = null;
           waitedFrom = now;
           wait =
