@@ -67,6 +67,35 @@ class BarLoopPlayer {
   /// for it would stay let down for up to [_meetingLimit].
   Object? _meeting;
 
+  /// How loud a loop handed over is at [time] on the engine's clock: from
+  /// the level it had when the hand-over began ([from]) down to
+  /// [handOverLevel] by the bar line aimed at, linearly, as the engine
+  /// fades.
+  double _handOverLevelAt(
+    ({Duration at, double level}) from,
+    Duration aimedAt,
+    Duration time,
+  ) {
+    final down = _volume * handOverLevel;
+    final span = aimedAt - from.at;
+    if (span <= Duration.zero || time >= aimedAt) return down;
+    final done = (time - from.at).inMicroseconds / span.inMicroseconds;
+    return from.level + (down - from.level) * done.clamp(0.0, 1.0);
+  }
+
+  /// Once [handle] has come in, at [arrives], goes on down with the
+  /// hand-over to its bar line [aimedAt] (an engine fade starts from the
+  /// level at the call, so it is asked for then, not now).
+  void _goOnDown(SoundHandle handle, Duration arrives, Duration aimedAt) {
+    final left = arrives - _soloud.getEngineTime();
+    Future<void>.delayed(left > Duration.zero ? left : Duration.zero, () {
+      if (!identical(_handle, handle) || _handOverAt != aimedAt) return;
+      final rest = aimedAt - _soloud.getEngineTime();
+      if (rest <= Duration.zero) return;
+      _soloud.fadeVolume(handle, _volume * handOverLevel, rest);
+    });
+  }
+
   /// Closes the meeting this player opened, if it is still open: nothing
   /// will come in on it.
   void _closeMeeting() {
@@ -204,8 +233,15 @@ class BarLoopPlayer {
     final handingOver = handOver && !carryOn && old != null;
     final aimedAt = _handOverAt;
     final fadeFrom = _handOverFrom;
-    _handOverAt = null;
-    _handOverFrom = null;
+    // A new tempo carrying on while a hand-over is under way (asked for
+    // before it, ready only now) does not use it up: the loop stays let
+    // down, and the hand-over's own loop still comes in on its bar line.
+    final keepsHandOver =
+        carryOn && !handOver && aimedAt != null && fadeFrom != null;
+    if (!keepsHandOver) {
+      _handOverAt = null;
+      _handOverFrom = null;
+    }
     Duration? wait;
     // Meeting the piano's new loop: let down with the piano by the bar line
     // it aims at, as a band changing song, then wait to hear when it
@@ -369,10 +405,19 @@ class BarLoopPlayer {
       );
       if (seekTo > Duration.zero) _soloud.seek(handle, seekTo);
       _soloud.setPause(handle, false);
+      // Coming in at the level the hand-over has reached by then, and on
+      // down with it, rather than back at full level.
+      final arrives = switchAt != null
+          ? switchAt + _switchLead
+          : _soloud.getEngineTime() + crossfade;
+      final level = keepsHandOver
+          ? _handOverLevelAt(fadeFrom, aimedAt, arrives)
+          : _volume;
       if (switchAt != null) {
-        _soloud.fadeScheduled(handle, switchAt, _volume, _switchLead);
+        _soloud.fadeScheduled(handle, switchAt, level, _switchLead);
       }
-      if (fade) _soloud.fadeVolume(handle, _volume, crossfade);
+      if (fade) _soloud.fadeVolume(handle, level, crossfade);
+      if (keepsHandOver) _goOnDown(handle, arrives, aimedAt);
       final t = tail?.playNow(_volume);
       if (t != null) _owned.add(t);
     } else {
@@ -431,7 +476,6 @@ class BarLoopPlayer {
       // very sample, so that the two "ones" do not both sound.
       _soloud.stopScheduled(old, startsAt);
       final level = _volume;
-      final down = level * handOverLevel;
       _owned.add(
         _Owned(
           old,
@@ -444,14 +488,7 @@ class BarLoopPlayer {
           level: meeting
               ? (_) => level * meetingLevel
               : handingOver && fadeFrom != null && aimedAt != null
-              ? (now) {
-                  final span = aimedAt - fadeFrom.at;
-                  if (span <= Duration.zero || now >= aimedAt) return down;
-                  final done =
-                      (now - fadeFrom.at).inMicroseconds / span.inMicroseconds;
-                  return fadeFrom.level +
-                      (down - fadeFrom.level) * done.clamp(0.0, 1.0);
-                }
+              ? (now) => _handOverLevelAt(fadeFrom, aimedAt, now)
               : (_) => level,
         ),
       );
