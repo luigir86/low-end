@@ -916,9 +916,12 @@ class DroneController extends ChangeNotifier implements SoundSection {
 
   Future<void> _play() async {
     if (!_playing || _disposed) return;
+    // The start or stop this run answers: what it ends with belongs to it,
+    // not to one pressed since (a stop, or a stop and a start again).
+    final generation = _generation;
     try {
       if (_patterned) {
-        await _playPiano();
+        await _playPiano(generation);
       } else {
         // Not awaited when there is no piano: sound starts without delay.
         // The tone does not wait for a bar line: no hand-over to show.
@@ -929,16 +932,23 @@ class DroneController extends ChangeNotifier implements SoundSection {
         _sounding = null;
         _toneSounding = true;
         await _output.play(f, _gainsFor(f.length), _volume);
-        if (_playing && !_disposed) _soundStarts();
+        if (_playing && !_disposed && generation == _generation) {
+          _soundStarts();
+        }
       }
     } catch (error) {
       debugPrint('Drone could not start: $error');
-      _playing = false;
-      _audioFailed = true;
-      _endHandOver();
-      _slowTimer?.cancel();
-      _barTimer?.cancel();
-      _notify();
+      // Overtaken (a stop, or a stop and a start, came since): the failure
+      // is not the new session's, which makes its own sound and shows its
+      // own failure, if any.
+      if (generation == _generation) {
+        _playing = false;
+        _audioFailed = true;
+        _endHandOver();
+        _slowTimer?.cancel();
+        _barTimer?.cancel();
+        _notify();
+      }
     }
     // Stopped (or failed) while starting: voices that only started now
     // must not keep sounding unseen.
@@ -947,7 +957,7 @@ class DroneController extends ChangeNotifier implements SoundSection {
 
   /// Starts (or replaces) the piano's loop, and lines the chord shown up
   /// with it.
-  Future<void> _playPiano() async {
+  Future<void> _playPiano(int generation) async {
     // Coming from the sustained tone: it must not go on under the piano.
     if (_toneSounding) {
       _toneSounding = false;
@@ -1012,7 +1022,7 @@ class DroneController extends ChangeNotifier implements SoundSection {
       _handingOver = false;
       _handOverClock.stop();
     }
-    if (!_playing || _disposed) return;
+    if (!_playing || _disposed || generation != _generation) return;
     final bar = _clock.barLength;
     // Lined up with the sound as it is heard, as the metronome does.
     _loopClock.heard(started, latency: _outputLatency(), fresh: fromTheTop);
