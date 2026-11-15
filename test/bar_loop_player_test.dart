@@ -361,6 +361,32 @@ void main() {
     );
   });
 
+  test('a new tempo during a hand-over keeps the loop let down, and the '
+      'bar line aimed at', () async {
+    await piano.play(fakeWav(bar * 4), bar, startAt: Duration.zero);
+    engine.advance(ms(300));
+    final wait = piano.beginHandOver(lead: ms(500))!;
+    final aimed = engine.now + wait;
+    // A tempo change asked for before, ready only now: it carries on.
+    await piano.play(fakeWav(bar * 4), bar);
+    engine.advance(ms(300));
+    final carried = engine.voices.values.last;
+    // In at the level the hand-over had come down to when the crossfade
+    // ended (200 ms into its 1.7 s), not back up at 1.
+    expect(
+      carried.volumeAt(engine.now),
+      closeTo(1 + (BarLoopPlayer.handOverLevel - 1) * 200 / 1700, 1e-6),
+    );
+    // Then the hand-over's own loop, on the bar line aimed at.
+    await piano.play(
+      fakeWav(bar * 4),
+      bar,
+      startAt: Duration.zero,
+      handOver: true,
+    );
+    expect(engine.voices.values.last.startsAt, aimed);
+  });
+
   test('a hand-over called off brings the loop back up', () async {
     await piano.play(fakeWav(bar), bar);
     engine.advance(ms(300));
