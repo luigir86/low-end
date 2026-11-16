@@ -40,6 +40,9 @@ class AudioRouteTest {
         manager = app.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         dart = FakeMessenger()
         AudioRoute.attach(app, dart)
+        // Android tells the devices there at once (attachRouteIsSentAtOnce).
+        shadowOf(Looper.getMainLooper()).idle()
+        dart.sent.clear()
     }
 
     /** AudioRoute lives as long as the app; each test starts a new app. */
@@ -57,6 +60,17 @@ class AudioRouteTest {
     private fun sentToDart() = dart.sent.filter { it.first == channel }.map { it.second to it.third }
 
     private fun runFor(seconds: Long) = shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(seconds))
+
+    @Test
+    fun theRouteIsSentAsSoonAsAttached() {
+        // A new app, where Android tells the devices already there: Dart
+        // learns the route without asking.
+        forgetAudioRoute()
+        val fresh = FakeMessenger()
+        AudioRoute.attach(app, fresh)
+        shadowOf(Looper.getMainLooper()).idle()
+        assertEquals(listOf(Triple(channel, "route", "speaker" as Any?)), fresh.sent.distinct())
+    }
 
     @Test
     fun theSpeakerWhenNothingIsPluggedIn() {
