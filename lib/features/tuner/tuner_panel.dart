@@ -624,19 +624,39 @@ class _NoteDisplay extends StatelessWidget {
       ),
     );
     if (!listening) {
-      // Paused: what touching the middle does.
-      return fit([
+      // Paused: what touching the middle does, in the words and sizes of the
+      // metronome's "Allegro" and "Tap to start".
+      final children = [
         Icon(Icons.mic, size: 32, color: LowEndColors.of(context).activeFill),
         Text(l10n.startListening, style: muted, textAlign: TextAlign.center),
         // Something sounds: touching will pause it, and the player is told
-        // before, not after.
+        // before, not after. It wraps on two lines inside the hub rather
+        // than shrinking the whole block to one long line.
         if (soundPlaying)
-          Text(
+          _BalancedText(
             l10n.tunerWillPause,
-            style: muted?.copyWith(fontWeight: FontWeight.w700),
-            textAlign: TextAlign.center,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
-      ]);
+      ];
+      return Center(
+        child: LayoutBuilder(
+          builder: (context, box) {
+            if (!box.maxWidth.isFinite) return fit(children);
+            return FittedBox(
+              fit: BoxFit.scaleDown,
+              child: SizedBox(
+                width: box.maxWidth,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: children,
+                ),
+              ),
+            );
+          },
+        ),
+      );
     }
     if (r == null) {
       return fit([
@@ -957,4 +977,57 @@ class _CentsScalePainter extends CustomPainter {
       old.needle != needle ||
       old.axis != axis ||
       old.minorTick != minorTick;
+}
+
+/// A centred text that wraps on lines of about the same length, so a second
+/// line never holds one lonely word ("… ce qui / joue").
+class _BalancedText extends StatelessWidget {
+  const _BalancedText(this.text, {this.style});
+
+  final String text;
+  final TextStyle? style;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = DefaultTextStyle.of(context).style.merge(this.style);
+    return LayoutBuilder(
+      builder: (context, box) {
+        var width = box.maxWidth;
+        if (width.isFinite) {
+          final painter = TextPainter(
+            text: TextSpan(text: text, style: style),
+            textDirection: Directionality.of(context),
+            textScaler: MediaQuery.textScalerOf(context),
+          );
+          int lines(double w) {
+            painter.layout(maxWidth: w);
+            return painter.computeLineMetrics().length;
+          }
+
+          // The narrowest width that keeps the same number of lines.
+          final count = lines(width);
+          if (count > 1) {
+            var low = 0.0;
+            var high = width;
+            while (high - low > 1) {
+              final mid = (low + high) / 2;
+              if (lines(mid) > count) {
+                low = mid;
+              } else {
+                high = mid;
+              }
+            }
+            width = high;
+          }
+          painter.dispose();
+        }
+        return Center(
+          child: SizedBox(
+            width: width.isFinite ? width : null,
+            child: Text(text, style: style, textAlign: TextAlign.center),
+          ),
+        );
+      },
+    );
+  }
 }

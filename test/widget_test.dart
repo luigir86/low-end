@@ -283,6 +283,11 @@ void main() {
     expect(click.bar, isNotNull);
     expect(mic.isCapturing, isFalse);
     expect(find.text('Listening pauses what is playing'), findsOneWidget);
+    // In the size of the metronome's "Tap to start", on two lines, not
+    // shrunk to one long line.
+    final hint = find.text('Listening pauses what is playing');
+    final height = tester.getBottomLeft(hint).dy - tester.getTopLeft(hint).dy;
+    expect(height, greaterThan(24));
     expect(find.byKey(const Key('notice')), findsNothing);
 
     // A touch on the middle pauses both, so the microphone hears only the
