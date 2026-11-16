@@ -99,6 +99,15 @@ const _engines = {
     'canvaskit/skwasm.js',
     'canvaskit/skwasm.wasm',
   ],
+  // Safari and Firefox in WebAssembly, only on trial (?motore=wasm, see
+  // web/flutter_bootstrap.js): they lack Chrome's codecs and line breaker,
+  // so Flutter's loader takes the heavier Skwasm that brings its own.
+  'wasm-trial': [
+    'main.dart.mjs',
+    'main.dart.wasm',
+    'canvaskit/skwasm_heavy.js',
+    'canvaskit/skwasm_heavy.wasm',
+  ],
   'full': [
     'main.dart.js',
     'canvaskit/canvaskit.js',
@@ -135,10 +144,13 @@ const SOUND_FILES = ${const JsonEncoder.withIndent('  ').convert(sounds)};
 
 // The app and drawing engine this browser takes, as Flutter chooses them:
 // WebAssembly and Skwasm in Chrome, Edge and Samsung Internet, JavaScript
-// and the full CanvasKit in Safari (also on the iPhone) and Firefox.
+// and the full CanvasKit in Safari (also on the iPhone) and Firefox; on
+// trial (sw.js?motore=wasm) WebAssembly and the heavier Skwasm there too.
 const ENGINE = /Chrome\\//.test(self.navigator.userAgent)
   ? ${jsonEncode(_engines['chromium'])}
-  : ${jsonEncode(_engines['full'])};
+  : new URL(self.location.href).searchParams.get('motore') === 'wasm'
+    ? ${jsonEncode(_engines['wasm-trial'])}
+    : ${jsonEncode(_engines['full'])};
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
