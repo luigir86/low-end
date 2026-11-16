@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_soloud/flutter_soloud.dart';
 
 import 'loop_engine.dart';
@@ -64,9 +65,32 @@ class BarLoopPlayer {
   /// was: until then it reports no position (see [_untilOwnStart]).
   Duration? _startsAt;
 
+  /// The voices this player started that still sound, or are still to,
+  /// besides the loop playing ([_handle]): the loop it replaced, which plays
+  /// on until the new one comes in (or fades out under it), and that old
+  /// loop's tail. Each is let go by the engine at its own time; this list
+  /// only remembers them, so that nothing this player owns is forgotten.
+  final _owned = <_Owned>[];
+
   LoopEngine get _soloud => transport.engine;
 
   bool get isPlaying => _handle != null;
+
+  /// Every voice this player answers for that has not ended yet: the loop
+  /// playing first, then the ones on their way out (see [_owned]).
+  @visibleForTesting
+  List<SoundHandle> get voices {
+    _forgetEnded();
+    return [?_handle, for (final v in _owned) v.handle];
+  }
+
+  /// Drops the voices of [_owned] that have ended.
+  void _forgetEnded() {
+    final now = _soloud.getEngineTime();
+    _owned.removeWhere(
+      (v) => v.until <= now || !_soloud.getIsValidVoiceHandle(v.handle),
+    );
+  }
 
   /// Loops [wav], whose bars last [bar] (the loop is a whole number of
   /// them), replacing the loop already playing, if any.
@@ -124,6 +148,7 @@ class BarLoopPlayer {
         ? _handle
         : null;
     final oldSource = _source;
+    final oldLength = _length;
     final carryOn = startAt == null && old != null;
     final handingOver = handOver && !carryOn && old != null;
     final aimedAt = _handOverAt;
@@ -287,7 +312,8 @@ class BarLoopPlayer {
         _soloud.fadeScheduled(handle, switchAt, _volume, _switchLead);
       }
       if (fade) _soloud.fadeVolume(handle, _volume, crossfade);
-      tail?.playNow(_volume);
+      final t = tail?.playNow(_volume);
+      if (t != null) _owned.add(t);
     } else {
       // The other loop is playing: come in on its next "one", on the
       // engine's own clock, read once for the start and the stop below.
@@ -300,8 +326,13 @@ class BarLoopPlayer {
         looping: true,
         volume: _volume,
       );
-      tail?.playAt(startsAt, handingOver ? _volume * handOverLevel : _volume);
+      final t = tail?.playAt(
+        startsAt,
+        handingOver ? _volume * handOverLevel : _volume,
+      );
+      if (t != null) _owned.add(t);
     }
+    _forgetEnded();
     _handle = handle;
     _source = source;
     _length = length;
@@ -317,6 +348,7 @@ class BarLoopPlayer {
     if (old != null && switchAt != null) {
       // Both run together, silent the new one, until the pulse.
       _soloud.fadeScheduled(old, switchAt, 0, _switchLead, thenStop: true);
+      _owned.add(_Owned(old, until: switchAt + _switchLead, length: oldLength));
       final gone = switchAt - _soloud.getEngineTime() + _switchLead;
       Future<void>.delayed(gone + const Duration(milliseconds: 100), () {
         if (oldSource != null) _soloud.disposeSource(oldSource);
@@ -325,6 +357,9 @@ class BarLoopPlayer {
       // The old loop plays on until the new one comes in, and stops at that
       // very sample, so that the two "ones" do not both sound.
       _soloud.stopScheduled(old, startsAt);
+      _owned.add(
+        _Owned(old, until: startsAt, length: oldLength, tailFor: tailFor),
+      );
       Future<void>.delayed(delay + const Duration(milliseconds: 100), () {
         if (oldSource != null) _soloud.disposeSource(oldSource);
       });
@@ -332,6 +367,13 @@ class BarLoopPlayer {
       // Carrying on at a new tempo: the two cross over.
       _soloud.fadeVolume(old, 0, crossfade);
       _soloud.scheduleStop(old, crossfade);
+      _owned.add(
+        _Owned(
+          old,
+          until: _soloud.getEngineTime() + crossfade,
+          length: oldLength,
+        ),
+      );
       Future<void>.delayed(crossfade + const Duration(milliseconds: 100), () {
         if (oldSource != null) _soloud.disposeSource(oldSource);
       });
@@ -508,18 +550,32 @@ class _Tail {
   final LoopEngine _soloud;
 
   /// From where the loop is now, which went on while the tail was made.
-  void playNow(double volume) {
+  _Owned playNow(double volume) {
     final handle = _soloud.play(_source, paused: true, volume: volume);
     final skip = _clock.elapsed;
     if (skip < _length) _soloud.seek(handle, skip);
     _soloud.setPause(handle, false);
     _disposeAfter(_length);
+    final left = skip < _length ? _length - skip : Duration.zero;
+    return _Owned(
+      handle,
+      until: _soloud.getEngineTime() + left,
+      length: _length,
+      isTail: true,
+    );
   }
 
   /// From its start, at [time] on the engine's clock.
-  void playAt(Duration time, double volume) {
-    _soloud.playScheduled(_source, time, volume: volume);
+  _Owned playAt(Duration time, double volume) {
+    final handle = _soloud.playScheduled(_source, time, volume: volume);
     _disposeAfter(time - _soloud.getEngineTime() + _length);
+    return _Owned(
+      handle,
+      from: time,
+      until: time + _length,
+      length: _length,
+      isTail: true,
+    );
   }
 
   /// Never played after all.
@@ -529,4 +585,36 @@ class _Tail {
     wait + const Duration(milliseconds: 200),
     () => _soloud.disposeSource(_source),
   );
+}
+
+/// A voice a [BarLoopPlayer] started besides the loop playing (see
+/// BarLoopPlayer._owned).
+class _Owned {
+  _Owned(
+    this.handle, {
+    required this.until,
+    required this.length,
+    this.from,
+    this.tailFor,
+    this.isTail = false,
+  });
+
+  final SoundHandle handle;
+
+  /// The engine time it ends at, at the latest.
+  final Duration until;
+
+  /// How long its recording is.
+  final Duration length;
+
+  /// The engine time it comes in at, when it is scheduled (a tail playing
+  /// from the bar line the new loop comes in on); null once it sounds.
+  final Duration? from;
+
+  /// For a loop replaced: what it sounds like let go at a place in it, as
+  /// given to the play that replaced it; null if not known.
+  final Future<Uint8List> Function(Duration position)? tailFor;
+
+  /// A tail, rather than a loop replaced.
+  final bool isTail;
 }

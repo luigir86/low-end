@@ -382,6 +382,52 @@ void main() {
     expect(fresh.volumeAt(pulse), 1);
   });
 
+  group('the player answers for every voice it started until it ends:', () {
+    List<String> names() => [
+      for (final h in piano.voices) engine.voices[h]!.name,
+    ];
+
+    test('a hand-over: the new loop, the old one and its tail', () async {
+      await piano.play(fakeWav(bar), bar, startAt: Duration.zero);
+      engine.advance(ms(300));
+      final wait = piano.beginHandOver(lead: ms(500))!;
+      await piano.play(
+        fakeWav(bar),
+        bar,
+        startAt: Duration.zero,
+        handOver: true,
+        tailFor: (_) async => fakeWav(ms(300)),
+      );
+      expect(
+        names(),
+        unorderedEquals(['piano-loop.wav', 'piano-loop.wav', 'tail.wav']),
+      );
+      // The old loop ends on the bar line, its tail 300 ms later.
+      engine.advance(wait);
+      expect(names(), unorderedEquals(['piano-loop.wav', 'tail.wav']));
+      engine.advance(ms(300));
+      expect(names(), ['piano-loop.wav']);
+    });
+
+    test('a new chord on the pulse: the old loop until then', () async {
+      await piano.play(fakeWav(bar), bar);
+      engine.advance(ms(600));
+      await piano.play(fakeWav(bar), bar, onPulse: ms(500));
+      expect(names(), hasLength(2));
+      engine.advance(ms(400));
+      expect(names(), hasLength(1));
+    });
+
+    test('a new tempo: the old loop while the two cross', () async {
+      await piano.play(fakeWav(bar), bar);
+      engine.advance(ms(500));
+      await piano.play(fakeWav(ms(1600)), ms(1600));
+      expect(names(), hasLength(2));
+      engine.advance(ms(200));
+      expect(names(), hasLength(1));
+    });
+  });
+
   test('stopped with a tail, the tail plays on from where it was', () async {
     await piano.play(fakeWav(bar), bar);
     engine.advance(ms(700));
