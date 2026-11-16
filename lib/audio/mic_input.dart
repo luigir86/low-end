@@ -24,7 +24,13 @@ abstract class MicInput {
 
 /// [MicInput] backed by the record package.
 class RecordMicInput implements MicInput {
+  RecordMicInput({
+    @visibleForTesting this._recorder,
+    @visibleForTesting this._session = setWebAudioSession,
+  });
+
   AudioRecorder? _recorder;
+  final WebAudioSessionSetter _session;
 
   AudioRecorder get _rec => _recorder ??= AudioRecorder();
 
@@ -41,12 +47,13 @@ class RecordMicInput implements MicInput {
   var _source = 0;
 
   @override
-  Future<bool> requestPermission() => _rec.hasPermission();
+  Future<bool> requestPermission() =>
+      askForMicrophone(_rec.hasPermission, session: _session);
 
   @override
   Future<Stream<Float64List>> start(int sampleRate) async {
     // On the iPhone the web app's sound keeps playing while it listens.
-    setWebAudioSession(listening: true);
+    _session(listening: true);
     markWebAudioInUse();
     // In the browser the phone's microphone is named (see phone_mic.dart).
     var phone = kIsWeb ? await phoneMic() : null;
@@ -106,7 +113,7 @@ class RecordMicInput implements MicInput {
   @override
   Future<void> stop() async {
     await _recorder?.stop();
-    setWebAudioSession(listening: false);
+    _session(listening: false);
   }
 }
 
