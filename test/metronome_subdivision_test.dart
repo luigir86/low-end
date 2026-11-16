@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/actions/app_actions.dart';
 import 'package:low_end/app/app_navigation.dart';
@@ -20,6 +19,7 @@ import 'package:low_end/features/metronome/subdivision.dart';
 import 'package:low_end/features/metronome/time_signature.dart';
 import 'package:low_end/features/player/player_controller.dart';
 import 'package:low_end/features/tuner/tuner_controller.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// One bar at 60 BPM as samples from -1 to 1.

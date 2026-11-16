@@ -11,13 +11,15 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/low_end_app.dart';
 import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/tone_output.dart';
+import 'package:material_ui/material_ui.dart';
+
+import '../test/material_ui_finders.dart';
 
 // Roboto and the Material icons (the tests' text and icon fonts), copied from the Flutter SDK into the repo
 // (Apache 2.0, licences beside them) so the tests find them on any machine.
@@ -244,7 +246,7 @@ void main() {
           ),
         );
         await h._settle();
-        await h.tester.tap(find.byTooltip(h.t('Settings', 'Impostazioni')));
+        await h.tester.tap(find.tooltip(h.t('Settings', 'Impostazioni')));
         await h._settle();
         await h.shot('settings_1_top');
         await h.tester.drag(find.byType(ListView).last, const Offset(0, -800));

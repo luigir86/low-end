@@ -42,5 +42,5 @@ cd android && ./gradlew :app:testDebugUnitTest   # Kotlin tests (Robolectric), a
 - The working clone on the PC is `C:\Users\ribal\Projects\LowEnd`, outside OneDrive; the old copies under OneDrive are obsolete. The upload key lives outside the repository (see `android/key.properties`): never move or delete it.
 - `lib/l10n/app_localizations*.dart` are generated: change the `.arb` and run `flutter gen-l10n`, never edit them by hand.
 - Python is not installed; use Dart or shell for scripts. Flutter is in `C:\src\flutter\bin`.
-- The workflows pin Flutter 3.47.9 (`flutter-version` in .github/workflows): moving to 3.50 means the `material_ui` package and Android Gradle Plugin ≥ 9.1.1; raise it in all three workflows and on the PC together.
+- The workflows pin Flutter 3.50.0 (`flutter-version` in .github/workflows); keep the PC (`C:\src\flutter`) on the same version. Widgets come from `package:material_ui` (not `flutter/material.dart`); tests find tooltips with `find.tooltip` (test/material_ui_finders.dart), because `find.byTooltip` only knows the old Material Tooltip.
 - Work in the worktree/branch you were given; do not stash or reset.

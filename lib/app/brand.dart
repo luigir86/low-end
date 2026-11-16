@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The four colours a theme is made of. Every other shade (surfaces,
 /// borders, controls that are off, readable variants of the accent) is

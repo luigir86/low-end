@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The style sheet of Low End: the few sizes the screens are made from.
 ///

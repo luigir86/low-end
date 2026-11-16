@@ -1,8 +1,6 @@
 // The name a take is shared and saved with (Take1_9_nov_2026), and the
 // window that lets the person change it.
 
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:low_end/app/settings.dart';
@@ -10,6 +8,7 @@ import 'package:low_end/audio/recorded_track.dart';
 import 'package:low_end/features/player/recording_controls.dart';
 import 'package:low_end/features/player/take_name.dart';
 import 'package:low_end/l10n/app_localizations.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   final day = DateTime(2026, 11, 9, 20, 15);
@@ -54,8 +53,7 @@ void main() {
       MaterialApp(
         localizationsDelegates: const [
           AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
+          ...GlobalMaterialLocalizations.delegates,
         ],
         supportedLocales: AppLocalizations.supportedLocales,
         home: Builder(

@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/features/player/marquee.dart';
+import 'package:material_ui/material_ui.dart';
 
 const _long = 'A very long title of a song that cannot fit · and its artist';
 

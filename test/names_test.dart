@@ -1,10 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/low_end_app.dart';
 import 'package:low_end/app/settings.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/piano_output.dart';
 import 'package:low_end/audio/tone_output.dart';
+import 'package:material_ui/material_ui.dart';
+
+import 'material_ui_finders.dart';
 
 Future<void> _open(
   WidgetTester tester, {
@@ -26,7 +28,7 @@ Future<void> _open(
   await tester.tap(
     find.descendant(
       of: find.byType(NavigationBar),
-      matching: find.byTooltip(language == 'en' ? 'Harmony' : 'Armonia'),
+      matching: find.tooltip(language == 'en' ? 'Harmony' : 'Armonia'),
     ),
   );
   await tester.pumpAndSettle();
@@ -126,7 +128,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.tap(
-        find.byTooltip(language == 'en' ? 'Settings' : 'Impostazioni'),
+        find.tooltip(language == 'en' ? 'Settings' : 'Impostazioni'),
       );
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(find.text(text), 200);

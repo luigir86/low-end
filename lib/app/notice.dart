@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A short notice at the top of the screen, under the status bar, with at
 /// most one button: what a snackbar says, where it covers no controls. The

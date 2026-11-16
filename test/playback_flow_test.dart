@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/background_audio.dart';
@@ -19,23 +18,26 @@ import 'package:low_end/audio/piano_output.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/audio/track_files.dart';
 import 'package:low_end/audio/track_output.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'material_ui_finders.dart';
 
 final _harmonyTab = find.descendant(
   of: find.byType(NavigationBar),
-  matching: find.byTooltip('Harmony'),
+  matching: find.tooltip('Harmony'),
 );
 final _playerTab = find.descendant(
   of: find.byType(NavigationBar),
-  matching: find.byTooltip('Player'),
+  matching: find.tooltip('Player'),
 );
 final _playerTabItem = find.ancestor(
-  of: find.byTooltip('Player'),
+  of: find.tooltip('Player'),
   matching: find.byType(NavigationDestination),
 );
 final _metronomeTab = find.descendant(
   of: find.byType(NavigationBar),
-  matching: find.byTooltip('Metronome'),
+  matching: find.tooltip('Metronome'),
 );
 
 /// A [BackgroundAudio] that remembers what the notification shows.
@@ -251,7 +253,7 @@ void main() {
       tester,
     ) async {
       final app = await _open(tester);
-      await tester.tap(find.byTooltip('Tuner'));
+      await tester.tap(find.tooltip('Tuner'));
       await app.settle();
       expect(app.mic.isCapturing, isTrue);
       expect(find.byKey(const Key('notice')), findsNothing);
@@ -269,7 +271,7 @@ void main() {
         if (drone) await app.scope.drone.start();
         await app.settle();
 
-        await tester.tap(find.byTooltip('Tuner'));
+        await tester.tap(find.tooltip('Tuner'));
         await app.settle();
         expect(app.scope.metronome.isPlaying, metronome);
         expect(app.scope.drone.isPlaying, drone);
@@ -330,7 +332,7 @@ void main() {
       expect(find.text('3'), findsOneWidget);
 
       // The tuner pausing it ends the countdown.
-      await tester.tap(find.byTooltip('Tuner'));
+      await tester.tap(find.tooltip('Tuner'));
       await app.settle();
       await tester.tap(find.byKey(const Key('tunerHub')));
       await app.settle();
@@ -464,7 +466,7 @@ void main() {
       expect(app.tone.frequencies, isNotEmpty);
 
       // The pause for the tuner is not a gesture.
-      await tester.tap(find.byTooltip('Tuner'));
+      await tester.tap(find.tooltip('Tuner'));
       await app.settle();
       await tester.tap(find.byKey(const Key('tunerHub')));
       await app.settle();
@@ -523,7 +525,7 @@ void main() {
     ) async {
       final settings = AppSettings();
       final app = await _open(tester, settings: settings);
-      await tester.tap(find.byTooltip('Settings'));
+      await tester.tap(find.tooltip('Settings'));
       await app.settle();
       await tester.scrollUntilVisible(find.text('Lock the gestures'), 200);
       await app.settle();
@@ -594,7 +596,7 @@ void main() {
     ) async {
       final app = await openWithTrack(tester);
       await app.scope.player.start();
-      await tester.tap(find.byTooltip('Tuner'));
+      await tester.tap(find.tooltip('Tuner'));
       await app.settle();
       // Entering the tuner stops nothing.
       expect(app.scope.player.isPlaying, isTrue);

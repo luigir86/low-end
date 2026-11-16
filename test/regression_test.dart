@@ -5,7 +5,6 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/home_shell.dart';
@@ -22,6 +21,9 @@ import 'package:low_end/features/harmony/harmony.dart';
 import 'package:low_end/features/metronome/metronome_screen.dart';
 import 'package:low_end/features/tuner/tuner_controller.dart';
 import 'package:low_end/features/tuner/tuner_panel.dart';
+import 'package:material_ui/material_ui.dart';
+
+import 'material_ui_finders.dart';
 
 /// Counts the calls to [play], to tell when the drone was retuned.
 class _CountingOutput extends SilentToneOutput {
@@ -161,7 +163,7 @@ void main() {
       final mic = FakeMicInput();
       await _pumpApp(tester, mic: mic);
       expect(mic.isCapturing, isTrue);
-      await tester.tap(find.byTooltip('Settings'));
+      await tester.tap(find.tooltip('Settings'));
       await _settle(tester);
       expect(mic.isCapturing, isFalse);
       await tester.tap(find.byType(BackButton));
@@ -181,7 +183,7 @@ void main() {
       expect(lit(), hasLength(1), reason: 'only the harmony plays');
       final harmonyTab = tester.getSemantics(
         find.ancestor(
-          of: find.byTooltip('Harmony'),
+          of: find.tooltip('Harmony'),
           matching: find.byType(NavigationDestination),
         ),
       );
@@ -209,7 +211,7 @@ void main() {
       await _settle(tester);
       expect(mic.isCapturing, isFalse, reason: 'back on the tab');
 
-      await tester.tap(find.byTooltip('Settings'));
+      await tester.tap(find.tooltip('Settings'));
       await _settle(tester);
       await tester.tap(find.byType(BackButton));
       await _settle(tester);
@@ -391,7 +393,7 @@ void main() {
       tester,
     ) async {
       await _pumpApp(tester);
-      await tester.tap(find.byTooltip('Settings'));
+      await tester.tap(find.tooltip('Settings'));
       await _settle(tester);
       // On the settings page (the tuner below it shows the same row).
       expect(
@@ -415,7 +417,7 @@ void main() {
       tester.view.padding = const FakeViewPadding(bottom: 120);
       tester.view.viewPadding = const FakeViewPadding(bottom: 120);
       await _pumpApp(tester);
-      await tester.tap(find.byTooltip('Settings'));
+      await tester.tap(find.tooltip('Settings'));
       await _settle(tester);
       final list = tester.widget<ListView>(
         find.descendant(

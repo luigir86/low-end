@@ -1,13 +1,15 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/low_end_app.dart';
 import 'package:low_end/app/settings.dart';
 import 'package:low_end/app/theme.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/tone_output.dart';
+import 'package:material_ui/material_ui.dart';
+
+import 'material_ui_finders.dart';
 
 Future<FakeMicInput> _open(
   WidgetTester tester, {
@@ -29,7 +31,7 @@ Future<FakeMicInput> _open(
     ),
   );
   await tester.pumpAndSettle();
-  await tester.tap(find.byTooltip('Tuner'));
+  await tester.tap(find.tooltip('Tuner'));
   await tester.pumpAndSettle();
   return mic;
 }

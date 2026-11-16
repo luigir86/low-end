@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Looper
-import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import java.io.File
 import org.junit.Assert.assertArrayEquals
@@ -170,7 +169,6 @@ class ReceivedTracksTest {
     @Test
     fun aNameWithNoExtensionTakesTheOneOfItsType() {
         val (host, dart) = listening()
-        shadowOf(MimeTypeMap.getSingleton()).addExtensionMimeTypeMapping("mp4", "application/mp4")
         ReceivedTracks.receive(host, lend(host, "Lezione", byteArrayOf(1, 2, 3)))
         finishReceiving()
         val track = opened(dart).single()

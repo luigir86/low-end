@@ -117,7 +117,12 @@ object ReceivedTracks {
         // its type, so that the Player and the phone know what it is.
         val named = if (safe.contains('.')) safe else {
             val type = host.contentResolver.getType(uri)
-            val extension = type?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) }
+            // The phone's own table first; application/mp4 (what Low End's
+            // own provider says for a shared take) is not in every one.
+            val extension = type?.let {
+                MimeTypeMap.getSingleton().getExtensionFromMimeType(it)
+                    ?: if (it == "application/mp4") "mp4" else null
+            }
             if (extension == null) safe else "$safe.$extension"
         }
         val dir = File(folder(host), UUID.randomUUID().toString())

@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/theme.dart';
 import 'package:low_end/widgets/choice_menu.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   testWidgets('the chosen line uses a rounded accent and a tick', (

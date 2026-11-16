@@ -22,13 +22,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           # Pinned to the last Flutter the app is tested with (CLAUDE.md); 3.50 needs a
           # migration first (material_ui package, Android Gradle Plugin 9.1.1).
-          flutter-version: 3.47.9
+          flutter-version: 3.50.0
           cache: true
       - run: flutter pub get
       # Generate native/web colours and icons from the single Dart accent.
@@ -42,7 +42,7 @@ jobs:
       - run: dart run tool/web_offline.dart build/web
       # Debugging symbols of the drawing engine: never asked for.
       - run: find build/web -name '*.symbols' -delete
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: build/web
 
@@ -54,4 +54,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

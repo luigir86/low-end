@@ -5,7 +5,6 @@
 
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/home_shell.dart';
@@ -20,6 +19,7 @@ import 'package:low_end/audio/track_files.dart';
 import 'package:low_end/audio/track_output.dart';
 import 'package:low_end/features/player/player_controller.dart';
 import 'package:low_end/features/player/player_setup.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _song = TrackRef(uri: 'content://song', name: 'Blue Bossa.mp3', size: 99);

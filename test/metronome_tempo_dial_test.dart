@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/app_navigation.dart';
@@ -16,6 +15,7 @@ import 'package:low_end/features/metronome/metronome_controller.dart';
 import 'package:low_end/features/metronome/tempo_dial.dart';
 import 'package:low_end/features/metronome/time_signature.dart';
 import 'package:low_end/widgets/dial.dart';
+import 'package:material_ui/material_ui.dart';
 
 final _dial = find.byKey(const Key('metronomeTempoDial'));
 

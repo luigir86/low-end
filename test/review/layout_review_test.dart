@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,6 +18,7 @@ import 'package:low_end/features/harmony/drone_controller.dart';
 import 'package:low_end/features/harmony/harmony.dart';
 import 'package:low_end/features/player/player_controller.dart';
 import 'package:low_end/features/player/player_panel.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Roboto and the Material icons, copied from the Flutter SDK into the repo

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -21,17 +20,20 @@ import 'package:low_end/features/metronome/metronome_controller.dart';
 import 'package:low_end/widgets/dial.dart';
 import 'package:low_end/widgets/section_icons.dart';
 import 'package:low_end/widgets/style_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'material_ui_finders.dart';
 
 /// The Harmony and Metronome tabs: their names are not written anywhere
 /// else on the screen.
 final _harmonyTab = find.descendant(
   of: find.byType(NavigationBar),
-  matching: find.byTooltip('Harmony'),
+  matching: find.tooltip('Harmony'),
 );
 final _metronomeTab = find.descendant(
   of: find.byType(NavigationBar),
-  matching: find.byTooltip('Metronome'),
+  matching: find.tooltip('Metronome'),
 );
 
 /// The test window is 800 x 600, a landscape one: these tests are about the
@@ -67,7 +69,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byTooltip('Tuner'), findsOneWidget);
+    expect(find.tooltip('Tuner'), findsOneWidget);
     expect(_harmonyTab, findsOneWidget);
     expect(_metronomeTab, findsOneWidget);
     expect(find.text('Library'), findsNothing);
@@ -275,7 +277,7 @@ void main() {
 
     // Coming to the tuner changes nothing: a swipe too far must not stop
     // the band. The tuner waits, and says what a touch will do.
-    await tester.tap(find.byTooltip('Tuner'));
+    await tester.tap(find.tooltip('Tuner'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pump(const Duration(milliseconds: 300));
@@ -594,7 +596,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('Settings'));
+    await tester.tap(find.tooltip('Settings'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('languageMenu')));
     await tester.pumpAndSettle();
@@ -622,7 +624,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byType(NavigationBar),
-        matching: find.byTooltip('Armonia'),
+        matching: find.tooltip('Armonia'),
       ),
     );
     await tester.pumpAndSettle();
@@ -645,7 +647,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('Settings'));
+    await tester.tap(find.tooltip('Settings'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('About Low End'), 100);
     await tester.ensureVisible(find.text('About Low End'));
@@ -796,7 +798,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Settings'));
+    await tester.tap(find.tooltip('Settings'));
     await tester.pumpAndSettle();
 
     expect(find.text('Theme'), findsNothing);
@@ -832,7 +834,7 @@ void main() {
     expect((await AppSettings.load()).seenGuide, isTrue);
 
     // And it can be read again from the settings.
-    await tester.tap(find.byTooltip('Settings'));
+    await tester.tap(find.tooltip('Settings'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('Gestures and shortcuts'), 100);
     await tester.ensureVisible(find.text('Gestures and shortcuts'));
@@ -856,8 +858,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.byTooltip('Metronome'), findsOneWidget);
-      expect(find.byTooltip('Harmony'), findsOneWidget);
+      expect(find.tooltip('Metronome'), findsOneWidget);
+      expect(find.tooltip('Harmony'), findsOneWidget);
       // The time signature field is named on its border and for screen readers.
       final semantics = tester.ensureSemantics();
       expect(find.text('Time signature'), findsOneWidget);
@@ -896,7 +898,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // The button shows the style playing, and says it.
-      expect(find.byTooltip('Style: Chord on every beat'), findsOneWidget);
+      expect(find.tooltip('Style: Chord on every beat'), findsOneWidget);
       await tester.tap(find.byKey(const Key('styleButton')));
       await tester.pumpAndSettle();
       // The piano's four styles under the metronome's tempo, then the tone.
@@ -913,7 +915,7 @@ void main() {
       await tester.tap(find.text('Arpeggio'));
       await tester.pumpAndSettle();
       expect(scope.drone.style, DroneStyle.arpeggio);
-      expect(find.byTooltip('Style: Arpeggio'), findsOneWidget);
+      expect(find.tooltip('Style: Arpeggio'), findsOneWidget);
 
       await tester.tap(find.byKey(const Key('styleButton')));
       await tester.pumpAndSettle();
@@ -936,7 +938,7 @@ void main() {
       await tester.tap(find.text('Held tone'));
       await tester.pumpAndSettle();
       expect(scope.drone.continuous, isTrue);
-      expect(find.byTooltip('Style: Held tone'), findsOneWidget);
+      expect(find.tooltip('Style: Held tone'), findsOneWidget);
 
       // A piano style again: the piano is back.
       await tester.tap(find.byKey(const Key('styleButton')));
