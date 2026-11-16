@@ -7,8 +7,8 @@
 //
 //   flutter test integration_test/app_test.dart -d <device>
 //
-// The microphone must be allowed beforehand: in CI `adb install -g` grants
-// it (.github/workflows/ci.yml, job `device`); on a phone, allow it once in
+// The microphone must be allowed: in CI the job `device` allows it while
+// the app installs (.github/workflows/ci.yml); on a phone, allow it once in
 // the app.
 
 import 'package:flutter_test/flutter_test.dart';

@@ -201,9 +201,6 @@ jobs:
           cache-provider: basic
       - run: flutter pub get
       - run: flutter test tool/make_icons_test.dart
-      # The emulator runs an x86_64 Android: the app is built for it, with
-      # the test inside, before the emulator starts.
-      - run: flutter build apk --debug --target-platform android-x64 -t integration_test/app_test.dart
       # GitHub's Linux runners let the emulator use the processor's
       # virtualisation (KVM) once allowed.
       - name: Allow the emulator to use KVM
@@ -213,8 +210,9 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       # Android 14 (the Galaxy S20 FE's generation), with sound: the default
       # options would start it without (-noaudio) and the engine would fail.
-      # Installed with -g first, so that the microphone is already allowed
-      # (nobody is there to answer the question); flutter test then keeps it.
+      # Nobody is there to answer Android's questions: while flutter test
+      # builds and installs the app, the microphone and the notification
+      # are allowed to it as soon as it is on the emulator.
       - name: The app on an Android 14 emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -224,5 +222,5 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -no-boot-anim -camera-back none
           disable-animations: true
           script: |
-            adb install -r -g build/app/outputs/flutter-apk/app-debug.apk
+            sh -c 'while true; do adb shell pm grant com.luigir86.low_end android.permission.RECORD_AUDIO 2>/dev/null; adb shell pm grant com.luigir86.low_end android.permission.POST_NOTIFICATIONS 2>/dev/null; sleep 1; done' &
             flutter test integration_test/app_test.dart -d emulator-5554 --reporter expanded
