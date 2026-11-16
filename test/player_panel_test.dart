@@ -7,7 +7,6 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/gestures.dart' show kLongPressTimeout;
-import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart' show SemanticsAction, SemanticsNode;
 import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter_test/flutter_test.dart';
@@ -34,7 +33,10 @@ import 'package:low_end/features/player/ring_wave.dart';
 import 'package:low_end/features/player/ring_window.dart';
 import 'package:low_end/features/player/time_scale.dart';
 import 'package:low_end/widgets/dial.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'material_ui_finders.dart';
 
 const _song = TrackRef(uri: 'content://song', name: 'Blue Bossa.mp3');
 
@@ -107,17 +109,17 @@ void main() {
       await screen.player.seek(at);
       await screen.settle();
       expect(find.byIcon(Icons.delete_outline), findsNothing);
-      await tester.tap(find.byTooltip('Record'));
+      await tester.tap(find.tooltip('Record'));
       await screen.settle();
       expect(find.byType(AlertDialog), findsNothing);
       expect(find.byKey(DialLayout.rowKeys.last), findsOneWidget);
-      await tester.tap(find.byTooltip('Discard'));
+      await tester.tap(find.tooltip('Discard'));
       await screen.settle();
       expect(screen.player.track, same(_song));
       expect(screen.player.position, at);
-      await tester.tap(find.byTooltip('Record'));
+      await tester.tap(find.tooltip('Record'));
       await screen.settle();
-      await tester.tap(find.byTooltip('Stop'));
+      await tester.tap(find.tooltip('Stop'));
       await screen.settle();
       expect(screen.player.status, PlayerStatus.ready);
       expect(screen.player.isPlaying, isFalse);
@@ -125,7 +127,7 @@ void main() {
       expect(screen.player.position, Duration.zero);
       // The track being studied stays the one remembered (RF-PLY-20).
       expect(screen.player.setup?.track, _song);
-      await tester.tap(find.byTooltip('Share'));
+      await tester.tap(find.tooltip('Share'));
       await screen.settle();
       // The take is named after its number that day and the date, and
       // the name can be changed before it goes.
@@ -144,10 +146,10 @@ void main() {
       expect(names, ['Bass_ line.m4a']);
       expect(screen.player.title, 'Bass_ line');
       // REC stays in its place, next to the take's own buttons.
-      expect(find.byTooltip('Record'), findsOneWidget);
+      expect(find.tooltip('Record'), findsOneWidget);
       expect(find.byIcon(Icons.delete_outline), findsNothing);
       // The X in the track field discards the take.
-      expect(find.byTooltip('Discard'), findsOneWidget);
+      expect(find.tooltip('Discard'), findsOneWidget);
       // The field gives the length of the take.
       expect(
         find.descendant(
@@ -161,7 +163,7 @@ void main() {
       await tester.tap(find.text('Keep'));
       await screen.settle();
       expect(find.text('Temporary'), findsOneWidget);
-      await tester.tap(find.byTooltip('Save'));
+      await tester.tap(find.tooltip('Save'));
       await screen.settle();
       // The name given for sharing is offered again.
       expect(find.text('Bass_ line'), findsOneWidget);
@@ -170,9 +172,9 @@ void main() {
       expect(exports, ['share', 'save']);
       expect(names, ['Bass_ line.m4a', 'Bass_ line.m4a']);
       expect(find.text('Saved'), findsOneWidget);
-      expect(find.byTooltip('Record'), findsOneWidget);
+      expect(find.tooltip('Record'), findsOneWidget);
       final take = screen.player.track;
-      await tester.tap(find.byTooltip('Discard'));
+      await tester.tap(find.tooltip('Discard'));
       await screen.settle();
       // The track studied before the take comes back; a saved take needs
       // no Undo.
@@ -182,11 +184,11 @@ void main() {
       expect(find.byKey(DiscardedRow.undoKey), findsNothing);
       // A second X empties the Player, and the file is no longer
       // remembered.
-      await tester.tap(find.byTooltip('Discard'));
+      await tester.tap(find.tooltip('Discard'));
       await screen.settle();
       expect(screen.player.track, isNull);
       expect(screen.player.setup, isNull);
-      expect(find.byTooltip('Discard'), findsNothing);
+      expect(find.tooltip('Discard'), findsNothing);
       expect(find.text('Choose a track'), findsWidgets);
     },
   );
@@ -199,14 +201,14 @@ void main() {
       final screen = await _open(tester, recorder: recorder);
       await screen.player.open(_song);
       await screen.settle();
-      await tester.tap(find.byTooltip('Record'));
+      await tester.tap(find.tooltip('Record'));
       await screen.settle();
-      await tester.tap(find.byTooltip('Discard'));
+      await tester.tap(find.tooltip('Discard'));
       permission.complete(true);
       await screen.settle();
       expect(recorder.starts, 0);
       expect(screen.player.track, same(_song));
-      expect(find.byTooltip('Record'), findsOneWidget);
+      expect(find.tooltip('Record'), findsOneWidget);
       expect(find.byIcon(Icons.delete_outline), findsNothing);
     },
   );
@@ -216,19 +218,19 @@ void main() {
     final screen = await _open(tester);
     await screen.player.open(_song);
     await screen.settle();
-    await tester.tap(find.byTooltip('Record'));
+    await tester.tap(find.tooltip('Record'));
     await screen.settle();
-    await tester.tap(find.byTooltip('Stop'));
+    await tester.tap(find.tooltip('Stop'));
     await screen.settle();
     final take = screen.player.track;
     // REC on a take not saved would replace it: it asks.
-    await tester.tap(find.byTooltip('Record'));
+    await tester.tap(find.tooltip('Record'));
     await screen.settle();
     expect(find.byType(AlertDialog), findsOneWidget);
     await tester.tap(find.text('Keep'));
     await screen.settle();
     expect(screen.player.track, same(take));
-    await tester.tap(find.byTooltip('Discard'));
+    await tester.tap(find.tooltip('Discard'));
     await screen.settle();
     expect(screen.player.track, _song);
     // Said in the track row, not in a notice over the controls.
@@ -243,7 +245,7 @@ void main() {
     expect(screen.files.released, isNot(contains(take)));
     // Discarded again and left alone: the row comes back by itself, and
     // only then is the file let go.
-    await tester.tap(find.byTooltip('Discard'));
+    await tester.tap(find.tooltip('Discard'));
     await screen.settle();
     expect(find.text('Recording discarded'), findsOneWidget);
     await tester.pump(PlayerController.undoTime);
@@ -256,19 +258,19 @@ void main() {
 
   testWidgets('the X empties the Player of a file', (tester) async {
     final screen = await _open(tester);
-    expect(find.byTooltip('Discard'), findsNothing);
+    expect(find.tooltip('Discard'), findsNothing);
     await screen.player.open(_song);
     screen.player.setSpeed(70);
     await screen.player.start();
     await screen.settle();
-    await tester.tap(find.byTooltip('Discard'));
+    await tester.tap(find.tooltip('Discard'));
     await screen.settle();
     expect(screen.player.track, isNull);
     expect(screen.player.isPlaying, isFalse);
     expect(screen.player.setup, isNull);
     expect(screen.files.released, contains(_song));
     expect(find.byKey(DiscardedRow.undoKey), findsNothing);
-    expect(find.byTooltip('Discard'), findsNothing);
+    expect(find.tooltip('Discard'), findsNothing);
   });
 
   testWidgets('with no track the middle asks for one, and a touch opens the '
@@ -646,7 +648,7 @@ void main() {
       expect(screen.player.looping, isTrue);
       expect(dialRect(tester), dial);
       expect(tester.getCenter(button), center);
-      await tester.tap(find.byTooltip('New passage'));
+      await tester.tap(find.tooltip('New passage'));
       await screen.settle();
       expect(screen.player.loopStart, isNull);
       expect(screen.player.loopEnd, isNull);

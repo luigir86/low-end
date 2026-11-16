@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The three sections' own pictures, for the tabs: a classic metronome, a
 /// keyboard and a tuning fork. Material has none of them in its icon font,

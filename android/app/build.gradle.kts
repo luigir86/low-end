@@ -101,7 +101,7 @@ flutter {
 
 dependencies {
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.robolectric:robolectric:4.14.1")
+    testImplementation("org.robolectric:robolectric:4.18")
     testImplementation("androidx.test:core:1.6.1")
     constraints {
         // Guava comes in through the Player's ExoPlayer (AndroidX Media3,
@@ -109,7 +109,7 @@ dependencies {
         // version has a known advisory (GHSA-xxph-c9ww-hj94, fixed in
         // 33.7.2): this raises it for the whole app without touching the
         // plugins. Remove it once just_audio brings a fixed Guava itself.
-        implementation("com.google.guava:guava:33.7.2-android") {
+        implementation("com.google.guava:guava:33.8.0-android") {
             because("GHSA-xxph-c9ww-hj94: Guava before 33.7.2 is affected")
         }
     }

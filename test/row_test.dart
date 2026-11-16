@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/home_shell.dart';
@@ -14,7 +13,10 @@ import 'package:low_end/features/harmony/harmony.dart';
 import 'package:low_end/features/metronome/time_signature.dart';
 import 'package:low_end/widgets/reference_pitch_row.dart';
 import 'package:low_end/widgets/row_controls.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'material_ui_finders.dart';
 
 Future<AudioScope> _pump(WidgetTester tester, AppSettings settings) async {
   tester.view.physicalSize = const Size(1080, 2400);
@@ -97,20 +99,20 @@ void main() {
     expect(frame.foregroundColor, colors.navigationInk);
     expect(frame.toolbarHeight, 2.0);
     expect(
-      tester.getRect(find.byTooltip('Settings')).top,
+      tester.getRect(find.tooltip('Settings')).top,
       greaterThanOrEqualTo(
         tester.getRect(find.byKey(const Key('appFrame'))).bottom,
       ),
     );
-    final settingsRect = tester.getRect(find.byTooltip('Settings'));
+    final settingsRect = tester.getRect(find.tooltip('Settings'));
     expect(settingsRect.height, greaterThanOrEqualTo(48));
     expect(settingsRect.width, greaterThanOrEqualTo(48));
     expect(find.text('4/4'), findsOneWidget);
     expect(find.text('TAP'), findsOneWidget);
     // − and + have no tooltip, which a hold would open: holding them runs
     // the tempo. A screen reader still names them.
-    expect(find.byTooltip('Faster'), findsNothing);
-    expect(find.byTooltip('Slower'), findsNothing);
+    expect(find.tooltip('Faster'), findsNothing);
+    expect(find.tooltip('Slower'), findsNothing);
     final names = tester.ensureSemantics();
     expect(find.bySemanticsLabel('Faster'), findsOneWidget);
     expect(find.bySemanticsLabel('Slower'), findsOneWidget);
@@ -122,7 +124,7 @@ void main() {
   group('the reference A on the tuner', () {
     Future<AudioScope> openTuner(WidgetTester tester) async {
       final scope = await _pump(tester, AppSettings());
-      await tester.tap(find.byTooltip('Tuner'));
+      await tester.tap(find.tooltip('Tuner'));
       await tester.pumpAndSettle();
       return scope;
     }
@@ -132,12 +134,12 @@ void main() {
     ) async {
       final scope = await openTuner(tester);
       expect(scope.settings.a4, 440);
-      await tester.tap(find.byTooltip('Raise the reference A'));
+      await tester.tap(find.tooltip('Raise the reference A'));
       await tester.pump();
       expect(scope.settings.a4, 441);
-      await tester.tap(find.byTooltip('Lower the reference A'));
+      await tester.tap(find.tooltip('Lower the reference A'));
       await tester.pump();
-      await tester.tap(find.byTooltip('Lower the reference A'));
+      await tester.tap(find.tooltip('Lower the reference A'));
       await tester.pump();
       expect(scope.settings.a4, 439);
       expect(find.text('439 Hz'), findsWidgets);
@@ -160,12 +162,12 @@ void main() {
       final scope = await openTuner(tester);
       scope.settings.setReferencePitch(432);
       await tester.pump();
-      await tester.tap(find.byTooltip('Raise the reference A'));
+      await tester.tap(find.tooltip('Raise the reference A'));
       await tester.pump();
       expect(scope.settings.a4, 433);
       scope.settings.setReferencePitch(430);
       await tester.pump();
-      await tester.tap(find.byTooltip('Lower the reference A'));
+      await tester.tap(find.tooltip('Lower the reference A'));
       await tester.pump();
       expect(scope.settings.a4, 429);
     });
@@ -174,21 +176,21 @@ void main() {
       tester,
     ) async {
       final scope = await openTuner(tester);
-      await tester.tap(find.byTooltip('Choose a standard reference A'));
+      await tester.tap(find.tooltip('Choose a standard reference A'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byKey(const Key('pitchField')), '437');
       await tester.tap(find.text('OK'));
       await tester.pumpAndSettle();
       expect(scope.settings.a4, 437);
 
-      await tester.tap(find.byTooltip('Choose a standard reference A'));
+      await tester.tap(find.tooltip('Choose a standard reference A'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byKey(const Key('pitchField')), '999');
       await tester.tap(find.text('OK'));
       await tester.pumpAndSettle();
       expect(scope.settings.a4, 445);
 
-      await tester.tap(find.byTooltip('Choose a standard reference A'));
+      await tester.tap(find.tooltip('Choose a standard reference A'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byKey(const Key('pitchField')), '');
       await tester.tap(find.text('OK'));
@@ -198,7 +200,7 @@ void main() {
 
     testWidgets('the pencil offers the four standard pitches', (tester) async {
       final scope = await openTuner(tester);
-      await tester.tap(find.byTooltip('Choose a standard reference A'));
+      await tester.tap(find.tooltip('Choose a standard reference A'));
       await tester.pumpAndSettle();
       for (final hz in ['415', '432', '440', '442']) {
         expect(find.text('$hz Hz'), findsWidgets);
@@ -211,7 +213,7 @@ void main() {
 
   testWidgets('the circle writes the chord out, not "II of C"', (tester) async {
     final scope = await _pump(tester, AppSettings());
-    await tester.tap(find.byTooltip('Harmony').last);
+    await tester.tap(find.tooltip('Harmony').last);
     await tester.pumpAndSettle();
     scope.drone
       ..setProgression(Progression.twoFiveOne)
@@ -229,7 +231,7 @@ void main() {
     tester,
   ) async {
     await _pump(tester, AppSettings());
-    await tester.tap(find.byTooltip('Tuner'));
+    await tester.tap(find.tooltip('Tuner'));
     await tester.pumpAndSettle();
     final instrument = tester.getSize(find.byKey(const Key('instrumentMenu')));
     final reference = tester.getSize(

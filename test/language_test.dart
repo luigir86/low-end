@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/low_end_app.dart';
 import 'package:low_end/app/settings.dart';
@@ -8,6 +7,9 @@ import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/pitch.dart' show OctaveNumbering;
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/l10n/app_localizations.dart';
+import 'package:material_ui/material_ui.dart';
+
+import 'material_ui_finders.dart';
 
 /// "Follow the language": with no language chosen, the app speaks the
 /// phone's.
@@ -91,7 +93,7 @@ void main() {
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
     await open(tester, const [Locale('it', 'IT')], settings: settings);
-    await tester.tap(find.byTooltip('Impostazioni'));
+    await tester.tap(find.tooltip('Impostazioni'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('languageMenu')));
     await tester.pumpAndSettle();
@@ -116,7 +118,7 @@ void main() {
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
     await open(tester, const [Locale('en', 'GB')], settings: settings);
-    await tester.tap(find.byTooltip('Settings'));
+    await tester.tap(find.tooltip('Settings'));
     await tester.pumpAndSettle();
     final octaves = find.byKey(const Key('octaveNumberingMenu'));
     // The field says the short word; the menu the whole name, with its

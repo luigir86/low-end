@@ -2,7 +2,6 @@
 // the track being studied, and the actions for assistants. No microphone:
 // FakeTakeRecorder stands for it.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/actions/app_actions.dart';
 import 'package:low_end/app/app_navigation.dart';
@@ -27,8 +26,11 @@ import 'package:low_end/features/player/recording_controller.dart';
 import 'package:low_end/features/player/ring_wave.dart';
 import 'package:low_end/features/player/track_peaks.dart';
 import 'package:low_end/features/tuner/tuner_controller.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:record/record.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'material_ui_finders.dart';
 
 const _song = TrackRef(uri: 'content://song', name: 'Blue Bossa.mp3');
 const _other = TrackRef(uri: 'content://other', name: 'Other.m4a');
@@ -394,7 +396,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     final rec = find.byKey(PlayerPanel.recordKey);
-    expect(find.byTooltip('Record'), findsOne);
+    expect(find.tooltip('Record'), findsOne);
     final dot = tester.widget<Icon>(
       find.descendant(of: rec, matching: find.byIcon(Icons.circle)),
     );
@@ -421,8 +423,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     expect(mic.takes, 1);
     // The take's row: save, share, delete.
-    expect(find.byTooltip('Save'), findsOne);
-    expect(find.byTooltip('Share'), findsOne);
+    expect(find.tooltip('Save'), findsOne);
+    expect(find.tooltip('Share'), findsOne);
     final scope = AudioScope.of(tester.element(find.byType(HomeShell)));
     expect(scope.player.track, isA<RecordedTrack>());
     await tester.pumpWidget(const SizedBox());

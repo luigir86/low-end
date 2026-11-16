@@ -11,6 +11,8 @@ import 'package:low_end/features/tuner/tuner_controller.dart';
 import 'package:low_end/features/tuner/tuner_reading.dart';
 import 'package:record/record.dart';
 
+import 'material_ui_finders.dart';
+
 /// Chunk number [chunk] of a continuous sine, as the microphone would send it.
 Float64List _sine(double hz, int length, {int chunk = 0, int rate = 16000}) =>
     Float64List.fromList([
@@ -118,7 +120,7 @@ void main() {
     await tester.pumpAndSettle();
     // The app opens on the metronome, with the microphone off.
     expect(mic.isCapturing, isFalse);
-    await tester.tap(find.byTooltip('Tuner'));
+    await tester.tap(find.tooltip('Tuner'));
     await tester.pumpAndSettle();
     // Opening the tuner starts listening right away.
     expect(mic.isCapturing, isTrue);
@@ -133,7 +135,7 @@ void main() {
     expect(find.text('G2'), findsWidgets);
 
     // Leaving the tuner turns the microphone off.
-    await tester.tap(find.byTooltip('Metronome'));
+    await tester.tap(find.tooltip('Metronome'));
     await tester.pumpAndSettle();
     expect(mic.isCapturing, isFalse);
   });
@@ -155,7 +157,7 @@ void main() {
       LowEndApp(toneOutput: SilentToneOutput(), micInput: mic),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip(tab));
+    await tester.tap(find.tooltip(tab));
     await tester.pumpAndSettle();
     for (var i = 0; i < 8; i++) {
       mic.add(_sine(hz, 1600, chunk: i));

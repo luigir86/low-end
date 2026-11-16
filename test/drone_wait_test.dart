@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/home_shell.dart';
 import 'package:low_end/app/low_end_app.dart';
@@ -14,6 +13,9 @@ import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/features/harmony/drone_controller.dart';
 import 'package:low_end/features/harmony/harmony.dart';
 import 'package:low_end/features/metronome/time_signature.dart';
+import 'package:material_ui/material_ui.dart';
+
+import 'material_ui_finders.dart';
 
 void main() {
   test('counts down the wait for the metronome\'s bar line', () async {
@@ -58,7 +60,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byType(NavigationBar),
-        matching: find.byTooltip('Harmony'),
+        matching: find.tooltip('Harmony'),
       ),
     );
     await tester.pumpAndSettle();
@@ -93,7 +95,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byType(NavigationBar),
-        matching: find.byTooltip('Harmony'),
+        matching: find.tooltip('Harmony'),
       ),
     );
     await tester.pumpAndSettle();
@@ -136,7 +138,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byType(NavigationBar),
-        matching: find.byTooltip('Harmony'),
+        matching: find.tooltip('Harmony'),
       ),
     );
     await tester.pumpAndSettle();

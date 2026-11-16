@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// One line of text that fits, or, if it does not, goes by once and stops
 /// (RF-PLY-19): it starts [delay] after it appears or after the track starts

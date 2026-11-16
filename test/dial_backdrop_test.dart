@@ -1,10 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/low_end_app.dart';
 import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/widgets/dial.dart';
+import 'package:material_ui/material_ui.dart';
+
+import 'material_ui_finders.dart';
 
 /// The disc and the background stay still under the pages: moving between
 /// sections only the ring and the controls come and go over them.
@@ -36,7 +38,7 @@ void main() {
     final rail = find.byKey(const Key('tabRail'));
     await tester.tap(
       rail.evaluate().isEmpty
-          ? find.byTooltip(tab)
+          ? find.tooltip(tab)
           : find.descendant(of: rail, matching: find.text(tab)),
     );
     await tester.pump(const Duration(milliseconds: 400));

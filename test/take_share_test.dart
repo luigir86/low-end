@@ -3,7 +3,6 @@
 // (TakeFiles.kt, tested on its side in android/app/src/test).
 // The happy path is in player_panel_test.dart.
 
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/app_navigation.dart';
@@ -21,7 +20,10 @@ import 'package:low_end/audio/track_files.dart';
 import 'package:low_end/audio/track_output.dart';
 import 'package:low_end/features/player/recording_controls.dart';
 import 'package:low_end/widgets/row_controls.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'material_ui_finders.dart';
 
 const _takes = MethodChannel('low_end/takes');
 
@@ -56,9 +58,9 @@ Future<(AudioScope, List<MethodCall>)> _recorded(
   );
   await tester.pumpAndSettle();
   final scope = AudioScope.of(tester.element(find.byType(HomeShell)));
-  await tester.tap(find.byTooltip('Record'));
+  await tester.tap(find.tooltip('Record'));
   await _settle(tester);
-  await tester.tap(find.byTooltip('Stop'));
+  await tester.tap(find.tooltip('Stop'));
   await _settle(tester);
   expect(scope.player.track, isA<RecordedTrack>());
   return (scope, calls);
@@ -78,7 +80,7 @@ void main() {
   ) async {
     final (scope, calls) = await _recorded(tester, (_) async => true);
     final before = _take(scope).fileName;
-    await tester.tap(find.byTooltip('Share'));
+    await tester.tap(find.tooltip('Share'));
     await _settle(tester);
     await tester.enterText(find.byKey(TakeNameDialog.nameKey), 'Other');
     await tester.tap(find.text('Cancel'));
@@ -87,7 +89,7 @@ void main() {
     expect(calls, isEmpty);
     expect(_take(scope).fileName, before);
     // The buttons work again.
-    await tester.tap(find.byTooltip('Share'));
+    await tester.tap(find.tooltip('Share'));
     await _settle(tester);
     expect(find.byType(TakeNameDialog), findsOneWidget);
   });
@@ -96,7 +98,7 @@ void main() {
     tester,
   ) async {
     final (_, calls) = await _recorded(tester, (_) async => true);
-    await tester.tap(find.byTooltip('Share'));
+    await tester.tap(find.tooltip('Share'));
     await _settle(tester);
     await tester.enterText(find.byKey(TakeNameDialog.nameKey), '   ');
     await tester.pump();
@@ -118,7 +120,7 @@ void main() {
   testWidgets('Share sends the path of the take and the name with its '
       'extension', (tester) async {
     final (scope, calls) = await _recorded(tester, (_) async => true);
-    await tester.tap(find.byTooltip('Share'));
+    await tester.tap(find.tooltip('Share'));
     await _settle(tester);
     await tester.enterText(
       find.byKey(TakeNameDialog.nameKey),
@@ -145,7 +147,7 @@ void main() {
       }
       return true;
     });
-    await tester.tap(find.byTooltip('Share'));
+    await tester.tap(find.tooltip('Share'));
     await _settle(tester);
     await tester.tap(find.byKey(TakeNameDialog.confirmKey));
     await _settle(tester);
@@ -156,7 +158,7 @@ void main() {
     );
     expect(notice.dy, lessThan(tester.view.physicalSize.height / 2.625 / 2));
     fail = false;
-    await tester.tap(find.byTooltip('Share'));
+    await tester.tap(find.tooltip('Share'));
     await _settle(tester);
     await tester.tap(find.byKey(TakeNameDialog.confirmKey));
     await _settle(tester);
@@ -167,14 +169,14 @@ void main() {
       'temporary; saved, it says so and Save is off', (tester) async {
     var saved = false;
     final (scope, calls) = await _recorded(tester, (_) async => saved);
-    await tester.tap(find.byTooltip('Save'));
+    await tester.tap(find.tooltip('Save'));
     await _settle(tester);
     await tester.tap(find.byKey(TakeNameDialog.confirmKey));
     await _settle(tester);
     expect(find.text('Temporary'), findsOneWidget);
     expect(_take(scope).saved, isFalse);
     saved = true;
-    await tester.tap(find.byTooltip('Save'));
+    await tester.tap(find.tooltip('Save'));
     await _settle(tester);
     await tester.tap(find.byKey(TakeNameDialog.confirmKey));
     await _settle(tester);
@@ -187,7 +189,7 @@ void main() {
     );
     expect(tester.widget<RowButton>(save).onPressed, isNull);
     // Share still works on a saved take.
-    await tester.tap(find.byTooltip('Share'));
+    await tester.tap(find.tooltip('Share'));
     await _settle(tester);
     await tester.tap(find.byKey(TakeNameDialog.confirmKey));
     await _settle(tester);
@@ -200,7 +202,7 @@ void main() {
       tester,
       (_) async => throw PlatformException(code: 'save'),
     );
-    await tester.tap(find.byTooltip('Save'));
+    await tester.tap(find.tooltip('Save'));
     await _settle(tester);
     await tester.tap(find.byKey(TakeNameDialog.confirmKey));
     await _settle(tester);

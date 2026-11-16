@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/home_shell.dart';
 import 'package:low_end/app/low_end_app.dart';
@@ -11,7 +10,10 @@ import 'package:low_end/features/metronome/metronome_screen.dart';
 import 'package:low_end/features/metronome/time_signature.dart';
 import 'package:low_end/features/tuner/tuner_reading.dart';
 import 'package:low_end/widgets/flip_detector.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'material_ui_finders.dart';
 
 void main() {
   group('tempo marks', () {
@@ -197,7 +199,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byType(NavigationBar),
-        matching: find.byTooltip('Harmony'),
+        matching: find.tooltip('Harmony'),
       ),
     );
     await tester.pumpAndSettle();

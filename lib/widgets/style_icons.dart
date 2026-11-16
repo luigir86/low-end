@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The pictures of the styles of Harmony, drawn on the same 24-unit grid as
 /// the Material icons. The three ways the piano plays a chord are written as
