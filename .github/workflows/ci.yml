@@ -140,7 +140,9 @@ jobs:
   web:
     needs: changes
     if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.code == 'true') }}
-    runs-on: ubuntu-latest
+    # 24.04: the WebKitGTK packages the iPhone tests use (newer images
+    # renamed webkit2gtk-driver).
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - uses: subosito/flutter-action@v2
