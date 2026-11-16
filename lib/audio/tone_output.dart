@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 
 import 'drone_sound.dart';
+import 'loop_engine.dart';
+import 'loop_transport.dart';
 import 'off_thread.dart';
 import 'soloud_engine.dart';
 
@@ -11,7 +13,9 @@ import 'soloud_engine.dart';
 /// real audio device.
 abstract class ToneOutput {
   /// Starts (or retunes, if already playing) the given frequencies in Hz.
-  /// [gains] holds one relative volume per frequency, 0 to 1.
+  /// [gains] holds one relative volume per frequency, 0 to 1. Stopped
+  /// while the tone is got ready, it starts nothing and throws
+  /// [LoopNotWanted].
   Future<void> play(
     List<double> frequencies,
     List<double> gains,
@@ -31,14 +35,32 @@ abstract class ToneOutput {
 /// are expected one at a time (DroneController waits for each one to
 /// finish before the next).
 class SoLoudToneOutput implements ToneOutput {
+  /// On the phone's engine. Tests give an engine of their own, what starts
+  /// it, and how a tone is built.
+  SoLoudToneOutput({
+    @visibleForTesting LoopEngine engine = LoopEngine.soloud,
+    @visibleForTesting Future<void> Function()? engineReady,
+    @visibleForTesting
+    Future<Uint8List> Function(List<double> frequencies, List<double> gains)?
+    build,
+  }) : _soloud = engine,
+       _engineReady = engineReady ?? prepareSoLoud,
+       _buildTone = build ?? _build;
+
   static const _fade = Duration(milliseconds: 80);
+
+  final LoopEngine _soloud;
+  final Future<void> Function() _engineReady;
+  final Future<Uint8List> Function(List<double>, List<double>) _buildTone;
+
+  /// How many times [stop] was called: a play that a stop overtook while
+  /// its tone was built starts nothing.
+  var _stops = 0;
 
   /// The tones built and loaded so far, by [_key].
   final _sources = <String, Future<AudioSource>>{};
   SoundHandle? _handle;
   String? _playing;
-
-  SoLoud get _soloud => SoLoud.instance;
 
   static String _key(List<double> frequencies, List<double> gains) =>
       '$frequencies $gains';
@@ -56,9 +78,9 @@ class SoLoudToneOutput implements ToneOutput {
       _sources.putIfAbsent(_key(frequencies, gains), () async {
         // The engine starts and warms up while the tone is built; its sound
         // is woken by play.
-        final engine = prepareSoLoud()..ignore();
+        final engine = _engineReady()..ignore();
         // Building the tone takes a moment: away from the screen's thread.
-        final wav = await _build(frequencies, gains);
+        final wav = await _buildTone(frequencies, gains);
         await engine;
         return _soloud.loadMem('drone.wav', wav);
       });
@@ -71,13 +93,14 @@ class SoLoudToneOutput implements ToneOutput {
   ) async {
     assert(gains.length == frequencies.length);
     final key = _key(frequencies, gains);
+    final stops = _stops;
     if (_handle != null && key == _playing) {
       _setVolume(volume);
       return;
     }
     // In a web page the engine's sound may be held (before the first
     // touch, asleep, interrupted): it is woken while the tone is got.
-    final awake = ensureSoLoud()..ignore();
+    final awake = _soloud.ensure()..ignore();
     final AudioSource source;
     try {
       source = await _source(frequencies, gains);
@@ -87,6 +110,9 @@ class SoLoudToneOutput implements ToneOutput {
       rethrow;
     }
     await awake;
+    // Stopped meanwhile: the stop let go of the tones (this one too), and a
+    // tone started now would sound on unseen.
+    if (stops != _stops) throw const LoopNotWanted();
     final handle = _soloud.play(source, volume: 0, looping: true);
     // The new tone fades in while the old one fades out: no click, no gap.
     _soloud.fadeVolume(handle, volume, _fade);
@@ -113,6 +139,7 @@ class SoLoudToneOutput implements ToneOutput {
 
   @override
   Future<void> stop() async {
+    _stops++;
     final handle = _handle;
     _handle = null;
     _playing = null;

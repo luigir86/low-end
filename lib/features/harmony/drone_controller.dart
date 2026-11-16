@@ -937,7 +937,13 @@ class DroneController extends ChangeNotifier implements SoundSection {
         final f = frequencies;
         _sounding = null;
         _toneSounding = true;
-        await _output.play(f, _gainsFor(f.length), _volume);
+        try {
+          await _output.play(f, _gainsFor(f.length), _volume);
+        } on LoopNotWanted {
+          // Stopped while the tone was built: nothing started, and the
+          // start that came since (if any) plays its own.
+          return;
+        }
         if (_playing && !_disposed && generation == _generation) {
           _soundStarts();
         }

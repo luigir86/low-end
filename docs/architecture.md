@@ -18,7 +18,7 @@ outputs (audio/*_output.dart, mic_input.dart, …)   sound, microphone, notifica
 packages: flutter_soloud, record, audio_service, wakelock_plus, shared_preferences
 ```
 
-Every outside thing sits behind an interface with a silent or fake twin (`ToneOutput`/`SilentToneOutput`, `ClickOutput`/`SilentClickOutput`, `PianoOutput`/`SilentPianoOutput`, `MicInput`/`FakeMicInput`, `AudioRoute`/`FakeAudioRoute`, `BackgroundAudio`, `ScreenAwake`/`FakeScreenAwake`, `PianoMixer`/`LocalPianoMixer`, and under the looping bars `LoopEngine`, whose fake with its own clock is in `test/fake_loop_engine.dart`). The tests use the twins, so they need neither a phone nor a sound card.
+Every outside thing sits behind an interface with a silent or fake twin (`ToneOutput`/`SilentToneOutput`, `ClickOutput`/`SilentClickOutput`, `PianoOutput`/`SilentPianoOutput`, `MicInput`/`FakeMicInput`, `AudioRoute`/`FakeAudioRoute`, `BackgroundAudio`, `ScreenAwake`/`FakeScreenAwake`, `PianoMixer`/`LocalPianoMixer`, and under the looping bars and the continuous tone `LoopEngine`, whose fake with its own clock is in `test/fake_loop_engine.dart`). The tests use the twins, so they need neither a phone nor a sound card.
 
 ## Folders
 
