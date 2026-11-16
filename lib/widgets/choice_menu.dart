@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// One line of a [showChoiceMenu]: the [title], and under it a [subtitle]
 /// in the muted ink ("Like Autumn Leaves", the strings of an instrument); a

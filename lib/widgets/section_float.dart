@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The vertical scroll of each section's page (it scrolls with very large
 /// text), so that the disc under the pages can follow the page on screen.

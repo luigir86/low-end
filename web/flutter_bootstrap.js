@@ -158,9 +158,26 @@ window.lowEndLoadAudioEngine = function () {
 // Everything comes from this site, nothing from Google's servers: the
 // drawing engine (CanvasKit) included, and Flutter's own service worker,
 // deprecated, is left out for ours (sw.js, made by tool/web_offline.dart).
+// Safari (and Firefox) in WebAssembly, as a trial: opened once with
+// ?motore=wasm, the browser keeps taking the app compiled to WebAssembly
+// with Skwasm, as Chrome does, until it is opened with ?motore=js. Flutter
+// 3.50 runs it from Safari 26.2; an older browser falls back to JavaScript
+// by itself. Without the trial nothing changes (docs/web.md).
+const wasmTrial = (function () {
+  try {
+    const asked = new URLSearchParams(location.search).get('motore');
+    if (asked === 'wasm') localStorage.setItem('lowEndEngine', 'wasm');
+    if (asked === 'js') localStorage.removeItem('lowEndEngine');
+    return localStorage.getItem('lowEndEngine') === 'wasm';
+  } catch (_) {
+    return false;
+  }
+})();
+
 _flutter.loader.load({
   config: {
     canvasKitBaseUrl: 'canvaskit/',
+    ...(wasmTrial ? { wasmAllowList: { webkit: true, gecko: true } } : {}),
   },
   onEntrypointLoaded: async function (engineInitializer) {
     const appRunner = await engineInitializer.initializeEngine();
@@ -193,7 +210,8 @@ function keepOffline() {
   fetch('sw.js', { method: 'HEAD' })
     .then(function (response) {
       if (!response.ok) return;
-      navigator.serviceWorker.register('sw.js');
+      // The worker keeps the build this browser takes (see wasmTrial).
+      navigator.serviceWorker.register(wasmTrial ? 'sw.js?motore=wasm' : 'sw.js');
       keepFiles();
       return navigator.serviceWorker.ready.then(function (registration) {
         setTimeout(function () {

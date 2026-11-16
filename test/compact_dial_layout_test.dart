@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/home_shell.dart';
@@ -11,6 +10,7 @@ import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/audio/track_files.dart';
 import 'package:low_end/audio/track_output.dart';
 import 'package:low_end/widgets/dial.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   for (final size in [

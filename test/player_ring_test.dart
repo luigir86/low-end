@@ -4,7 +4,6 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' show PictureRecorder;
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/features/player/clock_text.dart';
 import 'package:low_end/features/player/player_dial.dart';
@@ -13,6 +12,7 @@ import 'package:low_end/features/player/ring_window.dart';
 import 'package:low_end/features/player/time_scale.dart';
 import 'package:low_end/features/player/track_peaks.dart';
 import 'package:low_end/widgets/dial.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   timeScaleTests();

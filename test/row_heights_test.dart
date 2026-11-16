@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/home_shell.dart';
@@ -10,6 +9,7 @@ import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/features/harmony/drone_controller.dart';
 import 'package:low_end/widgets/row_controls.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// In the row of controls under each dial, the field (the time signature, the
 /// chord, the reference A) and the chips beside it (TAP, − +, +7) are the

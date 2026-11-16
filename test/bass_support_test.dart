@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/home_shell.dart';
@@ -17,6 +16,7 @@ import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/features/harmony/drone_controller.dart';
 import 'package:low_end/features/tuner/tuner_reading.dart';
 import 'package:low_end/features/tuner/tuner_tuning.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _rate = 16000;

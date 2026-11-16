@@ -1,8 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/low_end_app.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/tone_output.dart';
+import 'package:material_ui/material_ui.dart';
+
+import 'material_ui_finders.dart';
 
 /// With the phone's text enlarged, the menu fields of the Settings go under
 /// their names and take the whole width, so that their values are not cut;
@@ -36,7 +38,7 @@ void main() {
           LowEndApp(toneOutput: SilentToneOutput(), micInput: FakeMicInput()),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byTooltip(entry.value));
+        await tester.tap(find.tooltip(entry.value));
         await tester.pumpAndSettle();
         for (final key in keys) {
           final field = find.byKey(Key(key));

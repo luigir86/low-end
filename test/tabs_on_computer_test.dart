@@ -1,5 +1,4 @@
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/home_shell.dart';
@@ -13,7 +12,10 @@ import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/widgets/navigation_edge.dart';
 import 'package:low_end/widgets/section_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'material_ui_finders.dart';
 
 /// The web app on a computer: a mouse, and a window wider than tall, so the
 /// tabs are the rail. A real click often moves the mouse a pixel or two.
@@ -195,9 +197,7 @@ void main() {
         await click(
           tester,
           mouse,
-          tester.getCenter(
-            name == 'rail' ? find.text(tab) : find.byTooltip(tab),
-          ),
+          tester.getCenter(name == 'rail' ? find.text(tab) : find.tooltip(tab)),
           const Offset(1, 3),
         );
         expect(navigation.section, section);
@@ -244,7 +244,7 @@ void main() {
         ('Metronome', AppSection.metronome),
         ('Harmony', AppSection.drone),
       ]) {
-        await tester.tap(name == 'rail' ? find.text(tab) : find.byTooltip(tab));
+        await tester.tap(name == 'rail' ? find.text(tab) : find.tooltip(tab));
         await tester.pumpAndSettle();
         expect(navigation.section, section);
         expect(pages.page, section.index.toDouble());

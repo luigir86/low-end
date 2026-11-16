@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/low_end_app.dart';
@@ -10,6 +9,9 @@ import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/audio/track_files.dart';
 import 'package:low_end/audio/track_output.dart';
 import 'package:low_end/widgets/dial.dart';
+import 'package:material_ui/material_ui.dart';
+
+import 'material_ui_finders.dart';
 
 /// Checks the main screens against Flutter's accessibility guidelines: touch
 /// targets of at least 48 dp, a label on every tappable element, and text
@@ -46,7 +48,7 @@ Future<void> pumpApp(
   );
   await tester.pumpAndSettle();
   // The app opens on the metronome; these checks start from the tuner.
-  await tester.tap(find.byTooltip('Tuner'));
+  await tester.tap(find.tooltip('Tuner'));
   await tester.pumpAndSettle();
 }
 
@@ -54,15 +56,15 @@ Future<void> pumpApp(
 /// else on the screen.
 final _harmonyTab = find.descendant(
   of: find.byType(NavigationBar),
-  matching: find.byTooltip('Harmony'),
+  matching: find.tooltip('Harmony'),
 );
 final _playerTab = find.descendant(
   of: find.byType(NavigationBar),
-  matching: find.byTooltip('Player'),
+  matching: find.tooltip('Player'),
 );
 final _metronomeTab = find.descendant(
   of: find.byType(NavigationBar),
-  matching: find.byTooltip('Metronome'),
+  matching: find.tooltip('Metronome'),
 );
 
 /// Does the ring's custom action called [label], as a screen reader would.
@@ -119,7 +121,7 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('Progression').last);
         await tester.pumpAndSettle();
-        expect(find.byTooltip('Example songs'), findsOneWidget);
+        expect(find.tooltip('Example songs'), findsOneWidget);
         await expectAccessible(tester);
 
         await tester.tap(_metronomeTab);
@@ -189,7 +191,7 @@ void main() {
     await tester.pump();
     expect(find.bySemanticsLabel('Stop A'), findsOneWidget);
 
-    await tester.tap(find.byTooltip('Settings'));
+    await tester.tap(find.tooltip('Settings'));
     await tester.pumpAndSettle();
     expect(find.bySemanticsLabel(RegExp('Reference A')), findsWidgets);
     await expectAccessible(tester);

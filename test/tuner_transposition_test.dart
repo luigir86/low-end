@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/actions/app_actions.dart';
 import 'package:low_end/app/app_navigation.dart';
@@ -20,7 +19,10 @@ import 'package:low_end/features/player/player_controller.dart';
 import 'package:low_end/features/tuner/tuner_controller.dart';
 import 'package:low_end/features/tuner/tuner_panel.dart';
 import 'package:low_end/features/tuner/tuner_tuning.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'material_ui_finders.dart';
 
 /// Chunk number [chunk] of a continuous sine, as the microphone would send it.
 Float64List _sine(double hz, {int chunk = 0}) => Float64List.fromList([
@@ -44,7 +46,7 @@ Future<FakeMicInput> _openTuner(
     ),
   );
   await tester.pumpAndSettle();
-  await tester.tap(find.byTooltip('Tuner'));
+  await tester.tap(find.tooltip('Tuner'));
   await tester.pumpAndSettle();
   return mic;
 }

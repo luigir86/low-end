@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/app_navigation.dart';
@@ -12,6 +11,7 @@ import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/features/harmony/drone_controller.dart';
+import 'package:material_ui/material_ui.dart';
 
 Future<ByteData> _font(String path) async =>
     ByteData.sublistView(await File(path).readAsBytes());

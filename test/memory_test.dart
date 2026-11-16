@@ -1,9 +1,5 @@
 import 'dart:convert';
 
-// The app opens as it was left: on the same section, with the harmony set as
-// the player chose it, like the metronome's tempo.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/home_shell.dart';
@@ -16,7 +12,13 @@ import 'package:low_end/audio/piano_sound.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/features/harmony/drone_controller.dart';
 import 'package:low_end/features/harmony/harmony.dart';
+// The app opens as it was left: on the same section, with the harmony set as
+// the player chose it, like the metronome's tempo.
+
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'material_ui_finders.dart';
 
 const DroneSetup _blues = (
   pitchClass: 6,
@@ -209,7 +211,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: find.byType(NavigationBar),
-          matching: find.byTooltip('Tuner'),
+          matching: find.tooltip('Tuner'),
         ),
       );
       await tester.pumpAndSettle();

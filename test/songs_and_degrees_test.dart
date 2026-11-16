@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/home_shell.dart';
 import 'package:low_end/app/low_end_app.dart';
@@ -11,7 +10,10 @@ import 'package:low_end/features/harmony/harmony.dart';
 import 'package:low_end/features/harmony/harmony_names.dart'
     show progressionSong;
 import 'package:low_end/widgets/style_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'material_ui_finders.dart';
 
 Future<AudioScope> _launch(
   WidgetTester tester, {
@@ -56,7 +58,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: find.byType(NavigationBar),
-          matching: find.byTooltip('Metronome'),
+          matching: find.tooltip('Metronome'),
         ),
       );
       await tester.pump(const Duration(milliseconds: 300));
@@ -72,7 +74,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byType(NavigationBar),
-        matching: find.byTooltip('Harmony'),
+        matching: find.tooltip('Harmony'),
       ),
     );
     await tester.pumpAndSettle();
@@ -98,7 +100,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byType(NavigationBar),
-        matching: find.byTooltip('Harmony'),
+        matching: find.tooltip('Harmony'),
       ),
     );
     await tester.pumpAndSettle();
@@ -120,7 +122,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: find.byType(NavigationBar),
-          matching: find.byTooltip('Harmony'),
+          matching: find.tooltip('Harmony'),
         ),
       );
       await tester.pumpAndSettle();
@@ -145,17 +147,17 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byType(NavigationBar),
-        matching: find.byTooltip('Harmony'),
+        matching: find.tooltip('Harmony'),
       ),
     );
     await tester.pumpAndSettle();
     // The songs have their own button, before the progression menu.
-    expect(find.byTooltip('Example songs'), findsNothing, reason: 'chord');
+    expect(find.tooltip('Example songs'), findsNothing, reason: 'chord');
     await tester.tap(find.byKey(const Key('voicingMenu')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Progression').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Example songs'));
+    await tester.tap(find.tooltip('Example songs'));
     await tester.pumpAndSettle();
     // In the sections of the progression menu.
     for (final heading in ['Pop and rock', 'Blues', 'Jazz']) {

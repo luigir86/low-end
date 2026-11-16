@@ -11,7 +11,6 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/home_shell.dart';
@@ -24,6 +23,9 @@ import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/audio/track_files.dart';
 import 'package:low_end/audio/track_output.dart';
 import 'package:low_end/l10n/app_localizations.dart';
+import 'package:material_ui/material_ui.dart';
+
+import '../test/material_ui_finders.dart';
 
 Future<ByteData> _file(String path) async =>
     ByteData.sublistView(await File(path).readAsBytes());
@@ -112,7 +114,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: find.byType(NavigationBar),
-          matching: find.byTooltip(l10n.tunerTab),
+          matching: find.tooltip(l10n.tunerTab),
         ),
       );
       await settle();
@@ -135,7 +137,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: find.byType(NavigationBar),
-          matching: find.byTooltip(l10n.metronomeTab),
+          matching: find.tooltip(l10n.metronomeTab),
         ),
       );
       await settle();
@@ -157,7 +159,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: find.byType(NavigationBar),
-          matching: find.byTooltip(l10n.playerTab),
+          matching: find.tooltip(l10n.playerTab),
         ),
       );
       await settle();
