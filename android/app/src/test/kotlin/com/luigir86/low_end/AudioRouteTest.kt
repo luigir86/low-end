@@ -40,7 +40,7 @@ class AudioRouteTest {
         manager = app.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         dart = FakeMessenger()
         AudioRoute.attach(app, dart)
-        // Android tells the devices there at once (attachRouteIsSentAtOnce).
+        // Android tells the devices there at once (theRouteIsSentAsSoonAsAttached).
         shadowOf(Looper.getMainLooper()).idle()
         dart.sent.clear()
     }
