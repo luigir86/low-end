@@ -153,4 +153,22 @@ jobs:
       - run: flutter pub get
       # Generate native/web colours and icons from the single Dart accent.
       - run: flutter test tool/make_icons_test.dart
-      - run: flutter build web --wasm --release --no-web-resources-cdn
+      # Served under /low-end/ with its service worker, as on GitHub Pages.
+      - run: flutter build web --wasm --release --no-web-resources-cdn --base-href /low-end/
+      - run: dart run tool/web_offline.dart build/web
+      # The web app in Safari's engine with the iPhone's rules (test_web/,
+      # docs/web.md): WebKitGTK's MiniBrowser, driven by WebDriver.
+      - name: Install WebKit (Safari's engine)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends webkit2gtk-driver libwebkit2gtk-4.1-0 xvfb gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-libav
+      - name: iPhone tests in WebKit
+        env:
+          LOW_END_WEB_SHOTS: build/iphone-tests
+        run: xvfb-run -a node --test --test-reporter=spec test_web/iphone_test.mjs
+      - name: Screens of the failed iPhone tests
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: iphone-tests
+          path: build/iphone-tests/
