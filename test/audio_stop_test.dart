@@ -6,11 +6,13 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/audio/bar_loop_player.dart';
+import 'package:low_end/audio/click_output.dart';
 import 'package:low_end/audio/in_steps.dart';
 import 'package:low_end/audio/loop_transport.dart';
 import 'package:low_end/audio/piano_mixer.dart';
 import 'package:low_end/audio/piano_output.dart';
 import 'package:low_end/audio/piano_sound.dart';
+import 'package:low_end/features/metronome/metronome_controller.dart';
 import 'package:low_end/features/metronome/time_signature.dart';
 
 import 'fake_loop_engine.dart';
@@ -73,6 +75,31 @@ class _Mixer implements PianoMixer {
 
   @override
   void clear() {}
+}
+
+/// Clicks whose start hangs until they are stopped, as clicks waiting to
+/// meet a piano that never comes in.
+class _WaitingClick implements ClickOutput {
+  var stops = 0;
+  Completer<void>? _waiting;
+
+  @override
+  Future<LoopStart> play(
+    Uint8List barWav, {
+    Duration? startAt,
+    bool atMeeting = false,
+  }) async {
+    final waiting = _waiting = Completer<void>();
+    await waiting.future;
+    throw const LoopNotWanted();
+  }
+
+  @override
+  Future<void> stop() async {
+    stops++;
+    _waiting?.complete();
+    _waiting = null;
+  }
 }
 
 void main() {
@@ -304,6 +331,52 @@ void main() {
       expect(tail.soundsAt(t1), isTrue);
       expect(tail.volumeAt(t1), lessThan(0.8));
       expect(heard(engine, const Duration(milliseconds: 2100)), '');
+    });
+  });
+
+  group('the metronome stops at once while it waits for the piano', () {
+    test('clicks waiting for a meeting that never comes stop at once, '
+        'and nothing starts after', () async {
+      final engine = FakeLoopEngine();
+      final transport = LoopTransport(engine: engine);
+      final click = BarLoopPlayer('click', transport: transport);
+      final piano = BarLoopPlayer('piano', transport: transport);
+      await click.play(fakeWav(bar), bar);
+      await piano.play(fakeWav(bar * 4), bar, startAt: Duration.zero);
+      engine.advance(bar + ms300);
+      // A new song: the piano begins to hand over, and its new loop never
+      // comes (being made, slowly).
+      piano.beginHandOver(lead: ms500);
+      Object? ended;
+      final waiting = click
+          .play(fakeWav(bar), bar, startAt: Duration.zero, atMeeting: true)
+          .then<void>(
+            (_) => ended = 'played',
+            onError: (Object e) => ended = e,
+          );
+      await Future<void>.delayed(Duration.zero);
+      await click.stop();
+      await waiting.timeout(
+        const Duration(seconds: 1),
+        onTimeout: () => ended = 'still waiting',
+      );
+      expect(ended, isA<LoopNotWanted>());
+      expect(engine.playing('click-loop.wav'), isEmpty);
+      expect(click.isPlaying, isFalse);
+      await piano.stop();
+    });
+
+    test('Stop does not queue behind a start that waits', () async {
+      final click = _WaitingClick();
+      final metronome = MetronomeController(click);
+      final started = metronome.start();
+      await Future<void>.delayed(Duration.zero);
+      final stopped = metronome.stop();
+      await Future<void>.delayed(Duration.zero);
+      expect(click.stops, greaterThan(0), reason: 'the stop waits its turn');
+      await Future.wait([started, stopped]);
+      expect(metronome.isPlaying, isFalse);
+      expect(metronome.audioFailed, isFalse);
     });
   });
 }
