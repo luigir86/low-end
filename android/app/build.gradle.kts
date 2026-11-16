@@ -70,9 +70,8 @@ android {
     }
 
     // The Kotlin side (sharing, saving, "Open with Low End", headphones and
-    // calls) has unit tests
-    // in src/test, run on the computer with Robolectric: CI runs them with
-    // ./gradlew :app:testDebugUnitTest. They read the app's real manifest
+    // calls) has unit tests in src/test, run on the computer with
+    // Robolectric: CI runs them with ./gradlew :app:testDebugUnitTest. They read the app's real manifest
     // and resources, so they also check the provider and intent filters.
     testOptions {
         unitTests.isIncludeAndroidResources = true
