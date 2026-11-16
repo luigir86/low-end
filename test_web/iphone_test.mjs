@@ -296,6 +296,9 @@ test('a new version is kept whole, then opens in place of the old one', async ()
   await openApp();
   const keys = () => browser.runAsync(() => caches.keys());
   const old = (await keys()).filter((key) => !key.startsWith('low-end-sounds-'));
+  // The piano recordings start being kept once the app is up.
+  const sounds = await waitFor('the recordings being kept', async () =>
+    (await keys()).find((key) => key.startsWith('low-end-sounds-')), 30000);
   assert.equal(old.length, 1, `one version kept, not ${old}`);
   await setSite({ version: 2 });
   // The browser looks for a new worker at each opening; the page open
@@ -306,7 +309,7 @@ test('a new version is kept whole, then opens in place of the old one', async ()
     const now = await keys();
     return now.some((key) => key.startsWith('low-end-v2-')) && !now.includes(old[0]);
   }, 90000);
-  assert.ok((await keys()).some((key) => key.startsWith('low-end-sounds-')), 'the recordings were thrown away too');
+  assert.ok((await keys()).includes(sounds), 'the recordings were thrown away too');
   await browser.go(app);
   await appOnScreen();
   const version = () => document.querySelector('meta[name="low-end-test-version"]').content;
