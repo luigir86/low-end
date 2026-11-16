@@ -174,3 +174,55 @@ jobs:
         with:
           name: iphone-tests
           path: build/iphone-tests/
+
+  # The real app on an Android emulator (integration_test/app_test.dart):
+  # the real sound engine, microphone, recorder and Player, which the tests
+  # above replace with silent twins. It catches an update of Flutter or of a
+  # package that breaks the app on a phone; timing, Bluetooth and calls are
+  # still checked by ear on the phone.
+  device:
+    needs: changes
+    if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.code == 'true') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.50.0
+          cache: true
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+      - run: flutter pub get
+      - run: flutter test tool/make_icons_test.dart
+      # The emulator runs an x86_64 Android: the app is built for it, with
+      # the test inside, before the emulator starts.
+      - run: flutter build apk --debug --target-platform android-x64 -t integration_test/app_test.dart
+      # GitHub's Linux runners let the emulator use the processor's
+      # virtualisation (KVM) once allowed.
+      - name: Allow the emulator to use KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      # Android 14 (the Galaxy S20 FE's generation), with sound: the default
+      # options would start it without (-noaudio) and the engine would fail.
+      # Installed with -g first, so that the microphone is already allowed
+      # (nobody is there to answer the question); flutter test then keeps it.
+      - name: The app on an Android 14 emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -no-boot-anim -camera-back none
+          disable-animations: true
+          script: |
+            adb install -r -g build/app/outputs/flutter-apk/app-debug.apk
+            flutter test integration_test/app_test.dart -d emulator-5554 --reporter expanded
