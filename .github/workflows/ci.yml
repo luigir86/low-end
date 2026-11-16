@@ -168,9 +168,19 @@ jobs:
         env:
           LOW_END_WEB_SHOTS: build/iphone-tests
         run: xvfb-run -a node --test --test-reporter=spec test_web/iphone_test.mjs
+      # The same tests in Chrome, the browser of Android phones, with the
+      # Chrome and ChromeDriver the runner comes with (CHROMEWEBDRIVER).
+      - name: The same tests in Chrome
+        if: ${{ !cancelled() }}
+        env:
+          LOW_END_WEB_BROWSER: chrome
+          LOW_END_WEB_SHOTS: build/chrome-tests
+        run: node --test --test-reporter=spec test_web/iphone_test.mjs
       - name: Screens of the failed iPhone tests
         if: failure()
         uses: actions/upload-artifact@v7
         with:
           name: iphone-tests
-          path: build/iphone-tests/
+          path: |
+            build/iphone-tests/
+            build/chrome-tests/

@@ -17,12 +17,16 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { WebKit, sleep } from './webdriver.mjs';
+import { Chrome, WebKit, sleep } from './webdriver.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const build = process.env.LOW_END_WEB ?? path.join(here, '..', 'build', 'web');
 const shots = process.env.LOW_END_WEB_SHOTS;
+// LOW_END_WEB_BROWSER=chrome runs the same tests in Chrome, as on an Android
+// phone: without the iPhone's audio session, so its checks are left out.
+const iphone = process.env.LOW_END_WEB_BROWSER !== 'chrome';
 let app;
+let site;
 
 let server;
 let browser;
@@ -39,12 +43,14 @@ before(async () => {
     });
     server.on('exit', () => reject(new Error('The test server did not start.')));
   });
+  site = `http://localhost:${port}/__site`;
   app = `http://localhost:${port}/low-end/`;
 });
 
 after(() => server?.kill());
 
 afterEach(async (t) => {
+  await setSite({ offline: 0, version: 1 });
   if (!browser) return;
   if (shots && t.passed === false) {
     fs.mkdirSync(shots, { recursive: true });
@@ -57,15 +63,16 @@ afterEach(async (t) => {
   browser = null;
 });
 
-/// A new browser with the iPhone's touch rules, and the app opened in it.
+/// A new browser with the iPhone's touch rules (in Chrome, a phone's), and the
+/// app opened in it.
 /// With [firstOpening] the test goes on as soon as the app is on screen,
 /// before its service worker is in; [storage] is put in the page's
 /// localStorage first (iphoneMic: 'no' for a player who refuses the
 /// microphone, see iphone.js).
 async function openApp({ firstOpening = false, storage = {} } = {}) {
-  browser = await WebKit.start({
-    features: ['+RequiresUserGestureForAudioPlayback', '+RequiresUserGestureForMediaPlayback'],
-  });
+  browser = iphone
+    ? await WebKit.start({ features: ['+RequiresUserGestureForAudioPlayback', '+RequiresUserGestureForMediaPlayback'] })
+    : await Chrome.start();
   await browser.setWindow(412, 915).catch(() => {});
   await browser.go(`${app}__blank.html`);
   await browser.run((storage) => {
@@ -77,13 +84,24 @@ async function openApp({ firstOpening = false, storage = {} } = {}) {
     }
   }, storage);
   await browser.go(app);
+  await appOnScreen({ firstOpening });
+  return browser;
+}
+
+/// Waits for the app on screen, under its service worker unless [firstOpening].
+async function appOnScreen({ firstOpening = false } = {}) {
   // The first opening reloads itself once its service worker is in.
   await waitFor('the app on screen', () => browser.run((firstOpening) =>
     (firstOpening || (window.crossOriginIsolated && !!navigator.serviceWorker.controller)) &&
     !document.getElementById('loading') && document.querySelectorAll('flt-semantics[role="tab"]').length === 4,
   firstOpening), 90000);
   await sleep(1000);
-  return browser;
+}
+
+/// Changes the site, as server.mjs explains: offline, or a new version.
+async function setSite(state) {
+  if (!site) return;
+  await fetch(`${site}?${new URLSearchParams(state)}`);
 }
 
 /// The page's accessible controls: label, role and centre. Run in the page.
@@ -98,9 +116,10 @@ function labelsNow() {
     .filter((e) => e.w > 0);
 }
 
-async function find(pattern, { role = 'button' } = {}) {
+async function find(pattern, { role = 'button', last = false } = {}) {
   const all = await browser.run(labelsNow);
-  const found = all.find((c) => (!role || c.role === role) && pattern.test(c.label));
+  const matches = all.filter((c) => (!role || c.role === role) && pattern.test(c.label));
+  const found = last ? matches.at(-1) : matches[0];
   return found ?? null;
 }
 
@@ -126,7 +145,8 @@ async function waitFor(what, check, timeout = 20000) {
 }
 
 const probe = () => browser.run(() => JSON.parse(JSON.stringify(window.__iphone)));
-const session = () => browser.run(() => navigator.audioSession.type);
+/// Whether the audio session is of [type]: always, in Chrome, which has none.
+const sessionIs = async (type) => !iphone || (await browser.run(() => navigator.audioSession.type)) === type;
 
 /// Opens a section from its tab, and waits for the slide to end: a touch
 /// while the sections slide is taken for the slide.
@@ -145,7 +165,7 @@ test('opens without errors, its sound set as music', async () => {
   await openApp();
   const notes = await probe();
   assert.deepEqual(notes.errors, []);
-  assert.equal(await session(), 'playback');
+  assert.ok(await sessionIs('playback'));
 });
 
 test('Harmony sounds after a touch', async () => {
@@ -172,12 +192,12 @@ test('the tuner gets the microphone and reads a note', async () => {
   await waitFor('the microphone open', async () => (await probe()).mic.includes('open'), 15000);
   const notes = await probe();
   assert.deepEqual(notes.mic.filter((m) => m !== 'open'), [], 'the microphone was refused');
-  assert.equal(await session(), 'play-and-record');
+  assert.ok(await sessionIs('play-and-record'));
   // The mock microphone plays tones: a note is read.
   await waitFor('a note on the dial', () => find(/^[A-G][♯♭#b]?\d/, { role: null }), 15000);
   // Leaving the tuner gives the sound back to music.
   await goTo('Metronome');
-  await waitFor('the session back to music', async () => (await session()) === 'playback', 10000);
+  await waitFor('the session back to music', () => sessionIs('playback'), 10000);
   assert.deepEqual((await probe()).errors, []);
 });
 
@@ -191,7 +211,7 @@ test('the Player records a take with REC and plays it', async () => {
   await tap(/^Stop$/, { role: null });
   // The take opens in the Player, ready to play.
   await waitFor('the take in the Player', () => find(/^Temporary \d/), 15000);
-  assert.equal(await session(), 'playback');
+  assert.ok(await sessionIs('playback'));
   await tap(/^Play$/);
   await waitFor('the take playing', async () => (await probe()).plays.length > 0, 15000);
   assert.deepEqual((await probe()).plays.filter((p) => p !== 'playing'), [], 'the audio element was refused');
@@ -226,7 +246,7 @@ test('the tuner listens again when it comes back on screen', async () => {
   await goTo('Tuner');
   await waitFor('the microphone open', async () => (await probe()).mic.includes('open'), 15000);
   await goTo('Metronome');
-  await waitFor('the session back to music', async () => (await session()) === 'playback', 10000);
+  await waitFor('the session back to music', () => sessionIs('playback'), 10000);
   const opened = (await probe()).mic.filter((m) => m === 'open').length;
   await goTo('Tuner');
   await waitFor('the microphone open again', async () =>
@@ -241,7 +261,7 @@ test('after a no to the microphone the tuner says so and the sound stays music',
   await waitFor('the microphone refused', async () => (await probe()).mic.includes('denied'), 15000);
   // The message says where to allow it, and offers to listen again.
   await waitFor('the message', () => find(/needs the microphone/, { role: null }), 10000);
-  assert.equal(await session(), 'playback', 'a refused microphone left the session listening');
+  assert.ok(await sessionIs('playback'), 'a refused microphone left the session listening');
   // The metronome still plays.
   await goTo('Metronome');
   await soundAfter(() => tap(/^Start the metronome/));
@@ -255,4 +275,101 @@ test('Choose a track asks for audio files, not for photos and videos', async () 
   const accept = await waitFor('the file chooser', async () => (await probe()).choosers[0], 10000);
   assert.ok(!/audio\/\*/.test(accept), `accept="${accept}" makes Safari on the iPhone offer photos and videos`);
   for (const extension of ['.mp3', '.m4a', '.wav']) assert.ok(accept.includes(extension), `${extension} missing from "${accept}"`);
+});
+
+test('with no network it opens again from the phone, and plays', async () => {
+  await openApp();
+  await setSite({ offline: 1 });
+  await browser.go(app);
+  await appOnScreen();
+  await goTo('Metronome');
+  await soundAfter(() => tap(/^Start the metronome/));
+  await goTo('Tuner');
+  // The metronome plays: the tuner waits for a touch to listen.
+  await tap(/^Listen/);
+  await waitFor('the microphone open', async () => (await probe()).mic.includes('open'), 15000);
+  await waitFor('a note on the dial', () => find(/^[A-G][♯♭#b]?\d/, { role: null }), 15000);
+  assert.deepEqual((await probe()).errors, []);
+});
+
+test('a new version is kept whole, then opens in place of the old one', async () => {
+  await openApp();
+  const keys = () => browser.runAsync(() => caches.keys());
+  const old = (await keys()).filter((key) => !key.startsWith('low-end-sounds-'));
+  assert.equal(old.length, 1, `one version kept, not ${old}`);
+  await setSite({ version: 2 });
+  // The browser looks for a new worker at each opening; the page open
+  // meanwhile goes on.
+  await browser.go(app);
+  await appOnScreen();
+  await waitFor('the new version kept, the old one thrown away', async () => {
+    const now = await keys();
+    return now.some((key) => key.startsWith('low-end-v2-')) && !now.includes(old[0]);
+  }, 90000);
+  assert.ok((await keys()).some((key) => key.startsWith('low-end-sounds-')), 'the recordings were thrown away too');
+  await browser.go(app);
+  await appOnScreen();
+  const version = () => document.querySelector('meta[name="low-end-test-version"]').content;
+  assert.equal(await browser.run(version), '2');
+  await goTo('Metronome');
+  await soundAfter(() => tap(/^Start the metronome/));
+  assert.deepEqual((await probe()).errors, []);
+});
+
+/// Records a take of a few seconds in the Player, which opens it.
+async function recordTake() {
+  await goTo('Player');
+  await tap(/^Record$/);
+  await waitFor('the microphone open', async () => (await probe()).mic.includes('open'), 15000);
+  await sleep(2500);
+  await tap(/^Stop$/, { role: null });
+  await waitFor('the take in the Player', () => find(/^Temporary \d/), 15000);
+}
+
+/// Saves or shares the take under the name the dialog offers.
+async function exportTake(action) {
+  await tap(new RegExp(`^${action}$`));
+  await waitFor('the dialog with the name', () => find(/^/, { role: 'alertdialog' }), 10000);
+  await sleep(1000);
+  // The dialog's button, after the row's one it covers.
+  await tap(new RegExp(`^${action}$`), { last: true });
+}
+
+test('a take is saved as a sound file, under its name', async () => {
+  await openApp();
+  await recordTake();
+  await exportTake('Save');
+  const saved = await waitFor('the file saved', async () => {
+    const file = (await probe()).downloads[0];
+    return file && file.size !== null ? file : null;
+  }, 10000);
+  assert.match(saved.name, /\.wav$/);
+  assert.equal(saved.type, 'audio/wav');
+  assert.ok(saved.size > 44 + 1000, `${saved.size} bytes: an empty take`);
+  await waitFor('the take marked saved', () => find(/^Saved/), 10000);
+  assert.deepEqual((await probe()).errors, []);
+});
+
+test('a take is shared as a sound file, from the touch', async () => {
+  await openApp();
+  await recordTake();
+  await exportTake('Share');
+  const shared = await waitFor('the take shared', async () => (await probe()).shares[0], 10000);
+  assert.notEqual(shared.active, false, 'shared after the touch had ended: Safari refuses it');
+  assert.equal(shared.files.length, 1);
+  assert.match(shared.files[0].name, /\.wav$/);
+  assert.equal(shared.files[0].type, 'audio/wav');
+  assert.ok(shared.files[0].size > 44 + 1000, `${shared.files[0].size} bytes: an empty take`);
+  assert.deepEqual((await probe()).errors, []);
+});
+
+test('a browser that cannot share says to save the file instead', async () => {
+  await openApp({ storage: { iphoneShare: 'no' } });
+  await recordTake();
+  await exportTake('Share');
+  // A notice at the top, read out by VoiceOver: in the page's text.
+  await waitFor('the message', () => browser.run(() =>
+    document.body.innerText.includes('cannot share audio files') ||
+    [...document.querySelectorAll('flt-semantics')].some((e) => /cannot share audio files/.test(e.textContent + (e.getAttribute('aria-label') || '')))), 10000);
+  assert.deepEqual((await probe()).errors, []);
 });
