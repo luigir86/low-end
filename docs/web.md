@@ -43,7 +43,7 @@ Nothing is a second app: `web/` holds the page, its icons (made by `tool/make_ic
 - **The engine's memory.** The engine's own thread shares its memory with the page, asked for with room to grow to 2 GB. Safari on the iPhone has refused shared memories that large (WebKit bug 255103), which would leave the app silent; `web/flutter_bootstrap.js` then asks again with room for 1 GB, then less: the engine needs far less (64 MB at start).
 - **Drawing.** The app is built twice (`--wasm`), and Flutter's loader picks for each browser. Chrome, Edge and Samsung Internet run the app compiled to WebAssembly with Skwasm, which draws on its own thread when the page is isolated: the page's thread only builds the frames, so changing section and the turning strobe stay smoother. Safari (every browser on the iPhone) and Firefox run the JavaScript build with CanvasKit, which draws on the page's thread, as before. The service worker keeps only the pair this browser takes. **Trial, Safari in WebAssembly:** opening the address once with `?motore=wasm` (for example `https://luigir86.github.io/low-end/?motore=wasm`) makes that browser take the WebAssembly build too, with the heavier Skwasm that brings its own image decoders and line breaking (`skwasm_heavy`), until it is opened with `?motore=js`. Flutter 3.50 supports it from Safari 26.2; an older Safari falls back to JavaScript by itself. The choice is kept in the browser (`localStorage`), and the service worker is registered as `sw.js?motore=wasm` so that it keeps that build for offline use. On an iPhone, Safari and the app on the Home Screen keep their choices apart: the trial is meant for a Safari tab. Measured in Chromium with the processor slowed four times: over six changes of section the page's thread went from about 8 seconds of long tasks to none. While the sections slide, each section fades as one layer (`SectionFloat.page`), not its ring and each row apart: the browser blends two layers at each frame instead of eight.
 - **Heavy work.** The piano's loops and the held tone are made in an isolate on the phone; a page has none, so `offThread` (`lib/audio/off_thread.dart`) makes them on the page's thread there. The loop a touch would play is mixed before the touch (`PianoOutput.prerender`, called by `DroneController.preparePiano` and again 0.4 s after the last change made while nothing plays); in a page a slice of a few milliseconds at a time (`lib/audio/in_steps.dart`), the screen drawn in between, and at full speed if the touch comes first. Measured in Chromium with the processor slowed twice (about a Galaxy S20 FE): the walking bass sounded 0.7 s after a touch 5 s after opening, against 3.2 s. The held tone is made by turning its waves a step at a time (no sine per sample: in a page each one is a call out to JavaScript), and the room (`Freeverb`) runs one filter at a time over the whole loop: the same sound, sample for sample (`test/same_sound_test.dart`). Getting the piano ready (decoding its recordings, a few seconds there) waits until the sections stop sliding (`AppNavigation.sliding`), and in a page the recordings then stay while it is open (`PianoOutput`), so that this happens once, with the finger still. Measured on a Galaxy S20 FE in Chrome over USB: the slide itself shows about 84 frames a second; the stall was this work, about 4 seconds on reaching the harmony.
-- **Microphone.** The `record` package listens through the browser (getUserMedia) and gives the tuner the same 16 kHz samples, with automatic gain, echo cancelling and noise suppression switched off.
+- **Microphone.** The `record` package listens through the browser (getUserMedia) and gives the tuner the same 16 kHz samples, with automatic gain, echo cancelling and noise suppression switched off. On the iPhone the page tells Safari its sound is music ("playback" audio session) so that the silent switch does not mute it; Safari refuses the microphone outright while the session says so, without asking the player. So the session becomes "play-and-record" before the microphone is even asked for, and goes back to music after a no or when listening ends (`askForMicrophone`, `lib/audio/web_audio_session.dart`).
 - **Where the sound goes.** `SpeakerAudioRoute` stands in for `AndroidAudioRoute`; `MediaNotificationAudio` does nothing on the web.
 - **Links.** On the web the page address carries the action after `#`: `…/low-end/#/action/drone_play?note=A`. `LowEndApp` runs it as on Android, with the same rules, and puts the address back to the plain one so that a reload does not run it again.
 - **Accessibility.** Flutter shows a web page to screen readers only when asked: `main.dart` asks at start.
@@ -62,6 +62,23 @@ dart run tool/web_offline.dart build/web
 
 To try it on the computer, `flutter run -d chrome` (no service worker, no isolation) or serve `build/web` under `/low-end/`.
 
+## Tests in Safari's engine
+
+`test_web/iphone_test.mjs` opens the built web app in WebKit, the engine of Safari and of every browser on the iPhone (WebKitGTK's MiniBrowser, driven by WebDriver), with the iPhone's rules switched on: Web Audio and audio elements sound only after a touch. `test_web/iphone.js`, put first in the page by `test_web/server.mjs`, adds the rules Apple keeps out of WebKit's shared code: the audio session (`navigator.audioSession`), whose "playback" type makes Safari refuse the microphone without asking, and a microphone permission that reads "prompt" until it is allowed. It also notes what happened (errors, microphone, the first audible sample, audio elements, file choosers). The CI `web` job runs it on every pull request; a failed test leaves a screenshot and the page's notes in the `iphone-tests` artifact.
+
+What it checks: the app opens without errors; Harmony and the metronome sound after a touch; the tuner gets the microphone and reads a note (WebKit's mock microphone plays tones), listens again when it comes back on screen, and after a no says so and leaves the sound as music; the Player's REC records a take that plays; a sound cut by the phone offers *Resume*, which plays again; the first opening sounds at once and is not reloaded under the sound; *Choose a track* asks for audio files by their extensions, not `audio/*` (which Safari on the iPhone reads as video).
+
+What it cannot check: the iPhone's speaker and silent switch, a real call or lock screen ("interrupted"), the Home Screen app, the file chooser itself, the share window. Those stay in *Trying it on an iPhone* below.
+
+To run it (Ubuntu or WSL; Node 20 or later):
+
+```
+sudo apt-get install webkit2gtk-driver libwebkit2gtk-4.1-0 xvfb
+flutter build web --wasm --release --no-web-resources-cdn --base-href /low-end/
+dart run tool/web_offline.dart build/web
+xvfb-run -a node --test --test-reporter=spec test_web/iphone_test.mjs
+```
+
 ## Trying it on an iPhone
 
 Only a real iPhone tells how the web app sounds there; a Windows PC has no Safari. Things to check, in Safari and from the Home Screen:
@@ -69,7 +86,7 @@ Only a real iPhone tells how the web app sounds there; a Windows PC has no Safar
 1. The metronome at 80, 160 and 240: are the clicks even? Does it crackle when the screen changes (swiping between sections)?
 2. With the silent switch on: is the click heard?
 3. Harmony: how long does the first chord take? Do chords change on the beat?
-4. Tuner: does it read a low E (41 Hz) and a high note? Does iOS ask for the microphone at every opening?
+4. Tuner: does it read a low E (41 Hz) and a high note? Does iOS ask for the microphone at every opening? The Player's REC: does iOS ask for the microphone, and does the take play back?
 5. Lock the screen while it plays, then come back: does it show *Paused: the sound was interrupted*, and does *Resume* play again? The same with a call or an alarm.
 6. Close it, turn on airplane mode, open it again: does it start?
 7. Open it, wait a few seconds, then touch play: how long does the first click take? And after a minute with nothing playing?

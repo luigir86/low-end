@@ -82,8 +82,12 @@ class WebTrackFiles implements TrackFiles {
   /// The files chosen, by their blob address: the wave is read from them.
   final _files = <String, web.File>{};
 
-  /// The audio formats offered; the browser may still list others.
-  static const _accept = 'audio/*,.mp3,.m4a,.aac,.wav,.flac';
+  /// The audio formats offered, by their extensions only; the browser may
+  /// still list others. Not "audio/*": Safari on the iPhone reads it as
+  /// video (WebKit's WKFileUploadPanel.mm: there is no audio-only camera),
+  /// and its menu then offered the photo library and the video camera
+  /// before the files. The iPhone's own recordings (Voice Memos) are .m4a.
+  static const _accept = '.mp3,.m4a,.aac,.wav,.flac,.aif,.aiff,.caf';
 
   /// Not `async`, and nothing awaited before the click: Safari opens the
   /// chooser only inside the touch that asked for it.

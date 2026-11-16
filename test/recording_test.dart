@@ -417,7 +417,15 @@ void main() {
       ),
       findsOne,
     );
+    // One "Stop" button for VoiceOver and TalkBack, not a "Stop" group
+    // around a button with no name.
     await tester.pump(const Duration(seconds: 2));
+    final semantics = tester.ensureSemantics();
+    expect(
+      tester.getSemantics(find.byKey(const Key('takeStop'))),
+      isSemantics(label: 'Stop', isButton: true, hasTapAction: true),
+    );
+    semantics.dispose();
     await tester.tap(find.byKey(const Key('takeStop')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));

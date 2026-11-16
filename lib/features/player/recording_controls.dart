@@ -141,22 +141,26 @@ class _RecordingRowState extends State<RecordingRow>
             Tooltip(
               message: strings.takeStop,
               excludeFromSemantics: true,
-              child: Semantics(
-                label: strings.takeStop,
-                child: FilledButton(
-                  key: const Key('takeStop'),
-                  onPressed: started ? recording.finish : null,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: theme.colorScheme.error,
-                    foregroundColor: theme.colorScheme.onError,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: rowButtonInset / 2,
-                      vertical: rowButtonPadding,
+              // One node, "Stop, button": without the merge VoiceOver found a
+              // "Stop" group and, inside it, a button with no name.
+              child: MergeSemantics(
+                child: Semantics(
+                  label: strings.takeStop,
+                  child: FilledButton(
+                    key: const Key('takeStop'),
+                    onPressed: started ? recording.finish : null,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: theme.colorScheme.error,
+                      foregroundColor: theme.colorScheme.onError,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: rowButtonInset / 2,
+                        vertical: rowButtonPadding,
+                      ),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    child: const Icon(Icons.stop, size: 24),
                   ),
-                  child: const Icon(Icons.stop, size: 24),
                 ),
               ),
             ),

@@ -40,7 +40,13 @@ abstract class TakeRecorder {
 /// Android (TakeFiles.kt keeps it in the app's cache), WAV in a blob on the
 /// web.
 class RecordTakeRecorder implements TakeRecorder {
+  RecordTakeRecorder({
+    @visibleForTesting this._recorder,
+    @visibleForTesting this._session = setWebAudioSession,
+  });
+
   AudioRecorder? _recorder;
+  final WebAudioSessionSetter _session;
   String? _name;
 
   AudioRecorder get _rec => _recorder ??= AudioRecorder();
@@ -49,13 +55,14 @@ class RecordTakeRecorder implements TakeRecorder {
   String get extension => kIsWeb ? 'wav' : 'm4a';
 
   @override
-  Future<bool> requestPermission() => _rec.hasPermission();
+  Future<bool> requestPermission() =>
+      askForMicrophone(_rec.hasPermission, session: _session);
 
   @override
   Future<void> start(String name) async {
     final path = await system.recordingPath(name);
     // On the iPhone the web app keeps its sound while the microphone is on.
-    setWebAudioSession(listening: true);
+    _session(listening: true);
     // In the browser the phone's microphone is named, as the Android app
     // does with manageBluetooth off; a microphone that went away in the
     // meantime is left to the browser.
@@ -109,7 +116,7 @@ class RecordTakeRecorder implements TakeRecorder {
   @override
   Future<RecordedTrack> stop() async {
     final path = await _rec.stop();
-    setWebAudioSession(listening: false);
+    _session(listening: false);
     final name = _name;
     _name = null;
     if (path == null || name == null) throw StateError('No take recorded');
@@ -120,7 +127,7 @@ class RecordTakeRecorder implements TakeRecorder {
   Future<void> cancel() async {
     _name = null;
     await _recorder?.cancel();
-    setWebAudioSession(listening: false);
+    _session(listening: false);
   }
 
   @override
