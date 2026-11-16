@@ -184,6 +184,7 @@ class MetronomeController extends ChangeNotifier
   @override
   Future<void> start() {
     if (_playing) return Future.value();
+    _session++;
     // A tempo still being chosen is heard from the start.
     _adjusting?.cancel();
     _heardBpm = _bpm;
@@ -199,6 +200,7 @@ class MetronomeController extends ChangeNotifier
   @override
   Future<void> stop() {
     if (!_playing) return Future.value();
+    _session++;
     _playing = false;
     _clock.stop();
     _notify();
@@ -367,7 +369,14 @@ class MetronomeController extends ChangeNotifier
   /// holding + only rebuilds the bar as often as the engine can follow.
   Future<void> _sync() => _requests.run();
 
+  /// Counts the starts and stops: a run of [_apply] knows, when the engine
+  /// answers, whether the player has pressed one since.
+  var _session = 0;
+
   Future<void> _apply() async {
+    // The start or stop this run answers: what it ends with belongs to it,
+    // not to one pressed since (a stop, or a stop and a start again).
+    final session = _session;
     try {
       if (!_playing || _disposed) {
         await _output.stop();
@@ -393,10 +402,14 @@ class MetronomeController extends ChangeNotifier
       // screen up with it, as it is heard. A fresh start lights up once the
       // first click comes out; a bar carrying on shows its place as it was
       // that long ago.
+      if (session != _session) return;
       _starting = false;
       _clock.heard(started, latency: _outputLatency(), fresh: fresh);
     } catch (error) {
       debugPrint('Metronome could not start: $error');
+      // Overtaken: the stop silences it (the run that answers it is next),
+      // and a start since makes its own sound and shows its own failure.
+      if (session != _session) return;
       _playing = false;
       _audioFailed = true;
       _starting = false;
