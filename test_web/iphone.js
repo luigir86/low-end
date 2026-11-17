@@ -28,10 +28,10 @@
     };
   }
 
-  // The audio session.
+  // The audio session (not for Chrome: Android has none, see server.mjs).
   let sessionType = 'auto';
   const session = navigator.audioSession || {};
-  try {
+  if (!window.__notIphone) try {
     Object.defineProperty(session, 'type', {
       configurable: true,
       get: () => sessionType,
@@ -164,10 +164,54 @@
   const Devices = MediaDevices.prototype;
   const getUserMedia = Devices.getUserMedia;
   Devices.getUserMedia = function (constraints) {
-    if (constraints && constraints.audio && navigator.audioSession.type !== 'playback') {
+    if (constraints && constraints.audio && (!navigator.audioSession || navigator.audioSession.type !== 'playback')) {
       probe.mic.push('denied');
       return Promise.reject(new DOMException('The request is not allowed.', 'NotAllowedError'));
     }
     return getUserMedia.call(this, constraints);
   };
+})();
+
+// Saving and sharing a take. A download link clicked is noted with its
+// file name and what it points to; Web Share is answered as Safari does
+// for audio files, without the share sheet (it would wait for a person):
+// what was shared is noted, and whether the page was still handling the
+// touch, without which Safari refuses to share (NotAllowedError). With
+// localStorage iphoneShare = 'no' the browser cannot share files.
+(() => {
+  const probe = window.__iphone;
+  probe.downloads = [];
+  probe.shares = [];
+  const click = HTMLAnchorElement.prototype.click;
+  HTMLAnchorElement.prototype.click = function () {
+    if (this.download) {
+      const entry = { name: this.download, href: this.href, size: null, type: null };
+      probe.downloads.push(entry);
+      fetch(this.href).then((r) => r.blob()).then((blob) => {
+        entry.size = blob.size;
+        entry.type = blob.type;
+      }, (error) => { entry.size = 'unreadable: ' + error; });
+      return;
+    }
+    return click.call(this);
+  };
+  let no = false;
+  try { no = localStorage.getItem('iphoneShare') === 'no'; } catch (_) {}
+  const define = (name, value) =>
+    Object.defineProperty(Navigator.prototype, name, { configurable: true, writable: true, value });
+  define('canShare', function (data) {
+    if (no) return false;
+    return !!data && (!data.files || [...data.files].every((f) => f instanceof File));
+  });
+  define('share', function (data) {
+    const active = navigator.userActivation ? navigator.userActivation.isActive : null;
+    probe.shares.push({
+      title: data && data.title,
+      active,
+      files: [...((data && data.files) || [])].map((f) => ({ name: f.name, type: f.type, size: f.size })),
+    });
+    if (no) return Promise.reject(new DOMException('Not supported.', 'NotAllowedError'));
+    if (active === false) return Promise.reject(new DOMException('Not allowed without a touch.', 'NotAllowedError'));
+    return Promise.resolve();
+  });
 })();

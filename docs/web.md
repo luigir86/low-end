@@ -66,9 +66,11 @@ To try it on the computer, `flutter run -d chrome` (no service worker, no isolat
 
 `test_web/iphone_test.mjs` opens the built web app in WebKit, the engine of Safari and of every browser on the iPhone (WebKitGTK's MiniBrowser, driven by WebDriver), with the iPhone's rules switched on: Web Audio and audio elements sound only after a touch. `test_web/iphone.js`, put first in the page by `test_web/server.mjs`, adds the rules Apple keeps out of WebKit's shared code: the audio session (`navigator.audioSession`), whose "playback" type makes Safari refuse the microphone without asking, and a microphone permission that reads "prompt" until it is allowed. It also notes what happened (errors, microphone, the first audible sample, audio elements, file choosers). The CI `web` job runs it on every pull request; a failed test leaves a screenshot and the page's notes in the `iphone-tests` artifact.
 
-What it checks: the app opens without errors; Harmony and the metronome sound after a touch; the tuner gets the microphone and reads a note (WebKit's mock microphone plays tones), listens again when it comes back on screen, and after a no says so and leaves the sound as music; the Player's REC records a take that plays; a sound cut by the phone offers *Resume*, which plays again; the first opening sounds at once and is not reloaded under the sound; *Choose a track* asks for audio files by their extensions, not `audio/*` (which Safari on the iPhone reads as video).
+What it checks: the app opens without errors; Harmony and the metronome sound after a touch; the tuner gets the microphone and reads a note (WebKit's mock microphone plays tones), listens again when it comes back on screen, and after a no says so and leaves the sound as music; the Player's REC records a take that plays; a sound cut by the phone offers *Resume*, which plays again; the first opening sounds at once and is not reloaded under the sound; *Choose a track* asks for audio files by their extensions, not `audio/*` (which Safari on the iPhone reads as video); with no network the app opens again from the phone, and the metronome and tuner work; a new version is kept whole and opens in place of the old one (the old one thrown away, the piano recordings kept); a take is saved as a .wav file under its name, and shared as an audio file while the touch is still on (Safari refuses to share otherwise); a browser that cannot share says to save the file instead. The site is turned offline or to a new version by `server.mjs` (`/__site`); saving and sharing are noted by `iphone.js` without opening the save or share window.
 
-What it cannot check: the iPhone's speaker and silent switch, a real call or lock screen ("interrupted"), the Home Screen app, the file chooser itself, the share window. Those stay in *Trying it on an iPhone* below.
+What it cannot check: the iPhone's speaker and silent switch, a real call or lock screen ("interrupted"), the Home Screen app, the file chooser itself, the share window and where the file ends up. Those stay in *Trying it on an iPhone* below.
+
+The same tests run in Chrome too, the browser of Android phones (`LOW_END_WEB_BROWSER=chrome`, through ChromeDriver; the CI job runs both): there the iPhone's audio session is left out, as Android has none, and Chrome's own rule that sound waits for a touch is on.
 
 To run it (Ubuntu or WSL; Node 20 or later):
 
@@ -77,6 +79,7 @@ sudo apt-get install webkit2gtk-driver libwebkit2gtk-4.1-0 xvfb
 flutter build web --wasm --release --no-web-resources-cdn --base-href /low-end/
 dart run tool/web_offline.dart build/web
 xvfb-run -a node --test --test-reporter=spec test_web/iphone_test.mjs
+LOW_END_WEB_BROWSER=chrome node --test --test-reporter=spec test_web/iphone_test.mjs   # Chrome and its chromedriver of the same version
 ```
 
 ## Trying it on an iPhone
