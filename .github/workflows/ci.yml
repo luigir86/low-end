@@ -176,6 +176,13 @@ jobs:
           channel: stable
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
+      # dart run below runs the packages' build hooks for the computer, so the
+      # C++ audio engine would be compiled here too (1.5 minutes): the same
+      # cache as the other jobs.
+      - uses: actions/cache@v5
+        with:
+          path: .dart_tool/hooks_runner
+          key: hooks-${{ github.job }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('pubspec.lock') }}
       - run: flutter pub get
       # Served under /low-end/ with its service worker, as on GitHub Pages.
       - run: flutter build web --wasm --release --no-web-resources-cdn --base-href /low-end/
