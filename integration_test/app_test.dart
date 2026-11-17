@@ -109,6 +109,13 @@ void main() {
       timeout: const Duration(seconds: 30),
     );
     expect(scope.player.duration, greaterThan(const Duration(seconds: 1)));
+    // The take can be ready while the recorder is still closing: until
+    // then the dial's centre shows the recording clock, not Play.
+    await _until(
+      tester,
+      'Play in the dial',
+      () => find.byKey(PlayerDial.hubKey).evaluate().isNotEmpty,
+    );
     await tester.tap(find.byKey(PlayerDial.hubKey));
     await _until(tester, 'the take playing', () => scope.player.isPlaying);
     await _wait(tester, const Duration(seconds: 1));
