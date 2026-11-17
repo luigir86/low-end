@@ -234,6 +234,8 @@ jobs:
           target: google_apis
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -no-boot-anim -camera-back none
           disable-animations: true
+          # The loop that allows is stopped, and holds no output open, when
+          # the test ends: otherwise the step waits for it after the
+          # emulator is gone.
           script: |
-            sh -c 'while true; do adb shell pm grant com.luigir86.low_end android.permission.RECORD_AUDIO 2>/dev/null; adb shell pm grant com.luigir86.low_end android.permission.POST_NOTIFICATIONS 2>/dev/null; sleep 1; done' &
-            flutter test integration_test/app_test.dart -d emulator-5554 --reporter expanded
+            sh -c '(while true; do adb shell pm grant com.luigir86.low_end android.permission.RECORD_AUDIO 2>/dev/null; adb shell pm grant com.luigir86.low_end android.permission.POST_NOTIFICATIONS 2>/dev/null; sleep 1; done) >/dev/null 2>&1 & allow=$!; flutter test integration_test/app_test.dart -d emulator-5554 --reporter expanded; status=$?; kill $allow; exit $status'
