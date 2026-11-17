@@ -1,6 +1,108 @@
 {{flutter_js}}
 {{flutter_build_config}}
 
+// Diagnosis for a phone with no computer at hand (an iPhone needs a Mac to
+// show its console): opened once with ?diagnosi=1, the page writes what its
+// sound does at the top of the screen, over the app (touches go through
+// it), until it is opened with ?diagnosi=0. Audio elements (the Player),
+// microphone, audio session, AudioContexts and errors. A screenshot of it
+// says what went wrong (docs/web.md, "Trying it on an iPhone").
+(function () {
+  let on = false;
+  try {
+    const asked = new URLSearchParams(location.search).get('diagnosi');
+    if (asked === '1') localStorage.setItem('lowEndDiagnosis', '1');
+    if (asked === '0') localStorage.removeItem('lowEndDiagnosis');
+    on = localStorage.getItem('lowEndDiagnosis') === '1';
+  } catch (_) {}
+  if (!on) return;
+  const lines = [];
+  const start = performance.now();
+  let box = null;
+  function note(text) {
+    lines.push(((performance.now() - start) / 1000).toFixed(1) + ' ' + String(text).slice(0, 140));
+    if (lines.length > 18) lines.shift();
+    if (!box && document.body) {
+      box = document.createElement('pre');
+      box.style.cssText = 'position:fixed;left:0;right:0;top:env(safe-area-inset-top,0);z-index:2147483647;' +
+        'margin:0;padding:4px;font:10px/1.25 monospace;color:#F2E9DA;background:rgba(24,20,15,.82);' +
+        'pointer-events:none;white-space:pre-wrap;word-break:break-all';
+      document.body.appendChild(box);
+    }
+    if (box) box.textContent = lines.join('\n');
+  }
+  window.lowEndNote = note;
+  note(navigator.userAgent.replace(/^Mozilla\/5\.0 /, ''));
+  addEventListener('error', function (e) { note('error: ' + e.message); });
+  addEventListener('unhandledrejection', function (e) { note('rejection: ' + (e.reason && e.reason.message || e.reason)); });
+  const play = HTMLMediaElement.prototype.play;
+  const ids = new WeakMap();
+  let next = 0;
+  function id(element) {
+    if (!ids.has(element)) {
+      ids.set(element, ++next);
+      ['loadstart', 'loadedmetadata', 'durationchange', 'canplay', 'playing', 'pause', 'ended', 'stalled', 'error', 'emptied']
+        .forEach(function (type) {
+          element.addEventListener(type, function () {
+            note('audio' + ids.get(element) + ' ' + type +
+              (type === 'error' && element.error ? ' ' + element.error.code + ' ' + element.error.message : '') +
+              (type === 'durationchange' ? ' ' + element.duration : '') +
+              ' t=' + element.currentTime.toFixed(2) + ' rs=' + element.readyState);
+          });
+        });
+    }
+    return ids.get(element);
+  }
+  HTMLMediaElement.prototype.play = function () {
+    const n = id(this);
+    note('audio' + n + ' play() ' + String(this.src).slice(0, 30) + ' vol=' + this.volume + ' muted=' + this.muted);
+    const result = play.call(this);
+    if (result && result.then) {
+      result.then(function () { note('audio' + n + ' play ok'); },
+        function (error) { note('audio' + n + ' play REFUSED ' + error.name + ': ' + error.message); });
+    }
+    return result;
+  };
+  const load = HTMLMediaElement.prototype.load;
+  HTMLMediaElement.prototype.load = function () {
+    note('audio' + id(this) + ' load() ' + String(this.src).slice(0, 30));
+    return load.call(this);
+  };
+  if (window.MediaDevices && MediaDevices.prototype.getUserMedia) {
+    const getUserMedia = MediaDevices.prototype.getUserMedia;
+    MediaDevices.prototype.getUserMedia = function (constraints) {
+      const session = navigator.audioSession ? navigator.audioSession.type : 'none';
+      return getUserMedia.call(this, constraints).then(function (stream) {
+        note('mic open (session ' + session + ')');
+        stream.getTracks().forEach(function (track) {
+          track.addEventListener('ended', function () { note('mic ended'); });
+        });
+        return stream;
+      }, function (error) {
+        note('mic REFUSED ' + error.name + ' (session ' + session + ')');
+        throw error;
+      });
+    };
+  }
+  if (navigator.audioSession) {
+    navigator.audioSession.addEventListener && navigator.audioSession.addEventListener('statechange', function () {
+      note('session ' + navigator.audioSession.type + ' ' + navigator.audioSession.state);
+    });
+  }
+  if (window.AudioContext) {
+    const Context = window.AudioContext;
+    let contexts = 0;
+    window.AudioContext = class extends Context {
+      constructor(...args) {
+        super(...args);
+        const n = ++contexts;
+        note('context' + n + ' new ' + this.state + ' ' + this.sampleRate);
+        this.addEventListener('statechange', () => note('context' + n + ' ' + this.state));
+      }
+    };
+  }
+})();
+
 // The audio engine's own AudioContext, kept so that the page can wake it
 // and put it to sleep (see lowEndWakeAudio below), and the app can ask the
 // browser how late what it plays is heard (outputLatency,
