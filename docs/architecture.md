@@ -85,7 +85,7 @@ All colours are in `lib/app/theme.dart` (always dark, built from one four-colour
 flutter test test_screenshots/ui_review_test.dart --update-goldens
 ```
 
-CI (`.github/workflows/ci.yml`) runs three jobs side by side on every push to `main` and every pull request that touches more than texts (`*.md`, `docs/` except `docs/llm-actions.json`, `store/`): `dart format --set-exit-if-changed lib test`, `flutter analyze` and `flutter test`; a debug APK for arm64 only (the C++ audio engine compiled once; Gradle cached); the web build. A new push to a pull request cancels its previous run.
+CI (`.github/workflows/ci.yml`) runs its jobs side by side on every push to `main` and every pull request that touches more than texts (`*.md`, `docs/` except `docs/llm-actions.json`, `store/`): `dart format --set-exit-if-changed lib test`, `flutter analyze` and `flutter test`; a debug APK for arm64 only plus the Kotlin tests (Robolectric); the web build with the `test_web/` tests, in WebKit and in Chrome on two machines at once; the real app on an Android 14 emulator. Gradle and the C++ audio engine compiled by flutter_soloud's build hook (`.dart_tool/hooks_runner`, one cache per job and `pubspec.lock`) are kept between runs. The icons are not generated there: they are committed, and `theme_test`/`brand_assets_test` check them against the palette. A new push to a pull request cancels its previous run.
 
 ## Release
 
