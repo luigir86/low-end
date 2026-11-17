@@ -15,6 +15,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:low_end/audio/audio_scope.dart';
 import 'package:low_end/features/player/player_controller.dart';
+import 'package:low_end/features/player/player_dial.dart';
 import 'package:low_end/features/player/player_panel.dart';
 import 'package:low_end/features/player/recording_controller.dart';
 import 'package:low_end/features/tuner/tuner_controller.dart';
@@ -108,7 +109,7 @@ void main() {
       timeout: const Duration(seconds: 30),
     );
     expect(scope.player.duration, greaterThan(const Duration(seconds: 1)));
-    await tester.tap(find.tooltip('Play'));
+    await tester.tap(find.byKey(PlayerDial.hubKey));
     await _until(tester, 'the take playing', () => scope.player.isPlaying);
     await _wait(tester, const Duration(seconds: 1));
     expect(scope.player.isPlaying, isTrue);
