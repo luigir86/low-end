@@ -9,7 +9,8 @@
 //   flutter build web --wasm --release --no-web-resources-cdn --base-href /low-end/
 //   dart run tool/web_offline.dart build/web
 //   xvfb-run -a node --test test_web/iphone_test.mjs
-// LOW_END_WEB=<dir> tests another build; LOW_END_WEB_SHOTS=<dir> keeps a
+// LOW_END_WEB_FEATURES=+Name,-Name switches more WebKit settings (MiniBrowser
+// --features=help lists them). LOW_END_WEB=<dir> tests another build; LOW_END_WEB_SHOTS=<dir> keeps a
 // screenshot and the page's notes of each failed test there.
 import { test, before, after, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
@@ -71,7 +72,7 @@ afterEach(async (t) => {
 /// microphone, see iphone.js).
 async function openApp({ firstOpening = false, storage = {} } = {}) {
   browser = iphone
-    ? await WebKit.start({ features: ['+RequiresUserGestureForAudioPlayback', '+RequiresUserGestureForMediaPlayback'] })
+    ? await WebKit.start({ features: ['+RequiresUserGestureForAudioPlayback', '+RequiresUserGestureForMediaPlayback', ...(process.env.LOW_END_WEB_FEATURES ?? '').split(',').filter(Boolean)] })
     : await Chrome.start();
   await browser.setWindow(412, 915).catch(() => {});
   await browser.go(`${app}__blank.html`);

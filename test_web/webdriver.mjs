@@ -27,8 +27,13 @@ export class WebKit {
       stdio: 'ignore',
     });
     const base = `http://127.0.0.1:${port}`;
-    for (let i = 0; i < 100; i++) {
-      try { await fetch(`${base}/status`); break; } catch { await sleep(100); }
+    let up = false;
+    for (let i = 0; i < 100 && !up; i++) {
+      try { await fetch(`${base}/status`); up = true; } catch { await sleep(100); }
+    }
+    if (!up) {
+      driver.kill();
+      throw new Error(`WebKitWebDriver did not start on port ${port}`);
     }
     const args = [
       '--automation',

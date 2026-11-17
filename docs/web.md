@@ -84,7 +84,7 @@ LOW_END_WEB_BROWSER=chrome node --test --test-reporter=spec test_web/iphone_test
 
 ## Trying it on an iPhone
 
-Only a real iPhone tells how the web app sounds there; a Windows PC has no Safari. Things to check, in Safari and from the Home Screen:
+Only a real iPhone tells how the web app sounds there; a Windows PC has no Safari. **Diagnosis without a Mac:** open the address once with `?diagnosi=1` (`https://luigir86.github.io/low-end/?diagnosi=1`): the page then writes at the top of the screen what its sound does (the Player's audio element and its `play()` answer, the microphone and the audio session, AudioContexts, errors), until it is opened with `?diagnosi=0`; a screenshot says what went wrong (`web/flutter_bootstrap.js`). Things to check, in Safari and from the Home Screen:
 
 1. The metronome at 80, 160 and 240: are the clicks even? Does it crackle when the screen changes (swiping between sections)?
 2. With the silent switch on: is the click heard?
