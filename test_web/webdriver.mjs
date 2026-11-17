@@ -4,16 +4,25 @@ import { spawn } from 'node:child_process';
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/// Each browser gets a port of its own: a driver started on the port of
+/// the one just closed found it still taken now and then, and exited.
+let nextPort = 4444;
+
 export class WebKit {
   /// [features]: WebKit settings to switch on or off, as '+Name' or '-Name'.
-  static async start({ port = 4444, features = [] } = {}) {
+  static async start({ port = nextPort++, features = [] } = {}) {
     const driver = spawn('WebKitWebDriver', [`--port=${port}`], {
       env: { ...process.env, DISPLAY: process.env.DISPLAY ?? ':99' },
       stdio: 'ignore',
     });
     const base = `http://127.0.0.1:${port}`;
-    for (let i = 0; i < 100; i++) {
-      try { await fetch(`${base}/status`); break; } catch { await sleep(100); }
+    let up = false;
+    for (let i = 0; i < 100 && !up; i++) {
+      try { await fetch(`${base}/status`); up = true; } catch { await sleep(100); }
+    }
+    if (!up) {
+      driver.kill();
+      throw new Error(`WebKitWebDriver did not start on port ${port}`);
     }
     const args = [
       '--automation',
@@ -91,7 +100,10 @@ export class WebKit {
 
   async quit() {
     try { await fetch(this.base, { method: 'DELETE' }); } catch {}
+    if (this.driver.exitCode !== null || this.driver.signalCode !== null) return;
+    const exited = new Promise((resolve) => this.driver.once('exit', resolve));
     this.driver.kill();
+    await Promise.race([exited, sleep(5000)]);
   }
 }
 
