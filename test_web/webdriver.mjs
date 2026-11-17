@@ -94,3 +94,56 @@ export class WebKit {
     this.driver.kill();
   }
 }
+
+/// The same, for Chrome through ChromeDriver: the browser of the Android
+/// phones that open the web app. Sound only after a touch, as on a phone;
+/// the microphone allowed without asking, a fake one that plays a tone.
+/// CHROMEDRIVER names the driver (GitHub's runners give its folder in
+/// CHROMEWEBDRIVER), CHROME the browser.
+export class Chrome extends WebKit {
+  static async start({ port = 4445 } = {}) {
+    const binary = process.env.CHROMEDRIVER ??
+      (process.env.CHROMEWEBDRIVER ? `${process.env.CHROMEWEBDRIVER}/chromedriver` : 'chromedriver');
+    const driver = spawn(binary, [`--port=${port}`], { stdio: 'ignore' });
+    const base = `http://127.0.0.1:${port}`;
+    for (let i = 0; i < 100; i++) {
+      try { await fetch(`${base}/status`); break; } catch { await sleep(100); }
+    }
+    const options = {
+      args: [
+        '--headless=new',
+        '--no-sandbox',
+        '--window-size=412,915',
+        '--autoplay-policy=user-gesture-required',
+        '--use-fake-ui-for-media-stream',
+        '--use-fake-device-for-media-stream',
+      ],
+    };
+    if (process.env.CHROME) options.binary = process.env.CHROME;
+    const reply = await (await fetch(`${base}/session`, {
+      method: 'POST',
+      body: JSON.stringify({ capabilities: { alwaysMatch: {
+        browserName: 'chrome', 'goog:chromeOptions': options,
+      } } }),
+    })).json();
+    const id = reply.value?.sessionId;
+    if (!id) throw new Error(`No Chrome session: ${JSON.stringify(reply).slice(0, 300)}`);
+    const browser = new Chrome();
+    browser.driver = driver;
+    browser.base = `${base}/session/${id}`;
+    return browser;
+  }
+
+  /// A tap as a finger: Chrome passes WebDriver touches on as touches.
+  tap(x, y) {
+    return this.command('POST', '/actions', { actions: [{
+      type: 'pointer', id: 'finger', parameters: { pointerType: 'touch' },
+      actions: [
+        { type: 'pointerMove', duration: 0, x: Math.round(x), y: Math.round(y), origin: 'viewport' },
+        { type: 'pointerDown', button: 0 },
+        { type: 'pause', duration: 60 },
+        { type: 'pointerUp', button: 0 },
+      ],
+    }] });
+  }
+}
