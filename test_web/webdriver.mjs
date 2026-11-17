@@ -1,16 +1,27 @@
 // A small W3C WebDriver client for WebKitWebDriver, which drives WebKitGTK's
 // MiniBrowser: Safari's engine on Linux.
 import { spawn } from 'node:child_process';
+import { createServer } from 'node:net';
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/// Each browser gets a port of its own: a driver started on the port of
-/// the one just closed found it still taken now and then, and exited.
-let nextPort = 4444;
+/// A port nobody uses now. Each test starts its own driver: on a fixed port
+/// the next one could reach the previous driver while it was still closing
+/// ("fetch failed" as the session started).
+export const freePort = () => new Promise((resolve, reject) => {
+  const server = createServer();
+  server.unref();
+  server.on('error', reject);
+  server.listen(0, '127.0.0.1', () => {
+    const { port } = server.address();
+    server.close(() => resolve(port));
+  });
+});
 
 export class WebKit {
   /// [features]: WebKit settings to switch on or off, as '+Name' or '-Name'.
-  static async start({ port = nextPort++, features = [] } = {}) {
+  static async start({ port, features = [] } = {}) {
+    port ??= await freePort();
     const driver = spawn('WebKitWebDriver', [`--port=${port}`], {
       env: { ...process.env, DISPLAY: process.env.DISPLAY ?? ':99' },
       stdio: 'ignore',
@@ -100,10 +111,12 @@ export class WebKit {
 
   async quit() {
     try { await fetch(this.base, { method: 'DELETE' }); } catch {}
-    if (this.driver.exitCode !== null || this.driver.signalCode !== null) return;
-    const exited = new Promise((resolve) => this.driver.once('exit', resolve));
-    this.driver.kill();
-    await Promise.race([exited, sleep(5000)]);
+    // Gone for good before the next test starts its own.
+    if (this.driver.exitCode === null && this.driver.signalCode === null) {
+      const gone = new Promise((r) => this.driver.once('exit', r));
+      this.driver.kill();
+      await Promise.race([gone, sleep(5000)]);
+    }
   }
 }
 
@@ -113,7 +126,8 @@ export class WebKit {
 /// CHROMEDRIVER names the driver (GitHub's runners give its folder in
 /// CHROMEWEBDRIVER), CHROME the browser.
 export class Chrome extends WebKit {
-  static async start({ port = 4445 } = {}) {
+  static async start({ port } = {}) {
+    port ??= await freePort();
     const binary = process.env.CHROMEDRIVER ??
       (process.env.CHROMEWEBDRIVER ? `${process.env.CHROMEWEBDRIVER}/chromedriver` : 'chromedriver');
     const driver = spawn(binary, [`--port=${port}`], { stdio: 'ignore' });
