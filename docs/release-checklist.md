@@ -5,7 +5,7 @@ marks anything that cannot be confirmed from the code.
 
 ## 1. Version and build
 
-- [ ] `pubspec.yaml`: `version: 1.7.0+17` (name `1.7.0`, versionCode `17`),
+- [ ] `pubspec.yaml`: `version: 1.7.1+18` (name `1.7.1`, versionCode `18`),
       and the same in `lib/app/version.dart` (shown in About; `version_test` checks it).
       1.0.0+1 went to the closed test on 2026-10-19, 1.3.0+4 on 2026-10-29;
       1.4.0+5 (2026-11-05) stayed on "Preparing sounds", fixed in 1.4.1+6;
@@ -24,7 +24,9 @@ marks anything that cannot be confirmed from the code.
       first built and uploaded by Release Play (docs/play-release.md), 2026-11-12,
       and promoted to production;
       1.7.0+17 (audio engine fixes, Flutter 3.50.1 and all dependencies updated,
-      CodeQL scan) prepared on 2026-11-20.
+      CodeQL scan) uploaded to the closed test on 2026-11-20 and left there;
+      1.7.1+18 (Harmony writes each chord once, in lead-sheet signs) prepared
+      on 2026-11-20 to go to production in its place.
       The number after `+`
       must grow with every upload to Play.
 - [ ] Target SDK: `flutter.targetSdkVersion` (36 with the current Flutter
