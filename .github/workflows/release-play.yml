@@ -42,7 +42,7 @@ jobs:
           channel: stable
           # Pinned to the last Flutter the app is tested with (CLAUDE.md); 3.50 needs a
           # migration first (material_ui package, Android Gradle Plugin 9.1.1).
-          flutter-version: 3.50.0
+          flutter-version: 3.50.1
           cache: true
       - uses: gradle/actions/setup-gradle@v6
         with:

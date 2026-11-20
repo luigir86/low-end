@@ -23,7 +23,7 @@ concurrency:
 # The Flutter the app is tested with (CLAUDE.md), used by every job below and
 # in the key of the compiled audio engine's cache.
 env:
-  FLUTTER_VERSION: 3.50.0
+  FLUTTER_VERSION: 3.50.1
 
 # Jobs side by side: the run lasts as long as the longest one (the emulator).
 jobs:
@@ -144,9 +144,11 @@ jobs:
       # above wrote the Gradle wrapper and the plugins' settings, and built
       # the Dart side: without -x Gradle would build it again for the three
       # processor types (2.5 minutes), and these tests do not use it.
+      # --warning-mode all names each deprecated Gradle feature in the log,
+      # so a dependency update shows where a warning comes from.
       - name: Android unit tests
         working-directory: android
-        run: ./gradlew :app:testDebugUnitTest -x compileFlutterBuildDebug --console=plain
+        run: ./gradlew :app:testDebugUnitTest -x compileFlutterBuildDebug --console=plain --warning-mode all
       - name: Android test report
         if: failure()
         uses: actions/upload-artifact@v7
