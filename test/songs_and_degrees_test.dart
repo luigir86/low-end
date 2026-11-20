@@ -67,6 +67,39 @@ void main() {
     },
   );
 
+  testWidgets('the dial writes a chord once, as on a lead sheet, and says '
+      'it in words', (tester) async {
+    final scope = await _launch(tester, portrait: true);
+    final semantics = tester.ensureSemantics();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.tooltip('Harmony'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    scope.drone
+      ..setVoicing(DroneVoicing.chord)
+      ..setChord(ChordQuality.minor);
+    await scope.drone.tapNote(9);
+    await tester.pump(const Duration(milliseconds: 500));
+    // "A−": the root once, the minus raised beside it; no "A minor" under
+    // a big "A" any more.
+    expect(find.text('−'), findsOneWidget);
+    expect(find.text('A minor'), findsNothing);
+    // The hub is part of the stop button, which says it in words.
+    final minor = tester.getSemantics(find.text('−')).label;
+    expect(minor, contains('A minor'));
+    expect(minor, isNot(contains('−')));
+    scope.drone.setChord(ChordQuality.dominant);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('7'), findsOneWidget);
+    expect(tester.getSemantics(find.text('7')).label, contains('A7'));
+    await scope.drone.stop();
+    await tester.pumpAndSettle();
+    semantics.dispose();
+  });
+
   testWidgets('the key is written out and a numeral says its degree', (
     tester,
   ) async {
@@ -89,7 +122,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Key: A major'), findsOneWidget);
     expect(find.text('Supertonic'), findsOneWidget);
-    expect(find.text('Bm7'), findsOneWidget);
+    expect(find.text('B−7'), findsOneWidget);
     expect(find.text('Legend'), findsOneWidget);
   });
 
@@ -111,7 +144,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('VI'));
     await tester.pumpAndSettle();
-    expect(find.text('Am7'), findsOneWidget);
+    expect(find.text('A−7'), findsOneWidget);
     expect(find.text('A7'), findsOneWidget);
   });
 

@@ -18,10 +18,10 @@ Font: Edwin (Noto Music for ♩ ♫ ♬), which has only a regular and a bold we
 
 | Role | sp | Text style | Used for |
 | --- | --- | --- | --- |
-| display | 45 | `displayMedium` | The value in the middle of a dial: the tempo, the note on the tuner, the note on the harmony. The octave beside the tuner's note is 0.4 of it; Harmony shows the name alone (its octave never changes). |
-| headline | 24 | `headlineSmall` | The verdict on the tuner ("Flat −20 cents"). |
+| display | 45 | `displayMedium` | The value in the middle of a dial: the tempo, the note on the tuner, the note or chord on the harmony. The octave beside the tuner's note is 0.4 of it; Harmony shows the name alone (its octave never changes). |
+| headline | 24 | `headlineSmall` | The verdict on the tuner ("Flat −20 cents"); the kind of chord raised beside its root on the harmony dial ("Re−7", "Mi♭Δ7", signs as in iReal Pro). |
 | title | 22 | `titleLarge`, weight 700 | A value on a control: the time signature, TAP. |
-| body | 16 | `titleMedium`, `bodyLarge` | The chord on the harmony dial, the notes on the keys, the chord menu, dialog titles. |
+| body | 16 | `titleMedium`, `bodyLarge` | The chord while the harmony waits to come in, the notes on the keys, the chord menu, dialog titles. |
 | caption | 14 | `bodyMedium`, `titleSmall`, `labelLarge` | Hints in the middle of a dial ("Tap to start", "Tap a note to start", "Play a note", "Listen"), the unit under the tempo, messages, settings. |
 | small | 13 | `labelMedium`, `labelSmall`, `bodySmall`, tab labels | The smallest text anywhere: the names of the tabs, the note under a progression's name in the menu ("Jazz standard, like Autumn Leaves"), the second name of a note (D♭). Nothing is smaller. |
 

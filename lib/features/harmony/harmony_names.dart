@@ -26,6 +26,26 @@ String chordName(AppLocalizations l10n, ChordQuality chord) => switch (chord) {
 String chordSymbol(DroneChord chord, String note, NoteNames names) =>
     _chordSymbol(chordWords(names), chord, note);
 
+/// What a lead sheet writes after the root, as iReal Pro does: "−7",
+/// "Δ7", "ø", "o", nothing for a major triad. Signs, not words, so the same
+/// in every language and beside any note names. The minor is the minus sign,
+/// not a hyphen: a hyphen is a speck at the size of the dial.
+String chordSuffix(ChordQuality chord) => switch (chord) {
+  ChordQuality.major => '',
+  ChordQuality.minor => '−',
+  ChordQuality.dominant => '7',
+  ChordQuality.dominantFlat9 => '7♭9',
+  ChordQuality.major7 => 'Δ7',
+  ChordQuality.minor7 => '−7',
+  ChordQuality.halfDiminished => 'ø',
+  ChordQuality.diminished => 'o',
+  ChordQuality.sus4 => 'sus4',
+};
+
+/// A chord on [note] in the signs of a lead sheet: "G7", "Re−7", "Mi♭Δ7".
+String chordSign(DroneChord chord, String note) =>
+    '$note${chordSuffix(chord.quality)}';
+
 /// The words round a chord or key name ("major", "maggiore") follow the
 /// note names, never letters with other words: C D E go with English words
 /// (C♯ major), Do Re Mi with those of its language (Do♯ maggiore, Do♯ mayor,

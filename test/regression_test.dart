@@ -311,13 +311,18 @@ void main() {
       await tester.tap(find.text('Maggiore').last);
       await _settle(tester);
       expect(scope.drone.voicing, DroneVoicing.chord);
-      expect(find.text('La maggiore'), findsOneWidget);
+      // Written as on a lead sheet, the root once: "La", "La−", "La7",
+      // with the notes of the chord under it.
+      expect(find.text('La Do♯ Mi'), findsOneWidget);
+      expect(find.text('La maggiore'), findsNothing);
       scope.drone.setChord(ChordQuality.minor);
       await _settle(tester);
-      expect(find.text('La minore'), findsOneWidget);
+      expect(find.text('−'), findsOneWidget);
+      expect(find.text('La Do Mi'), findsOneWidget);
       scope.drone.setChord(ChordQuality.dominant);
       await _settle(tester);
-      expect(find.text('La7'), findsOneWidget);
+      expect(find.text('7'), findsOneWidget);
+      expect(find.text('La Do♯ Mi Sol'), findsOneWidget);
 
       // To a progression and back: the chord is still the one chosen.
       await tester.tap(find.byKey(const Key('voicingMenu')));
