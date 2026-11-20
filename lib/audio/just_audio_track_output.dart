@@ -121,19 +121,13 @@ class JustAudioTrackOutput implements TrackOutput {
       }
       if (freshPlayerPerTrack && _hasTrack) await player.stop();
       _hasTrack = true;
-      duration = await player.setAudioSource(
-        ProgressiveAudioSource(
-          Uri.parse(track.uri),
-          options: const ProgressiveAudioSourceOptions(
-            androidExtractorOptions: AndroidExtractorOptions(
-              // MP3s of variable bitrate: without an index, seeking is off
-              // by up to 1% of the length (3.6 s in 6 minutes).
-              mp3Flags: AndroidExtractorOptions.flagMp3EnableIndexSeeking,
-            ),
-          ),
-        ),
-        initialPosition: at,
-      );
+      duration =
+          await _load(player, track, at, indexSeeking: true) ??
+          // An MP3 with no Xing or VBRI frame and no length in its ID3 tag
+          // (often one of constant bitrate): the index learns its length
+          // only at the end of the file. Without the index, ExoPlayer
+          // reckons it from the bitrate, exact for a constant one.
+          await _load(player, track, at, indexSeeking: false);
     } on PlayerInterruptedException {
       // Another open began before this one ended: the controller drops the
       // late answer.
@@ -149,6 +143,29 @@ class JustAudioTrackOutput implements TrackOutput {
     if (_speed != 1.0) await player.setSpeed(_speed);
     return duration;
   }
+
+  /// Gives [track] to [player]; its length, or null if the player does not
+  /// know it. With [indexSeeking] an MP3 of variable bitrate seeks to the
+  /// right place: without an index, seeking is off by up to 1% of the
+  /// length (3.6 s in 6 minutes).
+  static Future<Duration?> _load(
+    AudioPlayer player,
+    TrackRef track,
+    Duration at, {
+    required bool indexSeeking,
+  }) => player.setAudioSource(
+    ProgressiveAudioSource(
+      Uri.parse(track.uri),
+      options: ProgressiveAudioSourceOptions(
+        androidExtractorOptions: AndroidExtractorOptions(
+          mp3Flags: indexSeeking
+              ? AndroidExtractorOptions.flagMp3EnableIndexSeeking
+              : 0,
+        ),
+      ),
+    ),
+    initialPosition: at,
+  );
 
   /// 2005 and 2006 are Android's file not found and no permission, 2 the
   /// browser's network error for a blob that is gone: the file is missing.
