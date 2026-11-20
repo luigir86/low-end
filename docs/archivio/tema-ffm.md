@@ -1,24 +1,24 @@
 # Anthracite & Red — il tema di Low End
 
-**Aggiornato la sera dell'8 novembre 2026:** questo tema resta disponibile come tema `LowEndBrand.red`; il tema attivo è Ebony & Bronze ([temi a quattro colori](specs/tema-ebano-bronzo.md)).
+**Aggiornato la sera dell'8 novembre 2026:** questo tema resta disponibile come tema `LowEndBrand.red`; il tema attivo è Ebony & Bronze ([temi a quattro colori](../specs/tema-ebano-bronzo.md)).
 
 ## Com'era il tema rosso (8 novembre 2026, mattina)
 
 Questa sezione descrive il tema `LowEndBrand.red`; il resto del file racconta la proposta del 7 novembre.
 
-- **Accento unico** rosso FFM `#A6282C`, oggi nel tema `LowEndBrand.red` (`lib/app/brand.dart`): tema, icona, avvio Android/web e Flutter. Luigi l'ha scelto il 7/11 dopo aver provato l'ottone; l'ottone resta solo come prova possibile cambiando la costante ([colore-accento](specs/colore-accento.md)).
+- **Accento unico** rosso FFM `#A6282C`, oggi nel tema `LowEndBrand.red` (`lib/app/brand.dart`): tema, icona, avvio Android/web e Flutter. Luigi l'ha scelto il 7/11 dopo aver provato l'ottone; l'ottone resta solo come prova possibile cambiando la costante ([colore-accento](colore-accento.md)).
 - **Fondo** antracite, testi quasi bianchi, controlli inattivi grigi.
 - **Navigazione**: barra in basso rossa da 48 dp, solo icone (i nomi sono nei suggerimenti e nel lettore di schermo), pallino rosso sulle sezioni che suonano; rail orizzontale con i nomi; linea rossa di 2 dp in alto.
 - **Battiti e accordi**: primo battito pieno d'accento, gli altri battiti e le note dell'accordo in sfumature dell'accento.
 - **Accordatore**: verdetto verde salvia `#A4BF89`, giallo paglia `#DCCB79`, rosso mattone `#D98376` sull'etichetta, sulla lancetta e sulle bande dello strobo mentre una nota si sente; strobo grigio a riposo. Per chi non distingue i colori restano parola, spunta o frecce e posizione della lancetta (RF-ACC-05).
-- **Icona e avvio**: leone avorio su rosso ([icona-avvio](icona-avvio.md)).
+- **Icona e avvio**: leone avorio su rosso ([icona-avvio](../icona-avvio.md)).
 - Wood&Brass (il vecchio bronzo su ebano) è stato tolto dal codice l'8/11.
 
 ## La proposta del 7 novembre
 
-**Aggiornamento:** il [colore d’accento unico](specs/colore-accento.md) mantiene questa struttura con rosso FFM predefinito e ottone disponibile.
+**Aggiornamento:** il [colore d’accento unico](colore-accento.md) mantiene questa struttura con rosso FFM predefinito e ottone disponibile.
 
-Specifica della proposta approvata il 7 novembre 2026. La gestione interna è descritta in [varianti-tema](specs/varianti-tema.md).
+Specifica della proposta approvata il 7 novembre 2026. La gestione interna è descritta in [varianti-tema](varianti-tema.md).
 
 L'antracite domina; rosso FFM `#A6282C` su barra di navigazione, TAP e selezioni, con testo quasi bianco. Controlli inattivi e contorni sono grigi, leggibili senza riempire la schermata di rosso. Edwin, geometrie, dimensioni, disposizione, gesti, testi e comportamento dei quattro strumenti rimangono invariati. Icona e immagini del negozio restano separate da questa modifica.
 

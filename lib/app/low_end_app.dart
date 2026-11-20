@@ -594,7 +594,7 @@ class _LowEndAppState extends State<LowEndApp> with WidgetsBindingObserver {
       ...GlobalMaterialLocalizations.delegates,
     ],
     supportedLocales: AppLocalizations.supportedLocales,
-    // Always dark, whatever the phone is set to (docs/tema-bronzo.md).
+    // Always dark, whatever the phone is set to (docs/style.md).
     theme: LowEndTheme.dark,
     // Always start on the main screen: a launch link is an action, not a
     // page (see _runLink).

@@ -138,8 +138,9 @@ What the app does is written once, with a code for each behaviour (`RF-ARM-07`, 
 | --- | --- |
 | [docs/user-guide.md](docs/user-guide.md) (English), [docs/manuale-utente.md](docs/manuale-utente.md) (Italiano) | Players: what every control does |
 | [docs/architecture.md](docs/architecture.md) | Developers: how the app is built |
+| [docs/roadmap.md](docs/roadmap.md) (in Italian) | Everyone: what is in progress, what comes next and what was decided against |
 | [docs/specs/](docs/specs/README.md) (in Italian) | Everyone who changes the app: the requirements, the architecture as it is, its evaluation and the improvement plan |
-| [docs/style.md](docs/style.md), [docs/specs/tema-ebano-bronzo.md](docs/specs/tema-ebano-bronzo.md) (the second in Italian) | Developers and designers: sizes, shapes and the Ebony & Bronze theme (the earlier red one is in [docs/tema-ffm.md](docs/tema-ffm.md)) |
+| [docs/style.md](docs/style.md), [docs/specs/tema-ebano-bronzo.md](docs/specs/tema-ebano-bronzo.md) (the second in Italian) | Developers and designers: sizes, shapes and the Ebony & Bronze theme (the earlier red one is in [docs/archivio/tema-ffm.md](docs/archivio/tema-ffm.md)) | |
 | [docs/offline.md](docs/offline.md) | Proof that the app needs no internet, and how to check it |
 | [docs/llm.md](docs/llm.md) | Assistants and automation: the `lowend://` actions |
 | [docs/web.md](docs/web.md) | The web app for iPhone: installing it, its limits, how it is built |
