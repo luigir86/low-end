@@ -1,8 +1,8 @@
 # Temi a quattro colori: Rosso e Ebony & Bronze
 
 Decisione di Luigi dell'8 novembre 2026 (proposta "Simula tema colori"). L'accento proposto era l'ottone `#B8924E`; dopo il confronto delle anteprime Luigi ha scelto il bronzo originale dell'app `#D4A373`, più caldo (anteprime in `preview/ebony-brass/confronto_accenti.png` dei file di progetto). Sostituisce
-la scelta del solo accento ([colore-accento](colore-accento.md)) e le varianti
-interne Wood&Brass / Anthracite ([varianti-tema](varianti-tema.md)): il vecchio
+la scelta del solo accento ([colore-accento](../archivio/colore-accento.md)) e le varianti
+interne Wood&Brass / Anthracite ([varianti-tema](../archivio/varianti-tema.md)): il vecchio
 codice Wood&Brass è stato tolto.
 
 ## Quattro colori

@@ -33,6 +33,7 @@ cd android && ./gradlew :app:testDebugUnitTest   # Kotlin tests (Robolectric), a
 
 ## Conventions
 
+- What to work on, in what order, and what was decided against: `docs/roadmap.md`. A PR that closes or changes an item updates it; PRs follow `.github/pull_request_template.md`. `AGENTS.md` points other assistants here.
 - Anything the player can do must also be an action in `lib/actions/app_actions.dart`; if you change an action or its description, regenerate `docs/llm-actions.json` and update `docs/llm.md`.
 - Every user-visible text goes in all four `.arb` files (en, it, es, fr); never hard-code strings or colours (use the theme).
 - Add new screens to `test/accessibility_test.dart`. Tests use the silent/fake outputs, no phone needed.

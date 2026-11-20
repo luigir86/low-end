@@ -40,7 +40,7 @@ Rules: pick a role, never a number; the three dials show their value in `display
 
 ## Colour
 
-The app is always dark. Its colours come from one four-colour palette (`BrandPalette`: brand, accent, dark, light) chosen with one constant, `LowEndBrand.palette`, never by the player: **Ebony & Bronze** (active: warm ebony `#18140F` ground, ivory `#F1E8D5` surfaces, bronze `#D4A373` accent) or **Red** (kept in reserve, one line to switch; [four-colour themes](specs/tema-ebano-bronzo.md), [Red redesign](tema-ffm.md)). Both share the same component builder, Edwin, shapes, sizes and layouts. Flat fills, no gradients or sheen.
+The app is always dark. Its colours come from one four-colour palette (`BrandPalette`: brand, accent, dark, light) chosen with one constant, `LowEndBrand.palette`, never by the player: **Ebony & Bronze** (active: warm ebony `#18140F` ground, ivory `#F1E8D5` surfaces, bronze `#D4A373` accent) or **Red** (kept in reserve, one line to switch; [four-colour themes](specs/tema-ebano-bronzo.md), [Red redesign](archivio/tema-ffm.md)). Both share the same component builder, Edwin, shapes, sizes and layouts. Flat fills, no gradients or sheen.
 
 | Meaning | Theme role |
 | --- | --- |
@@ -110,10 +110,3 @@ The beats move inward while retaining their thickness and accents.
 Its own geometry adapts to
 the existing dial size; the central start/stop target fills the inner disc.
 The other dials and lower controls keep their positions.
-
-
-## Anthracite & Red refinement (superseded)
-
-> **Superseded.** This section describes the red theme of 7–8 November 2026, kept for the record. The active theme is Ebony & Bronze (see Colour above; the tab bar, the bronze line and the tuner colours changed on 9 November 2026, PR #170 and #175). Red is still available as `LowEndBrand.red`.
-
-See [the approved specification](specs/rosso-coerente-cornice.md). Action fills and selected states use TAP red; readable Material text remains neutral. Numeric −/+ controls are light gray without an outline; action icons in control rows use red fills and light ink. A 2 dp red top line matches the bottom base line. Settings sits on the dark background in the top right with a 48 dp touch target, without reserving a toolbar row; the shared dial expands into the recovered space. The landscape rail stays red. Bottom navigation uses an almost-white background, red selected icon/label and a 2 dp red base line below its safe area; idle destinations use anthracite. Since 9 November 2026 the tabs are on the ebony ground with a thin ivory line, icons only, the open one ivory without a pill, and the dot of a playing section is the accent (as TAP), on any tab; the tuner has no dot. Dial centres and control surfaces stay dark. The wheel shows ticks only. Tuner verdicts are palette-specific, with neutral words and redundant symbols.

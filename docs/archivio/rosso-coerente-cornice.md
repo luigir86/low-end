@@ -2,7 +2,7 @@
 
 Proposta approvata il 7 novembre 2026. Integra `varianti-tema.md` e la proposta estetica precedente.
 
-**Storico.** Alcune scelte sono cambiate lo stesso giorno: barra inferiore rossa da 48 dp con sole icone (non più chiara), bandiere del Player tolte, verdetti salvia/paglia/mattone anche sullo strobo. Lo stato attuale è in [tema-ffm.md](../tema-ffm.md).
+**Storico.** Alcune scelte sono cambiate lo stesso giorno: barra inferiore rossa da 48 dp con sole icone (non più chiara), bandiere del Player tolte, verdetti salvia/paglia/mattone anche sullo strobo. Lo stato attuale è in [tema-ffm.md](tema-ffm.md).
 
 ## Aspetto approvato
 

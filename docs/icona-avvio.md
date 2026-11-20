@@ -5,13 +5,15 @@ Proposta approvata da Luigi il 7 novembre 2026. Il riferimento visivo originale
 
 ![Versione approvata](images/lion-brand-approved.png)
 
-## Aggiornamento cromatico corrente
+## Colori di oggi
 
-Il [colore d’accento unico](specs/colore-accento.md) sostituisce il rosso fisso
-con `LowEndBrand.accent`: rosso FFM `#A6282C` predefinito, ottone disponibile.
-Generatore, icone e tutti i livelli dell’avvio seguono questa costante.
-Il disegno avorio approvato resta identico. Le indicazioni sul rosso seguenti
-descrivono il riferimento originale.
+I colori seguono la tavolozza scelta in `LowEndBrand.palette` (`lib/app/brand.dart`):
+oggi Ebony & Bronze, con il leone avorio caldo su ebano caldo e, su icona e
+immagine dello store, un alone morbido di bronzo dietro il leone
+([temi a quattro colori](specs/tema-ebano-bronzo.md)). Generatore, icone e tutti
+i livelli dell’avvio seguono questa costante. Il disegno approvato resta identico.
+Le indicazioni sul rosso qui sotto descrivono il riferimento originale del
+7 novembre, che la tavolozza `LowEndBrand.red` ricrea esattamente.
 
 ## Contratto visivo
 

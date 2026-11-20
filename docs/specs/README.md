@@ -19,6 +19,5 @@ Questa cartella è il punto di partenza per lavorare "spec-driven": prima si scr
 
 Stato dei requisiti: **✓** realizzato e coperto da test automatici; **◐** realizzato ma verificato solo a mano o in parte; **○** non realizzato o da verificare sul telefono; **?** da chiarire con Luigi.
 
-- [Colore d’accento unico](colore-accento.md): rosso FFM predefinito, ottone disponibile; interfaccia, icone e avvio dalla stessa costante.
-- [Varianti interne del tema](varianti-tema.md) e [Anthracite & Red](../tema-ffm.md): revisione estetica reversibile.
+- [Temi a quattro colori](tema-ebano-bronzo.md): Ebony & Bronze attivo, Rosso disponibile; interfaccia, icone e avvio dalla stessa costante. Le note superate sul tema sono nell'[archivio](../archivio/README.md).
 - [Ghiera del metronomo](ghiera-metronomo.md): regolazione rapida dei BPM con una fascia esterna chiara e sottile (revisione 2) (RF-MET-09).
