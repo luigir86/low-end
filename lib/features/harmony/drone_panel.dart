@@ -553,7 +553,10 @@ class _DialCenterState extends State<_DialCenter> {
             ),
           ),
           Text(
-            chord != null ? chordSymbol(chord, rootName, names) : rootName,
+            chord != null ? chordSign(chord, rootName) : rootName,
+            semanticsLabel: chord != null
+                ? chordSymbol(chord, rootName, names)
+                : null,
             textAlign: TextAlign.center,
             style: theme.textTheme.titleMedium,
           ),
@@ -575,7 +578,10 @@ class _DialCenterState extends State<_DialCenter> {
             ),
             const SizedBox(height: 12),
             Text(
-              chord != null ? chordSymbol(chord, rootName, names) : rootName,
+              chord != null ? chordSign(chord, rootName) : rootName,
+              semanticsLabel: chord != null
+                  ? chordSymbol(chord, rootName, names)
+                  : null,
               textAlign: TextAlign.center,
               style: theme.textTheme.titleMedium,
             ),
@@ -600,12 +606,16 @@ class _DialCenterState extends State<_DialCenter> {
           // The name alone: Harmony always plays the root in the same
           // octave, so a number would say nothing (and the walking bass and
           // the piano sound in other octaves). A note alone shows its hertz.
-          Text(rootName, style: noteStyle, textAlign: TextAlign.center),
-          if (chord != null)
-            Text(
-              chordSymbol(chord, rootName, names),
-              textAlign: TextAlign.center,
-              style: theme.textTheme.titleMedium,
+          if (chord == null)
+            Text(rootName, style: noteStyle, textAlign: TextAlign.center)
+          else
+            // A chord is written once, big, as on a lead sheet: "Sol⁷",
+            // not the root and then the chord again in small letters.
+            _ChordSign(
+              note: rootName,
+              suffix: chordSuffix(chord.quality),
+              spoken: chordSymbol(chord, rootName, names),
+              style: noteStyle,
             ),
           // The chord written out: Si Re Fa♯. Its root's frequency would
           // mislead, so the hertz are only for a note alone.
@@ -632,6 +642,58 @@ class _DialCenterState extends State<_DialCenter> {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// A chord in the hub, as a lead sheet writes it: the root in the size of
+/// every dial's value, what kind of chord raised beside it in the size of a
+/// headline ("Re−7", "Mi♭Δ7"). Read aloud in words: "Re minore 7" would be
+/// lost on a screen reader as "Re minus 7".
+class _ChordSign extends StatelessWidget {
+  const _ChordSign({
+    required this.note,
+    required this.suffix,
+    required this.spoken,
+    required this.style,
+  });
+
+  final String note;
+  final String suffix;
+  final String spoken;
+  final TextStyle? style;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Semantics(
+      label: spoken,
+      excludeSemantics: true,
+      child: Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(text: note),
+            if (suffix.isNotEmpty)
+              WidgetSpan(
+                alignment: PlaceholderAlignment.top,
+                // Down to the height of the root's capitals, from the top
+                // of its line, which leaves room for accents above them.
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8, left: 1),
+                  child: Text(
+                    suffix,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: style?.color,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        style: style,
+        textAlign: TextAlign.center,
       ),
     );
   }

@@ -118,19 +118,23 @@ class _KeySheet extends StatelessWidget {
                 ),
               ),
               title: Text(degreeName(l10n, s.degree, minor: drone.keyIsMinor)),
-              subtitle: Text(
-                chordSymbol(
-                  (
+              // In the signs of the dial ("B−7"), read aloud in words.
+              subtitle: Builder(
+                builder: (_) {
+                  final chord = (
                     root: (drone.note.pitchClass + s.offset) % 12,
                     quality: s.quality,
-                  ),
-                  spell(
-                    (drone.note.pitchClass + s.offset) % 12,
+                  );
+                  final root = spell(
+                    chord.root,
                     (drone.keyLetter + s.degree) % 7,
                     names,
-                  ),
-                  names,
-                ),
+                  );
+                  return Text(
+                    chordSign(chord, root),
+                    semanticsLabel: chordSymbol(chord, root, names),
+                  );
+                },
               ),
             ),
         ],

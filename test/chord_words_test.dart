@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/actions/app_actions.dart';
 import 'package:low_end/app/settings.dart';
 import 'package:low_end/audio/pitch.dart';
+import 'package:low_end/features/harmony/drone_controller.dart';
 import 'package:low_end/features/harmony/harmony.dart';
 import 'package:low_end/features/harmony/harmony_names.dart';
 
@@ -19,6 +20,23 @@ void main() {
     expect(chordSymbol(minor, 'La', NoteNames.solfege), 'La minore');
     expect(chordSymbol(dim, 'B', NoteNames.letters), 'B diminished');
     expect(chordSymbol(dim, 'Si', NoteNames.solfege), 'Si diminuito');
+  });
+
+  // On the dial a chord is written as on a lead sheet, in iReal Pro's
+  // signs: the same in every language and with any note names.
+  test('the dial writes chords in lead-sheet signs', () {
+    DroneChord c(ChordQuality q) => (root: 0, quality: q);
+    expect(chordSign(c(ChordQuality.major), 'Do'), 'Do');
+    expect(chordSign(c(ChordQuality.minor), 'Fa♯'), 'Fa♯−');
+    expect(chordSign(c(ChordQuality.minor7), 'D'), 'D−7');
+    expect(chordSign(c(ChordQuality.dominant), 'Sol'), 'Sol7');
+    expect(chordSign(c(ChordQuality.dominantFlat9), 'A'), 'A7♭9');
+    expect(chordSign(c(ChordQuality.major7), 'Mi♭'), 'Mi♭Δ7');
+    expect(chordSign(c(ChordQuality.halfDiminished), 'Ré'), 'Réø');
+    expect(chordSign(c(ChordQuality.diminished), 'B'), 'Bo');
+    expect(chordSign(c(ChordQuality.sus4), 'G'), 'Gsus4');
+    // The minus sign, not a hyphen, which is a speck at the dial's size.
+    expect(chordSuffix(ChordQuality.minor), isNot('-'));
   });
 
   test('Do Re Mi in Spanish and French take their own words and spelling', () {
