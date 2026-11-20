@@ -25,10 +25,10 @@ Regole:
 3. **"Valuta Low End" nelle Informazioni.** Apre la pagina di Low End su Google Play, dove si danno le stelle e si scrive la recensione. Regole di Google: non si chiede un voto preciso ("5 stelle?") e un pulsante porta allo store, non apre la finestra di recensione dentro l'app. Nella web app non compare.
 4. **Revisione madrelingua di spagnolo e francese**, prima della 1.8: un foglio con le frasi in inglese, spagnolo e francese e le schermate, per tester madrelingua (anche a pagamento) o, meglio, musicisti.
 5. **Brani e giri (1.8)**, finito il consolidamento: prima P0, il giro come dato, da solo e con i test; poi l'anello delle battute, "I miei brani" e la condivisione di un brano. A ogni passo grande, una prova con un musicista che non conosce l'app.
-6. **"LLM first" con Android App Functions**: deciso di farlo; quando, da decidere.
 
 ## Idee, non ora
 
+- "LLM first" con Android App Functions: da rivalutare nel 2027 (deciso il 20 novembre 2026).
 - Nuovi suoni per l'Armonia, dopo la 1.8: chitarra (bossa, strumming, shuffle, swing alla Freddie Green), assolo di sax, progressioni metal con batteria. Si parte da una demo della chitarra bossa.
 - App nativa per iPhone: 99 € l'anno di Apple e un Mac, oppure tramite la Fondazione.
 - Nomi delle note alla tedesca (H, B) come altro sistema di nomi.
