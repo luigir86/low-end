@@ -1,0 +1,79 @@
+name: CodeQL
+
+# GitHub's security scan of the code (Security > Code scanning). The default
+# setup cannot build the Android side: Gradle needs the Flutter SDK
+# (android/local.properties) and Java 21, so this advanced setup prepares
+# them and compiles the app's Kotlin itself. Turn the default setup off in
+# Settings > Code security, or the two clash.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Every Monday at 05:17 UTC, so new rules also check code nobody touched.
+    - cron: '17 5 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The workflows themselves (permissions, untrusted input).
+          - language: actions
+            build-mode: none
+          # The web app's tests and loader (test_web/, web/).
+          - language: javascript-typescript
+            build-mode: none
+          # The Android side (android/app/src/main/kotlin): sharing, saving,
+          # the take provider and the audio route. Kotlin must be compiled
+          # for CodeQL to read it.
+          - language: java-kotlin
+            build-mode: manual
+    steps:
+      - uses: actions/checkout@v7
+      - if: matrix.build-mode == 'manual'
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - if: matrix.build-mode == 'manual'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.50.1
+          cache: true
+      - if: matrix.build-mode == 'manual'
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+      # Writes android/local.properties, the Gradle wrapper and the plugins'
+      # settings without building the app.
+      - if: matrix.build-mode == 'manual'
+        run: flutter build apk --debug --config-only
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+      # Only the Kotlin and Java compilation, watched by CodeQL: the Dart side
+      # (compileFlutterBuildDebug) is not needed. --no-daemon so the
+      # compiler runs where CodeQL can see it.
+      - if: matrix.build-mode == 'manual'
+        working-directory: android
+        run: ./gradlew --no-daemon --console=plain :app:compileDebugKotlin :app:compileDebugJavaWithJavac -x compileFlutterBuildDebug
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:${{ matrix.language }}
