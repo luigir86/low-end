@@ -23,7 +23,7 @@ concurrency:
 # The Flutter the app is tested with (CLAUDE.md), used by every job below and
 # in the key of the compiled audio engine's cache.
 env:
-  FLUTTER_VERSION: 3.50.0
+  FLUTTER_VERSION: 3.50.1
 
 # Jobs side by side: the run lasts as long as the longest one (the emulator).
 jobs:
