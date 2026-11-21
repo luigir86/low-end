@@ -110,7 +110,11 @@ class TunerController extends ChangeNotifier {
         if (_disposed || _status != TunerStatus.starting) await _stopMic();
         return;
       }
-      _subscription = samples.listen(_onSamples);
+      _subscription = samples.listen(
+        _onSamples,
+        onError: (Object error) => _lost(generation, error),
+        onDone: () => _lost(generation, 'the microphone stream ended'),
+      );
       _status = TunerStatus.listening;
     } catch (error) {
       if (stale()) return;
@@ -119,6 +123,22 @@ class TunerController extends ChangeNotifier {
       await _stopMic();
     }
     _notify();
+  }
+
+  /// The microphone stopped sending while the tuner listened (the system
+  /// took it, the browser cut it): the tuner says so, rather than looking
+  /// as if it listened while it hears nothing, and a touch starts it again.
+  Future<void> _lost(int generation, Object why) async {
+    if (_disposed || generation != _generation) return;
+    debugPrint('The tuner lost the microphone: $why');
+    _generation++;
+    final subscription = _subscription;
+    _subscription = null;
+    _status = TunerStatus.failed;
+    _reset();
+    _notify();
+    await _stopMic();
+    await subscription?.cancel();
   }
 
   /// Stops listening, without counting as a pause by the player: used when
