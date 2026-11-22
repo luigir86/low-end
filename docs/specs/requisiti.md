@@ -110,7 +110,7 @@ Fuori dallo scopo, per decisione presa: libreria PDF e conversione in MusicXML/M
 | RF-LLM-01 | Tutto ciò che il musicista può fare sullo schermo è anche un'azione con nome, argomenti JSON e risposta JSON con lo stato completo (`lib/actions/app_actions.dart`). | ✓ | `app_actions_test`, `review/actions_review_test` |
 | RF-LLM-02 | Il catalogo `docs/llm-actions.json` è generato dal codice e un test lo tiene allineato. | ✓ | `app_actions_test` |
 | RF-LLM-03 | Gli argomenti si controllano tutti prima di cambiare qualcosa: un argomento sbagliato non cambia nulla e l'errore si può leggere e correggere. | ✓ | `review/actions_review_test` |
-| RF-LLM-04 | Link `lowend://action/...` su Android e `#/action/...` nel web. Un link non può cambiare le impostazioni salvate. | ✓ | `app_actions_test` |
+| RF-LLM-04 | Link `lowend://action/...` su Android e `#/action/...` nel web. Un link non può cambiare le impostazioni salvate né accendere il microfono (accordatore o registrazione, dal 22/11 anche `tuner_start`) o chiudere ciò che è nel Player. | ✓ | `app_actions_test` |
 | RF-LLM-05 | Le azioni seguono le stesse regole delle dita (un'azione di avvio apre la sua sezione, `tuner_start` mette in pausa gli altri…). | ✓ | `app_actions_test` |
 | RF-LLM-06 | Prossimo passo proposto: Android App Functions. | ○ | non iniziato |
 
