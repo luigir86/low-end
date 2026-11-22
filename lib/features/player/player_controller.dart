@@ -69,7 +69,8 @@ class PlayerController extends ChangeNotifier implements SoundSection {
   /// The shortest loop.
   static const minLoop = Duration(seconds: 1);
 
-  /// The step of the − and + under the dial: a touch and a hold (RF-PLY-10).
+  /// How far [nudge] moves an end: a hundredth, or a tenth of a second as
+  /// the screen reader's slider on each end does (RF-PLY-10).
   static const fineStep = Duration(milliseconds: 10);
   static const coarseStep = Duration(milliseconds: 100);
 

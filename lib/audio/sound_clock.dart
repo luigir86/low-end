@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 import 'loop_transport.dart';
 
 /// The screen's clock for a loop the audio engine plays: where in the loop
@@ -68,7 +66,4 @@ class SoundClock {
     if (elapsed < _waiting) return null;
     return _startedAt + elapsed - _waiting;
   }
-
-  @visibleForTesting
-  Duration get elapsed => _watch.elapsed;
 }

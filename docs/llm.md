@@ -80,15 +80,15 @@ On Android the app opens links of the form
 lowend://action/<action>?<argument>=<value>&...
 ```
 
-for example `lowend://action/drone_play?note=D&voicing=chord&chord=minor` or `lowend://action/tuner_start`. Any assistant, shortcut or automation app that can open a link can use them (on Android, for example, Tasker, a home-screen shortcut, or `adb shell am start -d "lowend://action/drone_stop"` to try it).
+for example `lowend://action/drone_play?note=D&voicing=chord&chord=minor` or `lowend://action/metronome_start?bpm=90`. Any assistant, shortcut or automation app that can open a link can use them (on Android, for example, Tasker, a home-screen shortcut, or `adb shell am start -d "lowend://action/drone_stop"` to try it).
 
 - Values are read as text and converted by the type in the catalog: numbers for `bpm` and `hz`, and `true`/`false` (also `1`/`0`, `yes`/`no`) for booleans.
 - Write sharps as `%23` (`note=F%23`) or use `b` for flats and `♯`; a bare `#` starts a fragment and cuts the link.
 - A link opens the app if it is closed. A link gives no answer to the caller: to read the result, use an integration that calls the actions and gets the JSON (see below).
 - In the web app (see [web.md](web.md)) the same actions are the page address followed by `#/action/...`, for example `https://luigir86.github.io/low-end/#/action/drone_play?note=D`. A browser lets a page make sound only after a touch on it, so a sound started by a link may be heard only from the first touch.
 - Links cannot change the saved settings (`set_reference_pitch`, `settings_set`): any web page can open a link, and a page must not be able to change your reference A. An assistant that calls the actions directly can.
-- Links also cannot record or close what is in the Player (`player_record`, `player_record_stop`, `player_close`, `player_take_rename`): a page must not be able to start the microphone or throw away a take. Links that only start, stop or change the sound work as before. An assistant that calls the actions directly can use all of them.
-- Links can only do what the buttons do, and the same rules apply: `tuner_start` brings the tuner to the front, listens and pauses the metronome and Harmony; the microphone never listens with the tuner off screen.
+- Links also cannot turn on the microphone or close what is in the Player (`tuner_start`, `player_record`, `player_record_stop`, `player_close`, `player_take_rename`): a page must not be able to start the microphone or throw away a take. Links that only start, stop or change the sound work as before. An assistant that calls the actions directly can use all of them.
+- Links can only do what the buttons do, and the same rules apply. `tuner_stop` works from a link; to listen, touch the tuner's dial. The microphone never listens with the tuner off screen.
 
 ## Next steps
 

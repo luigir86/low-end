@@ -738,17 +738,22 @@ class _Tail {
   final Duration _length;
   final LoopEngine _soloud;
 
-  /// From where the loop is now, which went on while the tail was made.
-  _Owned playNow(double volume) {
-    final handle = _soloud.play(_source, paused: true, volume: volume);
+  /// From where the loop is now, which went on while the tail was made;
+  /// nothing (null) when making it took longer than it rings: played from
+  /// its start, it would sound as if the piano played again.
+  _Owned? playNow(double volume) {
     final skip = _clock.elapsed;
-    if (skip < _length) _soloud.seek(handle, skip);
+    if (skip >= _length) {
+      dispose();
+      return null;
+    }
+    final handle = _soloud.play(_source, paused: true, volume: volume);
+    _soloud.seek(handle, skip);
     _soloud.setPause(handle, false);
     _disposeAfter(_length);
-    final left = skip < _length ? _length - skip : Duration.zero;
     return _Owned(
       handle,
-      until: _soloud.getEngineTime() + left,
+      until: _soloud.getEngineTime() + _length - skip,
       length: _length,
       isTail: true,
     );

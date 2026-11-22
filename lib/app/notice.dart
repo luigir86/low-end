@@ -26,21 +26,13 @@ class NoticeHost extends StatefulWidget {
   State<NoticeHost> createState() => NoticeHostState();
 }
 
-/// One notice on screen, to know how it closed.
+/// One notice on screen.
 class Notice {
   Notice._(this.message, this.actionLabel, this.onAction);
 
   final String message;
   final String? actionLabel;
   final VoidCallback? onAction;
-  final _closed = Completer<bool>();
-
-  /// Completes when the notice goes: true if its button was touched.
-  Future<bool> get closed => _closed.future;
-
-  void _close({required bool byAction}) {
-    if (!_closed.isCompleted) _closed.complete(byAction);
-  }
 }
 
 class NoticeHostState extends State<NoticeHost> {
@@ -50,7 +42,6 @@ class NoticeHostState extends State<NoticeHost> {
   /// Shows [message], with a button [actionLabel] that runs [onAction].
   Notice show(String message, {String? actionLabel, VoidCallback? onAction}) {
     final notice = Notice._(message, actionLabel, onAction);
-    _shown?._close(byAction: false);
     _timer?.cancel();
     _timer = Timer(NoticeHost.duration, () => hide(notice));
     setState(() => _shown = notice);
@@ -62,13 +53,11 @@ class NoticeHostState extends State<NoticeHost> {
     final shown = _shown;
     if (shown == null || (notice != null && notice != shown)) return;
     _timer?.cancel();
-    shown._close(byAction: false);
     if (mounted) setState(() => _shown = null);
   }
 
   void _act(Notice notice) {
     _timer?.cancel();
-    notice._close(byAction: true);
     setState(() => _shown = null);
     notice.onAction?.call();
   }
@@ -76,7 +65,6 @@ class NoticeHostState extends State<NoticeHost> {
   @override
   void dispose() {
     _timer?.cancel();
-    _shown?._close(byAction: false);
     super.dispose();
   }
 

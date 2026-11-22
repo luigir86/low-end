@@ -645,11 +645,13 @@ class AppActions {
   /// app directly (an assistant through the action layer, the screens) may.
   static const settingsActions = {'set_reference_pitch', 'settings_set'};
 
-  /// Actions that start the microphone or discard, close or rename a track
-  /// or a take. A web page could use them through a link with no one
-  /// looking, so they too are refused from a link; the screens and an
-  /// assistant calling the action layer directly may.
+  /// Actions that start the microphone (the tuner listening, a recording)
+  /// or discard, close or rename a track or a take. A web page could use
+  /// them through a link with no one looking, so they too are refused from
+  /// a link; the screens and an assistant calling the action layer directly
+  /// may.
   static const noLinkActions = {
+    'tuner_start',
     'player_record',
     'player_record_stop',
     'player_close',
@@ -678,7 +680,7 @@ class AppActions {
       if (fromLink && noLinkActions.contains(name)) {
         throw ActionError(
           '"$name" uses the microphone or closes or renames what is in the '
-          'Player, so it cannot be run from a link: use the Player, or call '
+          'Player, so it cannot be run from a link: use the app, or call '
           'the action directly instead of through a lowend:// link.',
         );
       }

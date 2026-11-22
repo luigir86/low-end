@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -196,4 +198,60 @@ void main() {
     await play(tester, 98, tab: 'Accordatore', locale: const Locale('it'));
     expect(hertz(RegExp(r'^\d+,\d Hz$')), findsOneWidget);
   });
+
+  group('the microphone stops sending while the tuner listens', () {
+    test('an error is noted, not thrown, and the tuner goes on', () async {
+      final mic = _StreamMic();
+      final tuner = TunerController(mic);
+      await tuner.start();
+      expect(tuner.status, TunerStatus.listening);
+      mic.samples.addError(StateError('a hiccup'));
+      await Future<void>.delayed(Duration.zero);
+      expect(tuner.status, TunerStatus.listening);
+      expect(mic.stops, 0);
+    });
+
+    test(
+      'an end says the microphone failed, and a touch starts it again',
+      () async {
+        final mic = _StreamMic();
+        final tuner = TunerController(mic);
+        await tuner.start();
+        await mic.samples.close();
+        await Future<void>.delayed(Duration.zero);
+        expect(tuner.status, TunerStatus.failed);
+        expect(mic.stops, 1);
+        mic.samples = StreamController<Float64List>();
+        await tuner.start();
+        expect(tuner.status, TunerStatus.listening);
+      },
+    );
+
+    test('an end after a stop changes nothing', () async {
+      final mic = _StreamMic();
+      final tuner = TunerController(mic);
+      await tuner.start();
+      final samples = mic.samples;
+      await tuner.stop();
+      await samples.close();
+      await Future<void>.delayed(Duration.zero);
+      expect(tuner.status, TunerStatus.idle);
+      expect(mic.stops, 1);
+    });
+  });
+}
+
+/// A microphone whose stream the test ends or breaks.
+class _StreamMic implements MicInput {
+  var samples = StreamController<Float64List>();
+  var stops = 0;
+
+  @override
+  Future<bool> requestPermission() async => true;
+
+  @override
+  Future<Stream<Float64List>> start(int sampleRate) async => samples.stream;
+
+  @override
+  Future<void> stop() async => stops++;
 }
