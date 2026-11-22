@@ -112,7 +112,11 @@ class TunerController extends ChangeNotifier {
       }
       _subscription = samples.listen(
         _onSamples,
-        onError: (Object error) => _lost(generation, error),
+        // A hiccup is only noted: the microphone may well go on sending,
+        // as it did before errors were listened for. Only its end stops
+        // the tuner.
+        onError: (Object error) =>
+            debugPrint('The microphone reported: $error'),
         onDone: () => _lost(generation, 'the microphone stream ended'),
       );
       _status = TunerStatus.listening;
@@ -125,7 +129,7 @@ class TunerController extends ChangeNotifier {
     _notify();
   }
 
-  /// The microphone stopped sending while the tuner listened (the system
+  /// The microphone's stream ended while the tuner listened (the system
   /// took it, the browser cut it): the tuner says so, rather than looking
   /// as if it listened while it hears nothing, and a touch starts it again.
   Future<void> _lost(int generation, Object why) async {

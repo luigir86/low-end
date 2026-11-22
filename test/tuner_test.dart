@@ -200,16 +200,15 @@ void main() {
   });
 
   group('the microphone stops sending while the tuner listens', () {
-    test('an error says the microphone failed, and it is closed', () async {
+    test('an error is noted, not thrown, and the tuner goes on', () async {
       final mic = _StreamMic();
       final tuner = TunerController(mic);
       await tuner.start();
       expect(tuner.status, TunerStatus.listening);
-      mic.samples.addError(StateError('microphone taken'));
+      mic.samples.addError(StateError('a hiccup'));
       await Future<void>.delayed(Duration.zero);
-      expect(tuner.status, TunerStatus.failed);
-      expect(tuner.isListening, isFalse);
-      expect(mic.stops, 1);
+      expect(tuner.status, TunerStatus.listening);
+      expect(mic.stops, 0);
     });
 
     test(
