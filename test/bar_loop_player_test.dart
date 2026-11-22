@@ -495,6 +495,26 @@ void main() {
     expect(engine.disposed, isNotEmpty);
   });
 
+  test('a tail made after it would have rung out is not played from its '
+      'start', () async {
+    await piano.play(fakeWav(bar), bar);
+    engine.advance(ms(700));
+    await piano.stop(
+      tailFor: (at) async {
+        // A slow phone: the tail is ready only after its whole length.
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+        return fakeWav(ms(300));
+      },
+    );
+    expect(
+      engine.voices.values.where(
+        (v) => v.name == 'tail.wav' && v.soundsAt(engine.now),
+      ),
+      isEmpty,
+      reason: 'the tail would start over, as if the piano played again',
+    );
+    expect(engine.playing('piano-loop.wav'), isEmpty);
+  });
   test('the volume is kept for the loops that follow', () async {
     piano.setVolume(0.5);
     await piano.play(fakeWav(bar), bar);
