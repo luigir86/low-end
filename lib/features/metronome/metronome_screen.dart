@@ -620,13 +620,17 @@ class _SignatureButton extends StatelessWidget {
                   onTap: () => Navigator.of(context).pop(s),
                 ),
               const Divider(),
-              // Kept whatever the bar, and heard in 2/4 and 4/4.
+              // Kept whatever the bar, but heard, and so touchable, only in
+              // 2/4 and 4/4: elsewhere it is dimmed, as the subdivision field
+              // is in the bars counted in eighths.
               ListenableBuilder(
                 listenable: metronome,
                 builder: (context, _) => SwitchListTile(
                   key: const Key('backbeatSwitch'),
                   value: metronome.backbeat,
-                  onChanged: metronome.setBackbeat,
+                  onChanged: metronome.backbeatApplies
+                      ? metronome.setBackbeat
+                      : null,
                   title: Text(l10n.backbeatTitle),
                   subtitle: Text(l10n.backbeatSubtitle),
                 ),

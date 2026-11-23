@@ -53,7 +53,7 @@ Fuori dallo scopo, per decisione presa: libreria PDF e conversione in MusicXML/M
 | RF-MET-01 | Tempo da 30 a 250 BPM (fino a 400 in 7/8, dove conta le crome); predefinito 80 in 4/4. | ✓ | `metronome_controller_test` |
 | RF-MET-02 | Il tempo si cambia con la ghiera interna (RF-MET-09), con − e + (pressione lunga che accelera e si ferma sui numeri tondi), con TAP, o scrivendolo (matita). Toccare il numero avvia e ferma. Sotto il numero il nome italiano del tempo. | ✓ | `gestures_and_tempo_test` |
 | RF-MET-03 | Nove metri (1/1, 2/4, 3/4, 4/4, 5/4, 6/8, 7/8, 9/8, 12/8) con i battiti raggruppati come si contano. | ✓ | `metronome_controller_test` |
-| RF-MET-04 | Suddivisioni: semiminime, crome, crome swing, terzine, semicrome, semicrome swing (swing al 60%); solo nei metri in quarti. Click sul 2 e 4: solo in 2/4 e 4/4. | ✓ | `metronome_subdivision_test` |
+| RF-MET-04 | Suddivisioni: semiminime, crome, crome swing, terzine, semicrome, semicrome swing (swing al 60%); solo nei metri in quarti. Click sul 2 e 4: solo in 2/4 e 4/4 (altrove l'interruttore è attenuato e conserva lo stato). | ✓ | `metronome_subdivision_test` |
 | RF-MET-05 | Anello che si accende battito per battito, il primo marcato; la luce arriva **insieme** al suono (compensando il ritardo dell'uscita: altoparlante, cuffia, Bluetooth, browser). | ◐ | costanti di ritardo mai misurate sul telefono |
 | RF-MET-06 | Il tempo non deriva mai: si suona in loop una battuta intera generata in memoria. | ✓ | `metronome_controller_test` |
 | RF-MET-07 | Tempo, metro, suddivisione e click sul 2 e 4 si ricordano al riavvio. | ✓ | `row_test` |
