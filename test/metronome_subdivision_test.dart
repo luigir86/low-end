@@ -253,6 +253,30 @@ void main() {
       expect(find.text('4/4 · 2 & 4'), findsOneWidget);
     });
 
+    testWidgets('the click on 2 and 4 is dimmed where it is not heard', (
+      tester,
+    ) async {
+      final metronome = await pump(tester);
+      metronome.setBackbeat(true);
+      metronome.setSignature(TimeSignature.threeFour);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('3/4'));
+      await tester.pumpAndSettle();
+      final tile = tester.widget<SwitchListTile>(
+        find.byKey(const Key('backbeatSwitch')),
+      );
+      // Shown as it was left, but it cannot be touched.
+      expect(tile.value, isTrue);
+      expect(tile.onChanged, isNull);
+      await tester.tap(find.byKey(const Key('backbeatSwitch')));
+      await tester.pumpAndSettle();
+      expect(metronome.backbeat, isTrue);
+      // Back in 4/4 it is heard again, and touchable.
+      await tester.tap(find.text('4/4'));
+      await tester.pumpAndSettle();
+      expect(find.text('4/4 · 2 & 4'), findsOneWidget);
+    });
+
     testWidgets('holding + runs the tempo up, faster and faster', (
       tester,
     ) async {
