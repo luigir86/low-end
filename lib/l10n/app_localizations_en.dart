@@ -658,6 +658,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get aboutRate => 'Rate Low End on Google Play';
+
+  @override
   String get subdivisionQuarters => 'Quarter notes';
 
   @override

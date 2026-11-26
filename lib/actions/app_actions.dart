@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 
+import '../app/about.dart' as about;
 import '../app/app_navigation.dart';
 import '../app/settings.dart';
 import '../audio/pitch.dart';
@@ -82,6 +83,7 @@ class AppActions {
     this.recording,
     required this.navigation,
     required this.settings,
+    this.openLink = about.openLink,
   });
 
   final DroneController drone;
@@ -93,6 +95,10 @@ class AppActions {
   final RecordingController? recording;
   final AppNavigation navigation;
   final AppSettings settings;
+
+  /// Opens a web address outside the app (the store page for rate_app); a
+  /// test passes one that only writes the address down.
+  final Future<void> Function(String url) openLink;
 
   static const _note = {
     'type': 'string',
@@ -490,6 +496,15 @@ class AppActions {
         },
       },
     ),
+    const AppAction(
+      name: 'rate_app',
+      description:
+          "Opens Low End's page on Google Play, where the person can give "
+          'stars and write a review, as the "Rate Low End on Google Play" '
+          'button in About does. Only the person rates: never suggest a '
+          'number of stars. Android only; the web app is not on Google Play '
+          'and answers with an error.',
+    ),
   ];
 
   static const _metronomeParameters = {
@@ -880,6 +895,13 @@ class AppActions {
           throw ActionError('"hz" must be a whole number from 415 to 445.');
         }
         settings.setReferencePitch(hz);
+      case 'rate_app':
+        if (kIsWeb) {
+          throw ActionError(
+            'The web app is not on Google Play, so it cannot be rated there.',
+          );
+        }
+        await openLink(about.playStoreUrl);
       case 'settings_set':
         // Everything is checked before anything changes, so a call refused
         // for one argument leaves the others as they were.

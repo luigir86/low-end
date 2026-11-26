@@ -85,7 +85,7 @@ L'ingranaggio in alto apre le impostazioni, divise in gruppi:
 
 In fondo, **Gesti e scorciatoie** mostra di nuovo la guida, su una pagina.
 
-**Ringraziamenti** va alla Power Flower Orchestra di Fossano, che ha ispirato e provato quest’app; il suo pulsante apre la loro pagina Instagram nel browser del telefono. **Informazioni su Low End** (in fondo alle impostazioni) mostra la licenza, il link al codice sorgente (anch'esso aperto nel browser) e, sotto *Visualizza licenze*, le licenze di tutto ciò con cui l'app è costruita, font e suoni del pianoforte compresi.
+**Ringraziamenti** va alla Power Flower Orchestra di Fossano, che ha ispirato e provato quest’app; il suo pulsante apre la loro pagina Instagram nel browser del telefono. **Informazioni su Low End** (in fondo alle impostazioni) mostra la licenza, il link al codice sorgente (anch'esso aperto nel browser), *Valuta Low End su Google Play*, che apre la pagina dell'app su Google Play per dare le stelle e scrivere una recensione (non nella web app), e, sotto *Visualizza licenze*, le licenze di tutto ciò con cui l'app è costruita, font e suoni del pianoforte compresi.
 
 ## Suonare con lo schermo spento
 

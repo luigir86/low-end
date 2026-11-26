@@ -665,6 +665,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get aboutRate => 'Low End auf Google Play bewerten';
+
+  @override
   String get subdivisionQuarters => 'Viertel';
 
   @override
