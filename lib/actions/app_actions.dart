@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 
+import '../app/about.dart' as about;
 import '../app/app_navigation.dart';
 import '../app/settings.dart';
 import '../audio/pitch.dart';
@@ -82,6 +83,7 @@ class AppActions {
     this.recording,
     required this.navigation,
     required this.settings,
+    this.openLink = about.openLink,
   });
 
   final DroneController drone;
@@ -93,6 +95,10 @@ class AppActions {
   final RecordingController? recording;
   final AppNavigation navigation;
   final AppSettings settings;
+
+  /// Opens a web address outside the app (the store page for rate_app); a
+  /// test passes one that only writes the address down.
+  final Future<void> Function(String url) openLink;
 
   static const _note = {
     'type': 'string',
@@ -422,19 +428,22 @@ class AppActions {
         },
         'language': {
           'type': 'string',
-          'enum': ['system', 'en', 'it', 'es', 'fr'],
+          'enum': ['system', 'en', 'it', 'es', 'fr', 'de'],
           'description': 'App language; "system" follows the phone.',
         },
         'note_names': {
           'type': 'string',
-          'enum': ['auto', 'solfege', 'letters'],
+          'enum': ['auto', 'solfege', 'letters', 'german'],
           'description':
               '"solfege" is Do Re Mi (Do Ré Mi in French), "letters" is C D E, '
-              '"auto" is Do Re Mi in Italian, Spanish and French and C D E '
-              'otherwise. Chord words follow the note names: English with '
-              'C D E ("C major"), the app language with Do Re Mi ("Do mayor", '
-              'Italian when the app is in English). The octave numbers are '
-              'set apart, with octave_numbering.',
+              '"german" is C D E… H (H is B natural, B is B♭), "auto" is '
+              'Do Re Mi in Italian, Spanish and French, german in German and '
+              'C D E otherwise. Chord words follow the note names: English '
+              'with C D E ("C major"), German with german ("C-Dur", '
+              '"a-Moll"), the app language with Do Re Mi ("Do mayor", Italian '
+              'when the app is in English or German). The octave numbers are '
+              'set apart, with octave_numbering. Notes given to actions are '
+              'always English letters or Do Re Mi: B is B natural.',
         },
         'octave_numbering': {
           'type': 'string',
@@ -486,6 +495,15 @@ class AppActions {
               'still work).',
         },
       },
+    ),
+    const AppAction(
+      name: 'rate_app',
+      description:
+          "Opens Low End's page on Google Play, where the person can give "
+          'stars and write a review, as the "Rate Low End on Google Play" '
+          'button in About does. Only the person rates: never suggest a '
+          'number of stars. Android only; the web app is not on Google Play '
+          'and answers with an error.',
     ),
   ];
 
@@ -877,15 +895,22 @@ class AppActions {
           throw ActionError('"hz" must be a whole number from 415 to 445.');
         }
         settings.setReferencePitch(hz);
+      case 'rate_app':
+        if (kIsWeb) {
+          throw ActionError(
+            'The web app is not on Google Play, so it cannot be rated there.',
+          );
+        }
+        await openLink(about.playStoreUrl);
       case 'settings_set':
         // Everything is checked before anything changes, so a call refused
         // for one argument leaves the others as they were.
         final language = args['language'];
         final code = switch (language) {
           null || 'system' => null,
-          'en' || 'it' || 'es' || 'fr' => language as String,
+          'en' || 'it' || 'es' || 'fr' || 'de' => language as String,
           _ => throw ActionError(
-            '"language" must be system, en, it, es or fr.',
+            '"language" must be system, en, it, es, fr or de.',
           ),
         };
         final naming = args['note_names'] == null

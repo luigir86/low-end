@@ -248,6 +248,10 @@
   "noteNamesAuto": "Follow the language",
   "noteNamesSolfege": "Do Re Mi",
   "noteNamesLetters": "C D E",
+  "noteNamesGerman": "C D E … H",
+  "@noteNamesGerman": {
+    "description": "In the Note names field of the settings: the German letters, where B natural is H and B♭ is B, with German chord words (C-Dur, a-Moll). Keep the letters as they are."
+  },
   "circleLayoutLabel": "Harmony circle",
   "circleLayoutFifths": "Circle of fifths",
   "circleLayoutFifthsShort": "Fifths",
@@ -432,6 +436,10 @@
         "type": "String"
       }
     }
+  },
+  "aboutRate": "Rate Low End on Google Play",
+  "@aboutRate": {
+    "description": "Button in the About dialog (Android only) that opens Low End's page on Google Play, where stars and reviews are given. Never ask for a number of stars."
   },
   "subdivisionQuarters": "Quarter notes",
   "subdivisionEighths": "Eighth notes",

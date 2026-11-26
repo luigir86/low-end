@@ -16,6 +16,7 @@ const _tagline = {
   'it-IT': 'Accordi al piano su cui suonare, con metronomo, accordatore e lettore di brani.',
   'es-ES': 'Acordes de piano sobre los que tocar, con metrónomo, afinador y reproductor.',
   'fr-FR': 'Des accords au piano pour jouer dessus, avec métronome, accordeur et lecteur.',
+  'de-DE': 'Klavierakkorde zum Mitspielen, mit Metronom, Stimmgerät und Player.',
 };
 
 void main() {

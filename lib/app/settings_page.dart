@@ -63,6 +63,7 @@ class SettingsPage extends StatelessWidget {
                     const Choice(value: 'it', title: 'Italiano'),
                     const Choice(value: 'es', title: 'Español'),
                     const Choice(value: 'fr', title: 'Français'),
+                    const Choice(value: 'de', title: 'Deutsch'),
                   ],
                   onSelected: (code) =>
                       settings.setLanguage(code.isEmpty ? null : code),
@@ -86,6 +87,10 @@ class SettingsPage extends StatelessWidget {
                     Choice(
                       value: NoteNaming.letters,
                       title: l10n.noteNamesLetters,
+                    ),
+                    Choice(
+                      value: NoteNaming.german,
+                      title: l10n.noteNamesGerman,
                     ),
                   ],
                   onSelected: settings.setNaming,

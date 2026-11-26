@@ -73,8 +73,8 @@ L'ingranaggio in alto apre le impostazioni, divise in gruppi:
 
 | Gruppo | Impostazione | Scelte |
 | --- | --- | --- |
-| Generale | Lingua | Come il telefono, inglese, italiano, spagnolo, francese |
-| Generale | Nomi delle note | Come la lingua (Do Re Mi in italiano, spagnolo e francese, C D E altrimenti), Do Re Mi, C D E. Con C D E gli accordi si scrivono in inglese (C major), con Do Re Mi nella lingua dell'app (Do maggiore, Do mayor, Do majeur) |
+| Generale | Lingua | Come il telefono, inglese, italiano, spagnolo, francese, tedesco |
+| Generale | Nomi delle note | Come la lingua (Do Re Mi in italiano, spagnolo e francese, tedeschi in tedesco, C D E altrimenti), Do Re Mi, C D E, tedeschi C D E … H (H è il Si, B il Si♭). Con C D E gli accordi si scrivono in inglese (C major), con i nomi tedeschi in tedesco (C-Dur, a-Moll), con Do Re Mi nella lingua dell'app (Do maggiore, Do mayor, Do majeur) |
 | Generale | Tieni lo schermo acceso | Mentre suona o l'accordatore ascolta (attivo di default) |
 | Generale | Blocca i gesti | Disattiva gli scorrimenti tra le sezioni |
 | Generale | Numeri delle ottave | Scientifica (La4 = 440 Hz, il Mi grave del basso è Mi1; di default) o Italiana (La3 = 440 Hz); cambia solo il numero |
@@ -85,7 +85,7 @@ L'ingranaggio in alto apre le impostazioni, divise in gruppi:
 
 In fondo, **Gesti e scorciatoie** mostra di nuovo la guida, su una pagina.
 
-**Ringraziamenti** va alla Power Flower Orchestra di Fossano, che ha ispirato e provato quest’app; il suo pulsante apre la loro pagina Instagram nel browser del telefono. **Informazioni su Low End** (in fondo alle impostazioni) mostra la licenza, il link al codice sorgente (anch'esso aperto nel browser) e, sotto *Visualizza licenze*, le licenze di tutto ciò con cui l'app è costruita, font e suoni del pianoforte compresi.
+**Ringraziamenti** va alla Power Flower Orchestra di Fossano, che ha ispirato e provato quest’app; il suo pulsante apre la loro pagina Instagram nel browser del telefono. **Informazioni su Low End** (in fondo alle impostazioni) mostra la licenza, il link al codice sorgente (anch'esso aperto nel browser), *Valuta Low End su Google Play*, che apre la pagina dell'app su Google Play per dare le stelle e scrivere una recensione (non nella web app), e, sotto *Visualizza licenze*, le licenze di tutto ciò con cui l'app è costruita, font e suoni del pianoforte compresi.
 
 ## Suonare con lo schermo spento
 

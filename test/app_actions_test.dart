@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/actions/app_actions.dart';
+import 'package:low_end/app/about.dart';
 import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/home_shell.dart';
 import 'package:low_end/app/low_end_app.dart';
@@ -63,6 +64,28 @@ void main() {
     // Git on Windows may check the file out with CRLF line endings.
     final text = file.readAsStringSync().replaceAll('\r\n', '\n');
     expect(text, exportActions());
+  });
+
+  test('rate_app opens the Google Play page, also from a link', () async {
+    final opened = <String>[];
+    final rating = AppActions(
+      drone: DroneController(output),
+      metronome: MetronomeController(SilentClickOutput()),
+      tuner: TunerController(mic),
+      player: PlayerController(track, files),
+      navigation: navigation,
+      settings: settings,
+      openLink: (url) async => opened.add(url),
+    );
+    expect((await rating.call('rate_app'))['ok'], true);
+    expect((await rating.call('rate_app', const {}, true))['ok'], true);
+    expect(opened, [playStoreUrl, playStoreUrl]);
+    expect(
+      playStoreUrl,
+      'https://play.google.com/store/apps/details?id=com.luigir86.low_end',
+    );
+    // Nothing else moves: the section and the sounds stay as they were.
+    expect(navigation.section, AppNavigation().section);
   });
 
   test('a link cannot change the saved settings, a direct call can', () async {

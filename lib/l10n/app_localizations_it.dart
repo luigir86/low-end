@@ -376,6 +376,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get noteNamesLetters => 'C D E';
 
   @override
+  String get noteNamesGerman => 'C D E … H';
+
+  @override
   String get circleLayoutLabel => 'Cerchio dell\'armonia';
 
   @override
@@ -657,6 +660,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String aboutSource(String url) {
     return 'Codice sorgente: $url';
   }
+
+  @override
+  String get aboutRate => 'Valuta Low End su Google Play';
 
   @override
   String get subdivisionQuarters => 'Semiminime';

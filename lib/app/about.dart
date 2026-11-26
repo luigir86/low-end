@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -5,6 +6,12 @@ import '../l10n/app_localizations.dart';
 import 'version.dart';
 
 const sourceCodeUrl = 'https://github.com/luigir86/low-end';
+
+/// Low End's page on Google Play, where the stars and the reviews are given.
+/// Google's rules: a button may only lead to the store (it never opens the
+/// in-app review window) and never asks for a given number of stars.
+const playStoreUrl =
+    'https://play.google.com/store/apps/details?id=com.luigir86.low_end';
 
 /// The Instagram page of the Power Flower Orchestra of Fossano.
 const orchestraUrl = 'https://www.instagram.com/powerflowerorchestra/';
@@ -47,6 +54,17 @@ void showLowEndAbout(BuildContext context) {
           label: Text(l10n.aboutSource(sourceCodeUrl)),
         ),
       ),
+      // Only the Android app is on Google Play; the web app has no store.
+      if (!kIsWeb)
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton.icon(
+            key: const Key('rateLink'),
+            onPressed: () => openLink(playStoreUrl),
+            icon: const Icon(Icons.star_outline, size: 18),
+            label: Text(l10n.aboutRate),
+          ),
+        ),
     ],
   );
 }

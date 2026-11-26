@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- The languages of the app (Android 13 lists them in its per-app language
-     settings); the same two as the arb files in lib/l10n. -->
+     settings); the same as the arb files in lib/l10n. -->
 <locale-config xmlns:android="http://schemas.android.com/apk/res/android">
     <locale android:name="en" />
     <locale android:name="it" />
     <locale android:name="es" />
     <locale android:name="fr" />
+    <locale android:name="de" />
 </locale-config>

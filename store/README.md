@@ -4,13 +4,13 @@ Everything the Play Console asks for, ready to copy. Nothing here is built into 
 
 ```
 store/
-  listing/<locale>/      en-US, it-IT, es-ES, fr-FR: title, short and full description, release notes
+  listing/<locale>/      en-US, it-IT, es-ES, fr-FR, de-DE: title, short and full description, release notes
   graphics/icon-512.png  app icon (512 × 512)
   graphics/<locale>/feature-graphic-1024x500.png  (text: tool/feature_graphic_text_test.dart)
   graphics/phone/<locale>/*.png   phone screenshots (1156 × 2312), five per language: Harmony, progressions, metronome, tuner, Player
 ```
 
-Default language of the listing: English (United States), with Italian (Italy), Spanish (Spain, es-ES) and French (France, fr-FR) as translations. Spanish and French were written by Claude: have a musician who speaks each language read them before publishing.
+Default language of the listing: English (United States), with Italian (Italy), Spanish (Spain, es-ES), French (France, fr-FR) and German (Germany, de-DE) as translations. Spanish, French and German were written by Claude: have a musician who speaks each language read them before publishing. In Play Console, German is added under Store presence > Main store listing > Manage translations; Germany, Austria and Switzerland all see de-DE.
 
 ## Build the bundle
 
@@ -32,7 +32,7 @@ The texts in `listing/` describe the app to the people on Google Play; what it d
 
 | Field | Value |
 | --- | --- |
-| App name | Low End: Metronome & Tuner (it: Low End: Metronomo Accordatore; es: Low End: Metrónomo y Afinador; fr: Low End: Métronome & Accordeur) |
+| App name | Low End: Metronome & Tuner (it: Low End: Metronomo Accordatore; es: Low End: Metrónomo y Afinador; fr: Low End: Métronome & Accordeur; de: Low End: Metronom & Stimmgerät) |
 | Category | Music & Audio |
 | Free or paid | Free |
 | Contains ads | No |

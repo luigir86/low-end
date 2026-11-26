@@ -585,7 +585,8 @@
             "en",
             "it",
             "es",
-            "fr"
+            "fr",
+            "de"
           ],
           "description": "App language; \"system\" follows the phone."
         },
@@ -594,9 +595,10 @@
           "enum": [
             "auto",
             "solfege",
-            "letters"
+            "letters",
+            "german"
           ],
-          "description": "\"solfege\" is Do Re Mi (Do Ré Mi in French), \"letters\" is C D E, \"auto\" is Do Re Mi in Italian, Spanish and French and C D E otherwise. Chord words follow the note names: English with C D E (\"C major\"), the app language with Do Re Mi (\"Do mayor\", Italian when the app is in English). The octave numbers are set apart, with octave_numbering."
+          "description": "\"solfege\" is Do Re Mi (Do Ré Mi in French), \"letters\" is C D E, \"german\" is C D E… H (H is B natural, B is B♭), \"auto\" is Do Re Mi in Italian, Spanish and French, german in German and C D E otherwise. Chord words follow the note names: English with C D E (\"C major\"), German with german (\"C-Dur\", \"a-Moll\"), the app language with Do Re Mi (\"Do mayor\", Italian when the app is in English or German). The octave numbers are set apart, with octave_numbering. Notes given to actions are always English letters or Do Re Mi: B is B natural."
         },
         "octave_numbering": {
           "type": "string",
@@ -645,6 +647,15 @@
           "description": "Turns off swiping between sections (the tabs and the actions still work)."
         }
       },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "rate_app",
+    "description": "Opens Low End's page on Google Play, where the person can give stars and write a review, as the \"Rate Low End on Google Play\" button in About does. Only the person rates: never suggest a number of stars. Android only; the web app is not on Google Play and answers with an error.",
+    "input_schema": {
+      "type": "object",
+      "properties": {},
       "additionalProperties": false
     }
   }

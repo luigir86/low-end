@@ -73,8 +73,8 @@ The gear at the top opens the settings, in groups:
 
 | Group | Setting | Choices |
 | --- | --- | --- |
-| General | Language | Same as the phone, English, Italian, Spanish, French |
-| General | Note names | Follow the language, Do Re Mi, C D E |
+| General | Language | Same as the phone, English, Italian, Spanish, French, German |
+| General | Note names | Follow the language, Do Re Mi, C D E, German C D E … H (H is B natural, B is B♭; chords in German words: C-Dur, a-Moll) |
 | General | Keep the screen on | While something plays or the tuner listens (on by default) |
 | General | Lock the gestures | Turns off the swipes between sections |
 | General | Octave numbers | Scientific (A4 = 440 Hz, a bass's low E is E1; the default) or Italian (La3 = 440 Hz); only the number changes |
@@ -85,7 +85,7 @@ The gear at the top opens the settings, in groups:
 
 At the bottom, **Gestures and shortcuts** shows the one-page guide again.
 
-**Thanks** is for the Power Flower Orchestra of Fossano, who inspired this app and put it to the test; its button opens their Instagram page in the phone's browser. **About Low End** (at the bottom of the settings) shows the licence, the source-code link (also opened in the browser) and, under *View licences*, the licences of everything the app is built with, fonts and piano sounds included.
+**Thanks** is for the Power Flower Orchestra of Fossano, who inspired this app and put it to the test; its button opens their Instagram page in the phone's browser. **About Low End** (at the bottom of the settings) shows the licence, the source-code link (also opened in the browser), *Rate Low End on Google Play*, which opens the app's page on Google Play to give stars and write a review (not in the web app), and, under *View licences*, the licences of everything the app is built with, fonts and piano sounds included.
 
 ## Playing with the screen off
 
