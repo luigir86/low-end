@@ -24,7 +24,7 @@ String chordName(AppLocalizations l10n, ChordQuality chord) => switch (chord) {
 /// A chord on [note], as musicians write it: "A major", "La minore", "A7",
 /// "Rem7", "Domaj7"; its words in the language of [names].
 String chordSymbol(DroneChord chord, String note, NoteNames names) =>
-    _chordSymbol(chordWords(names), chord, note);
+    _chordSymbol(chordWords(names), chord, note, names);
 
 /// What a lead sheet writes after the root, as iReal Pro does: "−7",
 /// "Δ7", "ø", "o", nothing for a major triad. Signs, not words, so the same
@@ -53,18 +53,27 @@ String chordSign(DroneChord chord, String note) =>
 AppLocalizations chordWords(NoteNames names) =>
     lookupAppLocalizations(Locale(names.words));
 
-String _chordSymbol(AppLocalizations l10n, DroneChord chord, String note) =>
-    switch (chord.quality) {
-      ChordQuality.major => l10n.droneChordMajor(note),
-      ChordQuality.minor => l10n.droneChordMinor(note),
-      ChordQuality.dominant => l10n.droneChordSeventh(note),
-      ChordQuality.dominantFlat9 => '${note}7♭9',
-      ChordQuality.major7 => '${note}maj7',
-      ChordQuality.minor7 => '${note}m7',
-      ChordQuality.halfDiminished => l10n.droneChordHalfDiminished(note),
-      ChordQuality.diminished => l10n.droneChordDiminished(note),
-      ChordQuality.sus4 => '${note}sus4',
-    };
+/// A minor chord or key written out in [names]: German writes its root in
+/// small letters (a-Moll, f♯-Moll, b-Moll), the others as they are.
+String _minor(AppLocalizations l10n, String note, NoteNames names) =>
+    l10n.droneChordMinor(names == NoteNames.german ? note.toLowerCase() : note);
+
+String _chordSymbol(
+  AppLocalizations l10n,
+  DroneChord chord,
+  String note,
+  NoteNames names,
+) => switch (chord.quality) {
+  ChordQuality.major => l10n.droneChordMajor(note),
+  ChordQuality.minor => _minor(l10n, note, names),
+  ChordQuality.dominant => l10n.droneChordSeventh(note),
+  ChordQuality.dominantFlat9 => '${note}7♭9',
+  ChordQuality.major7 => '${note}maj7',
+  ChordQuality.minor7 => '${note}m7',
+  ChordQuality.halfDiminished => l10n.droneChordHalfDiminished(note),
+  ChordQuality.diminished => l10n.droneChordDiminished(note),
+  ChordQuality.sus4 => '${note}sus4',
+};
 
 /// The name of a progression, as listed in its menu.
 String progressionName(AppLocalizations l10n, Progression p) => switch (p) {
@@ -115,10 +124,14 @@ String progressionNote(AppLocalizations l10n, Progression p) => switch (p) {
 /// (D♭ major, not C♯).
 String keyName(DroneController drone, NoteNames names) {
   final tonic = spell(drone.note.pitchClass, drone.keyLetter, names);
+  return writtenKey(tonic, names, minor: drone.keyIsMinor);
+}
+
+/// A key on [tonic] written out in the words of [names]: "La maggiore",
+/// "C minor", "a-Moll".
+String writtenKey(String tonic, NoteNames names, {required bool minor}) {
   final words = chordWords(names);
-  return drone.keyIsMinor
-      ? words.droneChordMinor(tonic)
-      : words.droneChordMajor(tonic);
+  return minor ? _minor(words, tonic, names) : words.droneChordMajor(tonic);
 }
 
 /// A progression by its numerals, or the name of the blues, which is too long

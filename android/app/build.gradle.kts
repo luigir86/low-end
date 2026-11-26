@@ -23,7 +23,7 @@ android {
     // -es and -fr hold them; the filter keeps the libraries' other
     // translations out of the APK.
     androidResources {
-        localeFilters += listOf("en", "it", "es", "fr")
+        localeFilters += listOf("en", "it", "es", "fr", "de")
     }
 
     defaultConfig {

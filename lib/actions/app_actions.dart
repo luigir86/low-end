@@ -428,19 +428,22 @@ class AppActions {
         },
         'language': {
           'type': 'string',
-          'enum': ['system', 'en', 'it', 'es', 'fr'],
+          'enum': ['system', 'en', 'it', 'es', 'fr', 'de'],
           'description': 'App language; "system" follows the phone.',
         },
         'note_names': {
           'type': 'string',
-          'enum': ['auto', 'solfege', 'letters'],
+          'enum': ['auto', 'solfege', 'letters', 'german'],
           'description':
               '"solfege" is Do Re Mi (Do Ré Mi in French), "letters" is C D E, '
-              '"auto" is Do Re Mi in Italian, Spanish and French and C D E '
-              'otherwise. Chord words follow the note names: English with '
-              'C D E ("C major"), the app language with Do Re Mi ("Do mayor", '
-              'Italian when the app is in English). The octave numbers are '
-              'set apart, with octave_numbering.',
+              '"german" is C D E… H (H is B natural, B is B♭), "auto" is '
+              'Do Re Mi in Italian, Spanish and French, german in German and '
+              'C D E otherwise. Chord words follow the note names: English '
+              'with C D E ("C major"), German with german ("C-Dur", '
+              '"a-Moll"), the app language with Do Re Mi ("Do mayor", Italian '
+              'when the app is in English or German). The octave numbers are '
+              'set apart, with octave_numbering. Notes given to actions are '
+              'always English letters or Do Re Mi: B is B natural.',
         },
         'octave_numbering': {
           'type': 'string',
@@ -905,9 +908,9 @@ class AppActions {
         final language = args['language'];
         final code = switch (language) {
           null || 'system' => null,
-          'en' || 'it' || 'es' || 'fr' => language as String,
+          'en' || 'it' || 'es' || 'fr' || 'de' => language as String,
           _ => throw ActionError(
-            '"language" must be system, en, it, es or fr.',
+            '"language" must be system, en, it, es, fr or de.',
           ),
         };
         final naming = args['note_names'] == null

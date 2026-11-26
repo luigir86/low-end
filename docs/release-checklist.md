@@ -77,14 +77,14 @@ marks anything that cannot be confirmed from the code.
 
 ## 4. Store listing
 
-- [ ] Texts: `store/listing/<locale>/` for en-US, it-IT, es-ES and fr-FR (title ≤ 30,
+- [ ] Texts: `store/listing/<locale>/` for en-US, it-IT, es-ES, fr-FR and de-DE (title ≤ 30,
       short ≤ 80, full ≤ 4000, release notes ≤ 500 characters; already within
       the limits, see store/README.md). Read them against
       `docs/specs/requisiti.md`: nothing promised that is not there, nothing
       said differently. Count characters, not bytes (accents and ♭ are one each):
       `node -e` with `[...text].length`, or Play Console itself.
-- [ ] TO VERIFY: Spanish and French were written by Claude; a musician who
-      speaks each language reads the app texts and the listing.
+- [ ] TO VERIFY: Spanish, French and German were written by Claude; a musician
+      who speaks each language reads the app texts and the listing.
 - [ ] Graphics: `store/graphics/icon-512.png`, feature graphic 1024×500 per
       language, phone screenshots in `store/graphics/phone/<locale>/`.
       Regenerate with

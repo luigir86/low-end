@@ -374,6 +374,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noteNamesLetters => 'C D E';
 
   @override
+  String get noteNamesGerman => 'C D E … H';
+
+  @override
   String get circleLayoutLabel => 'Cercle de l’harmonie';
 
   @override
