@@ -46,6 +46,7 @@ Regole:
 - Account, cloud, server, tracciamento.
 - Donazioni.
 - IzzyOnDroid: rifiuta le app scritte anche in parte con assistenti AI, come Low End (politica di inclusione, controllato il 26 novembre 2026).
+- Altri negozi (Samsung Galaxy Store, Huawei AppGallery) e APK su GitHub: più lavoro a ogni rilascio per pochi utenti in più; restano Google Play e la web app per iPhone (deciso il 26 novembre 2026).
 - Servizi di test a pagamento (12 tester per 14 giorni): l'app è già in produzione e i tester non sono musicisti.
 - Punteggi e gamification.
 - Tema chiaro: l'app è sempre scura.
