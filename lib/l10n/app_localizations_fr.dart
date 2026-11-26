@@ -661,6 +661,9 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get aboutRate => 'Noter Low End sur Google Play';
+
+  @override
   String get subdivisionQuarters => 'Noires';
 
   @override

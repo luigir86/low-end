@@ -661,6 +661,9 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('View licenses'), findsOneWidget);
+    // The way to the stars on Google Play: a plain link, no number asked.
+    expect(find.byKey(const Key('rateLink')), findsOneWidget);
+    expect(find.text('Rate Low End on Google Play'), findsOneWidget);
   });
 
   testWidgets('the notification says what plays and follows the tempo', (

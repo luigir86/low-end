@@ -93,6 +93,7 @@ Fuori dallo scopo, per decisione presa: libreria PDF e conversione in MusicXML/M
 | RF-IMP-03 | A di riferimento, cerchio (quinte o semitoni), schermo acceso mentre suona o ascolta (sì per default), blocco dei gesti, zona intonata, traspositore. | ✓ | `review/settings_review_test` |
 | RF-IMP-04 | Tutto si salva solo sul telefono (backup Android spento); impostazioni illeggibili non bloccano mai l'avvio: si riparte dai valori predefiniti, un valore alla volta. | ✓ | `memory_test`, `row_test` |
 | RF-IMP-05 | Nessuna scelta di tema: l'app è sempre scura. | ✓ | `theme_test` |
+| RF-IMP-06 | Nelle Informazioni, "Valuta Low End su Google Play" apre la pagina di Low End su Google Play (stelle e recensione), anche come azione `rate_app`. Regole di Google: il pulsante porta allo store, non apre la finestra di recensione dentro l'app, e non chiede mai un numero di stelle. Nessuna richiesta che compare da sola. Nella web app non c'è (non è su Google Play). | ◐ | `widget_test`, `app_actions_test`; da provare sul telefono |
 
 ### 2.7 Suono in background e interruzioni (RF-BG)
 

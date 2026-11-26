@@ -1243,6 +1243,12 @@ abstract class AppLocalizations {
   /// **'Source code: {url}'**
   String aboutSource(String url);
 
+  /// Button in the About dialog (Android only) that opens Low End's page on Google Play, where stars and reviews are given. Never ask for a number of stars.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate Low End on Google Play'**
+  String get aboutRate;
+
   /// No description provided for @subdivisionQuarters.
   ///
   /// In en, this message translates to:

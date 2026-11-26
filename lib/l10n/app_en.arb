@@ -433,6 +433,10 @@
       }
     }
   },
+  "aboutRate": "Rate Low End on Google Play",
+  "@aboutRate": {
+    "description": "Button in the About dialog (Android only) that opens Low End's page on Google Play, where stars and reviews are given. Never ask for a number of stars."
+  },
   "subdivisionQuarters": "Quarter notes",
   "subdivisionEighths": "Eighth notes",
   "subdivisionSwungEighths": "Swung eighth notes",

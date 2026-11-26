@@ -22,7 +22,7 @@ Regole:
 
 1. **Web app: WebAssembly predefinito su Safari.** La prova `?motore=wasm` sull'iPhone è andata bene.
 2. **Player: "Brano" diventa "Traccia"** nelle quattro lingue, prima dell'editor dei brani: nell'Armonia "Brano" è un'altra cosa.
-3. **"Valuta Low End" nelle Informazioni.** Apre la pagina di Low End su Google Play, dove si danno le stelle e si scrive la recensione. Regole di Google: non si chiede un voto preciso ("5 stelle?") e un pulsante porta allo store, non apre la finestra di recensione dentro l'app. Nella web app non compare.
+3. **"Valuta Low End" nelle Informazioni.** Apre la pagina di Low End su Google Play, dove si danno le stelle e si scrive la recensione. Regole di Google: non si chiede un voto preciso ("5 stelle?") e un pulsante porta allo store, non apre la finestra di recensione dentro l'app. Nella web app non compare. Fatto nella PR "Valuta Low End" (pulsante nelle Informazioni e azione `rate_app`): resta la prova sul telefono, poi esce con il prossimo rilascio raggruppato.
 4. **Revisione madrelingua di spagnolo e francese**, prima della 1.8: un foglio con le frasi in inglese, spagnolo e francese e le schermate, per tester madrelingua (anche a pagamento) o, meglio, musicisti.
 5. **Brani e giri (1.8)**, finito il consolidamento: prima P0, il giro come dato, da solo e con i test; poi l'anello delle battute, "I miei brani" e la condivisione di un brano. A ogni passo grande, una prova con un musicista che non conosce l'app.
 

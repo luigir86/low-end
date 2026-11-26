@@ -54,6 +54,7 @@ Four sections: **Metronome**, **Harmony** (Armonia), **Player** and **Tuner**. H
 | `metronome_set` | `time_signature`, `bpm`, `subdivision`, `backbeat` (at least one) | Changes the metronome without starting, stopping or changing section. Remembered for the next launch |
 | `set_reference_pitch` | `hz` (required) | A4: a whole number of hertz from 415 to 445, shared by tuner and Harmony, saved in the settings |
 | `settings_set` | all optional: `language`, `note_names`, `octave_numbering`, `tuner_instrument`, `in_tune_cents`, `transposition`, `circle_layout`, `keep_screen_on`, `lock_gestures` | Everything on the settings page and the tuner's Instrument field: app `language` (`system`, `en`, `it`, `es`, `fr`), `note_names` (`auto`, `solfege`, `letters`; chord words follow them: English with letters, the app language with solfège, Italian when the app is in English), `octave_numbering` (`scientific`, `italian`), `tuner_instrument` (`chromatic`, `guitar`, `bass`, `ukulele`, `violin`, `viola`, `cello`), `in_tune_cents` (2, 5, 10), the `transposition` of the chromatic tuner (`c`, `bFlat`, `eFlat`, `f`), `circle_layout` (`fifths`, `chromatic`), `keep_screen_on` and `lock_gestures` (booleans). If one value is wrong none is applied |
+| `rate_app` | none | Opens Low End's page on Google Play, where the person gives stars and writes a review (the "Rate Low End on Google Play" button in About). Only the person rates: never suggest a number of stars. Android only: the web app is not on Google Play and answers with an error |
 
 Values:
 
