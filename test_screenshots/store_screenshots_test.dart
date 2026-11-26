@@ -53,6 +53,7 @@ void main() {
     ('it-IT', 'it', 'Prova con la band'),
     ('es-ES', 'es', 'Ensayo con la banda'),
     ('fr-FR', 'fr', 'Répétition du groupe'),
+    ('de-DE', 'de', 'Bandprobe'),
   ]) {
     testWidgets('store screenshots $locale', (tester) async {
       final l10n = lookupAppLocalizations(Locale(lang));

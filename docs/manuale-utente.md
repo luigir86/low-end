@@ -73,8 +73,8 @@ L'ingranaggio in alto apre le impostazioni, divise in gruppi:
 
 | Gruppo | Impostazione | Scelte |
 | --- | --- | --- |
-| Generale | Lingua | Come il telefono, inglese, italiano, spagnolo, francese |
-| Generale | Nomi delle note | Come la lingua (Do Re Mi in italiano, spagnolo e francese, C D E altrimenti), Do Re Mi, C D E. Con C D E gli accordi si scrivono in inglese (C major), con Do Re Mi nella lingua dell'app (Do maggiore, Do mayor, Do majeur) |
+| Generale | Lingua | Come il telefono, inglese, italiano, spagnolo, francese, tedesco |
+| Generale | Nomi delle note | Come la lingua (Do Re Mi in italiano, spagnolo e francese, tedeschi in tedesco, C D E altrimenti), Do Re Mi, C D E, tedeschi C D E … H (H è il Si, B il Si♭). Con C D E gli accordi si scrivono in inglese (C major), con i nomi tedeschi in tedesco (C-Dur, a-Moll), con Do Re Mi nella lingua dell'app (Do maggiore, Do mayor, Do majeur) |
 | Generale | Tieni lo schermo acceso | Mentre suona o l'accordatore ascolta (attivo di default) |
 | Generale | Blocca i gesti | Disattiva gli scorrimenti tra le sezioni |
 | Generale | Numeri delle ottave | Scientifica (La4 = 440 Hz, il Mi grave del basso è Mi1; di default) o Italiana (La3 = 440 Hz); cambia solo il numero |

@@ -7,7 +7,7 @@
 <!-- Tick what applies; write "n/a" next to what does not. -->
 
 - [ ] `dart format lib test`, `flutter analyze` and `flutter test` pass
-- [ ] Texts in all four `.arb` files (en, it, es, fr) and `flutter gen-l10n`; no hard-coded strings or colours
+- [ ] Texts in all five `.arb` files (en, it, es, fr, de) and `flutter gen-l10n`; no hard-coded strings or colours
 - [ ] Action in `lib/actions/app_actions.dart`, `docs/llm-actions.json` regenerated, `docs/llm.md` updated
 - [ ] Web app checked with the web build if Android-only code is involved
 - [ ] New screens added to `test/accessibility_test.dart`

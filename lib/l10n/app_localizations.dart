@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
 import 'app_localizations_es.dart';
 import 'app_localizations_fr.dart';
@@ -98,6 +99,7 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
+    Locale('de'),
     Locale('es'),
     Locale('fr'),
     Locale('it'),
@@ -744,6 +746,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'C D E'**
   String get noteNamesLetters;
+
+  /// In the Note names field of the settings: the German letters, where B natural is H and B♭ is B, with German chord words (C-Dur, a-Moll). Keep the letters as they are.
+  ///
+  /// In en, this message translates to:
+  /// **'C D E … H'**
+  String get noteNamesGerman;
 
   /// No description provided for @circleLayoutLabel.
   ///
@@ -1453,7 +1461,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en', 'es', 'fr', 'it'].contains(locale.languageCode);
+      <String>['de', 'en', 'es', 'fr', 'it'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -1462,6 +1470,8 @@ class _AppLocalizationsDelegate
 AppLocalizations lookupAppLocalizations(Locale locale) {
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'de':
+      return AppLocalizationsDe();
     case 'en':
       return AppLocalizationsEn();
     case 'es':

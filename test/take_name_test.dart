@@ -21,6 +21,7 @@ void main() {
     expect(name('it', 2), 'Take2_9_nov_2026');
     expect(name('es', 1), 'Toma1_9_nov_2026');
     expect(name('fr', 3), 'Prise3_9_nov_2026');
+    expect(name('de', 1), 'Aufnahme1_9_nov_2026');
     expect(
       takeName(
         lookupAppLocalizations(const Locale('fr')),

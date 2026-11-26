@@ -13,8 +13,9 @@ import '../features/player/player_setup.dart';
 import '../features/tuner/tuner_tuning.dart';
 import 'app_navigation.dart';
 
-/// How note names are chosen: from the app language, or fixed.
-enum NoteNaming { auto, solfege, letters }
+/// How note names are chosen: from the app language, or fixed. [german] is
+/// C D E… H, where B is B♭.
+enum NoteNaming { auto, solfege, letters, german }
 
 /// How the twelve notes are laid round the harmony circle: by fifths, or in
 /// semitones, as on the fingerboard.
@@ -155,7 +156,7 @@ class AppSettings extends ChangeNotifier {
   static Future<AppSettings> load() async =>
       AppSettings._(await SharedPreferences.getInstance());
 
-  static const supportedLanguages = ['en', 'it', 'es', 'fr'];
+  static const supportedLanguages = ['en', 'it', 'es', 'fr', 'de'];
   static const _languageKey = 'language';
   static const _namingKey = 'note_names';
   static const _a4Key = 'reference_pitch';
@@ -214,12 +215,16 @@ class AppSettings extends ChangeNotifier {
   /// The note names to use when the app shows [appLocale].
   /// Do Re Mi takes the words of the app's language when it has a solfège of
   /// its own (Do mayor, Do majeur), Italian ones otherwise; by itself, the
-  /// app uses Do Re Mi where musicians read it (Italian, Spanish, French).
+  /// app uses Do Re Mi where musicians read it (Italian, Spanish, French)
+  /// and the German letters, with H, in German.
   NoteNames noteNames(Locale appLocale) => switch (_naming) {
     NoteNaming.solfege => NoteNames.solfegeFor(appLocale.languageCode),
     NoteNaming.letters => NoteNames.letters,
+    NoteNaming.german => NoteNames.german,
     NoteNaming.auto =>
-      solfegeLanguages.contains(appLocale.languageCode)
+      appLocale.languageCode == 'de'
+          ? NoteNames.german
+          : solfegeLanguages.contains(appLocale.languageCode)
           ? NoteNames.solfegeFor(appLocale.languageCode)
           : NoteNames.letters,
   };

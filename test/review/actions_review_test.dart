@@ -66,7 +66,7 @@ void main() {
         ('drone_set', {'note': 'H'}),
         ('drone_set', {'note': ''}),
         ('drone_set', {'note': 'A##'}),
-        ('settings_set', {'language': 'de'}),
+        ('settings_set', {'language': 'pl'}),
         ('settings_set', {'language': 1}),
         ('settings_set', {'note_names': 'numbers'}),
       ]) {

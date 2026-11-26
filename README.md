@@ -1,6 +1,6 @@
 # Low End
 
-Low End is a free, open-source practice app for musicians, built around **Harmony**: a real grand piano that plays chords and progressions in any key for you to play over, from pop and blues to jazz standards with a walking double bass, always in time with its **metronome**. A chromatic **tuner** and a **Player** for your own tracks (slow a passage down, loop it, record yourself over it) complete it. It is one light Android app, also usable on iPhone as a [web app](docs/web.md). It was made by an amateur double bass player with the friends from the orchestra in mind, and it is useful to everyone who plays: scales, improvisation, your part of a song, or ear training, with a band that never gets tired. It is built with [Flutter](https://flutter.dev), works fully offline and is available in English, Italian, Spanish and French.
+Low End is a free, open-source practice app for musicians, built around **Harmony**: a real grand piano that plays chords and progressions in any key for you to play over, from pop and blues to jazz standards with a walking double bass, always in time with its **metronome**. A chromatic **tuner** and a **Player** for your own tracks (slow a passage down, loop it, record yourself over it) complete it. It is one light Android app, also usable on iPhone as a [web app](docs/web.md). It was made by an amateur double bass player with the friends from the orchestra in mind, and it is useful to everyone who plays: scales, improvisation, your part of a song, or ear training, with a band that never gets tired. It is built with [Flutter](https://flutter.dev), works fully offline and is available in English, Italian, Spanish, French and German.
 
 <p>
   <img src="store/graphics/phone/en-US/1_harmony.png" alt="Harmony playing a progression" width="19%">
@@ -47,7 +47,7 @@ The four tabs are **Metronome**, **Harmony**, **Player** and **Tuner**, and the 
 
 ### Settings
 
-The gear in the top corner opens the settings: language (English, Italian, Spanish, French, or the phone's), keep the screen on (on by default), note names (Do Re Mi or C D E, or follow the language), reference A (every hertz from 415 to 445), the harmony circle (fifths or semitones), octave numbers (scientific, A4 = 440 Hz, or Italian, La3 = 440 Hz), lock the gestures (turns off only the swipes between sections), how close a note must be to count as in tune (±2, ±5 or ±10 cents) and the transposing instrument of the chromatic tuner. They are kept on the phone. The gesture guide is shown at the first launch and from the settings. The app is always dark; there is no theme to choose.
+The gear in the top corner opens the settings: language (English, Italian, Spanish, French, German, or the phone's), keep the screen on (on by default), note names (Do Re Mi, C D E or the German C D E … H, or follow the language), reference A (every hertz from 415 to 445), the harmony circle (fifths or semitones), octave numbers (scientific, A4 = 440 Hz, or Italian, La3 = 440 Hz), lock the gestures (turns off only the swipes between sections), how close a note must be to count as in tune (±2, ±5 or ±10 cents) and the transposing instrument of the chromatic tuner. They are kept on the phone. The gesture guide is shown at the first launch and from the settings. The app is always dark; there is no theme to choose.
 
 With the screen off or the app in the background the metronome and the harmony keep playing, with a notification that says what is sounding.
 
@@ -128,7 +128,7 @@ The same code also runs in a browser: `.github/workflows/web.yml` publishes it o
 
 ## Translations
 
-Texts live in `lib/l10n/app_en.arb` (English, the reference), `app_it.arb` (Italian), `app_es.arb` (Spanish) and `app_fr.arb` (French): a new text goes in all four. After changing them, run `flutter gen-l10n`.
+Texts live in `lib/l10n/app_en.arb` (English, the reference), `app_it.arb` (Italian), `app_es.arb` (Spanish), `app_fr.arb` (French) and `app_de.arb` (German): a new text goes in all five. After changing them, run `flutter gen-l10n`.
 
 ## Documentation
 

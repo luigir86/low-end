@@ -19,9 +19,8 @@ final referencePitches = [
 /// How note names are written: a system of names, and the language of the
 /// words written round them in chord names ("C major", "Do maggiore",
 /// "Do mayor", "Do majeur"). The words follow the note names, never letters
-/// with other words ("C maggiore"). Another system, such as the German one
-/// (C D E… H, with B for B♭, "C-Dur"), is one more value here with its own
-/// names and words.
+/// with other words ("C maggiore"). Another system is one more value here
+/// with its own names and words.
 enum NoteNames {
   /// C, D, E… with English words, and by default scientific octave numbers:
   /// A4 = 440 Hz.
@@ -36,7 +35,12 @@ enum NoteNames {
   solfegeSpanish(_solfegeNames, words: 'es'),
 
   /// Do, Ré, Mi… with French words: "Do majeur", "La mineur".
-  solfegeFrench(['Do', 'Ré', 'Mi', 'Fa', 'Sol', 'La', 'Si'], words: 'fr');
+  solfegeFrench(['Do', 'Ré', 'Mi', 'Fa', 'Sol', 'La', 'Si'], words: 'fr'),
+
+  /// The German letters: C D E F G A H, where H is B natural and B is B♭,
+  /// with German words ("C-Dur", "a-Moll") and scientific octave numbers.
+  /// The other black keys keep their signs (C♯, E♭), as on a lead sheet.
+  german(['C', 'D', 'E', 'F', 'G', 'A', 'H'], words: 'de');
 
   const NoteNames(this.naturalNames, {required this.words});
 
@@ -48,7 +52,7 @@ enum NoteNames {
 
   /// Whether the names are those of solfège (Do Re Mi), which by default
   /// number octaves one lower: La3 = 440 Hz.
-  bool get isSolfege => this != letters;
+  bool get isSolfege => this != letters && this != german;
 
   /// The solfège that goes with the app shown in [languageCode]: Italian
   /// words for an app in Italian or in a language with no solfège of its own.
@@ -91,11 +95,13 @@ int letterOf(int pitchClass, {bool flat = false}) {
 
 /// [pitchClass] written on [letter] (0 = C … 6 = B) with a sharp or a flat
 /// as needed, such as D♯ or Re♭: how a note is spelled in a key. Where that
-/// would take a double sharp or flat, the usual name instead.
+/// would take a double sharp or flat, the usual name instead. In German
+/// B♭ is B, as H is B natural.
 String spell(int pitchClass, int letter, NoteNames names) {
   final base = names.naturalNames[letter];
   return switch ((pitchClass - _naturals[letter] + 18) % 12 - 6) {
     0 => base,
+    -1 when names == NoteNames.german && letter == 6 => 'B',
     1 => '$base♯',
     -1 => '$base♭',
     _ => Note(pitchClass, 4).name(names),
