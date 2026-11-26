@@ -15,6 +15,7 @@ void main() {
     'it': 'Impostazioni',
     'es': 'Ajustes',
     'fr': 'Paramètres',
+    'de': 'Einstellungen',
   };
   const keys = [
     'languageMenu',

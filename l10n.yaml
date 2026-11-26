@@ -7,3 +7,6 @@ nullable-getter: false
 # app uses AppLocalizations.delegate + GlobalMaterialLocalizations.delegates
 # from material_ui instead (lib/app/low_end_app.dart).
 header: "// ignore_for_file: deprecated_member_use"
+# English first: a phone in a language the app lacks gets English, not the
+# first language in alphabetical order.
+preferred-supported-locales: [en]

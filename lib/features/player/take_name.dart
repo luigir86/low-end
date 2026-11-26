@@ -4,8 +4,8 @@ import '../../l10n/app_localizations.dart';
 
 /// The name a take starts with, in the app's language: the take's number
 /// that day and the date, such as Take1_9_nov_2026 (Toma1_9_nov_2026 in
-/// Spanish, Prise1_9_nov_2026 in French). It can be changed before the take
-/// is shared or saved.
+/// Spanish, Prise1_9_nov_2026 in French, Aufnahme1_9_nov_2026 in German). It
+/// can be changed before the take is shared or saved.
 String takeName(AppLocalizations strings, int number, DateTime day) {
   String month;
   try {

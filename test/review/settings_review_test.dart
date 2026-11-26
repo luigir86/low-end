@@ -63,7 +63,7 @@ void main() {
 
     test('ignores unknown saved strings and numbers', () async {
       SharedPreferences.setMockInitialValues({
-        'language': 'de',
+        'language': 'pl',
         'note_names': 'klingon',
         'reference_pitch': 446.0,
       });
@@ -110,7 +110,8 @@ void main() {
       expect(s.noteNames(const Locale('it')), NoteNames.solfege);
       expect(s.noteNames(const Locale('it', 'CH')), NoteNames.solfege);
       expect(s.noteNames(const Locale('en')), NoteNames.letters);
-      expect(s.noteNames(const Locale('de')), NoteNames.letters);
+      expect(s.noteNames(const Locale('pl')), NoteNames.letters);
+      expect(s.noteNames(const Locale('de', 'AT')), NoteNames.german);
       s.setNaming(NoteNaming.solfege);
       expect(s.noteNames(const Locale('en')), NoteNames.solfege);
       s.setNaming(NoteNaming.letters);

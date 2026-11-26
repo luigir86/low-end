@@ -52,7 +52,7 @@ void main() {
   ) async {
     await open(tester, const [Locale('en', 'GB')]);
     expect(l10n(tester).localeName, 'en');
-    await open(tester, const [Locale('de', 'DE')]);
+    await open(tester, const [Locale('pl', 'PL')]);
     expect(l10n(tester).localeName, 'en');
   });
 
@@ -63,6 +63,12 @@ void main() {
     await open(tester, const [Locale('fr', 'CA')]);
     expect(l10n(tester).localeName, 'fr');
     expect(find.text('Accordeur'), findsOneWidget);
+  });
+
+  testWidgets('a German phone gets German', (tester) async {
+    await open(tester, const [Locale('de', 'AT')]);
+    expect(l10n(tester).localeName, 'de');
+    expect(find.text('Stimmgerät'), findsOneWidget);
   });
 
   testWidgets('a language chosen in the settings wins over the phone', (

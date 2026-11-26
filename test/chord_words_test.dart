@@ -67,15 +67,58 @@ void main() {
       expect(s.noteNames(Locale(lang)).words, lang);
     }
     expect(s.noteNames(const Locale('en')), NoteNames.letters);
-    expect(s.noteNames(const Locale('de')), NoteNames.letters);
+    expect(s.noteNames(const Locale('pl')), NoteNames.letters);
+    expect(s.noteNames(const Locale('de')), NoteNames.german);
     s.setNaming(NoteNaming.letters);
-    for (final lang in ['en', 'it', 'es', 'fr']) {
+    for (final lang in ['en', 'it', 'es', 'fr', 'de']) {
       expect(s.noteNames(Locale(lang)).words, 'en', reason: lang);
     }
     // Do Re Mi in an English app has Italian words: Do maggiore.
     s.setNaming(NoteNaming.solfege);
     expect(s.noteNames(const Locale('en')), NoteNames.solfege);
     expect(s.noteNames(const Locale('fr')), NoteNames.solfegeFrench);
+  });
+
+  // In German H is B natural and B is B♭; keys and chords take German
+  // words, a minor root in small letters (a-Moll, b-Moll).
+  test('the German letters write H and B, and C-Dur, a-Moll', () {
+    const g = NoteNames.german;
+    expect(const Note(11, 4).name(g), 'H');
+    expect(const Note(10, 4).name(g), 'B');
+    expect(const Note(10, 4).name(g, flat: true), 'B');
+    expect(const Note(3, 4).name(g), 'E♭');
+    expect(const Note(6, 4).name(g), 'F♯');
+    expect(const Note(9, 4).label(g), 'A4');
+    expect(g.isSolfege, isFalse);
+    // B♭ spelled as A♯ stays A♯; C♭ is H♭… never: B♭ on the H line is B.
+    expect(spell(10, 5, g), 'A♯');
+    expect(spell(10, 6, g), 'B');
+    expect(spell(0, 6, g), 'H♯');
+    const major = (root: 0, quality: ChordQuality.major);
+    const minor = (root: 9, quality: ChordQuality.minor);
+    const dim = (root: 11, quality: ChordQuality.diminished);
+    const half = (root: 11, quality: ChordQuality.halfDiminished);
+    expect(chordSymbol(major, 'C', g), 'C-Dur');
+    expect(chordSymbol(minor, 'A', g), 'a-Moll');
+    expect(chordSymbol(minor, 'F♯', g), 'f♯-Moll');
+    expect(chordSymbol(minor, 'B', g), 'b-Moll');
+    expect(chordSymbol(dim, 'H', g), 'H vermindert');
+    expect(chordSymbol(half, 'H', g), 'H halbvermindert');
+    expect(writtenKey('E♭', g, minor: false), 'E♭-Dur');
+    expect(writtenKey('H', g, minor: true), 'h-Moll');
+    // The other systems keep their capitals in minor.
+    expect(writtenKey('A', NoteNames.letters, minor: true), 'A minor');
+    expect(chordSign((root: 10, quality: ChordQuality.minor7), 'B'), 'B−7');
+  });
+
+  test('German is chosen by hand or follows a German app', () {
+    final s = AppSettings()..setNaming(NoteNaming.german);
+    for (final lang in ['en', 'it', 'es', 'fr', 'de']) {
+      expect(s.noteNames(Locale(lang)), NoteNames.german, reason: lang);
+    }
+    // Do Re Mi in a German app has Italian words, as in English.
+    s.setNaming(NoteNaming.solfege);
+    expect(s.noteNames(const Locale('de')), NoteNames.solfege);
   });
 
   test('assistants may write Ré', () {

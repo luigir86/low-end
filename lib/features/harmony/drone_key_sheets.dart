@@ -280,10 +280,7 @@ class _SongPreset extends StatelessWidget {
 
 String _songKey(ExampleSong song, NoteNames names) {
   final tonic = Note(song.pitchClass, 4).name(names);
-  final words = chordWords(names);
-  return song.progression.minor
-      ? words.droneChordMinor(tonic)
-      : words.droneChordMajor(tonic);
+  return writtenKey(tonic, names, minor: song.progression.minor);
 }
 
 /// The heading of a section of the example songs, as in the progression

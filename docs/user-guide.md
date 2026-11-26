@@ -73,8 +73,8 @@ The gear at the top opens the settings, in groups:
 
 | Group | Setting | Choices |
 | --- | --- | --- |
-| General | Language | Same as the phone, English, Italian, Spanish, French |
-| General | Note names | Follow the language, Do Re Mi, C D E |
+| General | Language | Same as the phone, English, Italian, Spanish, French, German |
+| General | Note names | Follow the language, Do Re Mi, C D E, German C D E … H (H is B natural, B is B♭; chords in German words: C-Dur, a-Moll) |
 | General | Keep the screen on | While something plays or the tuner listens (on by default) |
 | General | Lock the gestures | Turns off the swipes between sections |
 | General | Octave numbers | Scientific (A4 = 440 Hz, a bass's low E is E1; the default) or Italian (La3 = 440 Hz); only the number changes |
