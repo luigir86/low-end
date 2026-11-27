@@ -160,3 +160,24 @@ String degreeName(AppLocalizations l10n, int degree, {bool minor = false}) =>
       5 => l10n.degreeName6,
       _ => minor ? l10n.degreeName7Minor : l10n.degreeName7,
     };
+
+/// The progression's line in the middle of the dial while it plays: a
+/// progression with a name says it with its key, a major one by its tonic
+/// alone to keep the line short ("Blues in Fa", "Blues in Do minore"); one
+/// named by its numerals says only the key ("Do minore"), because the
+/// numerals are written bar by bar just below it.
+String hubKeyLine(
+  AppLocalizations l10n,
+  DroneController drone,
+  NoteNames names,
+) => switch (drone.progression) {
+  Progression.blues ||
+  Progression.minorBlues ||
+  Progression.circleOfFifths => l10n.keyLine(
+    progressionShort(l10n, drone.progression),
+    drone.keyIsMinor
+        ? keyName(drone, names)
+        : spell(drone.note.pitchClass, drone.keyLetter, names),
+  ),
+  _ => keyName(drone, names),
+};

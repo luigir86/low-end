@@ -587,6 +587,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get progressionBluesShort => 'Blues';
 
   @override
+  String barOfBars(int bar, int count) {
+    return 'Battuta $bar di $count';
+  }
+
+  @override
   String keyLine(String progression, String key) {
     return '$progression in $key';
   }
@@ -643,8 +648,8 @@ class AppLocalizationsIt extends AppLocalizations {
       'I numeri romani dicono il grado della tonalità su cui poggia ogni accordo. Tocca un numero sul cerchio per leggerlo qui.';
 
   @override
-  String get legendDots =>
-      'I pallini sono le battute della progressione: quello pieno è l\'accordo che suona.';
+  String get legendBars =>
+      'Al centro, i numeri romani sono le battute del giro, a righe di quattro come su uno spartito: quello in grassetto è la battuta che suona.';
 
   @override
   String get songsTitle => 'Brani d\'esempio';

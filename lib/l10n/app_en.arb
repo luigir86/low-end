@@ -390,6 +390,18 @@
     }
   },
   "progressionBluesShort": "Blues",
+  "barOfBars": "Bar {bar} of {count}",
+  "@barOfBars": {
+    "description": "Read aloud for the bars of a progression in the middle of Harmony's dial: Bar 6 of 12.",
+    "placeholders": {
+      "bar": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "keyLine": "{progression} in {key}",
   "@keyLine": {
     "description": "The progression and its key: II–V–I in A major.",
@@ -425,7 +437,7 @@
   "legendInKey": "Notes of the key",
   "legendOutOfKey": "Notes outside the key, faded",
   "legendNumerals": "The Roman numerals give the degree of the key each chord is built on. Tap one on the circle to read it here.",
-  "legendDots": "The dots are the bars of the progression: the filled one is the chord sounding.",
+  "legendBars": "In the middle, the Roman numerals are the bars of the progression, in rows of four as on a lead sheet: the bold one is the bar sounding.",
   "songsTitle": "Example songs",
   "songsSubtitle": "Sets the key, the progression, the tempo and the style in one tap",
   "tunerHeld": "Holding the last note",

@@ -1119,6 +1119,12 @@ abstract class AppLocalizations {
   /// **'Blues'**
   String get progressionBluesShort;
 
+  /// Read aloud for the bars of a progression in the middle of Harmony's dial: Bar 6 of 12.
+  ///
+  /// In en, this message translates to:
+  /// **'Bar {bar} of {count}'**
+  String barOfBars(int bar, int count);
+
   /// The progression and its key: II–V–I in A major.
   ///
   /// In en, this message translates to:
@@ -1221,11 +1227,11 @@ abstract class AppLocalizations {
   /// **'The Roman numerals give the degree of the key each chord is built on. Tap one on the circle to read it here.'**
   String get legendNumerals;
 
-  /// No description provided for @legendDots.
+  /// No description provided for @legendBars.
   ///
   /// In en, this message translates to:
-  /// **'The dots are the bars of the progression: the filled one is the chord sounding.'**
-  String get legendDots;
+  /// **'In the middle, the Roman numerals are the bars of the progression, in rows of four as on a lead sheet: the bold one is the bar sounding.'**
+  String get legendBars;
 
   /// No description provided for @songsTitle.
   ///
