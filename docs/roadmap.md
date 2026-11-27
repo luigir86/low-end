@@ -13,7 +13,7 @@ Regole:
 ## In corso
 
 1. **Consolidare** (fino a circa il 5 dicembre 2026)
-   - 1.7.1 nel test chiuso, poi in produzione con rilascio graduale (Luigi, da Play Console).
+   - 1.7.2 nel test interno (bozza da Release Play, 27/11), prova lunga sul telefono (riga 16 da riprovare), poi in produzione con rilascio graduale (Luigi, da Play Console).
    - Una sessione di prove sul telefono con una lista fissa, partendo dal Player, e le misure mai prese: dal tocco al suono su Android, luce del battito contro suono (30 minuti a 120 bpm), memoria, avvio a freddo. I numeri vanno in [specs/requisiti.md](specs/requisiti.md), insieme agli stati verificati.
    - Documenti in ordine: questo elenco, [AGENTS.md](../AGENTS.md), il [modello di PR](../.github/pull_request_template.md) e l'[archivio](archivio/README.md) dei documenti superati sul tema.
 2. **Fondazione Fossano Musica** (Luigi): colloqui per un pilota con maestri e allievi. Non serve codice.
