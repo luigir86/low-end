@@ -2,11 +2,12 @@ Low End te da una banda con la que practicar. Elige una tonalidad y una progresi
 
 ARMONÍA: TU PIANISTA
 • Doce tonalidades en un círculo: toca una nota y suena en un piano de cola real a tempo con el metrónomo.
-• Nueve progresiones para pop y rock, blues y jazz: I–VI–IV–V, I–V–VI–IV, la cadencia andaluza, el blues de doce compases (mayor y menor), II–V–I (mayor y menor), I–VI–II–V y el círculo de quintas. Un acorde por compás, en cualquier tonalidad, con los números romanos sobre las notas.
+• Nueve progresiones para pop y rock, blues y jazz: I–VI–IV–V, I–V–VI–IV, la cadencia andaluza, el blues de doce compases (mayor y menor), II–V–I (mayor y menor), I–VI–II–V y el círculo de quintas, en cualquier tonalidad.
+• El centro se lee como una partitura: el acorde en grande con su cifrado (Re−7, Sol7, DoΔ7) y toda la progresión en números romanos, con el compás que suena iluminado.
 • Temas de ejemplo (Stand by Me, Blue Bossa, Autumn Leaves…) fijan la tonalidad, la progresión, el tempo y el estilo del piano con un toque.
 • Cuatro maneras de tocar: acordes tenidos durante el compás, en cada tiempo, arpegiados, o un walking bass: una línea de jazz en un contrabajo en pizzicato, con el piano acompañando suavemente encima.
 • O un solo acorde tenido (nueve tipos, de mayor a sus4), la nota sola, o un sonido continuo en lugar del piano.
-• Inicia la armonía mientras suena el clic y entra en el compás siguiente, con una cuenta atrás en el círculo. Cambia de tema o de estilo mientras suena: el nuevo entra en el "uno" del compás siguiente, como en una banda.
+• Iníciala mientras suena el clic y entra en el compás siguiente, tras una cuenta atrás. Cambia de tema o de estilo mientras suena: el nuevo entra en el siguiente "uno", como en una banda.
 
 METRÓNOMO
 • Tempo de 30 a 250 BPM: gira el anillo exterior, escríbelo con el lápiz, mantén pulsado − o + para recorrerlo, o usa TAP.
@@ -29,11 +30,11 @@ HECHA PARA TOCAR
 • Escucha suena sola: al iniciarla, pausa el metrónomo y la armonía.
 • Desliza a izquierda y derecha para cambiar de sección; para los ensayos, bloquea los gestos en los ajustes.
 • Sigue sonando con la pantalla apagada, con una notificación que dice lo que suena. Si desconectas los auriculares o entra una llamada, el sonido se pausa.
-• Un aspecto oscuro en ébano y bronce; en cinco idiomas; notas Do Re Mi, C D E o a la alemana (H, B).
-• Pensada para ser accesible: etiquetas para lectores de pantalla, texto ampliable y colores que nunca son la única señal.
+• Ébano y bronce; cinco idiomas; notas Do Re Mi, C D E o a la alemana (H, B).
+• Accesible: etiquetas para lectores de pantalla, texto ampliable y colores que nunca son la única señal.
 
 PRIVADA Y ABIERTA
-• Sin cuenta, sin anuncios, sin rastreo, sin necesidad de conexión a internet.
+• Sin cuenta, sin anuncios, sin rastreo, sin internet.
 • El micrófono solo se usa mientras el afinador está en pantalla o mientras grabas. Una toma nunca sale del teléfono salvo que la guardes o compartas.
 • Software libre y de código abierto con licencia MIT: https://github.com/luigir86/low-end
 • Sonidos: Salamander Grand Piano de Alexander Holm, contrabajo Meatbass de Karoryfer Lecolds (dominio público).

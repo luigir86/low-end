@@ -1,12 +1,13 @@
-Low End gibt dir eine Band zum Üben. Wähle eine Tonart und eine Akkordfolge, und ein echter Konzertflügel spielt sie für dich, im Takt eines Metronoms, während du dazu spielst: Tonleitern, Improvisation, deine Stimme eines Stücks oder einfach Gehörbildung. Von Pop über Blues bis zu Jazzstandards, mit Walking Bass am Kontrabass. Ein chromatisches Stimmgerät und ein Player für deine eigenen Aufnahmen runden sie ab. Gemacht von einem Hobby-Kontrabassisten mit den Freunden aus dem Orchester im Sinn, nützlich für alle, die spielen. Kostenlos, ohne Werbung, ohne Konto und komplett offline.
+Low End gibt dir eine Band zum Üben. Wähle eine Tonart und eine Akkordfolge, und ein echter Konzertflügel spielt sie für dich, im Takt eines Metronoms, während du dazu spielst: Tonleitern, Improvisation, deine Stimme eines Stücks oder einfach Gehörbildung. Von Pop über Blues bis zu Jazzstandards, mit Walking Bass am Kontrabass. Ein chromatisches Stimmgerät und ein Player für deine eigenen Aufnahmen runden sie ab. Gemacht von einem Hobby-Kontrabassisten für die Freunde aus dem Orchester, nützlich für alle, die spielen. Kostenlos, ohne Werbung, ohne Konto und komplett offline.
 
 HARMONIE: DEIN PIANIST
 • Zwölf Tonarten auf einem Kreis: Tippe eine Note an und sie erklingt auf einem echten Konzertflügel im Takt des Metronoms.
-• Neun Akkordfolgen für Pop und Rock, Blues und Jazz: I–VI–IV–V, I–V–VI–IV, die andalusische Kadenz, der 12-taktige Blues (Dur und Moll), II–V–I (Dur und Moll), I–VI–II–V und der Quintenzirkel. Ein Akkord pro Takt, in jeder Tonart, mit den römischen Stufen auf den Tasten.
+• Neun Akkordfolgen für Pop und Rock, Blues und Jazz: I–VI–IV–V, I–V–VI–IV, die andalusische Kadenz, der 12-taktige Blues (Dur und Moll), II–V–I (Dur und Moll), I–VI–II–V und der Quintenzirkel, in jeder Tonart.
+• Die Mitte liest sich wie ein Leadsheet: der Akkord groß als Symbol (D−7, G7, CΔ7) und die ganze Folge in römischen Stufen, der klingende Takt hervorgehoben.
 • Beispielstücke (Stand by Me, Blue Bossa, Autumn Leaves…) stellen Tonart, Akkordfolge, Tempo und Klavierstil mit einem Tipp ein.
 • Vier Spielweisen: Akkorde über den Takt gehalten, auf jedem Schlag angeschlagen, als Arpeggio oder als Walking Bass: eine Jazzlinie auf gezupftem Kontrabass, mit leichtem Klavier darüber.
 • Oder ein einzelner gehaltener Akkord (neun Arten, von Dur bis sus4), nur der Ton oder ein gehaltener Klang statt des Klaviers.
-• Startest du die Harmonie, während der Klick läuft, setzt sie zum nächsten Takt ein, mit Einzähler auf dem Kreis. Wechselst du Stück oder Stil beim Spielen, kommt das Neue auf der „Eins“ des nächsten Takts, wie in einer Band.
+• Gestartet, während der Klick läuft, setzt sie zum nächsten Takt ein, nach einem Einzähler. Wechselst du Stück oder Stil beim Spielen, kommt das Neue auf der nächsten „Eins“, wie in einer Band.
 
 METRONOM
 • Tempo von 30 bis 250 BPM: Drehe den äußeren Ring, tippe es mit dem Stift ein, halte − oder + gedrückt oder nutze TAP.
@@ -20,9 +21,9 @@ STIMMGERÄT
 • Kammerton A: jedes Hertz von 415 bis 445. Der Klang wird auf dem Telefon analysiert und nie aufgenommen.
 
 PLAYER: ÜBE MIT DEINEN AUFNAHMEN
-• Öffne ein Stück vom Telefon (MP3, M4A, WAV, FLAC…) und bewege dich auf seiner Wellenform rund um den Kreis.
-• Verlangsame es auf 50 % oder beschleunige es auf 125 %, ohne die Tonhöhe zu ändern.
-• Setze A und B, um eine Stelle zu wiederholen, und ziehe dann die Griffe A und B, um sie anzupassen.
+• Öffne ein Stück vom Telefon (MP3, M4A, WAV, FLAC…) und navigiere auf seiner Wellenform rund um den Kreis.
+• Von 50 % bis 125 % Tempo, ohne die Tonhöhe zu ändern.
+• Setze A und B, um eine Stelle zu wiederholen, und passe sie mit den Griffen an.
 • Nimm dich mit REC auf, gern zum Klick, hör es dir an und speichere oder teile die Aufnahme.
 
 GEMACHT ZUM SPIELEN
@@ -30,10 +31,10 @@ GEMACHT ZUM SPIELEN
 • Wische nach links und rechts, um den Bereich zu wechseln; für die Probe lassen sich die Gesten sperren.
 • Spielt bei ausgeschaltetem Bildschirm weiter, mit einer Benachrichtigung, die sagt, was klingt. Kopfhörer ab oder ein Anruf, und der Klang pausiert.
 • Ebenholz und Bronze; fünf Sprachen; Notennamen deutsch (C D E … H, B), als C D E oder Do Re Mi.
-• Barrierearm gebaut: Beschriftungen für Screenreader, vergrößerbarer Text und Farben, die nie der einzige Hinweis sind.
+• Barrierearm: Beschriftungen für Screenreader, vergrößerbarer Text und Farben, die nie der einzige Hinweis sind.
 
 PRIVAT UND OFFEN
 • Kein Konto, keine Werbung, kein Tracking, kein Internet.
-• Das Mikrofon wird nur benutzt, solange das Stimmgerät auf dem Bildschirm ist oder du aufnimmst. Eine Aufnahme verlässt das Telefon nur, wenn du sie speicherst oder teilst.
+• Das Mikrofon läuft nur, solange das Stimmgerät auf dem Bildschirm ist oder du aufnimmst. Eine Aufnahme verlässt das Telefon nur, wenn du sie speicherst oder teilst.
 • Freie Open-Source-Software unter der MIT-Lizenz: https://github.com/luigir86/low-end
 • Klänge: Salamander Grand Piano von Alexander Holm, Meatbass-Kontrabass von Karoryfer Lecolds (gemeinfrei).

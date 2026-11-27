@@ -9,15 +9,15 @@ Exact versions of every package are in [pubspec.lock](pubspec.lock). Keep this f
 | Component | Version | Used for | Licence |
 | --- | --- | --- | --- |
 | [Flutter](https://flutter.dev) (framework and engine) | 3.50 | The whole app | BSD-3-Clause |
-| [flutter_soloud](https://pub.dev/packages/flutter_soloud) | 5.3.0 | Audio engine: metronome, drone, piano | MIT |
+| [flutter_soloud](https://pub.dev/packages/flutter_soloud) | 5.3.2 | Audio engine: metronome, drone, piano | MIT |
 | [record](https://pub.dev/packages/record) (+ `record_android`) | 7.2.0 | Microphone for the tuner and the Player's recordings | BSD-3-Clause |
 | [just_audio](https://pub.dev/packages/just_audio) (+ `just_audio_web`, `just_audio_platform_interface`) | 0.10.6 | The Player: plays the person's own audio files (ExoPlayer on Android, the browser's audio element on the web) | MIT |
 | [audio_service](https://pub.dev/packages/audio_service) (+ `audio_session`, `rxdart`) | 0.18.19 | Playing with the screen off, media notification | MIT (`rxdart`: Apache-2.0) |
 | [shared_preferences](https://pub.dev/packages/shared_preferences) | 2.5.6 | Settings kept on the phone | BSD-3-Clause |
 | [wakelock_plus](https://pub.dev/packages/wakelock_plus) | 1.8.2 | Keep the screen on (optional) | BSD-3-Clause |
-| [material_ui](https://pub.dev/packages/material_ui) | 1.11.0 | Material widgets (buttons, menus, sheets, theme), moved out of the Flutter SDK | BSD-3-Clause |
-| [url_launcher](https://pub.dev/packages/url_launcher) | 6.3.3 | Opens the source-code link | BSD-3-Clause |
-| [intl](https://pub.dev/packages/intl) | 0.20.3 | Languages (English, Italian, Spanish, French) | BSD-3-Clause |
+| [material_ui](https://pub.dev/packages/material_ui) | 1.11.1 | Material widgets (buttons, menus, sheets, theme), moved out of the Flutter SDK | BSD-3-Clause |
+| [url_launcher](https://pub.dev/packages/url_launcher) | 6.3.3 | Opens the source-code link and Low End's page on Google Play (to rate it) | BSD-3-Clause |
+| [intl](https://pub.dev/packages/intl) | 0.20.3 | Languages (English, Italian, Spanish, French, German) | BSD-3-Clause |
 
 Build and test only (not in the app): `flutter_test` and `flutter_lints` (BSD-3-Clause). The screenshot and test harnesses also use Roboto and the Material Icons font copied from the Flutter SDK into `test/fonts/` (Apache-2.0, licences beside them); they are not part of the app.
 
