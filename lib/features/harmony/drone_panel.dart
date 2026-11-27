@@ -105,6 +105,13 @@ class _FifthsDial extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final playing = drone.isPlaying ? drone.rootPitchClass : null;
+    // Stopped, the note a touch on the hub will play (the key's tonic in a
+    // progression) keeps a bronze outline, so the ring says what comes.
+    final chosen = drone.isPlaying
+        ? null
+        : drone.showsKey
+        ? drone.note.pitchClass
+        : drone.rootPitchClass;
     // The rest of the chord, lit in a second colour while it sounds.
     final chord = drone.isPlaying ? drone.chordTones : const <int>{};
     // With a progression selected: the key's seven notes in front of the
@@ -170,6 +177,7 @@ class _FifthsDial extends StatelessWidget {
                   playing: playing,
                   chord: chord,
                   receding: receding,
+                  chosen: chosen,
                   colors: theme.colorScheme,
                   disc: LowEndColors.of(context).disc,
                   activeFill: LowEndColors.of(context).activeFill,
@@ -186,6 +194,7 @@ class _FifthsDial extends StatelessWidget {
                 child: _NoteKey(
                   name: nameOf(order[i], flat: drone.spelledFlat(order[i])),
                   playing: playing == order[i],
+                  chosen: chosen == order[i],
                   inChord: chord.contains(order[i]),
                   degree: degrees[order[i]],
                   // Touching the numeral says what the degree is.
@@ -262,6 +271,7 @@ class _FifthsPainter extends CustomPainter {
     required this.playing,
     required this.chord,
     required this.receding,
+    required this.chosen,
     required this.colors,
     required this.disc,
     required this.activeFill,
@@ -273,6 +283,9 @@ class _FifthsPainter extends CustomPainter {
 
   /// The notes that recede into the disc (still there to be touched).
   final Set<int> receding;
+
+  /// The note outlined while nothing sounds, or null.
+  final int? chosen;
   final ColorScheme colors;
   final Color disc;
   final Color activeFill;
@@ -301,6 +314,18 @@ class _FifthsPainter extends CustomPainter {
             : colors.outlineVariant,
         border: colors.outline,
       );
+      if (pc == chosen) {
+        // Inside the edge, so the gap to the neighbours stays.
+        dial.paintSegment(
+          canvas,
+          startAngle: start,
+          sweep: sweep,
+          color: activeFill,
+          stroke: 3.5,
+          inner: dial.ringInner + 2,
+          outer: dial.ringOuter - 2,
+        );
+      }
     }
   }
 
@@ -308,6 +333,7 @@ class _FifthsPainter extends CustomPainter {
   bool shouldRepaint(_FifthsPainter old) =>
       !listEquals(old.order, order) ||
       old.playing != playing ||
+      old.chosen != chosen ||
       !setEquals(old.chord, chord) ||
       !setEquals(old.receding, receding) ||
       old.colors != colors ||
@@ -321,6 +347,7 @@ class _NoteKey extends StatelessWidget {
   const _NoteKey({
     required this.name,
     required this.playing,
+    required this.chosen,
     required this.inChord,
     required this.degree,
     required this.onDegreeTap,
@@ -332,6 +359,9 @@ class _NoteKey extends StatelessWidget {
 
   final String name;
   final bool playing;
+
+  /// Outlined while nothing sounds: what a touch on the hub plays.
+  final bool chosen;
 
   /// The note recedes: out of the key shown, or not sounding while others
   /// do.
@@ -359,7 +389,7 @@ class _NoteKey extends StatelessWidget {
     final respelling = this.respelling;
     return Semantics(
       button: true,
-      selected: playing,
+      selected: playing || chosen,
       // Says what a touch will do, not just the note name.
       label: playing ? l10n.stopSound(name) : l10n.playSound(name),
       onLongPressHint: respelling == null ? null : l10n.writeAs(respelling),
@@ -423,9 +453,10 @@ class _NoteKey extends StatelessWidget {
                                 : receding
                                 ? colors.onSurfaceVariant
                                 : colors.onSurface,
-                            // Bold for the root, so it stands out by more
-                            // than colour alone.
-                            fontWeight: playing
+                            // Bold for the root, and for the note outlined
+                            // when stopped, so it stands out by more than
+                            // colour alone.
+                            fontWeight: playing || chosen
                                 ? FontWeight.w700
                                 : FontWeight.w400,
                           ),
