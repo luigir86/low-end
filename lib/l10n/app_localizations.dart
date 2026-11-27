@@ -267,12 +267,6 @@ abstract class AppLocalizations {
   /// **'Drag clockwise to increase the tempo; counterclockwise to decrease it'**
   String get tempoDialHint;
 
-  /// No description provided for @tempoDialCaption.
-  ///
-  /// In en, this message translates to:
-  /// **'Turn to set tempo'**
-  String get tempoDialCaption;
-
   /// No description provided for @bpmValue.
   ///
   /// In en, this message translates to:

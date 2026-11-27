@@ -27,7 +27,6 @@
   "metronomeHint": "Zum Starten tippen",
   "tempoDial": "Temporad",
   "tempoDialHint": "Im Uhrzeigersinn ziehen, um das Tempo zu erhöhen; gegen den Uhrzeigersinn, um es zu verringern",
-  "tempoDialCaption": "Drehen für das Tempo",
   "bpmValue": "{bpm} BPM",
   "timeSignature": "Taktart",
   "backgroundPlaying": "Spielt im Hintergrund",

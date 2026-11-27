@@ -47,8 +47,9 @@ includere una schermata renderizzata dal codice.
   layout. Un secondo dito non modifica il gesto in corso. Fuori dalla fascia
   gli swipe e il tocco sull'anello dei battiti restano disponibili.
 - Il centro continua ad avviare e fermare. Il rilascio della ghiera non lo
-  attiva. Una breve indicazione localizzata «Ruota per il tempo» occupa la
-  riga prima vuota sotto il quadrante; niente testi sovrapposti al numero.
+  attiva. Nessuna scritta sotto il quadrante (la «Ruota per il tempo» è stata
+  tolta il 27/11/2026: il gesto si capisce da solo); lo screen reader legge
+  il suggerimento della ghiera. Niente testi sovrapposti al numero.
 - Limiti esistenti: 30–250 BPM, fino a 400 in 7/8. Nessun avvolgimento massimo
   → minimo. Invertendo al limite il tempo risponde subito, senza dover
   recuperare una rotazione eccedente.

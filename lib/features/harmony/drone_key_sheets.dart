@@ -4,6 +4,7 @@ import '../../app/theme.dart';
 import '../../audio/audio_scope.dart';
 import '../../audio/pitch.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/section_group.dart';
 import '../../widgets/section_icons.dart';
 import '../metronome/time_signature.dart';
 import '../songs/example_song.dart';
@@ -189,34 +190,33 @@ Future<void> showSongsSheet(BuildContext context) {
                   ),
                 ),
               ),
-              for (final (i, song) in exampleSongs.indexed) ...[
-                // The sections of the progression menu, in the same order.
-                if (i == 0 ||
-                    exampleSongs[i - 1].progression.section !=
-                        song.progression.section) ...[
-                  if (i > 0) const Divider(),
-                  _SongSection(
-                    progressionSectionName(l10n, song.progression.section),
-                  ),
-                ],
-                ListTile(
-                  key: ValueKey('song-${song.title}'),
-                  title: Text(song.title),
-                  // Who made it known, the harmony, then the preset: the
-                  // metronome's tempo and the piano's style, with the
-                  // pictures of the metronome's tab and of the style menu.
-                  isThreeLine: true,
-                  subtitle: _SongPreset(song: song, names: names),
-                  onTap: () {
-                    applySong(
-                      song,
-                      drone: scope.drone,
-                      metronome: scope.metronome,
-                    );
-                    Navigator.of(sheet).pop();
-                  },
+              // The sections of the progression menu, in the same order.
+              for (final section in _songSections())
+                SectionGroup(
+                  title: progressionSectionName(l10n, section),
+                  children: [
+                    for (final song in exampleSongs)
+                      if (song.progression.section == section)
+                        ListTile(
+                          key: ValueKey('song-${song.title}'),
+                          title: Text(song.title),
+                          // Who made it known, the harmony, then the preset:
+                          // the metronome's tempo and the piano's style, with
+                          // the pictures of the metronome's tab and of the
+                          // style menu.
+                          isThreeLine: true,
+                          subtitle: _SongPreset(song: song, names: names),
+                          onTap: () {
+                            applySong(
+                              song,
+                              drone: scope.drone,
+                              metronome: scope.metronome,
+                            );
+                            Navigator.of(sheet).pop();
+                          },
+                        ),
+                  ],
                 ),
-              ],
               const SizedBox(height: 8),
             ],
           ),
@@ -283,32 +283,8 @@ String _songKey(ExampleSong song, NoteNames names) {
   return writtenKey(tonic, names, minor: song.progression.minor);
 }
 
-/// The heading of a section of the example songs, as in the progression
-/// menu: a full-width band, announced as a heading.
-class _SongSection extends StatelessWidget {
-  const _SongSection(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Semantics(
-      header: true,
-      child: Padding(
-        padding: const EdgeInsets.only(top: 16, bottom: 4),
-        child: Container(
-          width: double.infinity,
-          color: LowEndColors.of(context).activeFill,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: Text(
-            text,
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: LowEndColors.of(context).onActiveFill,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+/// The sections of the example songs, in the order of the progression menu.
+List<ProgressionSection> _songSections() => [
+  for (final section in ProgressionSection.values)
+    if (exampleSongs.any((s) => s.progression.section == section)) section,
+];

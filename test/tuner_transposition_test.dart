@@ -123,6 +123,13 @@ void main() {
     expect(centsOnScale(80), 1);
   });
 
+  test('the dot on the scale grows to twice its size at 0 cents', () {
+    expect(centsDotRadius(0), 10);
+    expect(centsDotRadius(-25), 7.5);
+    expect(centsDotRadius(50), 5);
+    expect(centsDotRadius(-80), 5);
+  });
+
   test('close and far off differ by their arrows, not only by colour', () {
     expect(verdictIcon(2, 5), Icons.check_circle);
     expect(verdictIcon(-5, 5), Icons.check_circle);

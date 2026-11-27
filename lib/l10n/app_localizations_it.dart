@@ -97,9 +97,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Trascina in senso orario per aumentare il tempo; antiorario per diminuirlo';
 
   @override
-  String get tempoDialCaption => 'Ruota per il tempo';
-
-  @override
   String bpmValue(String bpm) {
     return '$bpm BPM';
   }

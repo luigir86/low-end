@@ -98,9 +98,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Arrastra en sentido horario para aumentar el tempo; antihorario para reducirlo';
 
   @override
-  String get tempoDialCaption => 'Gira para ajustar el tempo';
-
-  @override
   String bpmValue(String bpm) {
     return '$bpm BPM';
   }

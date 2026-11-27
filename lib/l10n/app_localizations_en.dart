@@ -97,9 +97,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Drag clockwise to increase the tempo; counterclockwise to decrease it';
 
   @override
-  String get tempoDialCaption => 'Turn to set tempo';
-
-  @override
   String bpmValue(String bpm) {
     return '$bpm BPM';
   }

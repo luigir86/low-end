@@ -798,11 +798,13 @@ class _NoteName extends StatelessWidget {
 }
 
 /// The cents, 50 flat to 50 sharp, in the first row under the dial: a scale
-/// on a horizontal axis, with a tick every 5 cents, and a needle at the
-/// note. The axis takes the verdict's colour from 0 to the needle, so the
-/// length of that stretch says how far off the note is even to a player who
-/// cannot tell the colours apart. No zone is marked round 0: the needle's
-/// colour and the verdict in the dial say when the note is in tune. The
+/// on a horizontal axis, numbered at 0, ±25 and ±50, with two shorter
+/// unnumbered marks at the edges of the in-tune zone ([tolerance]), and a dot
+/// at the note that grows as it nears 0. The axis takes the verdict's colour
+/// from 0 to the dot, so the length of that stretch (and the size of the dot)
+/// says how far off the note is even to a player who cannot tell the colours
+/// apart (27 November 2026: a dot replaced the needle and its head, and the
+/// ticks every 5 cents went). The
 /// strobe shows the same thing by turning, which is hard to read at a
 /// glance, and this by position, which is not.
 class _CentsBar extends StatelessWidget {
@@ -871,6 +873,7 @@ class _CentsBar extends StatelessWidget {
                       : theme.colorScheme.outline,
                   axis: theme.colorScheme.outline,
                   minorTick: theme.colorScheme.outlineVariant,
+                  tolerance: tolerance,
                 ),
               ),
             ),
@@ -911,14 +914,21 @@ class _CentsBar extends StatelessWidget {
 /// note further off stays at the end.
 double centsOnScale(double cents) => (cents.clamp(-50, 50) + 50) / 100;
 
+/// The radius of the dot on the scale: 5 at 50 cents off or further, growing
+/// to twice that at 0.
+double centsDotRadius(double cents) =>
+    5 + 5 * (1 - cents.abs().clamp(0, 50) / 50);
+
 class _CentsScalePainter extends CustomPainter {
   _CentsScalePainter({
     required this.cents,
     required this.needle,
     required this.axis,
     required this.minorTick,
+    required this.tolerance,
   });
 
+  final double tolerance;
   final double? cents;
   final Color needle;
   final Color axis;
@@ -926,49 +936,31 @@ class _CentsScalePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // The axis runs along the bottom; the ticks stand on it and the
-    // needle's head sits over them.
-    final y = size.height - 4;
+    final y = size.height / 2;
     double x(double c) => centsOnScale(c) * size.width;
-    canvas.drawRRect(
-      RRect.fromLTRBR(0, y - 1, size.width, y + 1, const Radius.circular(1)),
+    void mark(double c, double half) => canvas.drawRect(
+      Rect.fromLTRB(x(c) - 1, y - half, x(c) + 1, y + half),
       Paint()..color = axis,
     );
-    // A tick every 5 cents: tall and thicker at 0, ±25 and ±50, middle at
-    // every 10, short in between.
-    for (var c = -50; c <= 50; c += 5) {
-      final major = c % 25 == 0;
-      final height = major ? 14.0 : (c % 10 == 0 ? 9.0 : 6.0);
-      final width = major ? 2.0 : 1.0;
-      canvas.drawRect(
-        Rect.fromLTRB(
-          x(c.toDouble()) - width / 2,
-          y - height,
-          x(c.toDouble()) + width / 2,
-          y,
-        ),
-        Paint()..color = major ? axis : minorTick,
-      );
+    canvas.drawRRect(
+      RRect.fromLTRBR(0, y - 1, size.width, y + 1, const Radius.circular(1)),
+      Paint()..color = minorTick,
+    );
+    // The numbered marks, 0 the tallest, then the edges of the in-tune zone.
+    mark(0, 9);
+    for (final c in [-50.0, -25.0, 25.0, 50.0]) {
+      mark(c, 7);
     }
+    mark(-tolerance, 6);
+    mark(tolerance, 6);
     final c = cents;
     if (c == null) return;
     final paint = Paint()..color = needle;
-    // The axis in the needle's colour from 0 to the needle, however short.
+    // The axis in the dot's colour from 0 to the dot, however short.
     final from = math.min(x(0), x(c));
     final to = math.max(x(0), x(c));
-    canvas.drawRect(Rect.fromLTRB(from, y - 2.5, to, y + 2.5), paint);
-    // The needle: a line from over the ticks to under the axis, with a
-    // head pointing down at the scale.
-    final at = x(c);
-    canvas.drawRect(Rect.fromLTRB(at - 1.25, 9, at + 1.25, y + 4), paint);
-    canvas.drawPath(
-      Path()
-        ..moveTo(at - 6, 0)
-        ..lineTo(at + 6, 0)
-        ..lineTo(at, 10)
-        ..close(),
-      paint,
-    );
+    canvas.drawRect(Rect.fromLTRB(from, y - 2, to, y + 2), paint);
+    canvas.drawCircle(Offset(x(c), y), centsDotRadius(c), paint);
   }
 
   @override
@@ -976,7 +968,8 @@ class _CentsScalePainter extends CustomPainter {
       old.cents != cents ||
       old.needle != needle ||
       old.axis != axis ||
-      old.minorTick != minorTick;
+      old.minorTick != minorTick ||
+      old.tolerance != tolerance;
 }
 
 /// A centred text that wraps on lines of about the same length, so a second
