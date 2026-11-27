@@ -8,10 +8,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Only the job that publishes may write to Pages: the build runs Flutter's
+# packages and an action from outside GitHub, and needs to read only.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 # One publication at a time; a newer push replaces one still waiting.
 concurrency:
@@ -23,11 +23,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: subosito/flutter-action@v2
+      # Pinned to a commit, not a tag: what it builds goes to everyone who
+      # opens the web app, and a tag can be moved to other code. v2.23.0.
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         with:
           channel: stable
-          # Pinned to the last Flutter the app is tested with (CLAUDE.md); 3.50 needs a
-          # migration first (material_ui package, Android Gradle Plugin 9.1.1).
+          # The Flutter the app is tested with (CLAUDE.md, ci.yml).
           flutter-version: 3.50.1
           cache: true
       - run: flutter pub get
@@ -49,6 +50,10 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
