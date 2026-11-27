@@ -389,7 +389,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get circleLayoutChromaticShort => 'Semitones';
 
   @override
-  String get aboutTooltip => 'About Low End';
+  String get aboutTooltip => 'About';
 
   @override
   String get aboutLegalese =>
@@ -660,7 +660,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get aboutRate => 'Rate Low End on Google Play';
+  String get aboutRate => 'Leave a review';
 
   @override
   String get subdivisionQuarters => 'Quarter notes';

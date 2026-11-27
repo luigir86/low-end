@@ -649,10 +649,10 @@ void main() {
 
     await tester.tap(find.tooltip('Settings'));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('About Low End'), 100);
-    await tester.ensureVisible(find.text('About Low End'));
+    await tester.scrollUntilVisible(find.text('About'), 100);
+    await tester.ensureVisible(find.text('About'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('About Low End'));
+    await tester.tap(find.text('About'));
     await tester.pumpAndSettle();
     expect(
       find.text(
@@ -665,13 +665,15 @@ void main() {
     expect(
       find.descendant(
         of: find.byType(AboutDialog),
-        matching: find.text('Rate Low End on Google Play'),
+        matching: find.text('Leave a review'),
       ),
       findsNothing,
     );
   });
 
-  testWidgets('Rate Low End is the last line of the settings', (tester) async {
+  testWidgets('Leave a review is the last line of the settings', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       LowEndApp(
         toneOutput: SilentToneOutput(),
@@ -688,9 +690,9 @@ void main() {
     await tester.pumpAndSettle();
     // The way to the stars on Google Play: a plain link, no number asked,
     // under the guide and About, in that order.
-    expect(find.text('Rate Low End on Google Play'), findsOneWidget);
+    expect(find.text('Leave a review'), findsOneWidget);
     final guide = tester.getTopLeft(find.text('Gestures and shortcuts')).dy;
-    final about = tester.getTopLeft(find.text('About Low End')).dy;
+    final about = tester.getTopLeft(find.text('About')).dy;
     expect(guide, lessThan(about));
     expect(about, lessThan(tester.getTopLeft(rate).dy));
   });

@@ -85,7 +85,7 @@ The gear at the top opens the settings, in groups:
 
 At the bottom, **Gestures and shortcuts** shows the one-page guide again.
 
-**Thanks** is for the Power Flower Orchestra of Fossano, who inspired this app and put it to the test; its button opens their Instagram page in the phone's browser. **About Low End** (at the bottom of the settings) shows the licence, the source-code link (also opened in the browser) and, under *View licences*, the licences of everything the app is built with, fonts and piano sounds included. Under it, the last line, *Rate Low End on Google Play* opens the app's page on Google Play to give stars and write a review (not in the web app).
+**Thanks** is for the Power Flower Orchestra of Fossano, who inspired this app and put it to the test; its button opens their Instagram page in the phone's browser. **About** (at the bottom of the settings) shows the licence, the source-code link (also opened in the browser) and, under *View licences*, the licences of everything the app is built with, fonts and piano sounds included. Under it, the last line, *Leave a review* opens the app's page on Google Play to give stars and write a review (not in the web app).
 
 ## Playing with the screen off
 

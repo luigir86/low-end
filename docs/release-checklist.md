@@ -28,7 +28,7 @@ marks anything that cannot be confirmed from the code.
       1.7.1+18 (Harmony writes each chord once, in lead-sheet signs) prepared
       on 2026-11-20, stayed in the closed test;
       1.7.2+19 (German, Harmony centre as a lead sheet, bronze outline on the
-      chosen note, click on 2 and 4 dimmed where not heard, "Rate Low End",
+      chosen note, click on 2 and 4 dimmed where not heard, "Leave a review",
       late piano tail dropped) prepared on 2026-11-27 for the internal test,
       then production.
       The number after `+`
