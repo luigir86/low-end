@@ -1,6 +1,8 @@
 // Stopped, the ring keeps the note a touch on the hub will play outlined
 // (RF-ARM-19): selected for the screen reader, its name in bold. While
 // Harmony plays, the lit note says it instead.
+import 'dart:ui' show Tristate;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:low_end/app/app_navigation.dart';
 import 'package:low_end/app/home_shell.dart';
@@ -11,8 +13,6 @@ import 'package:low_end/audio/mic_input.dart';
 import 'package:low_end/audio/tone_output.dart';
 import 'package:low_end/features/harmony/drone_controller.dart';
 import 'package:low_end/features/harmony/harmony.dart';
-
-import 'dart:ui' show Tristate;
 
 import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
