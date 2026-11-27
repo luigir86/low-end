@@ -40,13 +40,6 @@ class MetronomeScreen extends StatelessWidget {
       listenable: metronome,
       builder: (context, _) => DialLayout(
         dial: _BeatRing(metronome: metronome),
-        header: Text(
-          l10n.tempoDialCaption,
-          textAlign: TextAlign.center,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
         // The upper row, two fields like the tuner's, chooses the bar: the time
         // signature and what fills each beat. The second only sets the tempo:
         // TAP, − + and the pencil.

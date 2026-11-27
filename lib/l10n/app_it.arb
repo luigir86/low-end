@@ -27,7 +27,6 @@
   "metronomeHint": "Tocca per avviare",
   "tempoDial": "Ghiera del tempo",
   "tempoDialHint": "Trascina in senso orario per aumentare il tempo; antiorario per diminuirlo",
-  "tempoDialCaption": "Ruota per il tempo",
   "bpmValue": "{bpm} BPM",
   "timeSignature": "Misura",
   "backgroundPlaying": "In riproduzione in background",

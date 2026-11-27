@@ -57,6 +57,13 @@ Testo ebano sul bronzo 7,5:1; avorio su ebano 15:1; bronzo sul disco 8,3:1; sche
 non scelte sull'ebano circa 6:1; verdetti sull'ebano tra 6,6:1 e 11:1.
 `test/theme_test.dart` controlla entrambi i temi.
 
+## Titoli delle sezioni
+
+Nelle Impostazioni e nei Brani d'esempio ogni sezione ha il titolo in avorio
+(il colore del testo) sopra un filo bronzo di 1 dp che sfuma nell'ebano, come
+il bordo della barra in basso (`lib/widgets/section_group.dart`). Scelto da
+Luigi il 27/11 al posto della banda bronzo piena con il testo ebano.
+
 ## Icona e avvio
 
 `flutter test tool/make_icons_test.dart` rigenera icone Android/PWA/store,

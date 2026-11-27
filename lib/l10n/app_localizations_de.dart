@@ -98,9 +98,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Im Uhrzeigersinn ziehen, um das Tempo zu erhöhen; gegen den Uhrzeigersinn, um es zu verringern';
 
   @override
-  String get tempoDialCaption => 'Drehen für das Tempo';
-
-  @override
   String bpmValue(String bpm) {
     return '$bpm BPM';
   }
