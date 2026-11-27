@@ -780,7 +780,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutTooltip.
   ///
   /// In en, this message translates to:
-  /// **'About Low End'**
+  /// **'About'**
   String get aboutTooltip;
 
   /// No description provided for @aboutLegalese.
@@ -1251,10 +1251,10 @@ abstract class AppLocalizations {
   /// **'Source code: {url}'**
   String aboutSource(String url);
 
-  /// Button in the About dialog (Android only) that opens Low End's page on Google Play, where stars and reviews are given. Never ask for a number of stars.
+  /// Last line of the settings (Android only) that opens Low End's page on Google Play, where stars and reviews are given. Never ask for a number of stars.
   ///
   /// In en, this message translates to:
-  /// **'Rate Low End on Google Play'**
+  /// **'Leave a review'**
   String get aboutRate;
 
   /// No description provided for @subdivisionQuarters.
