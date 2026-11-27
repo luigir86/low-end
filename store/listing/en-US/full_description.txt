@@ -2,11 +2,12 @@ Low End gives you a band to practise with. Pick a key and a progression and a re
 
 HARMONY: YOUR PIANO PLAYER
 • Twelve keys on a dial: touch a note and it plays on a real grand piano, recorded in stereo, in time with the metronome.
-• Nine progressions, from the easiest, for pop and rock, blues and jazz: I–VI–IV–V, I–V–VI–IV, the Andalusian cadence, the twelve-bar blues (major and minor), II–V–I (major and minor), I–VI–II–V and the circle of fifths. One chord per bar, in any key, with the Roman numerals on the keys.
+• Nine progressions, from the easiest, for pop and rock, blues and jazz: I–VI–IV–V, I–V–VI–IV, the Andalusian cadence, the twelve-bar blues (major and minor), II–V–I (major and minor), I–VI–II–V and the circle of fifths, in any key.
+• The centre reads like a lead sheet: the chord in large signs (D−7, G7, CΔ7) and the whole progression in Roman numerals, with the bar that is playing lit.
 • Example songs (Stand by Me, Sweet Home Chicago, Blue Bossa, Autumn Leaves and more) set the key, the progression, the tempo and the piano style in one tap.
 • Four ways to play: chords held for the bar, struck on every beat, arpeggiated, or a walking bass: a jazz line on a plucked double bass, with the piano comping lightly above it.
 • Or a single chord to hold (nine kinds, from major to sus4), the note alone, or a held tone instead of the piano.
-• Start the harmony while the click is running and it comes in on the next bar, with a countdown on the dial. Change song or style while it plays and the new one comes in on the "one" of the next bar, as in a band.
+• Start it while the click runs and it comes in on the next bar, after a countdown. Change song or style while it plays: the new one starts on the next "one", as in a band.
 
 METRONOME
 • Tempo from 30 to 250 BPM: turn the outer dial, type it with the pencil, hold − or + to run through it, or use TAP.

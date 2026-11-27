@@ -91,7 +91,7 @@ marks anything that cannot be confirmed from the code.
       `flutter test test_screenshots/store_screenshots_test.dart --update-goldens`
       only if the UI changes (five per language since 1.6.0, the fifth the
       Player). TO VERIFY by eye that all screenshots (en, it, es, fr)
-      match the final UI.
+      match the final UI (German too).
 - [ ] Privacy policy URL: Play needs a public URL. `PRIVACY.md` is in the
       repository; TO VERIFY that the repository (or a published page) is
       public and that the URL is entered in Play Console.
@@ -108,8 +108,9 @@ Consistent with PRIVACY.md and the code (to be filled in by the owner):
   own Save or Share: answer "no data collected".
 - No accounts, no analytics, no ads, no crash reporting, no network.
 - Settings kept in the app's own storage, removed with the app.
-- Two links open outside the app (source code, the orchestra's Instagram);
-  they leave the app through the browser and send nothing from the app.
+- Three links open outside the app (source code, the orchestra's Instagram,
+  Low End's Google Play page to rate it, Android only); they leave the app
+  through the browser or the Play Store and send nothing from the app.
 
 ## 6. Pre-upload checks
 

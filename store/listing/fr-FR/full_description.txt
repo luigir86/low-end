@@ -1,15 +1,16 @@
-Low End vous donne un groupe avec qui travailler. Choisissez une tonalité et une progression et un vrai piano à queue la joue pour vous, en rythme avec un métronome, pendant que vous jouez par-dessus : gammes, improvisation, votre partie d’un morceau ou l’oreille. De la pop au blues et aux standards de jazz, avec une contrebasse en walking. Un accordeur chromatique et un lecteur pour vos propres morceaux la complètent. Créée par un contrebassiste amateur en pensant aux amis de l’orchestre, elle est utile à tous ceux qui jouent. Elle est gratuite, sans publicité, sans compte et fonctionne entièrement hors ligne.
+Low End vous donne un groupe avec qui travailler. Choisissez une tonalité et une progression et un vrai piano à queue la joue pour vous, en rythme avec un métronome, pendant que vous jouez par-dessus : gammes, improvisation, votre partie d’un morceau ou l’oreille. De la pop au blues et aux standards de jazz, avec une contrebasse en walking. Un accordeur chromatique et un lecteur pour vos propres morceaux la complètent. Créée par un contrebassiste amateur pour les amis de l’orchestre, elle sert à tous ceux qui jouent. Elle est gratuite, sans publicité, sans compte et fonctionne entièrement hors ligne.
 
 HARMONIE : VOTRE PIANISTE
 • Douze tonalités sur un cercle : touchez une note et elle sonne sur un vrai piano à queue en rythme avec le métronome.
-• Neuf progressions pour la pop et le rock, le blues et le jazz : I–VI–IV–V, I–V–VI–IV, la cadence andalouse, le blues de douze mesures (majeur et mineur), II–V–I (majeur et mineur), I–VI–II–V et le cycle des quintes. Un accord par mesure, dans toutes les tonalités, avec les chiffres romains sur les notes.
+• Neuf progressions pour la pop et le rock, le blues et le jazz : I–VI–IV–V, I–V–VI–IV, la cadence andalouse, le blues de douze mesures (majeur et mineur), II–V–I (majeur et mineur), I–VI–II–V et le cycle des quintes, dans toutes les tonalités.
+• Le centre se lit comme une partition : l’accord chiffré en grand (Ré−7, Sol7, DoΔ7) et toute la grille en chiffres romains, mesure jouée en surbrillance.
 • Des morceaux d’exemple (Stand by Me, Blue Bossa, Autumn Leaves…) règlent la tonalité, la progression, le tempo et le style du piano d’un seul geste.
 • Quatre façons de jouer : accords tenus sur la mesure, frappés à chaque temps, arpégés, ou une walking bass : une ligne de jazz sur une contrebasse en pizzicato, le piano accompagnant légèrement.
 • Ou un seul accord tenu (neuf types, de majeur à sus4), la note seule, ou un son tenu à la place du piano.
-• Lancée pendant le clic, l’harmonie entre à la mesure suivante, avec un décompte sur le cercle. Changez de morceau ou de style en jouant : le nouveau entre sur le « un » de la mesure suivante, comme dans un groupe.
+• Lancée pendant le clic, elle entre à la mesure suivante, après un décompte. Changez de morceau ou de style en jouant : le nouveau entre sur le « un » suivant, comme dans un groupe.
 
 MÉTRONOME
-• Tempo de 30 à 250 BPM : tournez l’anneau extérieur, saisissez-le avec le crayon, maintenez − ou + pour le faire défiler, ou utilisez TAP.
+• Tempo de 30 à 250 BPM : tournez l’anneau extérieur, saisissez-le avec le crayon, maintenez − ou +, ou utilisez TAP.
 • Mesures 1/1, 2/4, 3/4, 4/4, 5/4, 6/8, 7/8, 9/8 et 12/8, avec les temps groupés comme vous les comptez.
 • Un anneau qui s’allume temps par temps et un clic court et sec. Subdivisions en croches, triolets, doubles croches et swing, ou un clic sur 2 et 4 seulement.
 
@@ -20,9 +21,9 @@ ACCORDEUR
 • La de référence : chaque hertz de 415 à 445. Le son est analysé sur le téléphone et jamais enregistré.
 
 ÉCOUTE : TRAVAILLEZ VOS MORCEAUX
-• Ouvrez un morceau du téléphone (MP3, M4A, WAV, FLAC…) et déplacez-vous sur sa forme d’onde autour du cercle.
-• Ralentissez-le jusqu’à 50 % ou accélérez-le jusqu’à 125 % sans changer la hauteur.
-• Marquez A et B pour boucler un passage, puis faites glisser les poignées A et B pour l’ajuster.
+• Ouvrez un morceau du téléphone (MP3, M4A, WAV, FLAC…) et naviguez sur sa forme d’onde autour du cercle.
+• De 50 % à 125 % de la vitesse, sans changer la hauteur.
+• Marquez A et B pour boucler un passage, puis ajustez-le avec les poignées.
 • Enregistrez-vous avec REC, sur le clic, réécoutez, puis enregistrez ou partagez la prise.
 
 FAITE POUR JOUER
@@ -34,6 +35,6 @@ FAITE POUR JOUER
 
 PRIVÉE ET OUVERTE
 • Pas de compte, pas de publicité, pas de pistage, pas d’internet.
-• Le micro n’est utilisé que lorsque l’accordeur est à l’écran ou pendant un enregistrement. Une prise ne quitte le téléphone que si vous l’enregistrez ou la partagez.
+• Le micro ne sert que lorsque l’accordeur est à l’écran ou pendant un enregistrement. Une prise ne quitte le téléphone que si vous l’enregistrez ou la partagez.
 • Logiciel libre et open source sous licence MIT : https://github.com/luigir86/low-end
 • Sons : Salamander Grand Piano d’Alexander Holm, contrebasse Meatbass de Karoryfer Lecolds (domaine public).
