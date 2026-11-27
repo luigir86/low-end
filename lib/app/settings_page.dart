@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 import 'package:material_ui/material_ui.dart';
 
 import '../audio/audio_scope.dart';
@@ -294,6 +296,25 @@ class SettingsPage extends StatelessWidget {
                 title: Text(l10n.aboutTooltip),
                 onTap: () => showLowEndAbout(context),
               ),
+              // The way to the stars on Google Play, last of the settings and
+              // not hidden in About (27 November 2026). Only the Android app is
+              // on Google Play; the web app has no store.
+              if (!kIsWeb)
+                ListTile(
+                  key: const Key('rateLink'),
+                  leading: Icon(
+                    Icons.star_outline,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  title: Text(l10n.aboutRate),
+                  // It leaves the app for the store.
+                  trailing: Icon(
+                    Icons.open_in_new,
+                    size: 18,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  onTap: () => openLink(playStoreUrl),
+                ),
             ],
           );
         },

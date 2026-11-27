@@ -501,7 +501,7 @@ class AppActions {
       description:
           "Opens Low End's page on Google Play, where the person can give "
           'stars and write a review, as the "Rate Low End on Google Play" '
-          'button in About does. Only the person rates: never suggest a '
+          'line at the end of the settings does. Only the person rates: never suggest a '
           'number of stars. Android only; the web app is not on Google Play '
           'and answers with an error.',
     ),
