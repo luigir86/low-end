@@ -74,6 +74,7 @@ New personal developer accounts must run a **closed test with at least 12 tester
 
 ## Updating the listing
 
+- To send texts and images to Play without publishing them: Actions > **Store listing** ([docs/play-release.md](../docs/play-release.md)).
 - Texts are in `store/listing/<locale>/`: title (30 characters at most), short description (80), full description (4000), release notes (500). They describe the app for every musician; the double bass appears only in the line saying who made it.
 - Feature graphics: change the line in `tool/feature_graphic_text_test.dart` and run `flutter test tool/feature_graphic_text_test.dart`.
 - Phone screenshots (1156 × 2312): `flutter test test_screenshots/store_screenshots_test.dart --update-goldens` writes them into `store/graphics/phone/<locale>/`.

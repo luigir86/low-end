@@ -28,6 +28,29 @@ The workflow stops before uploading when a test fails, a secret is missing, a
 release note is longer than 500 characters, or the bundle is not signed. Play
 itself refuses a versionCode it already has.
 
+## The store listing (texts and images)
+
+`.github/workflows/store-listing.yml` ("Store listing") sends what is in
+`store/` to Play: title, short and full description, phone screenshots and
+feature graphic, in the five languages (`tool/play_listing.mjs`). It never
+publishes. GitHub > **Actions** > **Store listing** > **Run workflow**, branch
+`main`, *mode*:
+
+- `validate`: uploads everything into a Play "edit", lets Play check it,
+  then throws the edit away. Nothing changes on Play. Run it first.
+- `draft`: commits the edit with `changesNotSentForReview`: the new
+  listing waits in Play Console (*Publishing overview*, "Changes not yet sent
+  for review") until the owner presses **Send for review**. If Play answers
+  that the changes would be sent automatically, nothing is committed.
+- `managed`: commits it plainly. Use it only with **Managed publishing**
+  on (Play Console > *Publishing overview*), where every change waits for
+  **Publish changes**.
+
+The service account needs one more permission for this: Play Console >
+*Users and permissions* > the service account > Low End > **Manage store
+presence** (*Store presence* section). Release notes still travel with the
+bundle (Release Play), not with this workflow.
+
 ## One-time setup (owner only)
 
 ### 1. A service account that can upload

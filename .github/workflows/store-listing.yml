@@ -1,0 +1,39 @@
+name: Store listing
+
+# Sends the Play listing in store/ (texts, phone screenshots, feature
+# graphics, five languages) to Google Play WITHOUT publishing it: "validate"
+# only lets Play check it, "draft" leaves the changes waiting in Play Console
+# until the owner sends them for review. Started by hand only. Details:
+# docs/play-release.md.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '"validate" = check only, nothing changes; "draft" = waits in Play Console for "Send for review"; "managed" = only with Managed publishing on'
+        type: choice
+        options: [validate, draft, managed]
+        default: validate
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-play
+  cancel-in-progress: false
+
+jobs:
+  listing:
+    # Only from main: what Play gets is what was merged.
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      # No packages are installed: the script uses only Node itself.
+      - name: Send the listing (${{ inputs.mode }})
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: node tool/play_listing.mjs "${{ inputs.mode }}"
