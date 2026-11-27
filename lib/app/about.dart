@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -54,17 +53,6 @@ void showLowEndAbout(BuildContext context) {
           label: Text(l10n.aboutSource(sourceCodeUrl)),
         ),
       ),
-      // Only the Android app is on Google Play; the web app has no store.
-      if (!kIsWeb)
-        Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: TextButton.icon(
-            key: const Key('rateLink'),
-            onPressed: () => openLink(playStoreUrl),
-            icon: const Icon(Icons.star_outline, size: 18),
-            label: Text(l10n.aboutRate),
-          ),
-        ),
     ],
   );
 }

@@ -661,9 +661,38 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('View licenses'), findsOneWidget);
-    // The way to the stars on Google Play: a plain link, no number asked.
-    expect(find.byKey(const Key('rateLink')), findsOneWidget);
+    // The way to the stars is no longer hidden here: it is in the settings.
+    expect(
+      find.descendant(
+        of: find.byType(AboutDialog),
+        matching: find.text('Rate Low End on Google Play'),
+      ),
+      findsNothing,
+    );
+  });
+
+  testWidgets('Rate Low End is the last line of the settings', (tester) async {
+    await tester.pumpWidget(
+      LowEndApp(
+        toneOutput: SilentToneOutput(),
+        micInput: FakeMicInput(),
+        settings: _onMetronome(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.tooltip('Settings'));
+    await tester.pumpAndSettle();
+    final rate = find.byKey(const Key('rateLink'));
+    await tester.scrollUntilVisible(rate, 100);
+    await tester.pumpAndSettle();
+    // The way to the stars on Google Play: a plain link, no number asked,
+    // under the guide and About, in that order.
     expect(find.text('Rate Low End on Google Play'), findsOneWidget);
+    final guide = tester.getTopLeft(find.text('Gestures and shortcuts')).dy;
+    final about = tester.getTopLeft(find.text('About Low End')).dy;
+    expect(guide, lessThan(about));
+    expect(about, lessThan(tester.getTopLeft(rate).dy));
   });
 
   testWidgets('the notification says what plays and follows the tempo', (
