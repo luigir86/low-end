@@ -1,6 +1,6 @@
 # Third-party components
 
-Low End itself is released under the [MIT License](LICENSE). It is built with the open-source components below. All of them are permissive licences (MIT, BSD, Apache-2.0, zlib, public domain) that allow free use and redistribution, including in a free app on Google Play. The full text of each licence ships with the app: **Settings → About Low End → View licences** lists every Flutter and Dart package, the two fonts and the piano and double bass recordings; the files named below hold the texts of the native parts.
+Low End itself is released under the [MIT License](LICENSE). It is built with the open-source components below. All of them are permissive licences (MIT, BSD, Apache-2.0, zlib, public domain) that allow free use and redistribution, including in a free app on Google Play. The full text of each licence ships with the app: **Settings → About → View licences** lists every Flutter and Dart package, the two fonts and the piano and double bass recordings; the files named below hold the texts of the native parts.
 
 Exact versions of every package are in [pubspec.lock](pubspec.lock). Keep this file in step with `pubspec.yaml` when a dependency is added or removed.
 
