@@ -9,7 +9,7 @@ Exact versions of every package are in [pubspec.lock](pubspec.lock). Keep this f
 | Component | Version | Used for | Licence |
 | --- | --- | --- | --- |
 | [Flutter](https://flutter.dev) (framework and engine) | 3.50 | The whole app | BSD-3-Clause |
-| [flutter_soloud](https://pub.dev/packages/flutter_soloud) | 5.3.2 | Audio engine: metronome, drone, piano | MIT |
+| [flutter_soloud](https://pub.dev/packages/flutter_soloud) | 5.4.0 | Audio engine: metronome, drone, piano | MIT |
 | [record](https://pub.dev/packages/record) (+ `record_android`) | 7.2.0 | Microphone for the tuner and the Player's recordings | BSD-3-Clause |
 | [just_audio](https://pub.dev/packages/just_audio) (+ `just_audio_web`, `just_audio_platform_interface`) | 0.10.6 | The Player: plays the person's own audio files (ExoPlayer on Android, the browser's audio element on the web) | MIT |
 | [audio_service](https://pub.dev/packages/audio_service) (+ `audio_session`, `rxdart`) | 0.18.19 | Playing with the screen off, media notification | MIT (`rxdart`: Apache-2.0) |
