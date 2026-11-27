@@ -590,6 +590,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get progressionBluesShort => 'Blues';
 
   @override
+  String barOfBars(int bar, int count) {
+    return 'Takt $bar von $count';
+  }
+
+  @override
   String keyLine(String progression, String key) {
     return '$progression in $key';
   }
@@ -646,8 +651,8 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die römischen Zahlen nennen die Stufe der Tonart, auf der jeder Akkord steht. Tippe eine auf dem Kreis an, um sie hier zu lesen.';
 
   @override
-  String get legendDots =>
-      'Die Punkte sind die Takte der Akkordfolge: Der gefüllte ist der klingende Akkord.';
+  String get legendBars =>
+      'In der Mitte stehen die Takte der Akkordfolge als römische Ziffern, in Reihen zu vier wie auf einem Leadsheet: Der fett gedruckte ist der klingende Takt.';
 
   @override
   String get songsTitle => 'Beispielstücke';

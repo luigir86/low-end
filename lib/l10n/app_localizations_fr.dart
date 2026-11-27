@@ -589,6 +589,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get progressionBluesShort => 'Blues';
 
   @override
+  String barOfBars(int bar, int count) {
+    return 'Mesure $bar sur $count';
+  }
+
+  @override
   String keyLine(String progression, String key) {
     return '$progression en $key';
   }
@@ -645,8 +650,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les chiffres romains indiquent le degré de la tonalité sur lequel chaque accord est construit. Touchez-en un sur le cercle pour le lire ici.';
 
   @override
-  String get legendDots =>
-      'Les points sont les mesures de la progression : le point plein est l’accord qui sonne.';
+  String get legendBars =>
+      'Au centre, les chiffres romains sont les mesures de la progression, par lignes de quatre comme sur une partition : celui en gras est la mesure qui sonne.';
 
   @override
   String get songsTitle => 'Morceaux d’exemple';

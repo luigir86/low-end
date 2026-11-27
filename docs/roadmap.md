@@ -28,7 +28,8 @@ Regole:
    - Ogni mese i dati per paese in Play Console (installazioni, disinstallazioni, voti): le nuove lingue si scelgono da lì, non a intuito.
    - Il credito Google Ads (circa 400 €) aspetta la versione corretta e le prime recensioni; poi una prova piccola, in due o tre paesi, con un budget giornaliero basso, misurando costo per installazione e chi resta dopo una settimana.
 5. **Revisione madrelingua di spagnolo, francese e tedesco**, prima della 1.8: un foglio con le frasi in inglese, spagnolo, francese e tedesco e le schermate, per tester madrelingua (anche a pagamento) o, meglio, musicisti. Il tedesco (testi dell'app, nomi delle note C D E … H con B = Si♭, "C-Dur" e "a-Moll", scheda Play de-DE e schermate) è stato aggiunto il 26 novembre 2026 su richiesta di Luigi e parte con la prossima release raggruppata, dopo questa revisione.
-6. **Brani e giri (1.8)**, finito il consolidamento: prima P0, il giro come dato, da solo e con i test; poi l'anello delle battute, "I miei brani" e la condivisione di un brano. A ogni passo grande, una prova con un musicista che non conosce l'app.
+6. **Armonia: il giro al centro come uno spartito** (deciso da Luigi il 27/11, RF-ARM-18): radice ferma, nome del giro, numeri romani di tutto il giro al posto dei pallini. Prova sul telefono (anche testo grande), poi esce con il prossimo rilascio raggruppato.
+7. **Brani e giri (1.8)**, finito il consolidamento: prima P0, il giro come dato, da solo e con i test; poi l'anello delle battute (che toglie dal centro la griglia dei numeri romani), "I miei brani" e la condivisione di un brano. A ogni passo grande, una prova con un musicista che non conosce l'app.
 
 ## Idee, non ora
 

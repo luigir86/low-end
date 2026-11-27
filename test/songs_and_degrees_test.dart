@@ -100,6 +100,56 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('a progression is written bar by bar in rows of four, the '
+      'bar playing in bold', (tester) async {
+    final scope = await _launch(tester, portrait: true);
+    final semantics = tester.ensureSemantics();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.tooltip('Harmony'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    scope.drone
+      ..setVoicing(DroneVoicing.progression)
+      ..setProgression(Progression.blues);
+    await scope.drone.tapNote(5);
+    await tester.pump(const Duration(milliseconds: 500));
+    // Which progression, and the twelve bars as three rows of four.
+    expect(find.text('Blues in F'), findsOneWidget);
+    for (final row in ['I–I–I–I', 'IV–IV–I–I', 'V–IV–I–V']) {
+      expect(find.text(row, findRichText: true), findsOneWidget);
+    }
+    // The bar playing is the one in bold, and is said in words.
+    final bold = <String>[];
+    tester
+        .widget<RichText>(find.text('I–I–I–I', findRichText: true))
+        .text
+        .visitChildren((span) {
+          if (span is TextSpan && span.style?.fontWeight == FontWeight.w700) {
+            bold.add(span.text ?? '');
+          }
+          return true;
+        });
+    expect(bold, ['I']);
+    expect(
+      tester.getSemantics(find.text('I–I–I–I', findRichText: true)).label,
+      allOf(contains('Bar 1 of 12'), isNot(contains('I–I'))),
+    );
+
+    // A progression named by its numerals says only its key: the numerals
+    // are written just below.
+    scope.drone.setProgression(Progression.twoFiveOne);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('II–V–I–VI', findRichText: true), findsOneWidget);
+    expect(find.textContaining('II–V–I in'), findsNothing);
+    expect(find.text('F major'), findsOneWidget);
+    await scope.drone.stop();
+    await tester.pumpAndSettle();
+    semantics.dispose();
+  });
+
   testWidgets('the key is written out and a numeral says its degree', (
     tester,
   ) async {

@@ -148,7 +148,7 @@ class _KeySheet extends StatelessWidget {
         swatch(colors.outlineVariant, l10n.legendInKey, border: colors.outline),
         swatch(Color.lerp(disc, colors.surface, 0.6)!, l10n.legendOutOfKey),
         note(l10n.legendNumerals),
-        note(l10n.legendDots),
+        note(l10n.legendBars),
         const SizedBox(height: 16),
       ],
     );

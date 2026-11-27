@@ -583,6 +583,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get progressionBluesShort => 'Blues';
 
   @override
+  String barOfBars(int bar, int count) {
+    return 'Bar $bar of $count';
+  }
+
+  @override
   String keyLine(String progression, String key) {
     return '$progression in $key';
   }
@@ -639,8 +644,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'The Roman numerals give the degree of the key each chord is built on. Tap one on the circle to read it here.';
 
   @override
-  String get legendDots =>
-      'The dots are the bars of the progression: the filled one is the chord sounding.';
+  String get legendBars =>
+      'In the middle, the Roman numerals are the bars of the progression, in rows of four as on a lead sheet: the bold one is the bar sounding.';
 
   @override
   String get songsTitle => 'Example songs';

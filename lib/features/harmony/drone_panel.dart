@@ -13,7 +13,6 @@ import '../../audio/pitch.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/choice_menu.dart';
 import '../../widgets/dial.dart';
-import '../../widgets/page_dots.dart';
 import '../../widgets/row_controls.dart';
 import '../../widgets/style_icons.dart';
 import '../metronome/tempo_dialog.dart';
@@ -598,51 +597,116 @@ class _DialCenterState extends State<_DialCenter> {
       );
     }
     final inProgression = drone.voicing == DroneVoicing.progression;
+    // Every line stays on one line, and the hub shrinks as a whole when the
+    // widest is too wide (large text, a long name): all lines keep their
+    // sizes to each other, nothing breaks in two or is cut at the circle.
     return Semantics(
       liveRegion: true,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // The name alone: Harmony always plays the root in the same
-          // octave, so a number would say nothing (and the walking bass and
-          // the piano sound in other octaves). A note alone shows its hertz.
-          if (chord == null)
-            Text(rootName, style: noteStyle, textAlign: TextAlign.center)
-          else
-            // A chord is written once, big, as on a lead sheet: "Sol⁷",
-            // not the root and then the chord again in small letters.
-            _ChordSign(
-              note: rootName,
-              suffix: chordSuffix(chord.quality),
-              spoken: chordSymbol(chord, rootName, names),
-              style: noteStyle,
-            ),
-          // The chord written out: Si Re Fa♯. Its root's frequency would
-          // mislead, so the hertz are only for a note alone.
-          if (chord != null)
-            Text(
-              _chordNotes(chord, drone.rootLetter, names).join(' '),
-              textAlign: TextAlign.center,
-              style: muted,
-            )
-          else
-            Text(
-              l10n.frequencyHz(decimalText(l10n, drone.frequency)),
-              style: muted,
-            ),
-          if (inProgression) ...[
-            if (keyText != null)
-              Text(keyText, textAlign: TextAlign.center, style: muted),
-            const SizedBox(height: 6),
-            PageDots(
-              count: drone.progression.steps.length,
-              current: drone.step,
-              // Twelve bars of blues need smaller dots to fit.
-              size: drone.progression.steps.length > 6 ? 7 : 10,
-            ),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // The name alone: Harmony always plays the root in the same
+            // octave, so a number would say nothing (and the walking bass
+            // and the piano sound in other octaves). A note alone shows its
+            // hertz.
+            if (chord == null)
+              Text(rootName, style: noteStyle, textAlign: TextAlign.center)
+            else
+              // A chord is written once, big, as on a lead sheet: "Sol⁷",
+              // not the root and then the chord again in small letters.
+              _ChordSign(
+                note: rootName,
+                suffix: chordSuffix(chord.quality),
+                spoken: chordSymbol(chord, rootName, names),
+                style: noteStyle,
+              ),
+            // The chord written out: Si Re Fa♯. Its root's frequency would
+            // mislead, so the hertz are only for a note alone.
+            if (chord != null)
+              Text(
+                _chordNotes(chord, drone.rootLetter, names).join(' '),
+                textAlign: TextAlign.center,
+                style: muted,
+              )
+            else
+              Text(
+                l10n.frequencyHz(decimalText(l10n, drone.frequency)),
+                style: muted,
+              ),
+            if (inProgression) ...[
+              // Which progression: "Blues in Fa". A progression named by its
+              // numerals shows only the key ("Do minore"): the numerals are
+              // in the bars just below.
+              Text(
+                hubKeyLine(l10n, drone, names),
+                textAlign: TextAlign.center,
+                style: muted,
+              ),
+              const SizedBox(height: 6),
+              _BarGrid(
+                numerals: [for (final s in drone.progression.steps) s.numeral],
+                current: drone.step,
+              ),
+            ],
           ],
-        ],
+        ),
       ),
+    );
+  }
+}
+
+/// The whole progression in Roman numerals, in rows of four bars as a lead
+/// sheet is written (twelve-bar blues as three phrases of four), the bar
+/// playing in the ink of the text and bold: where you are, and what comes.
+/// Every row in the same muted ink, so that only the bar playing stands out.
+class _BarGrid extends StatelessWidget {
+  const _BarGrid({required this.numerals, required this.current});
+
+  static const perRow = 4;
+
+  final List<String> numerals;
+  final int current;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final muted = theme.textTheme.bodyMedium?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    final playing = muted?.copyWith(
+      color: theme.colorScheme.onSurface,
+      fontWeight: FontWeight.w700,
+    );
+    final rows = <Widget>[];
+    for (var from = 0; from < numerals.length; from += perRow) {
+      final to = math.min(from + perRow, numerals.length);
+      rows.add(
+        Text.rich(
+          TextSpan(
+            children: [
+              for (var i = from; i < to; i++) ...[
+                if (i > from) const TextSpan(text: '–'),
+                TextSpan(
+                  text: numerals[i],
+                  style: i == current ? playing : null,
+                ),
+              ],
+            ],
+          ),
+          textAlign: TextAlign.center,
+          style: muted,
+        ),
+      );
+    }
+    // Heard as "Bar 6 of 12": the numerals read aloud letter by letter
+    // would say nothing, and the chord is already said above.
+    return Semantics(
+      label: l10n.barOfBars(current + 1, numerals.length),
+      excludeSemantics: true,
+      child: Column(mainAxisSize: MainAxisSize.min, children: rows),
     );
   }
 }
@@ -667,33 +731,40 @@ class _ChordSign extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final suffixStyle = theme.textTheme.headlineSmall?.copyWith(
+      fontWeight: FontWeight.w700,
+      color: style?.color,
+    );
+    // As wide as the raised sign, measured as it will be drawn.
+    final reserve = suffix.isEmpty
+        ? 0.0
+        : (TextPainter(
+                text: TextSpan(text: suffix, style: suffixStyle),
+                textDirection: Directionality.of(context),
+                textScaler: MediaQuery.textScalerOf(context),
+              )..layout()).width +
+              1;
     return Semantics(
       label: spoken,
       excludeSemantics: true,
-      child: Text.rich(
-        TextSpan(
-          children: [
-            TextSpan(text: note),
-            if (suffix.isNotEmpty)
-              WidgetSpan(
-                alignment: PlaceholderAlignment.top,
-                // Down to the height of the root's capitals, from the top
-                // of its line, which leaves room for accents above them.
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 8, left: 1),
-                  child: Text(
-                    suffix,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: style?.color,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-        style: style,
-        textAlign: TextAlign.center,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // The root stays on the axis of the lines below, whatever chord
+          // it carries: Re, Re−7 and Re7 all start their root in the same
+          // place. An empty space as wide as the sign on the left keeps it
+          // centred, and keeps the sign inside the width the hub measures.
+          SizedBox(width: reserve),
+          Text(note, style: style),
+          if (suffix.isNotEmpty)
+            // Down to the height of the root's capitals, from the top of its
+            // line, which leaves room for accents above them.
+            Padding(
+              padding: const EdgeInsets.only(top: 8, left: 1),
+              child: Text(suffix, style: suffixStyle),
+            ),
+        ],
       ),
     );
   }
